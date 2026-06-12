@@ -23,7 +23,7 @@ import VotarShortcutsFooter from '../features/votar/components/VotarShortcutsFoo
 import VotarTopBar from '../features/votar/components/VotarTopBar'
 import VoteArena from '../features/votar/components/VoteArena'
 import VoteResultPanel from '../features/votar/components/VoteResultPanel'
-import VoteStreakBadge from '../features/votar/components/VoteStreakBadge'
+import SessionStreakCounter from '../features/votar/components/SessionStreakCounter'
 import { useMisEspeciales } from '../hooks/useCartas'
 import VotarQuickModes from '../features/votar/components/VotarQuickModes'
 import { useFixedDuelParams } from '../features/votar/hooks/useFixedDuelParams'
@@ -42,6 +42,15 @@ import { formatPersonalVoteImpact, formatVoteScore } from '../features/votar/vot
 import { incrementarContadorLocalVotos } from '../features/votar/vote-local-counter'
 import { getArenaDescription, getArenaStatusLabel } from '../features/votar/arena-labels'
 import { VOTO_REGISTRADO_EVENT, emitAppEvent } from '../lib/app-events'
+
+// Suscripción imperativa del contador de racha al evento de voto de la casa
+// (identidad estable a nivel de módulo: el contador se monta UNA vez y
+// escucha — cero estado React por voto).
+const subscribeVotosSesion = (listener) => {
+  const handler = () => listener()
+  window.addEventListener(VOTO_REGISTRADO_EVENT, handler)
+  return () => window.removeEventListener(VOTO_REGISTRADO_EVENT, handler)
+}
 
 // Claves y tiempo de vida para el prefetch del siguiente par.
 // gcTime de 8s: suficiente para que el usuario vea el resultado y avance.
@@ -516,6 +525,8 @@ function VotarPage() {
         votosGanador: data?.votosGanador ?? null,
         votosPerdedor: data?.votosPerdedor ?? null,
       })
+      // El empate también es un voto de la sesión (racha + oyentes).
+      emitAppEvent(VOTO_REGISTRADO_EVENT, { empate: true })
       if (!fastModeRef.current || data?.anonimo) {
         toast.success('Empate registrado', {
           description: data?.votosGanador != null && a && b
@@ -867,7 +878,15 @@ function VotarPage() {
             ownsEspecialA={Boolean(a?.slug && misEspeciales?.has(a.slug))}
             ownsEspecialB={Boolean(b?.slug && misEspeciales?.has(b.slug))}
           />
-          <VoteStreakBadge total={sessionStats.total} />
+          {/* Contador 連 de la racha de sesión: overlay de la esquina, montado
+              UNA vez fuera del key del par — escucha el evento de voto por
+              suscripción imperativa y jamás re-renderiza la arena. El inset
+              extra deja sitio al ensō (sobresale ~0.7em del numeral). */}
+          <SessionStreakCounter
+            subscribe={subscribeVotosSesion}
+            onMilestone={() => play('playStreakHito')}
+            className="pointer-events-none absolute -top-2 right-1 z-30 sm:right-2"
+          />
         </div>
 
         {tieSelected && a && b && (

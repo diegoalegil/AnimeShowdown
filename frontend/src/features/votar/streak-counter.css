@@ -1,0 +1,127 @@
+/* ====================================================================
+   SessionStreakCounter — racha de sesión en la arena (連)
+   Pegar tal cual en frontend/src/index.css (CSP por hash: nada de
+   <style> en runtime). Solo se ANIMAN transform/opacity; el salto de
+   font-size por hito (+1pt) es un cambio puntual, nunca una animación.
+   ==================================================================== */
+
+.streak-counter {
+  pointer-events: none;
+  user-select: none;
+  opacity: 1;
+  /* destino "live": también es la vuelta del despertar — corta, sin drama */
+  transition: opacity 180ms var(--ease-lift);
+}
+.streak-counter[data-state='empty'] {
+  opacity: 0;
+}
+/* brasa: 30s sin votar */
+.streak-counter[data-state='ember'] {
+  opacity: 0.4;
+  transition: opacity 2000ms ease;
+}
+/* sueño: 2min sin votar — se apaga, NO se resetea */
+.streak-counter[data-state='asleep'] {
+  opacity: 0;
+  transition: opacity 1800ms ease;
+}
+
+/* kill-switch de 2 frames para restaurar sesión / volver de pestaña
+   oculta sin animar (lo pone y quita el componente) */
+.streak-counter--no-anim,
+.streak-counter--no-anim * {
+  transition: none !important;
+  animation: none !important;
+}
+
+.streak-counter__visual {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+
+.streak-counter__kanji {
+  font-family: var(--font-kanji-serif);
+  font-size: 15px;
+  line-height: 1;
+  color: var(--color-gold);
+  opacity: 0.85;
+}
+
+/* el font-size vive en el wrap: numeral, ensō y hairline escalan juntos
+   con el punto tipográfico que sube en cada hito */
+.streak-counter__num-wrap {
+  position: relative;
+  display: grid;
+  place-items: center;
+  min-width: 1.6em;
+  font-size: 21pt;
+}
+.streak-counter[data-tier='1'] .streak-counter__num-wrap { font-size: 22pt; }
+.streak-counter[data-tier='2'] .streak-counter__num-wrap { font-size: 23pt; }
+.streak-counter[data-tier='3'] .streak-counter__num-wrap { font-size: 24pt; }
+
+.streak-counter__num {
+  font-family: var(--font-mono);
+  font-size: 1em;
+  font-weight: 800;
+  line-height: 1;
+  color: var(--color-fg-strong);
+  font-variant-numeric: tabular-nums;
+  transform-origin: 50% 55%;
+  will-change: transform;
+}
+
+/* hairline dorada bajo el numeral; su parpadeo (WAAPI, opacity) es el
+   "tick sutil" de cada voto */
+.streak-counter__tick {
+  position: absolute;
+  left: 14%;
+  right: 14%;
+  bottom: -0.34em;
+  height: 1px;
+  background: var(--color-gold);
+  opacity: 0.35;
+}
+
+/* ensō — UN path con pathLength=1; el alto es fijo (2.35em) y el ancho
+   sigue al numeral (preserveAspectRatio="none"): con 3+ cifras el círculo
+   se ovala como un maru de corrección, intencional.
+   vector-effect: non-scaling-stroke mantiene el grosor del pincel. */
+.streak-counter__enso {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: calc(100% + 1.45em);
+  height: 2.35em;
+  transform: translate(-50%, -50%);
+  overflow: visible;
+}
+.streak-counter__enso-path {
+  fill: none;
+  stroke: var(--color-gold);
+  stroke-width: 4px;
+  stroke-linecap: round;
+  stroke-dasharray: 1;
+  stroke-dashoffset: 1; /* oculto hasta que el hito lo traza */
+  opacity: 0;
+}
+.streak-counter__enso-path.is-traced {
+  opacity: 1;
+}
+/* tras la ceremonia, el anillo queda como tinta en reposo */
+.streak-counter__enso-path.is-resting {
+  opacity: 0.3;
+  transition: opacity 1100ms ease 350ms;
+}
+/* segundo trazo del hito 50 (mismo path, rotate(11°) desde el JSX) */
+.streak-counter__enso-path--double {
+  stroke-width: 2.5px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .streak-counter,
+  .streak-counter__enso-path.is-resting {
+    transition: none;
+  }
+}
