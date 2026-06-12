@@ -43,7 +43,9 @@ function rememberNext(next) {
   }
 }
 
-function AuthSocialButtons({ next = '/', action = 'Entrar' }) {
+/* linkClassName: piel opcional extra para las anclas (p.ej. la tablilla
+   de madera del dojo en /login) sin tocar la lógica del next. */
+function AuthSocialButtons({ next = '/', action = 'Entrar', linkClassName = '' }) {
   const providers = [
     {
       id: 'google',
@@ -67,7 +69,7 @@ function AuthSocialButtons({ next = '/', action = 'Entrar' }) {
             key={provider.id}
             href={provider.href}
             onClick={() => rememberNext(next)}
-            className="inline-flex min-h-11 items-center justify-center gap-2 rounded-lg border border-border bg-bg px-4 py-2.5 text-sm font-semibold text-fg-strong transition-colors hover:border-accent/60 hover:text-gold focus:outline-none focus:ring-2 focus:ring-accent/40"
+            className={`inline-flex min-h-11 items-center justify-center gap-2 rounded-lg border border-border bg-bg px-4 py-2.5 text-sm font-semibold text-fg-strong transition-colors hover:border-accent/60 hover:text-gold focus:outline-none focus:ring-2 focus:ring-accent/40 ${linkClassName}`}
           >
             {provider.icon}
             {provider.label}

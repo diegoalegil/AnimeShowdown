@@ -1,41 +1,19 @@
 import { useEffect, useState } from 'react'
 import { useForm } from 'react-hook-form'
-import { Link, useNavigate, useSearchParams } from 'react-router-dom'
-import { AnimatePresence, motion, useReducedMotion } from 'framer-motion'
+import { useNavigate, useSearchParams } from 'react-router-dom'
 import { ShieldCheck } from 'lucide-react'
 import { toast } from 'sonner'
 import { useAuth } from '../contexts/AuthContext'
 import { useSeo } from '../hooks/useSeo'
-import PasswordInput from '../components/PasswordInput'
-import AuthSocialButtons from '../components/AuthSocialButtons'
-import AuthLegalNote from '../components/AuthLegalNote'
+import DojoLogin from '../features/auth/DojoLogin'
+import { DOJO_SCENES, sanitizeNext } from '../features/auth/dojo-login-data'
 
-const containerVariants = {
-  hidden: { opacity: 0, y: 20 },
-  visible: {
-    opacity: 1,
-    y: 0,
-    transition: { duration: 0.5, ease: 'easeOut' },
-  },
-}
-
-const stepVariants = {
-  initial: { opacity: 0, x: 20 },
-  animate: { opacity: 1, x: 0, transition: { duration: 0.25, ease: 'easeOut' } },
-  exit: { opacity: 0, x: -20, transition: { duration: 0.2, ease: 'easeIn' } },
-}
-
-const containerVariantsReduced = {
-  hidden: { opacity: 0 },
-  visible: { opacity: 1, transition: { duration: 0.15 } },
-}
-
-const stepVariantsReduced = {
-  initial: { opacity: 0 },
-  animate: { opacity: 1, transition: { duration: 0.1 } },
-  exit: { opacity: 0, transition: { duration: 0.1 } },
-}
-
+/**
+ * /login — la entrada al dojo (DojoLogin): noren que se recoge, botón-
+ * sello 印 y la escena del día del banco de marca. Esta página conserva
+ * el flujo: next anti open-redirect, toast de error OAuth y el paso 2FA
+ * (Step2Totp) que se monta en lugar del dojo cuando el backend pide TOTP.
+ */
 function LoginPage() {
   useSeo({
     title: 'Iniciar sesión',
@@ -43,19 +21,10 @@ function LoginPage() {
       'Entra en tu cuenta AnimeShowdown para votar, predecir torneos y mantener tu perfil público con ranking ELO personalizado.',
     noindex: true,
   })
-  const prefersReducedMotion = useReducedMotion()
   const { login, completeLogin2fa } = useAuth()
   const navigate = useNavigate()
-  // Rutas protegidas (CrearTorneoPage, etc.)
-  // redirigían a /login?next=... pero LoginPage navegaba siempre a /
-  // tras éxito. Honramos el next si está presente Y es relativo —
-  // negar absolutas/protocol-relative evita open-redirect.
   const [params] = useSearchParams()
-  const rawNext = params.get('next')
-  const nextSeguro =
-    rawNext && rawNext.startsWith('/') && !rawNext.startsWith('//')
-      ? rawNext
-      : '/'
+  const nextSeguro = sanitizeNext(params.get('next'))
   const oauthError = params.get('oauth') === 'error'
 
   useEffect(() => {
@@ -70,191 +39,31 @@ function LoginPage() {
   // {challengeToken, expiraEnSegundos, identificador}.
   const [pendingChallenge, setPendingChallenge] = useState(null)
 
-  return (
-    // Full-bleed con el arte premium del banco (mismo patrón que los
-    // juegos): el torii ocupa la mitad izquierda del arte, así que el
-    // formulario vive a la derecha sobre la zona oscura, dentro de un
-    // panel de cristal para asegurar contraste a cualquier viewport.
-    <section className="as-stage as-stage-visual as-stage-auth-login flex min-h-[calc(100vh-6rem)] items-center px-5 py-12 sm:px-8">
-      <div className="mx-auto flex w-full max-w-6xl justify-center lg:justify-end">
-      <motion.div
-        className="w-full max-w-md rounded-3xl border border-white/10 bg-bg/80 p-6 shadow-2xl backdrop-blur-md sm:p-8"
-        initial="hidden"
-        animate="visible"
-        variants={prefersReducedMotion ? containerVariantsReduced : containerVariants}
-      >
-        <AnimatePresence mode="wait">
-          {pendingChallenge ? (
-            <motion.div
-              key="step2"
-              variants={prefersReducedMotion ? stepVariantsReduced : stepVariants}
-              initial="initial"
-              animate="animate"
-              exit="exit"
-            >
-              <Step2Totp
-                challenge={pendingChallenge}
-                onSuccess={() => navigate(nextSeguro)}
-                onCancel={() => setPendingChallenge(null)}
-                completeLogin2fa={completeLogin2fa}
-              />
-            </motion.div>
-          ) : (
-            <motion.div
-              key="step1"
-              variants={prefersReducedMotion ? stepVariantsReduced : stepVariants}
-              initial="initial"
-              animate="animate"
-              exit="exit"
-            >
-              <Step1Credenciales
-                login={login}
-                onChallenge={setPendingChallenge}
-                onSuccess={() => navigate(nextSeguro)}
-                next={nextSeguro}
-              />
-            </motion.div>
-          )}
-        </AnimatePresence>
-      </motion.div>
-      </div>
-    </section>
-  )
-}
-
-function Step1Credenciales({ login, onChallenge, onSuccess, next }) {
-  const {
-    register,
-    handleSubmit,
-    setError,
-    formState: { errors, isSubmitting },
-  } = useForm()
-
-  const onSubmit = async (data) => {
-    try {
-      const res = await login(data.identificador, data.password)
-      if (res?.requires2fa) {
-        onChallenge(res)
-      } else {
-        onSuccess()
-      }
-    } catch (err) {
-      const status = err?.status
-      setError('root', {
-        message:
-          status === 401
-            ? 'Credenciales inválidas. Revisa tu username/email y contraseña.'
-            : status === 429
-              ? 'Demasiados intentos. Espera unos segundos antes de probar otra vez.'
-              : err?.message || 'No se pudo iniciar sesión. Intenta de nuevo.',
-      })
+  const handleLogin = async (identificador, password) => {
+    const res = await login(identificador, password)
+    if (res?.requires2fa) {
+      setPendingChallenge(res)
+    } else {
+      navigate(nextSeguro)
     }
   }
 
-  return (
-    <>
-      <div className="mb-6 flex flex-col items-start gap-2">
-        <span className="inline-flex rounded-full border border-border bg-surface px-3.5 py-1.5 text-[12px] font-semibold text-fg-muted">
-          Acceso
-        </span>
-        <h1 className="text-3xl tracking-tight">Inicia sesión</h1>
-        <p className="text-fg-muted">
-          Vuelve a tu roster, sigue votando y mantén tu racha. Puedes
-          entrar con tu nombre de usuario o con tu email.
-        </p>
-      </div>
-      <AuthSocialButtons next={next} />
-      <AuthLegalNote action="entrar" />
-      <form
-        onSubmit={handleSubmit(onSubmit)}
-        className="mt-4 flex flex-col gap-4 rounded-2xl border border-border bg-surface p-6"
-      >
-        <div className="flex flex-col gap-1.5">
-          <label
-            htmlFor="identificador"
-            className="text-[13px] font-medium text-fg-strong"
-          >
-            Username o email
-          </label>
-          <input
-            id="identificador"
-            type="text"
-            autoComplete="username"
-            aria-invalid={Boolean(errors.identificador)}
-            aria-describedby={
-              errors.identificador ? 'identificador-error' : undefined
-            }
-            {...register('identificador', {
-              required: 'Introduce tu username o email',
-              minLength: { value: 3, message: 'Mínimo 3 caracteres' },
-            })}
-            className={`rounded-lg border bg-bg px-3.5 py-2.5 text-sm text-fg-strong placeholder:text-fg-muted focus:outline-none focus:ring-2 focus:ring-accent/40 ${
-              errors.identificador ? 'border-danger' : 'border-border'
-            }`}
-            placeholder="Tu username o tu email"
+  if (pendingChallenge) {
+    return (
+      <section className="flex min-h-[calc(100vh-6rem)] items-center px-5 py-12 sm:px-8">
+        <div className="mx-auto w-full max-w-md rounded-3xl border border-border bg-surface p-6 sm:p-8">
+          <Step2Totp
+            challenge={pendingChallenge}
+            onSuccess={() => navigate(nextSeguro)}
+            onCancel={() => setPendingChallenge(null)}
+            completeLogin2fa={completeLogin2fa}
           />
-          {errors.identificador && (
-            <p id="identificador-error" className="text-[12px] text-danger">
-              {errors.identificador.message}
-            </p>
-          )}
         </div>
-        <div className="flex flex-col gap-1.5">
-          <label
-            htmlFor="password"
-            className="text-[13px] font-medium text-fg-strong"
-          >
-            Contraseña
-          </label>
-          <PasswordInput
-            id="password"
-            autoComplete="current-password"
-            error={Boolean(errors.password)}
-            placeholder="Tu contraseña"
-            aria-invalid={Boolean(errors.password)}
-            aria-describedby={errors.password ? 'login-password-error' : undefined}
-            {...register('password', {
-              required: 'Introduce tu contraseña',
-              minLength: { value: 6, message: 'Mínimo 6 caracteres' },
-            })}
-          />
-          {errors.password && (
-            <p id="login-password-error" className="text-[12px] text-danger">
-              {errors.password.message}
-            </p>
-          )}
-        </div>
-        {errors.root && (
-          <p role="alert" className="text-[12px] text-danger">
-            {errors.root.message}
-          </p>
-        )}
-        <button
-          type="submit"
-          disabled={isSubmitting}
-          aria-busy={isSubmitting}
-          className="mt-2 inline-flex items-center justify-center rounded-lg bg-accent px-5 py-3 text-sm font-semibold text-white transition-colors hover:bg-accent-hover disabled:cursor-not-allowed disabled:opacity-60"
-        >
-          {isSubmitting ? 'Entrando…' : 'Entrar'}
-        </button>
-        <Link
-          to="/forgot-password"
-          className="self-end text-[12px] font-medium text-fg-muted transition-colors hover:text-gold"
-        >
-          ¿Olvidaste tu contraseña?
-        </Link>
-      </form>
-      <p className="mt-4 text-center text-[13px] text-fg-muted">
-        ¿No tienes cuenta?{' '}
-        <Link
-          to="/register"
-          className="font-semibold text-gold hover:text-gold"
-        >
-          Crea una
-        </Link>
-      </p>
-    </>
-  )
+      </section>
+    )
+  }
+
+  return <DojoLogin onLogin={handleLogin} scenes={DOJO_SCENES} />
 }
 
 function Step2Totp({ challenge, onSuccess, onCancel, completeLogin2fa }) {

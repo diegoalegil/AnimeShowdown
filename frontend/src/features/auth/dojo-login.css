@@ -1,0 +1,295 @@
+/* ====================================================================
+   DojoLogin — la entrada al dojo (/login)
+   Bloque para PEGAR en index.css (CSP por hash: cero <style> en runtime).
+   Solo transform/opacity. Cero blur, cero SVG filters.
+   ==================================================================== */
+
+/* --- keyframes ------------------------------------------------------ */
+
+/* Tremor del noren: una vez por intento fallido de credenciales. */
+@keyframes dojo-noren-tremor {
+  0%, 100% { transform: translateX(0); }
+  20% { transform: translateX(-2px); }
+  45% { transform: translateX(2px); }
+  70% { transform: translateX(-1px); }
+}
+
+/* Pulso de tinta del botón-sello en espera: cross-fade de opacity sobre
+   una capa de glow PRE-PINTADA (box-shadow estática) — nunca se anima
+   el filter ni la sombra en sí. */
+@keyframes dojo-ink-pulse {
+  0%, 100% { opacity: 0.12; }
+  50% { opacity: 1; }
+}
+
+/* Corte de tinta del error (lenguaje del Cmd+K): cover scaleX origin-left
+   que se retira con filo dorado de 3px. */
+@keyframes dojo-ink-cut {
+  from { transform: scaleX(1); }
+  to { transform: scaleX(0); }
+}
+
+/* Sello hanko de confirmación: caída + overshoot (ease-stamp). */
+@keyframes dojo-hanko-stamp {
+  0% { opacity: 0; transform: scale(1.5) rotate(-10deg); }
+  62% { opacity: 1; transform: scale(0.93) rotate(-3deg); }
+  100% { opacity: 1; transform: scale(1) rotate(-4deg); }
+}
+
+/* --- noren ----------------------------------------------------------- */
+
+.dojo-noren__rod {
+  height: 5px;
+  border-radius: 0 0 3px 3px;
+  background: linear-gradient(
+    90deg,
+    color-mix(in srgb, var(--color-gold) 15%, transparent),
+    color-mix(in srgb, var(--color-gold) 55%, transparent) 50%,
+    color-mix(in srgb, var(--color-gold) 15%, transparent)
+  );
+  box-shadow: 0 1px 0 color-mix(in srgb, var(--color-canvas) 60%, transparent);
+}
+
+.dojo-noren__panel {
+  position: relative;
+  display: flex;
+  flex: 1;
+  align-items: center;
+  justify-content: center;
+  height: 122px;
+  overflow: hidden;
+  background: linear-gradient(180deg, color-mix(in srgb, var(--color-surface) 60%, var(--color-bg)), color-mix(in srgb, var(--color-bg) 85%, var(--color-surface)));
+  border: 1px solid color-mix(in srgb, var(--color-gold) 14%, transparent);
+  border-top: none;
+  border-radius: 0 0 4px 4px;
+  transform-origin: top center;
+  transition: transform 500ms var(--ease-lift);
+  will-change: transform;
+}
+@media (max-width: 1023px) {
+  /* 390px: el noren ocupa el primer tercio de la pantalla */
+  .dojo-noren__panel { height: 210px; }
+}
+.dojo-noren__panel--right { transition-delay: 80ms; }
+
+/* Pose final: paños apartados, recogidos arriba como cabecera. */
+.dojo-noren[data-open='true'] .dojo-noren__panel--left {
+  transform: translateY(-8px) rotate(-2.5deg);
+}
+.dojo-noren[data-open='true'] .dojo-noren__panel--right {
+  transform: translateY(-8px) rotate(2.5deg);
+}
+
+/* Tremor: en el CONTENEDOR (los paños conservan su pose girada). */
+.dojo-noren[data-tremor='true'] > .flex {
+  animation: dojo-noren-tremor 150ms cubic-bezier(0.36, 0.07, 0.19, 0.97) both;
+}
+
+.dojo-noren__weave {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background: repeating-linear-gradient(
+    90deg,
+    color-mix(in srgb, var(--color-fg-strong) 2%, transparent) 0 1px,
+    transparent 1px 5px
+  );
+}
+.dojo-noren__crest {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 56px;
+  height: 56px;
+  border: 1px solid color-mix(in srgb, var(--color-gold) 50%, transparent);
+  border-radius: 50%;
+  font-size: 27px;
+  color: var(--color-gold);
+}
+.dojo-noren__hem {
+  position: absolute;
+  left: 10%;
+  right: 10%;
+  bottom: 7px;
+  height: 1px;
+  background: var(--color-border-gold-subtle);
+}
+
+/* --- entrada del form (t+300ms) -------------------------------------- */
+
+.dojo-login__form {
+  opacity: 0;
+  transform: translateY(8px);
+  transition:
+    opacity 300ms var(--ease-lift),
+    transform 300ms var(--ease-lift);
+}
+.dojo-login__form[data-in='true'] {
+  opacity: 1;
+  transform: none;
+}
+
+/* --- arte ------------------------------------------------------------ */
+
+.dojo-login__scrim {
+  pointer-events: none;
+  background: linear-gradient(
+    180deg,
+    color-mix(in srgb, var(--color-canvas) 42%, transparent),
+    color-mix(in srgb, var(--color-canvas) 6%, transparent) 40%,
+    color-mix(in srgb, var(--color-canvas) 88%, transparent) 100%
+  );
+}
+.dojo-login__watermark {
+  font-family: var(--font-kanji-serif);
+  font-size: 190px;
+  line-height: 1;
+  color: color-mix(in srgb, var(--color-gold) 6%, transparent);
+  pointer-events: none;
+}
+
+/* --- error del escriba ------------------------------------------------ */
+
+.dojo-login__error {
+  position: relative;
+  display: flex;
+  align-items: flex-start;
+  gap: 11px;
+  overflow: hidden;
+  border: 1px solid color-mix(in srgb, var(--color-accent-text) 35%, transparent);
+  background: color-mix(in srgb, var(--color-bg) 78%, var(--color-accent)); /* sólido: el cover del corte debe taparlo sin costuras */
+  border-radius: 8px;
+  padding: 11px 13px;
+}
+.dojo-login__error-seal {
+  display: flex;
+  flex: none;
+  align-items: center;
+  justify-content: center;
+  width: 23px;
+  height: 23px;
+  margin-top: 1px;
+  border: 1px solid color-mix(in srgb, var(--color-hanko) 55%, transparent);
+  border-radius: 3px;
+  transform: rotate(-4deg);
+  font-size: 12px;
+  color: var(--color-hanko);
+}
+.dojo-login__error-cover {
+  position: absolute;
+  inset: 0;
+  background: color-mix(in srgb, var(--color-bg) 78%, var(--color-accent));
+  transform-origin: left center;
+  animation: dojo-ink-cut 240ms var(--ease-brush) 40ms both;
+  pointer-events: none;
+}
+.dojo-login__error-edge {
+  position: absolute;
+  right: 0;
+  top: 0;
+  bottom: 0;
+  width: 3px;
+  background: linear-gradient(
+    180deg,
+    color-mix(in srgb, var(--color-gold) 10%, transparent),
+    var(--color-gold) 30%,
+    var(--color-gold) 70%,
+    color-mix(in srgb, var(--color-gold) 10%, transparent)
+  );
+}
+
+/* --- botón-sello ------------------------------------------------------ */
+
+.dojo-login__submit {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  min-height: 48px;
+  padding: 13px 18px;
+  border: 1px solid color-mix(in srgb, var(--color-hanko) 35%, transparent);
+  border-radius: 10px;
+  background: var(--color-accent);
+  color: var(--color-fg-strong);
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background-color 150ms ease;
+}
+.dojo-login__submit:hover { background: var(--color-accent-hover); }
+.dojo-login__submit:disabled { cursor: wait; }
+.dojo-login__hanko {
+  display: flex;
+  flex: none;
+  align-items: center;
+  justify-content: center;
+  width: 20px;
+  height: 20px;
+  border: 1px solid color-mix(in srgb, var(--color-fg-strong) 45%, transparent);
+  border-radius: 3px;
+  transform: rotate(-4deg);
+  font-size: 11px;
+}
+.dojo-login__ink-glow {
+  position: absolute;
+  inset: -1px;
+  border-radius: 10px;
+  opacity: 0;
+  pointer-events: none;
+  box-shadow:
+    0 0 26px color-mix(in srgb, var(--color-hanko) 55%, transparent),
+    0 0 8px color-mix(in srgb, var(--color-hanko) 40%, transparent);
+}
+.dojo-login__ink-glow[data-busy='true'] {
+  animation: dojo-ink-pulse 1.8s ease-in-out infinite;
+}
+
+/* --- tablillas de madera (social) ------------------------------------- */
+/* Aplicar a los <a> de AuthSocialButtons (prop className o variante). */
+.dojo-login__tablet {
+  position: relative;
+  border: 1px solid color-mix(in srgb, var(--color-gold) 28%, transparent);
+  border-radius: 6px;
+  background: linear-gradient(180deg, color-mix(in srgb, var(--color-surface) 70%, var(--color-gold)), color-mix(in srgb, var(--color-bg) 76%, var(--color-gold)));
+  box-shadow: inset 0 1px 0 color-mix(in srgb, var(--color-fg-strong) 5%, transparent);
+  transition: border-color 150ms ease;
+}
+.dojo-login__tablet:hover { border-color: color-mix(in srgb, var(--color-gold) 55%, transparent); }
+.dojo-login__tablet::before {
+  /* agujero de tablilla ema */
+  content: '';
+  position: absolute;
+  top: 5px;
+  left: 50%;
+  width: 4px;
+  height: 4px;
+  margin-left: -2px;
+  border: 1px solid color-mix(in srgb, var(--color-gold) 40%, transparent);
+  border-radius: 50%;
+}
+
+/* --- sello de confirmación (post-login, opcional) ---------------------- */
+
+.dojo-login__stamp {
+  animation: dojo-hanko-stamp 420ms cubic-bezier(0.34, 1.56, 0.64, 1) both;
+}
+
+/* --- reduced motion ---------------------------------------------------- */
+/* Todo visible directo: pose final sin transición, sin tremor, sin corte,
+   sin pulso. El error queda solo por color y texto. */
+@media (prefers-reduced-motion: reduce) {
+  .dojo-noren__panel,
+  .dojo-login__form {
+    transition: none !important;
+  }
+  .dojo-noren[data-tremor='true'] > .flex,
+  .dojo-login__error-cover,
+  .dojo-login__ink-glow[data-busy='true'],
+  .dojo-login__stamp {
+    animation: none !important;
+  }
+  .dojo-login__error-cover { transform: scaleX(0); }
+  .dojo-login__ink-glow[data-busy='true'] { opacity: 0.35; }
+  .dojo-login__stamp { opacity: 1; transform: rotate(-4deg); }
+}
