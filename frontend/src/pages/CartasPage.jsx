@@ -7,6 +7,7 @@ import Dialog from '../components/Dialog'
 import CartaTile from '../components/CartaTile'
 import MonedaIcon from '../components/MonedaIcon'
 import CoinPurse from '../features/cartas/CoinPurse'
+import PityPath from '../features/cartas/PityPath'
 import BrandSelect from '../components/BrandSelect'
 import PackOpening from '../features/cartas/PackOpening'
 import CardShowcase from '../features/cartas/CardShowcase'
@@ -89,6 +90,9 @@ function CartasPage() {
   const descargarCarta = useDescargarCarta()
 
   const [reveal, setReveal] = useState(null)
+  // Onda del camino al torii: id único por sobre ESPECIAL; source honesto
+  // derivado del server (pityAntes en el último escalón = saltó la garantía).
+  const [specialEvent, setSpecialEvent] = useState(null)
   const [revealEsGratis, setRevealEsGratis] = useState(false)
   const [rarezaFiltro, setRarezaFiltro] = useState('TODAS')
   const [animeFiltro, setAnimeFiltro] = useState('TODOS')
@@ -140,6 +144,12 @@ function CartasPage() {
       const res = await abrirSobre.mutateAsync(makeIdempotencyKey())
       setRevealEsGratis(false)
       setReveal(res)
+      if (res?.especial) {
+        setSpecialEvent({
+          id: packRevealKey(res),
+          source: res.pityAntes === pityDuro - 1 ? 'pity' : 'luck',
+        })
+      }
     } catch {
       // El error se muestra vía abrirSobre.isError abajo.
     }
@@ -200,7 +210,6 @@ function CartasPage() {
               mensajeCero="Sin monedas — vota o completa misiones para ganar."
             />
             <Stat label="Colección" value={`${totalPoseidas} / ${totalCatalogo}`} accent={`${porcentaje}%`} />
-            <Stat label="Pity especial" value={`${pityActual} / ${pityDuro}`} accent={`${Math.round(probEspecial * 100)}% base`} />
           </div>
 
           <div className="flex flex-col gap-2 sm:flex-row lg:flex-col">
@@ -238,6 +247,18 @@ function CartasPage() {
             </Button>
           </div>
         </div>
+
+        {/* El camino al torii: el pity visible y honesto — una piedra por
+            sobre sin especial, niebla en las que faltan, y la onda de la
+            ceremonia cuando cae la ESPECIAL (por suerte desde la piedra,
+            por garantía desde el torii). Datos SIEMPRE del server. */}
+        <PityPath
+          pity={pityActual}
+          threshold={pityDuro}
+          baseRate={probEspecial}
+          specialEvent={specialEvent}
+          onCeremonyEnd={() => setSpecialEvent(null)}
+        />
 
         <div
           className="h-2 w-full overflow-hidden rounded-full bg-surface-alt"
