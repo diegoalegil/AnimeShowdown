@@ -1,0 +1,249 @@
+/* ════════════════════════════════════════════════════════════════
+   SECTION GATE — "Las puertas del recinto" (cabeceras de sección de la home)
+   Importado por SectionGate (CSP por hash: nada en runtime).
+
+   Contrato de estados (lo escribe SectionGate.jsx en data-gate-state):
+     idle     → puerta sin pintar (esperando entrar al viewport)
+     ceremony → coreografía en curso (una vez por carga)
+     painted  → pintada directa (recarga con scroll abajo, reduced-motion)
+
+   Los valores FINALES son el estilo base: print, PDF, reduced-motion y
+   cualquier fallo de JS muestran la puerta pintada, nunca invisible.
+   Solo se anima transform/opacity. Cero blur, cero filters, cero loops.
+
+   Vars opcionales (tienen default; el dev no necesita tocarlas):
+     --gate-hairline-ms   duración del trazo de la hairline (450ms)
+     --gate-drop          caída de la tablilla (6px)
+     --gate-kanji-size    tamaño del kanji (clamp responsive)
+     --gate-kanji-color   tinta del kanji (oro de marca)
+     --gate-scroll-margin scroll-margin-top para llegadas con hash (96px)
+     --ease-stamp         overshoot de hanko — proponer promoverla a token
+                          global junto a --ease-lift/--ease-brush.
+   ════════════════════════════════════════════════════════════════ */
+
+.as-gate {
+  position: relative;
+  scroll-margin-top: var(--gate-scroll-margin, 96px);
+}
+
+/* ── Dintel: kanji · poste · título ─────────────────────────────── */
+
+.as-gate__lintel {
+  display: flex;
+  align-items: flex-end;
+  gap: 1rem;
+  min-width: 0;
+  padding-bottom: 0.875rem;
+}
+
+.as-gate__kanji {
+  flex: none;
+  font-family: var(--font-kanji-serif);
+  font-size: var(--gate-kanji-size, clamp(2.25rem, 1.4rem + 2.4vw, 3.25rem));
+  font-weight: 700;
+  line-height: 0.95;
+  color: var(--gate-kanji-color, var(--color-gold));
+  user-select: none;
+}
+
+/* Poste de la puerta: separador vertical que ancla kanji y título. */
+.as-gate__post {
+  flex: none;
+  align-self: stretch;
+  width: 1px;
+  background: linear-gradient(
+    180deg,
+    transparent,
+    var(--color-border-gold-subtle) 35%,
+    var(--color-border-gold-subtle)
+  );
+}
+
+.as-gate__heading {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  min-width: 0;
+}
+
+.as-gate__eyebrow {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--color-fg-muted);
+}
+
+.as-gate__title {
+  font-family: var(--font-display);
+  font-size: clamp(1.75rem, 4vw, 2.5rem);
+  letter-spacing: -0.025em;
+  line-height: 1.1;
+  color: var(--color-fg-strong);
+}
+
+/* ── Hairline: el dintel que se pinta ───────────────────────────── */
+
+.as-gate__hairline {
+  display: block;
+  height: 1px;
+  background: linear-gradient(
+    90deg,
+    var(--color-gold),
+    var(--color-border-gold-subtle) 55%,
+    transparent 96%
+  );
+  transform-origin: left center;
+}
+
+/* ── Tablilla "ver todo" colgada del dintel ─────────────────────── */
+
+.as-gate__ledge {
+  display: flex;
+  justify-content: flex-end;
+}
+
+/* .as-gate__hang recibe la caída; la cuerda es su ::before. */
+.as-gate__hang {
+  position: relative;
+  display: inline-block;
+  padding-top: 0.625rem; /* largo de la cuerda */
+}
+
+.as-gate__hang::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 50%;
+  width: 1px;
+  height: 0.625rem;
+  background: var(--color-border-gold);
+  transform: translateX(-50%);
+}
+
+.as-gate__tablet {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  min-height: 44px; /* hit target */
+  padding: 0 0.875rem;
+  font-family: var(--font-mono);
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--color-fg);
+  background: var(--color-surface);
+  border: 1px solid var(--color-border-gold-subtle);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--inset-shadow-hairline);
+  /* el pivote del balanceo es el punto donde ata la cuerda */
+  transform-origin: 50% -0.625rem;
+  transition:
+    color 180ms ease,
+    border-color 180ms ease;
+}
+
+.as-gate__tablet:hover,
+.as-gate__tablet:focus-visible {
+  color: var(--color-gold);
+  border-color: var(--color-border-gold);
+  /* balanceo: UNA pasada por hover (re-hover lo re-dispara) */
+  animation: as-gate-swing 350ms ease-in-out 1;
+}
+
+.as-gate__tablet-arrow {
+  width: 0.875rem;
+  height: 0.875rem;
+}
+
+/* ── Estados ────────────────────────────────────────────────────── */
+
+[data-gate-state='idle'] .as-gate__hairline {
+  transform: scaleX(0);
+}
+[data-gate-state='idle'] .as-gate__kanji {
+  opacity: 0.35;
+}
+[data-gate-state='idle'] .as-gate__hang {
+  opacity: 0;
+  transform: translateY(calc(-1 * var(--gate-drop, 6px)));
+}
+
+/* Ceremonia — fill backwards: al terminar, el elemento descansa en su
+   estilo base (= estado final). Sin timers JS, sin fill forwards. */
+[data-gate-state='ceremony'] .as-gate__hairline {
+  animation: as-gate-paint var(--gate-hairline-ms, 450ms) var(--ease-brush)
+    backwards;
+}
+[data-gate-state='ceremony'] .as-gate__kanji {
+  animation: as-gate-ink 300ms ease-out 100ms backwards;
+}
+[data-gate-state='ceremony'] .as-gate__hang {
+  animation: as-gate-drop 250ms
+    var(--ease-stamp, cubic-bezier(0.34, 1.56, 0.64, 1)) 280ms backwards;
+}
+
+@keyframes as-gate-paint {
+  from {
+    transform: scaleX(0);
+  }
+}
+@keyframes as-gate-ink {
+  from {
+    opacity: 0.35;
+  }
+}
+@keyframes as-gate-drop {
+  from {
+    opacity: 0;
+    transform: translateY(calc(-1 * var(--gate-drop, 6px)));
+  }
+}
+@keyframes as-gate-swing {
+  0% {
+    transform: rotate(0deg);
+  }
+  30% {
+    transform: rotate(-1.2deg);
+  }
+  70% {
+    transform: rotate(1.2deg);
+  }
+  100% {
+    transform: rotate(0deg);
+  }
+}
+
+/* ── Responsive (390px) ─────────────────────────────────────────── */
+
+@media (max-width: 480px) {
+  .as-gate__kanji {
+    font-size: var(--gate-kanji-size-sm, 28px);
+  }
+  .as-gate__title {
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  .as-gate__lintel {
+    gap: 0.75rem;
+  }
+}
+
+/* ── Reduced motion: todo pintado directo ───────────────────────── */
+
+@media (prefers-reduced-motion: reduce) {
+  [data-gate-state] .as-gate__hairline,
+  [data-gate-state] .as-gate__kanji,
+  [data-gate-state] .as-gate__hang,
+  .as-gate__tablet {
+    animation: none !important;
+  }
+  [data-gate-state='idle'] .as-gate__hairline {
+    transform: none;
+  }
+  [data-gate-state='idle'] .as-gate__kanji {
+    opacity: 1;
+  }
+  [data-gate-state='idle'] .as-gate__hang {
+    opacity: 1;
+    transform: none;
+  }
+}
