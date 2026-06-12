@@ -727,6 +727,44 @@
   }
 }
 
+/* Despachos oficiales — NotifBell. El sello lacrado: relieve con dos
+   inset-shadows estáticas (hairline arriba, hundido abajo), viñeta radial y
+   −4° de estampado; el tinte por tipo lo ponen las clases de token del JSX.
+   Cero blur, cero coste de composición. La onda del push es one-shot
+   re-keyed por contador — jamás loop. */
+.as-sello-despacho {
+  transform: rotate(-4deg);
+  background-image: radial-gradient(
+    circle at 50% 32%,
+    transparent,
+    color-mix(in srgb, var(--color-canvas) 50%, transparent) 78%
+  );
+  box-shadow:
+    inset 0 1px 0 color-mix(in srgb, var(--color-fg-strong) 14%, transparent),
+    inset 0 -3px 5px color-mix(in srgb, var(--color-canvas) 80%, transparent);
+}
+
+@keyframes as-notif-onda {
+  from {
+    transform: scale(0.45);
+    opacity: 0.9;
+  }
+  to {
+    transform: scale(1.9);
+    opacity: 0;
+  }
+}
+
+.as-notif-onda {
+  animation: as-notif-onda 750ms var(--ease-lift) forwards;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .as-notif-onda {
+    animation: none;
+  }
+}
+
 /* Ticker del Modo TV: cinta translateX infinita (dos copias, -50%). */
 @keyframes as-tv-ticker {
   from {
