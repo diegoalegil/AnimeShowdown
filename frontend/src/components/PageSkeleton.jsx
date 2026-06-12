@@ -1,4 +1,5 @@
 import Skeleton from './Skeleton'
+import { HOME_SECTION_RESERVES } from './home-section-reserves'
 
 // V-2 (perf "blanco al navegar"): mientras se descarga el chunk lazy de una
 // ruta o se hidrata el catálogo de personajes, en vez de un spinner genérico
@@ -135,23 +136,19 @@ function CardGrid({ className, count }) {
   )
 }
 
-// Bloques de la home (alturas calibradas a las secciones reales de InicioPage:
-// pulso, stats, top10, retos, torneos, universos). Compartidos con InicioPage
-// vía <HomeSkeleton> para no duplicar las medidas.
-const HOME_SKELETON_BLOCKS = [
-  { id: 'pulse', className: 'h-[926px]' },
-  { id: 'stats', className: 'h-[224px]' },
-  { id: 'ranking', className: 'h-[606px]' },
-  { id: 'daily-trials', className: 'h-[620px]' },
-  { id: 'tournaments', className: 'h-[520px]' },
-  { id: 'anime-universes', className: 'h-[520px]' },
-]
-
+// Bloques fantasma de la home: las medidas viven en
+// home-section-reserves.js (fuente única compartida con los LazyOnView
+// de InicioPage para que skeleton y reservas no diverjan).
 function HomeSkeletonBlocks() {
   return (
     <>
-      {HOME_SKELETON_BLOCKS.map((block) => (
-        <Skeleton key={block.id} variant="banner" className={`w-full ${block.className}`} />
+      {HOME_SECTION_RESERVES.map((block) => (
+        <Skeleton
+          key={block.id}
+          variant="banner"
+          className="w-full"
+          style={{ height: block.px }}
+        />
       ))}
     </>
   )
@@ -185,8 +182,12 @@ function PageSkeleton({ pathname = '', reserveClassName = '' }) {
           contentClassName="mx-auto w-full max-w-7xl"
           padding="px-5 pb-12 pt-6 sm:px-8"
         >
-          <div className="mx-auto mb-10 grid w-full max-w-6xl grid-cols-1 items-center gap-8 py-10 md:grid-cols-[minmax(270px,350px)_minmax(0,1fr)] md:gap-x-14">
-            <div className="flex justify-center">
+          {/* Medidas espejo del hearth real (hearth-hero.css): llama
+              min-height 250/300, row-gap 2rem/2.75rem, tablillas mt 1.25rem,
+              padding 2.75/2.5 móvil y 4.5/3.5 desktop descontando el pt-6
+              que ya aporta SkeletonSection. */}
+          <div className="mx-auto grid w-full max-w-6xl grid-cols-1 items-center gap-x-8 gap-y-8 pb-10 pt-5 md:grid-cols-[minmax(270px,350px)_minmax(0,1fr)] md:gap-x-14 md:gap-y-11 md:pb-14 md:pt-12">
+            <div className="flex h-[250px] items-end justify-center md:h-[300px]">
               <Skeleton variant="box" className="h-56 w-44" />
             </div>
             <div className="flex flex-col items-center gap-4 md:items-start">
@@ -198,7 +199,7 @@ function PageSkeleton({ pathname = '', reserveClassName = '' }) {
                 <Skeleton variant="box" className="h-12 w-32" />
               </div>
             </div>
-            <div className="grid grid-cols-1 gap-4 md:col-span-2 md:grid-cols-3">
+            <div className="mt-5 grid grid-cols-1 gap-4 md:col-span-2 md:grid-cols-3">
               <Skeleton variant="box" className="h-[4.5rem]" />
               <Skeleton variant="box" className="h-[4.5rem]" />
               <Skeleton variant="box" className="h-[4.5rem]" />

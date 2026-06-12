@@ -20,7 +20,7 @@ const sizes = {
 }
 
 /**
- * Reusable action primitive used by `Hero.jsx` and `InicioPage.jsx`.
+ * Reusable action primitive (CTAs y acciones de cartas/tier lists).
  *
  * @param {object} props
  * @param {'button'|'a'|import('react').ElementType} [props.as='button'] Element or component to render.

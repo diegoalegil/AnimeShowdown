@@ -25,9 +25,9 @@ function CarouselRow({ titulo, personajes, eyebrow }) {
                 {eyebrow}
               </span>
             )}
-            <h2 className="text-xl font-bold tracking-tight text-fg-strong sm:text-2xl">
+            <h3 className="text-xl font-bold tracking-tight text-fg-strong sm:text-2xl">
               {titulo}
-            </h2>
+            </h3>
           </div>
           <div className="hidden items-center gap-1.5 sm:flex">
             <button
