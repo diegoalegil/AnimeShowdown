@@ -1,0 +1,472 @@
+/* ============================================================
+   personal-dossier.css — CSS de feature de PersonalDossier
+   (/mi-ranking · «El archivo de <username>»)
+
+   Importado por el componente: import './personal-dossier.css'
+   Los @keyframes viven AQUI (CSP por hash: cero estilos en runtime).
+
+   Solo tokens var(--…) y color-mix(); cero valores de color
+   literales, tambien en comentarios.
+
+   ease-stamp NO es token global: se declara local (--pd-ease-stamp).
+   Sin blur(), sin backdrop-filter, sin SVG filters. Toda animacion
+   es transform/opacity, one-shot (sin loops: nada que enganchar a
+   html.as-calm / html.as-tab-hidden).
+   ============================================================ */
+
+.pd-root {
+  --pd-ease-stamp: cubic-bezier(0.34, 1.56, 0.64, 1);
+  container-type: inline-size;
+  container-name: dossier;
+  position: relative;
+  box-sizing: border-box;
+  font-family: var(--font-sans);
+  color: var(--color-fg);
+  background: var(--color-bg);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-card);
+  padding: 1.25rem 1.25rem 1.1rem;
+  overflow: hidden; /* recorta la marca de agua */
+}
+.pd-root *, .pd-root *::before, .pd-root *::after { box-sizing: border-box; }
+
+/* — texto solo para AT — */
+.pd-sr {
+  position: absolute;
+  width: 1px; height: 1px;
+  padding: 0; margin: -1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+  border: 0;
+}
+
+/* ============ Cabecera ============ */
+.pd-head {
+  position: relative;
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  gap: 0.95rem;
+  align-items: center;
+  padding-bottom: 1rem;
+  border-bottom: 1px solid var(--color-border-gold-subtle);
+  margin-bottom: 0.9rem;
+}
+.pd-title {
+  margin: 0;
+  font-size: 1.3rem;
+  line-height: 1.2;
+  font-weight: 650;
+  letter-spacing: -0.01em;
+  color: var(--color-fg-strong);
+  text-wrap: pretty;
+}
+.pd-username { color: var(--color-gold-bright); }
+.pd-subtitle {
+  margin: 0.2rem 0 0;
+  font-family: var(--font-mono);
+  font-size: var(--text-2xs);
+  color: var(--color-fg-muted);
+}
+
+/* marca de agua kanji (番付, vertical, 5%) — fuera del flujo del grid */
+.pd-head .pd-watermark {
+  position: absolute;
+  top: 0.4rem;
+  right: 4.6rem;
+  font-family: var(--font-kanji-serif);
+  font-size: 4.2rem;
+  line-height: 0.95;
+  writing-mode: vertical-rl;
+  color: var(--color-gold);
+  opacity: 0.05;
+  pointer-events: none;
+  user-select: none;
+  z-index: 0;
+}
+.pd-head > *:not(.pd-watermark) { position: relative; z-index: 1; }
+
+/* ============ Sello hanko personal ============ */
+.pd-seal {
+  position: relative;
+  width: 52px;
+  height: 52px;
+  display: grid;
+  place-items: center;
+  flex: none;
+}
+.pd-seal-face {
+  position: relative;
+  z-index: 1;
+  width: 100%;
+  height: 100%;
+  display: grid;
+  place-items: center;
+  background: var(--color-hanko);
+  color: var(--color-fg-strong);
+  font-family: var(--font-kanji-serif);
+  font-weight: 700;
+  font-size: 1.65rem;
+  line-height: 1;
+  border-radius: var(--radius-lg);
+  transform: rotate(-5deg);
+  box-shadow: inset 0 0 0 2px color-mix(in srgb, var(--color-fg-strong) 24%, transparent);
+}
+/* sangrado de tinta: capa pre-renderizada, cross-fade de opacity (sin blur) */
+.pd-seal-bleed {
+  position: absolute;
+  inset: -3px;
+  border-radius: calc(var(--radius-lg) + 2px);
+  background: color-mix(in srgb, var(--color-hanko) 42%, transparent);
+  transform: rotate(-5deg) scale(1.05);
+  opacity: 0;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  /* caida del sello: 200ms de espera, 300ms de overshoot hanko */
+  .pd-root[data-anim="true"] .pd-seal-face {
+    animation: pd-stamp-drop 300ms var(--pd-ease-stamp) 200ms both;
+  }
+  .pd-root[data-anim="true"] .pd-seal-bleed {
+    animation: pd-stamp-bleed 480ms var(--ease-brush) 430ms both;
+  }
+}
+@keyframes pd-stamp-drop {
+  from { opacity: 0; transform: rotate(-11deg) translateY(-22px) scale(1.45); }
+  to   { opacity: 1; transform: rotate(-5deg) translateY(0) scale(1); }
+}
+@keyframes pd-stamp-bleed {
+  0%   { opacity: 0; }
+  30%  { opacity: 0.55; }
+  100% { opacity: 0; }
+}
+
+/* ============ Toggle contraste global ============ */
+.pd-toggle {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  min-height: 44px;
+  padding: 0 0.4rem 0 0.6rem;
+  background: transparent;
+  border: 0;
+  border-radius: var(--radius-pill);
+  color: var(--color-fg-muted);
+  font-family: var(--font-mono);
+  font-size: var(--text-2xs);
+  cursor: pointer;
+}
+.pd-toggle:hover { color: var(--color-fg); }
+.pd-toggle:focus-visible { outline: 2px solid var(--color-gold); outline-offset: 2px; }
+.pd-toggle-track {
+  position: relative;
+  width: 34px;
+  height: 18px;
+  border-radius: var(--radius-pill);
+  background: var(--color-surface-alt);
+  border: 1px solid var(--color-border);
+}
+.pd-toggle-knob {
+  position: absolute;
+  top: 2px;
+  left: 2px;
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  background: var(--color-fg-muted);
+}
+@media (prefers-reduced-motion: no-preference) {
+  .pd-toggle-knob { transition: transform 160ms var(--ease-lift); }
+}
+.pd-toggle[aria-pressed="true"] .pd-toggle-track {
+  background: color-mix(in srgb, var(--color-gold) 22%, var(--color-surface-alt));
+  border-color: var(--color-border-gold);
+}
+.pd-toggle[aria-pressed="true"] .pd-toggle-knob {
+  transform: translateX(16px);
+  background: var(--color-gold-bright);
+}
+
+/* ============ Aviso de primera visita ============ */
+.pd-welcome {
+  display: flex;
+  align-items: baseline;
+  gap: 0.6rem;
+  margin: 0 0 0.9rem;
+  padding: 0.6rem 0.85rem;
+  font-size: 0.85rem;
+  color: var(--color-fg-muted);
+  background: color-mix(in srgb, var(--color-gold) 7%, transparent);
+  border: 1px solid var(--color-border-gold-subtle);
+  border-radius: var(--radius-lg);
+  text-wrap: pretty;
+}
+.pd-welcome-kanji {
+  font-family: var(--font-kanji-serif);
+  color: var(--color-gold);
+  flex: none;
+}
+
+/* ============ Lista de placas ============ */
+.pd-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+.pd-plate {
+  position: relative;
+  display: grid;
+  grid-template-columns: 2.2rem 2.1rem minmax(0, 1fr) auto auto;
+  align-items: center;
+  gap: 0.7rem;
+  min-height: 56px;
+  padding: 0.45rem 0.8rem 0.45rem 0.95rem;
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+}
+/* columnas reservadas segun el modo (cero CLS dentro de la vista) */
+.pd-root[data-global="false"] .pd-plate { grid-template-columns: 2.2rem 2.1rem minmax(0, 1fr) auto; }
+.pd-root[data-deltas="false"] .pd-plate { grid-template-columns: 2.2rem 2.1rem minmax(0, 1fr) auto; }
+.pd-root[data-deltas="false"][data-global="false"] .pd-plate { grid-template-columns: 2.2rem 2.1rem minmax(0, 1fr); }
+
+@media (prefers-reduced-motion: no-preference) {
+  /* entrada en stagger: 30ms por placa, UNA vez */
+  .pd-root[data-anim="true"] .pd-plate {
+    animation: pd-plate-in 360ms var(--ease-lift) calc(250ms + var(--pd-i, 0) * 30ms) both;
+  }
+}
+@keyframes pd-plate-in {
+  from { opacity: 0; transform: translateY(10px); }
+  to   { opacity: 1; transform: none; }
+}
+
+/* impresion / sin JS: contenido siempre visible */
+@media print {
+  .pd-root .pd-plate, .pd-root .pd-seal-face { animation: none !important; opacity: 1 !important; transform: none !important; }
+  .pd-root .pd-seal-bleed, .pd-root .pd-ribbon { display: none !important; }
+}
+
+/* puesto propio */
+.pd-rank {
+  display: flex;
+  align-items: baseline;
+  justify-content: flex-end;
+  gap: 2px;
+  font-family: var(--font-mono);
+}
+.pd-rank-num {
+  font-size: 1.05rem;
+  font-weight: 600;
+  color: var(--color-fg-muted);
+  font-variant-numeric: tabular-nums;
+}
+.pd-rank[data-medal="1"] .pd-rank-num { color: var(--color-medal-gold); }
+.pd-rank[data-medal="2"] .pd-rank-num { color: var(--color-medal-silver); }
+.pd-rank[data-medal="3"] .pd-rank-num { color: var(--color-medal-bronze); }
+.pd-rank-tie {
+  font-size: 0.7rem;
+  color: var(--color-gold);
+}
+
+/* miniatura 2:3 */
+.pd-thumb {
+  width: 2.1rem;
+  aspect-ratio: 2 / 3;
+  border-radius: calc(var(--radius-lg) - 2px);
+  overflow: hidden;
+  display: block;
+}
+
+/* identidad */
+.pd-id { min-width: 0; }
+.pd-name {
+  display: block;
+  font-size: 0.95rem;
+  font-weight: 600;
+  color: var(--color-fg-strong);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.pd-anime {
+  display: block;
+  margin-top: 1px;
+  font-size: var(--text-2xs);
+  color: var(--color-fg-muted);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* delta vs ultima visita */
+.pd-delta {
+  font-family: var(--font-mono);
+  font-size: 0.8rem;
+  font-variant-numeric: tabular-nums;
+  display: inline-flex;
+  justify-content: flex-end;
+  align-items: center;
+  min-width: 2.6rem;
+  white-space: nowrap;
+}
+.pd-delta--up   { color: var(--color-electric); }
+.pd-delta--down { color: var(--color-accent-text); }
+.pd-delta--same { color: color-mix(in srgb, var(--color-fg-muted) 55%, transparent); }
+.pd-delta--new {
+  color: var(--color-gold-bright);
+  font-size: var(--text-2xs);
+  border: 1px solid var(--color-border-gold-subtle);
+  border-radius: var(--radius-pill);
+  padding: 1px 7px;
+}
+
+/* contraste global */
+.pd-global {
+  font-family: var(--font-mono);
+  font-size: var(--text-2xs);
+  font-variant-numeric: tabular-nums;
+  color: var(--color-fg-muted);
+  min-width: 4.8rem;
+  text-align: right;
+  white-space: nowrap;
+}
+.pd-global-min { display: none; }
+.pd-global-kanji {
+  font-family: var(--font-kanji-serif);
+  color: var(--color-gold);
+  opacity: 0.8;
+  margin-right: 2px;
+}
+
+/* ============ Cinta de movimiento ============ */
+/* decorativa (el dato va en texto sr): pinta scaleY 150ms al entrar
+   al viewport y se desvanece a los 2s — saludo, no estado */
+.pd-ribbon {
+  position: absolute;
+  left: 0;
+  top: 7px;
+  bottom: 7px;
+  width: 3px;
+  border-radius: var(--radius-pill);
+  transform: scaleY(0);
+  transform-origin: top;
+  opacity: 0;
+  pointer-events: none;
+}
+.pd-ribbon--up   { background: var(--color-electric); }
+.pd-ribbon--down { background: var(--color-accent); }
+.pd-ribbon--on  { opacity: 1; transform: scaleY(1); }
+.pd-ribbon--off { opacity: 0; transform: scaleY(1); }
+@media (prefers-reduced-motion: no-preference) {
+  .pd-ribbon--on  { transition: transform 150ms var(--ease-brush), opacity 80ms linear; }
+  .pd-ribbon--off { transition: opacity 400ms var(--ease-brush); }
+}
+
+/* ============ Latido de voto reciente (UNA vez) ============ */
+/* aura pre-renderizada (box-shadow estatico) con cross-fade de opacity */
+.pd-aura {
+  position: absolute;
+  inset: -1px;
+  border-radius: var(--radius-lg);
+  --aura-color: var(--color-gold);
+  box-shadow: var(--shadow-aura-sm);
+  border: 1px solid var(--color-border-gold);
+  opacity: 0;
+  pointer-events: none;
+}
+@media (prefers-reduced-motion: no-preference) {
+  .pd-plate--pulse .pd-aura { animation: pd-pulse 600ms var(--ease-lift) 1 both; }
+}
+@media (prefers-reduced-motion: reduce) {
+  /* sin latido: marca estatica breve via el mismo estado */
+  .pd-plate--pulse .pd-aura { opacity: 0.6; }
+}
+@keyframes pd-pulse {
+  0%   { opacity: 0; }
+  25%  { opacity: 1; }
+  100% { opacity: 0; }
+}
+
+/* ============ Estado vacio (sin votos) ============ */
+.pd-empty {
+  display: grid;
+  justify-items: center;
+  gap: 0.35rem;
+  padding: 2.4rem 1.5rem 2.2rem;
+  text-align: center;
+}
+.pd-empty-kanji {
+  font-family: var(--font-kanji-serif);
+  font-size: 4rem;
+  line-height: 1;
+  color: var(--color-gold);
+  opacity: 0.22;
+  user-select: none;
+}
+.pd-empty-title {
+  margin: 0.3rem 0 0;
+  font-size: 1.05rem;
+  font-weight: 600;
+  color: var(--color-fg-strong);
+}
+.pd-empty-copy {
+  margin: 0 0 1rem;
+  max-width: 38ch;
+  font-size: 0.85rem;
+  color: var(--color-fg-muted);
+  text-wrap: pretty;
+}
+.pd-cta {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 44px;
+  padding: 0 1.5rem;
+  background: var(--color-accent);
+  color: var(--color-fg-strong);
+  border-radius: var(--radius-pill);
+  font-size: 0.9rem;
+  font-weight: 600;
+  text-decoration: none;
+}
+.pd-cta:hover { background: var(--color-accent-hover); }
+.pd-cta:focus-visible { outline: 2px solid var(--color-gold); outline-offset: 3px; }
+
+/* ============ Notas al pie ============ */
+.pd-tie-rule {
+  margin: 0.7rem 0.2rem 0;
+  font-family: var(--font-mono);
+  font-size: var(--text-2xs);
+  color: color-mix(in srgb, var(--color-fg-muted) 75%, transparent);
+}
+.pd-tie-rule-mark { color: var(--color-gold); }
+.pd-foot {
+  margin: 0.9rem 0.2rem 0;
+  padding-top: 0.75rem;
+  border-top: 1px solid var(--color-border);
+  font-family: var(--font-mono);
+  font-size: var(--text-2xs);
+  color: color-mix(in srgb, var(--color-fg-muted) 75%, transparent);
+  text-wrap: pretty;
+}
+
+/* ============ Compacto (≤430px de columna) ============ */
+/* container query (no media query): funciona a 390px de viewport
+   y en cualquier columna estrecha del rediseno */
+@container dossier (max-width: 430px) {
+  .pd-root { padding: 1rem 0.85rem 0.9rem; }
+  .pd-title { font-size: 1.12rem; }
+  .pd-watermark { right: 2.6rem; font-size: 3.4rem; }
+  .pd-plate { gap: 0.55rem; padding: 0.4rem 0.6rem 0.4rem 0.75rem; min-height: 52px; }
+  .pd-toggle { padding-left: 0.3rem; }
+  .pd-toggle-label { display: none; }
+  .pd-delta { min-width: 2.1rem; }
+  /* contraste global colapsa a icono kanji + numero */
+  .pd-global { min-width: 2.4rem; }
+  .pd-global-full { display: none; }
+  .pd-global-min { display: inline; }
+}
