@@ -595,6 +595,61 @@
   }
 }
 
+/* El trazo del guerrero — EloHistoryChart v2. La línea de votos se dibuja
+   como pincelada (stroke-dashoffset con pathLength=1, sin medir longitudes);
+   el halo del punto final y el tooltip se mueven por custom props que escribe
+   el componente vía ref (cero re-renders). Todo opacity/transform salvo el
+   dashoffset del trazo único de entrada. */
+@keyframes elo-draw {
+  to {
+    stroke-dashoffset: 0;
+  }
+}
+
+@keyframes elo-halo {
+  0%,
+  100% {
+    opacity: 0;
+  }
+  50% {
+    opacity: 0.5;
+  }
+}
+
+.elo-halo {
+  animation: elo-halo 1.8s ease-in-out infinite;
+  animation-play-state: paused;
+}
+
+.elo-chart-wrap {
+  --tx: -200px;
+  --ty: 0px;
+  --lx: 60px;
+  --tip-o: 0;
+}
+
+.elo-tip-line {
+  transform: translateX(var(--tx));
+  opacity: var(--tip-o);
+}
+
+.elo-tip-dot {
+  transform: translate(calc(var(--tx) - 3.5px), calc(var(--ty) - 3.5px));
+  opacity: var(--tip-o);
+}
+
+.elo-tip-label {
+  left: var(--lx);
+  transform: translateX(-50%);
+  opacity: var(--tip-o);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .elo-halo {
+    animation: none;
+  }
+}
+
 /* Ticker del Modo TV: cinta translateX infinita (dos copias, -50%). */
 @keyframes as-tv-ticker {
   from {
