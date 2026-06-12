@@ -1,0 +1,760 @@
+/* ════════════════════════════════════════════════════════════════════
+   CARTILLA DE SELLOS DE VERANO (misiones diarias · rajio taisō)
+   Bloque para pegar en frontend/src/index.css — componente StampCard.jsx.
+
+   Reglas de la casa que cumple este bloque:
+   · CSP por hash: cero <style> en runtime, todo keyframe vive aquí.
+   · Solo se anima transform/opacity (la única transición de color es el
+     marco dorado del día sellado: one-shot de 200 ms, repaint de una
+     casilla — mismo patrón que Button).
+   · Estado base = estado FINAL. Las animaciones solo definen el "from"
+     y se montan bajo prefers-reduced-motion: no-preference, así
+     reduced-motion sale gratis: sellos puestos, cordón pintado, sin brillo.
+   · Nada de blur(), backdrop-filter ni SVG filters.
+
+   Token nuevo que promueve este bloque: --ease-stamp (el overshoot de
+   hanko que ya se usaba a mano). Si se asciende al @theme, borrar este
+   :root y dejar solo la entrada del @theme.
+   ════════════════════════════════════════════════════════════════════ */
+:root {
+  --ease-stamp: cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+/* ── Carta ──────────────────────────────────────────────────────────── */
+.sc-card {
+  position: relative;
+  container-type: inline-size;
+  overflow: hidden;
+  border: 1px solid color-mix(in srgb, var(--color-fg-strong) 10%, transparent);
+  border-radius: var(--radius-card, 1rem);
+  background:
+    radial-gradient(circle at 86% -12%, color-mix(in srgb, var(--color-gold) 7%, transparent), transparent 22rem),
+    linear-gradient(180deg, color-mix(in srgb, var(--color-surface) 92%, transparent), color-mix(in srgb, var(--color-bg) 97%, transparent));
+  box-shadow: var(--shadow-elev-1), var(--inset-shadow-hairline);
+  color: var(--color-fg);
+  padding: 1.25rem 1.25rem 0.875rem;
+}
+
+/* Marca de agua kanji al 5% (夏, verano) — patrón de marcas de agua kanji
+   ya canónico en la marca. */
+.sc-card::before {
+  content: "夏";
+  position: absolute;
+  right: -0.75rem;
+  bottom: -2.75rem;
+  z-index: 0;
+  font-family: var(--font-kanji-serif);
+  font-weight: 700;
+  font-size: 13rem;
+  line-height: 1;
+  color: var(--color-fg-strong);
+  opacity: 0.05;
+  transform: rotate(-6deg);
+  pointer-events: none;
+}
+
+.sc-card > * {
+  position: relative;
+  z-index: 1;
+}
+
+/* ── Cabecera ───────────────────────────────────────────────────────── */
+.sc-head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 1rem;
+  flex-wrap: wrap;
+}
+
+.sc-title h2 {
+  margin: 0;
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: 1.375rem;
+  line-height: 1.2;
+  color: var(--color-fg-strong);
+}
+
+.sc-title__sub {
+  margin: 0.25rem 0 0;
+  font-family: var(--font-mono);
+  font-size: 0.6875rem;
+  color: var(--color-fg-muted);
+}
+
+.sc-meta {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 0.25rem;
+}
+
+/* Racha — el número es punto de integración de <LiveNumber> (odómetro). */
+.sc-streak {
+  margin: 0;
+  display: flex;
+  align-items: baseline;
+  gap: 0.375rem;
+}
+
+.sc-streak__kanji {
+  font-family: var(--font-kanji-serif);
+  font-size: 0.875rem;
+  color: var(--color-border-gold);
+}
+
+.sc-streak__num {
+  font-family: var(--font-mono);
+  font-weight: 700;
+  font-size: 1.5rem;
+  line-height: 1;
+  color: var(--color-gold);
+}
+
+.sc-streak__cap {
+  font-family: var(--font-mono);
+  font-size: 0.6875rem;
+  color: var(--color-fg-muted);
+}
+
+.sc-reset {
+  margin: 0;
+  font-family: var(--font-mono);
+  font-size: 0.6875rem;
+  color: var(--color-fg-muted);
+}
+
+.sc-reset strong {
+  color: var(--color-fg);
+  font-weight: 600;
+}
+
+/* ── Misiones de hoy ───────────────────────────────────────────────── */
+.sc-missions {
+  list-style: none;
+  margin: 1rem 0 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+.sc-mission {
+  display: flex;
+  align-items: center;
+  gap: 0.875rem;
+  min-block-size: 4.25rem;
+  padding: 0.5rem 0.125rem;
+  border-top: 1px solid color-mix(in srgb, var(--color-gold) 14%, transparent); /* hairline dorada */
+}
+
+.sc-mission__info {
+  display: flex;
+  flex-direction: column;
+  gap: 0.1875rem;
+  min-width: 0;
+}
+
+.sc-mission__label {
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: var(--color-fg-strong);
+  text-wrap: pretty;
+}
+
+.sc-mission[data-state="pending"] .sc-mission__label {
+  color: var(--color-fg-muted);
+}
+
+.sc-mission__progress {
+  font-family: var(--font-mono);
+  font-size: 0.6875rem;
+  color: var(--color-fg-muted);
+}
+
+.sc-mission__reward {
+  margin-left: auto;
+  font-family: var(--font-mono);
+  font-size: 0.8125rem;
+  white-space: nowrap;
+  color: var(--color-gold);
+}
+
+.sc-mission[data-state="completed"] .sc-mission__reward,
+.sc-mission[data-state="pending"] .sc-mission__reward {
+  color: var(--color-fg-muted);
+}
+
+/* ── Botón-sello (reclamar y sello resultante: MISMO elemento) ─────── */
+.sc-seal {
+  position: relative;
+  flex: none;
+  inline-size: 3.5rem;  /* 56px ≥ 44px de hit target */
+  block-size: 3.5rem;
+  padding: 0;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: var(--radius-pill, 9999px);
+  border: 2px solid transparent;
+  background: transparent;
+  cursor: default;
+  transform: rotate(var(--sc-rot, -3deg));
+  transition:
+    transform 180ms var(--ease-lift),
+    box-shadow 180ms var(--ease-lift);
+}
+
+.sc-seal:focus-visible {
+  outline: 2px solid var(--color-gold);
+  outline-offset: 3px;
+}
+
+.sc-seal__face {
+  position: relative;
+  z-index: 2;
+  inline-size: 100%;
+  block-size: 100%;
+  border-radius: inherit;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 0.0625rem;
+  font-family: var(--font-kanji-serif);
+  font-weight: 700;
+  font-size: 1.375rem;
+  line-height: 1;
+}
+
+.sc-seal__hint {
+  font-family: var(--font-mono);
+  font-size: 0.5625rem;
+  letter-spacing: 0.02em;
+  color: var(--color-fg-muted);
+  opacity: 0;
+  transition: opacity 150ms;
+}
+
+/* pendiente: hueco punteado, kanji fantasma */
+.sc-seal[data-state="pending"] {
+  border-style: dashed;
+  border-color: color-mix(in srgb, var(--color-fg-strong) 16%, transparent);
+}
+
+.sc-seal[data-state="pending"] .sc-seal__face {
+  color: color-mix(in srgb, var(--color-fg) 22%, transparent);
+}
+
+/* reclamable: el sello entintado, listo para caer */
+.sc-seal[data-state="claimable"] {
+  border-color: var(--color-hanko);
+  cursor: pointer;
+  box-shadow: 0 0 22px -8px color-mix(in srgb, var(--color-hanko) 55%, transparent);
+}
+
+.sc-seal[data-state="claimable"] .sc-seal__face {
+  color: var(--color-hanko);
+}
+
+.sc-seal[data-state="claimable"] .sc-seal__hint {
+  opacity: 1;
+}
+
+.sc-seal[data-state="claimable"]:hover {
+  transform: rotate(var(--sc-rot, -3deg)) translateY(-2px) scale(1.04);
+  box-shadow: 0 0 28px -7px color-mix(in srgb, var(--color-hanko) 70%, transparent);
+}
+
+.sc-seal[data-state="claimable"]:active {
+  transform: rotate(var(--sc-rot, -3deg)) scale(0.94);
+}
+
+/* sellado: tinta puesta. Sin [data-wet] es tinta SECA (histórico). */
+.sc-seal[data-state="sealed"] {
+  border-color: var(--color-hanko);
+  background: color-mix(in srgb, var(--color-hanko) 12%, transparent);
+}
+
+.sc-seal[data-state="sealed"] .sc-seal__face {
+  color: var(--color-hanko);
+}
+
+.sc-seal[data-state="sealed"]:not([data-wet="true"]) {
+  opacity: 0.92; /* tinta seca */
+}
+
+/* sangrado de tinta: dos manchas pre-renderizadas (cero filters) */
+.sc-seal__bleed {
+  position: absolute;
+  inset: -6%;
+  z-index: 1;
+  pointer-events: none;
+  opacity: 0;
+}
+
+.sc-seal__bleed::before,
+.sc-seal__bleed::after {
+  content: "";
+  position: absolute;
+}
+
+.sc-seal__bleed::before {
+  inset: 8% 4% 2% 6%;
+  border-radius: 58% 42% 50% 50% / 50% 55% 45% 50%;
+  background: color-mix(in srgb, var(--color-hanko) 30%, transparent);
+}
+
+.sc-seal__bleed::after {
+  inset: -2% 10% 8% -2%;
+  border-radius: 45% 55% 60% 40% / 55% 45% 55% 45%;
+  background: color-mix(in srgb, var(--color-hanko) 20%, transparent);
+}
+
+.sc-seal[data-state="sealed"] .sc-seal__bleed {
+  opacity: 0.55; /* mancha seca, base = final */
+}
+
+.sc-seal[data-wet="true"] .sc-seal__bleed {
+  opacity: 0.85; /* tinta aún fresca en esta sesión */
+}
+
+/* capa de tinta fresca: cross-fade de opacity (sustituye cualquier glow) */
+.sc-seal__fresh {
+  position: absolute;
+  inset: 0;
+  z-index: 3;
+  border-radius: inherit;
+  background: color-mix(in srgb, var(--color-hanko) 28%, transparent);
+  opacity: 0;
+  pointer-events: none;
+}
+
+/* ── Cartilla semanal ──────────────────────────────────────────────── */
+.sc-week-wrap {
+  position: relative;
+  margin-top: 1.125rem;
+}
+
+.sc-week {
+  position: relative;
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 0.375rem;
+}
+
+/* casilla de papel con hairline */
+.sc-day {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.25rem;
+  min-block-size: 6.875rem;
+  padding: 0.4375rem 0.25rem 0.5rem;
+  border: 1px solid color-mix(in srgb, var(--color-gold) 16%, transparent);
+  border-radius: var(--radius-lg, 0.5rem);
+  background: color-mix(in srgb, var(--color-fg-strong) 4%, transparent);
+  transition: border-color 200ms var(--ease-lift);
+}
+
+.sc-day__top {
+  inline-size: 100%;
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  padding-inline: 0.1875rem;
+}
+
+.sc-day__wd {
+  font-family: var(--font-mono);
+  font-size: 0.625rem;
+  color: var(--color-fg-muted);
+}
+
+.sc-day__num {
+  font-family: var(--font-display);
+  font-size: 0.8125rem;
+  color: var(--color-fg);
+}
+
+/* hueco donde caerá el sello del día */
+.sc-day__slot {
+  inline-size: 2.75rem;
+  block-size: 2.75rem;
+  margin-top: 0.125rem;
+  border: 1px dashed color-mix(in srgb, var(--color-fg-strong) 14%, transparent);
+  border-radius: var(--radius-pill, 9999px);
+}
+
+/* sello del día: kanji del día de la semana (月火水木金土日) */
+.sc-day__seal {
+  position: relative;
+  z-index: 3; /* por encima del cordón */
+  inline-size: 2.75rem;
+  block-size: 2.75rem;
+  margin-top: 0.125rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 2px solid var(--color-hanko);
+  border-radius: var(--radius-pill, 9999px);
+  /* base opaca bajo el tinte: el sello TAPA el cordón (patrón del hilo
+     de la Crónica) */
+  background:
+    linear-gradient(color-mix(in srgb, var(--color-hanko) 14%, transparent), color-mix(in srgb, var(--color-hanko) 14%, transparent)),
+    var(--color-bg);
+  font-family: var(--font-kanji-serif);
+  font-weight: 700;
+  font-size: 1.25rem;
+  line-height: 1;
+  color: var(--color-hanko);
+  transform: rotate(var(--sc-rot, -4deg));
+  opacity: 0.94;
+}
+
+/* marcas de misión (un punto por misión del día) */
+.sc-day__marks {
+  margin-top: auto;
+  display: flex;
+  gap: 0.25rem;
+}
+
+.sc-mark {
+  inline-size: 0.4375rem;
+  block-size: 0.4375rem;
+  border-radius: var(--radius-pill, 9999px);
+  border: 1px solid color-mix(in srgb, var(--color-fg-strong) 18%, transparent);
+}
+
+.sc-mark[data-done="true"] {
+  background: var(--color-hanko);
+  border-color: var(--color-hanko);
+}
+
+/* hoy */
+.sc-day[data-today="true"] {
+  border-color: color-mix(in srgb, var(--color-gold) 50%, transparent);
+  background: color-mix(in srgb, var(--color-fg-strong) 5.5%, transparent);
+}
+
+.sc-day__today {
+  position: absolute;
+  top: -0.5rem;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 4;
+  padding: 0.1875rem 0.4375rem;
+  font-family: var(--font-mono);
+  font-size: 0.625rem;
+  line-height: 1;
+  color: var(--color-gold);
+  background: var(--color-surface);
+  border: 1px solid var(--color-border-gold);
+  border-radius: var(--radius-pill, 9999px);
+}
+
+/* día sellado: marco de oro (transición one-shot de 200 ms) */
+.sc-day[data-sealed="true"] {
+  border-color: var(--color-border-gold);
+  background: color-mix(in srgb, var(--color-gold) 6%, transparent);
+}
+
+/* el marco de oro del recién sellado espera al golpe del sello (+800 ms) */
+.sc-day[data-just-sealed="true"] {
+  transition-delay: 800ms;
+}
+
+/* futuro */
+.sc-day[data-future="true"] {
+  opacity: 0.55;
+}
+
+/* día pasado fallado: esquina doblada, sin drama */
+.sc-day[data-failed="true"] {
+  opacity: 0.78;
+}
+
+.sc-day[data-failed="true"]::after {
+  content: "";
+  position: absolute;
+  top: -1px;
+  right: -1px;
+  inline-size: 0.9375rem;
+  block-size: 0.9375rem;
+  border-bottom-left-radius: 0.3125rem;
+  background: linear-gradient(
+    225deg,
+    var(--color-bg) 0 50%,
+    color-mix(in srgb, var(--color-fg-strong) 16%, transparent) 50%
+  );
+  box-shadow: -1px 1px 2px color-mix(in srgb, var(--color-canvas) 35%, transparent);
+}
+
+/* pasada de brillo diagonal — UNA sola, solo al sellarse en vivo */
+.sc-day__shineclip {
+  position: absolute;
+  inset: 0;
+  z-index: 2;
+  border-radius: inherit;
+  overflow: hidden;
+  pointer-events: none;
+}
+
+.sc-day__shine {
+  position: absolute;
+  inset-block: -20%;
+  left: 0;
+  inline-size: 55%;
+  opacity: 0; /* base: el brillo NO existe */
+  transform: translateX(-130%) skewX(-16deg);
+  background: linear-gradient(
+    105deg,
+    transparent,
+    color-mix(in srgb, var(--color-gold-bright) 32%, transparent) 50%,
+    transparent
+  );
+}
+
+/* ── Cordón de racha ───────────────────────────────────────────────── */
+.sc-cord {
+  position: absolute;
+  inset: 0;
+  z-index: 2; /* sobre el papel, bajo los sellos (z 3) */
+  pointer-events: none;
+  overflow: visible;
+}
+
+.sc-cord__seg {
+  fill: none;
+  stroke: var(--color-hanko);
+  stroke-width: 2;
+  stroke-linecap: round;
+  opacity: 0.8;
+  stroke-dasharray: 1 1;     /* con pathLength="1" */
+  stroke-dashoffset: 0;      /* base: cordón pintado */
+}
+
+/* ── Sello de semana perfecta (皆勤 · solo con 7/7 real) ───────────── */
+.sc-kaikin {
+  position: absolute;
+  inset: 0;
+  z-index: 5;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  pointer-events: none;
+}
+
+.sc-kaikin__stamp {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.625rem 1.375rem;
+  border: 3px solid var(--color-hanko);
+  border-radius: var(--radius-lg, 0.5rem);
+  background: color-mix(in srgb, var(--color-bg) 55%, transparent);
+  transform: rotate(-9deg);
+  opacity: 0.95;
+}
+
+/* hairline interior del hanko rectangular */
+.sc-kaikin__stamp::before {
+  content: "";
+  position: absolute;
+  inset: 3px;
+  border: 1px solid color-mix(in srgb, var(--color-hanko) 60%, transparent);
+  border-radius: 0.3125rem;
+  pointer-events: none;
+}
+
+.sc-kaikin__kanji {
+  font-family: var(--font-kanji-serif);
+  font-weight: 700;
+  font-size: 2.375rem;
+  line-height: 1;
+  letter-spacing: 0.08em;
+  color: var(--color-hanko);
+}
+
+.sc-kaikin__cap {
+  font-family: var(--font-mono);
+  font-size: 0.625rem;
+  line-height: 1.35;
+  color: var(--color-accent-text);
+  border-left: 1px solid color-mix(in srgb, var(--color-hanko) 50%, transparent);
+  padding-left: 0.625rem;
+}
+
+/* ── Pie ───────────────────────────────────────────────────────────── */
+.sc-foot {
+  margin-top: 0.875rem;
+  padding-top: 0.625rem;
+  border-top: 1px solid color-mix(in srgb, var(--color-gold) 14%, transparent);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  font-family: var(--font-mono);
+  font-size: 0.625rem;
+  color: var(--color-fg-muted);
+}
+
+.sc-foot [lang="ja"] {
+  font-family: var(--font-kanji-serif);
+  color: var(--color-border-gold);
+}
+
+.sc-visually-hidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  margin: -1px;
+  padding: 0;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+/* ── 390 px: semana en fila scrolleable, hoy centrado ──────────────── */
+/* Container query (Safari 16+): la carta responde a SU ancho, no al del
+   viewport — funciona también incrustada en layouts anchos. */
+@container (max-width: 540px) {
+  .sc-week {
+    display: flex;
+    overflow-x: auto;
+    gap: 0.375rem;
+    padding-block: 0.5rem 0.375rem;
+    scroll-snap-type: x proximity;
+    scrollbar-width: thin;
+  }
+
+  .sc-day {
+    flex: 0 0 5.25rem;
+    scroll-snap-align: center;
+  }
+
+  .sc-kaikin__kanji {
+    font-size: 1.875rem;
+  }
+}
+
+/* ── Coreografía (solo si el usuario acepta movimiento) ────────────── */
+@media (prefers-reduced-motion: no-preference) {
+  /* Fase 1 — estampado de misión (solo [data-wet], jamás histórico):
+     caída 350 ms ease-stamp; golpe ≈140 ms (primer cruce por escala 1);
+     sangrado a 200 ms; la tinta fresca se seca en 900 ms desde 350 ms. */
+  .sc-seal[data-wet="true"] .sc-seal__face {
+    animation: sc-stamp-fall 350ms var(--ease-stamp) both;
+  }
+
+  .sc-seal[data-wet="true"] .sc-seal__bleed {
+    animation: sc-bleed-in 220ms ease-out 200ms both;
+  }
+
+  .sc-seal[data-wet="true"] .sc-seal__fresh {
+    animation: sc-fresh-fade 900ms ease-out 350ms both;
+  }
+
+  /* Fase 2 — día completo: sello del día a +500 ms (fill backwards lo
+     mantiene oculto hasta entonces), brillo diagonal único a +900 ms. */
+  .sc-day[data-just-sealed="true"] .sc-day__seal {
+    animation: sc-stamp-fall 350ms var(--ease-stamp) 500ms both;
+  }
+
+  .sc-day[data-just-sealed="true"] .sc-day__shine {
+    animation: sc-shine-pass 600ms var(--ease-lift) 900ms both;
+  }
+
+  /* Fase 3 — cordón: 300 ms lineales por segmento; el delay escalonado
+     (350 ms + orden × 300 ms) llega inline desde el componente. */
+  .sc-cord__seg[data-fresh="true"] {
+    animation: sc-cord-draw 300ms linear both;
+  }
+
+  /* Fase 4 — semana perfecta: 皆勤 cae a +1150 ms (tras el día sellado). */
+  .sc-kaikin[data-wet="true"] .sc-kaikin__stamp {
+    animation: sc-kaikin-fall 500ms var(--ease-stamp) 1150ms both;
+  }
+
+  /* micro-pop de la marca de misión en la casilla de hoy */
+  .sc-day[data-today="true"] .sc-mark[data-fresh="true"] {
+    animation: sc-mark-pop 260ms var(--ease-stamp) 300ms both;
+  }
+}
+
+@keyframes sc-stamp-fall {
+  0% {
+    opacity: 0;
+    transform: scale(1.3) rotate(-8deg);
+  }
+  100% {
+    opacity: 1;
+    transform: scale(1) rotate(0deg);
+  }
+}
+
+@keyframes sc-bleed-in {
+  0% {
+    opacity: 0;
+    transform: scale(0.7);
+  }
+  100% {
+    opacity: 0.85;
+    transform: scale(1);
+  }
+}
+
+@keyframes sc-fresh-fade {
+  0% {
+    opacity: 0.9;
+  }
+  100% {
+    opacity: 0;
+  }
+}
+
+@keyframes sc-shine-pass {
+  0% {
+    opacity: 1;
+    transform: translateX(-130%) skewX(-16deg);
+  }
+  99% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 0;
+    transform: translateX(330%) skewX(-16deg);
+  }
+}
+
+@keyframes sc-cord-draw {
+  from {
+    stroke-dashoffset: 1;
+  }
+  to {
+    stroke-dashoffset: 0;
+  }
+}
+
+@keyframes sc-kaikin-fall {
+  0% {
+    opacity: 0;
+    transform: rotate(-17deg) scale(1.3);
+  }
+  100% {
+    opacity: 0.95;
+    transform: rotate(-9deg) scale(1);
+  }
+}
+
+@keyframes sc-mark-pop {
+  0% {
+    transform: scale(1.7);
+  }
+  100% {
+    transform: scale(1);
+  }
+}
