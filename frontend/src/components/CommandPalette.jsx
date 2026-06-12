@@ -11,6 +11,7 @@ import {
   UserPlus,
   Volume2,
   VolumeX,
+  Flame,
   LogOut,
   Tv,
   Sparkles,
@@ -38,6 +39,7 @@ import {
 import { useTorneos } from '../lib/torneosQueries'
 import { useAuth } from '../contexts/AuthContext'
 import { useSound } from '../contexts/SoundContext'
+import { useCalmMode } from '../hooks/useCalmMode'
 import { playWhoosh } from '../lib/sounds'
 import PersonajeImg from './PersonajeImg'
 
@@ -122,6 +124,7 @@ function CommandPalette({ initialOpen = false } = {}) {
   const navigate = useNavigate()
   const { user, logout } = useAuth()
   const { muted, toggleMute } = useSound()
+  const { calm, toggle: toggleCalm } = useCalmMode()
   const [personajesIndex, setPersonajesIndex] = useState(buildPersonajesIndex)
   // Lista del backend. Si aún no llegó (loading) o falló, mostramos el
   // resto del palette sin la sección "Torneos" — la búsqueda de personajes
@@ -454,6 +457,18 @@ function CommandPalette({ initialOpen = false } = {}) {
                 <VolumeX className="h-4 w-4 text-fg-muted" />
               )}
               {muted ? 'Activar sonidos' : 'Silenciar sonidos'}
+            </Command.Item>
+            <Command.Item
+              value="modo calma linterna reducir animaciones movimiento"
+              onSelect={() => {
+                toggleCalm()
+                setSearch('')
+                setOpen(false)
+              }}
+              className="flex cursor-pointer items-center gap-3 rounded-lg px-3 py-2 text-sm text-fg aria-selected:text-fg-strong"
+            >
+              <Flame className="h-4 w-4 text-fg-muted" />
+              {calm ? 'Desactivar modo calma' : 'Activar modo calma'}
             </Command.Item>
             {user && (
               <Command.Item

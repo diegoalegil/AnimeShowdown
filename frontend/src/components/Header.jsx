@@ -7,6 +7,7 @@ import { useAuth } from '../contexts/AuthContext'
 import { useSound } from '../contexts/SoundContext'
 import Avatar from './Avatar'
 import LanguageToggle from './LanguageToggle'
+import CalmLantern from './CalmLantern'
 import NotifBell from './NotifBell'
 import SaldoChip from './SaldoChip'
 import { useInstantSoundPress } from '../hooks/useInstantSoundPress'
@@ -192,7 +193,7 @@ function Header() {
 
   return (
     <header
-      className={`as-vt-header sticky top-0 z-30 flex items-center justify-between gap-3 px-5 py-3 transition-[background-color,border-color,box-shadow] duration-200 sm:gap-6 sm:px-8 sm:py-4 ${
+      className={`as-vt-header sticky top-0 z-30 flex items-center justify-between gap-3 px-5 py-3 transition-[background-color,border-color,box-shadow] duration-200 sm:gap-5 sm:px-8 sm:py-4 ${
         scrolled
           ? 'border-b border-white/10 bg-bg/95 shadow-elev-2 pointer-fine:bg-bg/78 pointer-fine:backdrop-blur-2xl'
           : 'border-b border-white/8 bg-bg/90 pointer-fine:bg-bg/52 pointer-fine:backdrop-blur-xl'
@@ -276,6 +277,7 @@ function Header() {
             <Volume2 className="h-4 w-4" />
           )}
         </button>
+        <CalmLantern />
         {user ? (
           <>
             <SaldoChip />
@@ -435,6 +437,7 @@ function Header() {
               >
                 {muted ? <VolumeX className="h-4 w-4" /> : <Volume2 className="h-4 w-4" />}
               </button>
+              <CalmLantern size="h-11 w-11" />
               {user && (
                 <button
                   type="button"
