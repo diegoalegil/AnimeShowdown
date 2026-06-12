@@ -9,6 +9,7 @@ import {
 } from '../hooks/useNotificaciones'
 import { getToken, onTokenChange } from '../lib/api'
 import { formatRelativeSafe } from '../lib/dateUtils'
+import { useReducedMotionPref } from '../hooks/useReducedMotionPref'
 
 /**
  * Campanita de notificaciones en el header — los despachos oficiales.
@@ -37,6 +38,7 @@ function NotifBell() {
   const wrapperRef = useRef(null)
   const triggerRef = useRef(null)
   const hasAccessToken = useAccessTokenReady()
+  const reducedMotion = useReducedMotionPref()
 
   const { data: countData } = useUnreadCount({ enabled: hasAccessToken })
   const unread = hasAccessToken ? countData?.count ?? 0 : 0
@@ -90,10 +92,14 @@ function NotifBell() {
         className="relative inline-flex h-11 w-11 items-center justify-center rounded-lg text-fg-muted transition-colors hover:bg-surface-alt hover:text-fg-strong"
       >
         <Bell className="h-4 w-4" />
-        {wave > 0 && (
+        {/* La onda es efímera de verdad: se desmonta al acabar su animación
+            (nada de nodos muertos junto al badge) y con reduced-motion ni
+            siquiera se monta. */}
+        {wave > 0 && !reducedMotion && (
           <span
             key={wave}
             aria-hidden="true"
+            onAnimationEnd={() => setWave(0)}
             className="as-notif-onda pointer-events-none absolute -inset-1 rounded-full border-2 border-gold opacity-0"
           />
         )}
