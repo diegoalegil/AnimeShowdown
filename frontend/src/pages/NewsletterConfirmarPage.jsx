@@ -1,7 +1,8 @@
 import { useEffect, useRef, useState } from 'react'
 import { Link, useSearchParams } from 'react-router-dom'
 import { motion } from 'framer-motion'
-import { CheckCircle2, Loader2, XCircle } from 'lucide-react'
+import { Loader2 } from 'lucide-react'
+import FlowSeal from '../components/FlowSeal'
 import { useSeo } from '../hooks/useSeo'
 import { endpoints } from '../lib/api'
 import { VisualPageShell } from '../components/VisualSystem'
@@ -88,8 +89,9 @@ function NewsletterConfirmarPage() {
           </div>
         )}
         {estado.tipo === 'ok' && (
-          <div className="flex flex-col items-center gap-3 rounded-xl border border-success/30 bg-success/5 p-8 text-center">
-            <CheckCircle2 className="h-10 w-10 text-success" />
+          <div className="flex flex-col items-center gap-3 rounded-xl border border-gold/30 bg-gold/5 p-8 text-center">
+            {/* Lacre 結 (unión): la suscripción queda sellada sobre la carta. */}
+            <FlowSeal variant="exito" size={210} />
             <h1 className="text-2xl tracking-tight">¡Listo!</h1>
             <p className="text-[13px] text-success/80">{estado.mensaje}</p>
             <Link
@@ -101,8 +103,9 @@ function NewsletterConfirmarPage() {
           </div>
         )}
         {estado.tipo === 'error' && (
-          <div className="flex flex-col items-center gap-3 rounded-xl border border-danger/30 bg-danger/5 p-8 text-center">
-            <XCircle className="h-10 w-10 text-danger" />
+          <div className="flex flex-col items-center gap-3 rounded-xl border border-accent/30 bg-accent/5 p-8 text-center">
+            {/* Lacre 破 (roto): carmesí de marca apagado, no el danger genérico. */}
+            <FlowSeal variant="error" size={210} />
             <h1 className="text-2xl tracking-tight">No se pudo confirmar</h1>
             <p className="text-[13px] text-danger/80">{estado.mensaje}</p>
             <p className="text-[12px] text-fg-muted">
