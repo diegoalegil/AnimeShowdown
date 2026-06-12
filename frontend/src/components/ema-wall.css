@@ -1,0 +1,37 @@
+/* EmaWall — muro de tablillas votivas de /apoya. CSS de feature
+   (bundleado, CSP-safe: el <style> runtime del entregable violaba la CSP). */
+.ema-cell { --ema-clip: polygon(0 24%, 50% 0, 100% 24%, 100% 100%, 0 100%); }
+.ema-hang {
+  transform: rotate(var(--ema-rest, 0deg));
+  transform-origin: 50% -4px; /* el clavo del travesaño */
+}
+/* Oscilación al hover: una sola pasada, solo transform (compositor). */
+@keyframes ema-sway {
+  0%   { transform: rotate(var(--ema-rest, 0deg)); }
+  28%  { transform: rotate(calc(var(--ema-rest, 0deg) + 2deg)); }
+  60%  { transform: rotate(calc(var(--ema-rest, 0deg) - 1.3deg)); }
+  82%  { transform: rotate(calc(var(--ema-rest, 0deg) + 0.5deg)); }
+  100% { transform: rotate(var(--ema-rest, 0deg)); }
+}
+@media (hover: hover) and (pointer: fine) {
+  .ema-cell:hover .ema-hang,
+  .ema-cell:focus-within .ema-hang {
+    animation: ema-sway 2.4s var(--ease-lift, ease-in-out) 1;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .ema-hang { animation: none !important; transform: none; }
+}
+/* Entrada: la tablilla "cae" y se asienta. Una pasada, solo al montar. */
+@keyframes ema-drop {
+  from { opacity: 0; transform: translateY(-12px); }
+}
+@media (prefers-reduced-motion: no-preference) {
+  .ema-drop {
+    animation: ema-drop 0.55s var(--ease-lift, ease-out) backwards;
+    animation-delay: calc(var(--ema-i, 0) * 90ms);
+  }
+}
+/* Grabado: sombra de cincel con el oro suave del sistema (fallback = mismo
+   valor del token, por si el build poda la variable no usada en utilidades). */
+.ema-kanji { text-shadow: 0 1px 0 var(--color-gold-soft); }
