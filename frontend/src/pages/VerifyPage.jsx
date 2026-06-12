@@ -1,7 +1,8 @@
 import { useEffect, useRef, useState } from 'react'
 import { Link, useSearchParams } from 'react-router-dom'
 import { motion } from 'framer-motion'
-import { CheckCircle2, XCircle, MailWarning, ArrowRight } from 'lucide-react'
+import { XCircle, MailWarning } from 'lucide-react'
+import VerifySeal from '../components/VerifySeal'
 import { endpoints, refreshSession } from '../lib/api'
 import { useSeo } from '../hooks/useSeo'
 import { useAuth } from '../contexts/AuthContext'
@@ -85,18 +86,24 @@ function VerifyPage() {
       className="flex min-h-[calc(100vh-6rem)] items-center justify-center"
       contentClassName="w-full max-w-md"
     >
-      <motion.div
-        initial={{ opacity: 0, y: 16 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.4, ease: 'easeOut' }}
-        className="w-full rounded-2xl border border-border bg-surface/85 p-8 text-center backdrop-blur-md shadow-aura-lg"
-      >
-        {estado === 'verificando' && <Verificando />}
-        {estado === 'ok' && <Exito />}
-        {estado === 'invalido' && <TokenInvalido />}
-        {estado === 'sin_token' && <SinToken />}
-        {estado === 'error_red' && <ErrorRed />}
-      </motion.div>
+      {/* El éxito es SU propio panel (VerifySeal): la estampación del hanko
+          necesita poseer el rect SVG del borde y dar el micro-shake al panel
+          entero. El resto de estados conservan el panel compartido. */}
+      {estado === 'ok' ? (
+        <VerifySeal />
+      ) : (
+        <motion.div
+          initial={{ opacity: 0, y: 16 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.4, ease: 'easeOut' }}
+          className="w-full rounded-2xl border border-border bg-surface/85 p-8 text-center backdrop-blur-md shadow-aura-lg"
+        >
+          {estado === 'verificando' && <Verificando />}
+          {estado === 'invalido' && <TokenInvalido />}
+          {estado === 'sin_token' && <SinToken />}
+          {estado === 'error_red' && <ErrorRed />}
+        </motion.div>
+      )}
     </VisualPageShell>
   )
 }
@@ -106,25 +113,6 @@ function Verificando() {
     <div className="flex flex-col items-center gap-4">
       <div className="h-12 w-12 animate-spin rounded-full border-2 border-accent border-t-transparent" />
       <p className="text-fg-muted">Verificando tu email…</p>
-    </div>
-  )
-}
-
-function Exito() {
-  return (
-    <div className="flex flex-col items-center gap-4">
-      <CheckCircle2 className="h-14 w-14 text-success" />
-      <h1 className="text-2xl font-bold text-fg-strong">¡Email verificado!</h1>
-      <p className="text-fg-muted">
-        Tu cuenta está activa. Ya puedes votar en los torneos.
-      </p>
-      <Link
-        to="/torneos"
-        className="mt-2 inline-flex items-center gap-2 rounded-lg bg-accent px-5 py-2.5 text-sm font-semibold text-white hover:bg-accent-hover"
-      >
-        Ver torneos
-        <ArrowRight className="h-4 w-4" />
-      </Link>
     </div>
   )
 }
