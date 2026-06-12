@@ -46,6 +46,9 @@ async function prepareBasePage(page) {
     localStorage.setItem('i18nextLng', 'es')
     localStorage.setItem(CATALOG_STORAGE_KEY, JSON.stringify(catalog))
     sessionStorage.setItem('animeshowdown.splash.shown', 'true')
+    // Estos specs no van del combate guiado: gate cerrado (su spec propio
+    // es onboarding.spec.js).
+    localStorage.setItem('onboarding.v1', 'done')
   }, CATALOG)
 
   await page.route('**/api/personajes/catalogo**', async (route) => {

@@ -11,6 +11,10 @@ async function preparePage(page) {
     localStorage.setItem('animeshowdown.votar.fast', 'false')
     localStorage.setItem('animeshowdown.votos_count', '0')
     sessionStorage.setItem('animeshowdown.splash.shown', 'true')
+    // Los specs generales no van del combate guiado: gate cerrado para que
+    // el tour (que navega solo tras el primer voto) no secuestre el flujo.
+    // El tour tiene su spec propio: onboarding.spec.js.
+    localStorage.setItem('onboarding.v1', 'done')
     // Forzar idioma ES en los e2e. Sin esto, Playwright Chromium en CI
     // arranca con navigator.language=en-US y i18next-browser-languagedetector
     // (orden ['localStorage', 'navigator']) carga el bundle `en` → el aria-label

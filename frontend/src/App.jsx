@@ -9,6 +9,7 @@ import ScrollProgress from './components/ScrollProgress'
 import CommandPaletteLazyMount from './components/CommandPaletteLazyMount'
 import EmailVerifyBanner from './components/EmailVerifyBanner'
 import BadgeUnlockListener from './components/BadgeUnlockListener'
+import FirstDuelTourGate from './features/onboarding/FirstDuelTourGate'
 import PushSubscriptionSync from './components/PushSubscriptionSync'
 import OnboardingGate from './components/onboarding/OnboardingGate'
 import CookieConsent from './components/CookieConsent'
@@ -356,6 +357,11 @@ function App() {
       {/* Listener global de unlock: side-effect-only, sin UI. Se monta
           siempre — internamente skipea cuando no hay user logueado. */}
       <BadgeUnlockListener />
+      {/* Combate guiado de primera visita: null para todo el mundo salvo el
+          candidato (autenticado + gate ausente + primer /votar); el chunk
+          del tour solo se carga entonces. Distinto del OnboardingGate de
+          username/avatar (V-8): aquel es el alta, este es el primer combate. */}
+      <FirstDuelTourGate />
       {/* Mantiene la suscripción de web push atada al backend: resync al
           arrancar + reacción al pushsubscriptionchange del SW. Side-effect-only,
           skipea sin user, sin soporte push o sin permiso concedido. */}

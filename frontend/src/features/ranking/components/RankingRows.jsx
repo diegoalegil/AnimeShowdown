@@ -49,7 +49,7 @@ export const RankRowElo = memo(function RankRowElo({
     ? 'border-medal-gold/30 bg-gradient-to-r from-medal-gold/5 to-surface'
     : 'border-border bg-surface'
   return (
-    <li data-flip-key={slug}>
+    <li data-flip-key={slug} data-tour="rank-row" data-slug={slug}>
       <div
         className={`group relative flex items-center gap-2 rounded-lg border px-3 py-3 transition-all hover:-translate-x-1 hover:border-accent/40 hover:bg-surface-alt sm:gap-3 sm:px-5 ${rowTone}`}
       >

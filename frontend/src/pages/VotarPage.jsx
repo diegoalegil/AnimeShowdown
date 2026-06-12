@@ -41,6 +41,7 @@ import {
 import { formatPersonalVoteImpact, formatVoteScore } from '../features/votar/vote-format'
 import { incrementarContadorLocalVotos } from '../features/votar/vote-local-counter'
 import { getArenaDescription, getArenaStatusLabel } from '../features/votar/arena-labels'
+import { VOTO_REGISTRADO_EVENT, emitAppEvent } from '../lib/app-events'
 
 // Claves y tiempo de vida para el prefetch del siguiente par.
 // gcTime de 8s: suficiente para que el usuario vea el resultado y avance.
@@ -473,6 +474,8 @@ function VotarPage() {
         votosGanador: data?.votosGanador ?? null,
         votosPerdedor: data?.votosPerdedor ?? null,
       })
+      // Señal plana para oyentes desacoplados (onboarding): voto confirmado.
+      emitAppEvent(VOTO_REGISTRADO_EVENT, { slug: personaje.slug })
 
       // En modo rápido el auto-next salta cada ~900ms; el toast sería ruido
       // visual constante. Solo mostramos toast en modo normal o si es invitado
