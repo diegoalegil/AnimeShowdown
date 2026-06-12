@@ -7,6 +7,7 @@ import { useAuth } from '../contexts/AuthContext'
 import { useSound } from '../contexts/SoundContext'
 import Avatar from './Avatar'
 import LanguageToggle from './LanguageToggle'
+import CalmLantern from './CalmLantern'
 import NotifBell from './NotifBell'
 import SaldoChip from './SaldoChip'
 import { useInstantSoundPress } from '../hooks/useInstantSoundPress'
@@ -276,6 +277,7 @@ function Header() {
             <Volume2 className="h-4 w-4" />
           )}
         </button>
+        <CalmLantern />
         {user ? (
           <>
             <SaldoChip />
@@ -435,6 +437,7 @@ function Header() {
               >
                 {muted ? <VolumeX className="h-4 w-4" /> : <Volume2 className="h-4 w-4" />}
               </button>
+              <CalmLantern />
               {user && (
                 <button
                   type="button"

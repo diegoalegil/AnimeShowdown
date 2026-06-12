@@ -36,6 +36,10 @@
   "header": {
     "silenciar": "Mute sounds",
     "activarSonidos": "Unmute sounds",
+    "calmaActivar": "Turn on calm mode",
+    "calmaDesactivar": "Turn off calm mode",
+    "calmaSistema": "Calm mode set by your system",
+    "calmaTooltip": "Your device already asks for less motion, so the dojo is calm. This is managed from your system settings.",
     "idioma": "Language",
     "elegirIdioma": "Choose language",
     "ctaVotar": "Vote now",

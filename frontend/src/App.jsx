@@ -1,4 +1,5 @@
 import { Suspense, useEffect, useLayoutEffect } from 'react'
+import { MotionConfig } from 'framer-motion'
 import { Routes, Route, Navigate, useLocation } from 'react-router-dom'
 import { Toaster } from 'sonner'
 import Header from './components/Header'
@@ -26,6 +27,7 @@ import { canWarmupRoutes, idleWarmupRoutesFor } from './lib/route-warmup-policy'
 import { recoverFromStaleAssetError } from './lib/staleAssetRecovery'
 import { settleNavigationViewTransition } from './lib/viewTransitions'
 import i18n from './lib/i18n'
+import { useCalmMode } from './hooks/useCalmMode'
 
 // Todas las rutas, incluida home, van detrás de React.lazy. InicioPage
 // importa el catálogo estático y varias secciones visuales pesadas; si se
@@ -210,6 +212,7 @@ function useQueryLanguageSync(search) {
 
 function App() {
   const location = useLocation()
+  const { calm } = useCalmMode()
   // En rutas sin personajes (auth/legal) NO cebamos el catálogo global (~170KB):
   // ahí App.jsx es su único observer, así que el gate aquí evita el fetch.
   const catalogoQuery = useCatalogoPersonajes({
@@ -326,6 +329,9 @@ function App() {
   }, [location.pathname])
 
   return (
+    // MotionConfig alinea el useReducedMotion de framer con el modo calma:
+    // los gates JS propios ya lo ven vía useReducedMotionPref (unión).
+    <MotionConfig reducedMotion={calm ? 'always' : 'user'}>
     <div className="flex min-h-screen flex-col">
       <a
         href="#main-content"
@@ -522,6 +528,7 @@ function App() {
         </div>
       )}
     </div>
+    </MotionConfig>
   )
 }
 

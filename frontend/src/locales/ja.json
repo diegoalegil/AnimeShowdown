@@ -36,6 +36,10 @@
   "header": {
     "silenciar": "サウンドをミュート",
     "activarSonidos": "サウンドをオン",
+    "calmaActivar": "静けさモードをオン",
+    "calmaDesactivar": "静けさモードをオフ",
+    "calmaSistema": "システム設定により静けさモード",
+    "calmaTooltip": "お使いの端末が動きを減らす設定のため、道場は静けさモードです。システム設定から変更できます。",
     "idioma": "言語",
     "elegirIdioma": "言語を選択",
     "ctaVotar": "今すぐ投票",

@@ -2484,6 +2484,98 @@ button.tz-flip {
   }
 }
 
+/* La linterna del dojo — modo calma visible. La llama (oro, trazo) cruza a
+   brasa (carmesí, rellena) con scale+opacity en 300ms --ease-brush; dos
+   capas pre-renderizadas, cero blur, cero loops (la brasa es estática
+   porque ES calma). html[data-calm-pulse] atenúa el header un instante
+   como confirmación. html.as-calm pausa los loops decorativos CONOCIDOS
+   (lista explícita: pausar * congelaría entradas one-shot a medias); los
+   efectos JS (canvas/rAF/3D/framer) se calman vía useReducedMotionPref
+   y MotionConfig. */
+.as-lantern {
+  position: relative;
+  display: inline-block;
+  width: 1.125rem;
+  height: 1.125rem;
+}
+
+.as-lantern__layer {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  transition:
+    transform 300ms var(--ease-brush),
+    opacity 300ms var(--ease-brush);
+  will-change: transform, opacity;
+}
+
+.as-lantern__layer--flame {
+  color: var(--color-gold);
+}
+
+.as-lantern__layer--ember {
+  color: var(--color-accent-text);
+  opacity: 0;
+  transform: scale(0.45);
+}
+
+.as-lantern__halo {
+  position: absolute;
+  inset: -8px;
+  border-radius: var(--radius-pill);
+  background: radial-gradient(circle, var(--color-gold-soft), transparent 65%);
+  transition: opacity 300ms var(--ease-brush);
+  pointer-events: none;
+}
+
+.as-lantern[data-calm] .as-lantern__layer--flame {
+  opacity: 0;
+  transform: scale(0.45);
+}
+
+.as-lantern[data-calm] .as-lantern__layer--ember {
+  opacity: 1;
+  transform: scale(0.62);
+}
+
+.as-lantern[data-calm] .as-lantern__halo {
+  opacity: 0;
+}
+
+.as-vt-header {
+  transition-property: background-color, border-color, box-shadow, opacity;
+}
+
+html[data-calm-pulse] .as-vt-header {
+  opacity: 0.55;
+}
+
+/* Loops decorativos en calma: pausa explícita (espejo de sus bloques de
+   prefers-reduced-motion; añadir aquí una línea por loop nuevo). */
+html.as-calm .skl::after,
+html.as-calm .skl-kanji path,
+html.as-calm .tz-sway,
+html.as-calm .elo-halo,
+html.as-calm .trono-ray,
+html.as-calm .trono-aura,
+html.as-calm .trono-crown,
+html.as-calm .animate-aurora-1,
+html.as-calm .animate-aurora-2 {
+  animation-play-state: paused !important;
+}
+
+html.as-calm .trono-shine {
+  display: none;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .as-lantern__layer,
+  .as-lantern__halo {
+    transition: none !important;
+  }
+}
+
 /* Splash de marca (logo animado de la primera carga). El CSS vive aquí en el
    stylesheet global para garantizar que aplica; el componente Splash.jsx solo
    usa estas clases. El rojo bermellón del sello (distinto del carmesí de la
