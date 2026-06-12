@@ -54,6 +54,14 @@ function NotifBell() {
     setPrevUnread(unread)
     if (unread > prevUnread) setWave((w) => w + 1)
   }
+  // La onda se desmonta por TIMER, no por animationend: reduced-motion (y la
+  // emulación del e2e) anulan la animación por CSS y ese evento nunca llega.
+  // Efímera de verdad: cero nodos muertos junto al badge.
+  useEffect(() => {
+    if (wave === 0) return undefined
+    const t = setTimeout(() => setWave(0), 800)
+    return () => clearTimeout(t)
+  }, [wave])
 
   const closeAndRestoreFocus = () => {
     setOpen(false)
@@ -92,14 +100,10 @@ function NotifBell() {
         className="relative inline-flex h-11 w-11 items-center justify-center rounded-lg text-fg-muted transition-colors hover:bg-surface-alt hover:text-fg-strong"
       >
         <Bell className="h-4 w-4" />
-        {/* La onda es efímera de verdad: se desmonta al acabar su animación
-            (nada de nodos muertos junto al badge) y con reduced-motion ni
-            siquiera se monta. */}
         {wave > 0 && !reducedMotion && (
           <span
             key={wave}
             aria-hidden="true"
-            onAnimationEnd={() => setWave(0)}
             className="as-notif-onda pointer-events-none absolute -inset-1 rounded-full border-2 border-gold opacity-0"
           />
         )}
