@@ -50,9 +50,9 @@ test('login con credenciales aplica sesion y respeta next seguro', async ({ page
   })
 
   await page.goto('/login?next=/ranking')
-  await page.getByLabel('Username o email').fill(MOCK_USER.username)
+  await page.getByLabel('Usuario o email').fill(MOCK_USER.username)
   await page.getByLabel('Contraseña', { exact: true }).fill('E2ePass123')
-  await page.getByRole('button', { name: 'Entrar', exact: true }).click()
+  await page.getByRole('button', { name: 'Entrar al dojo', exact: true }).click()
 
   await page.waitForURL('**/ranking')
   await expect(page.getByRole('link', { name: /perfil|profile/i }).first()).toBeVisible()
@@ -86,5 +86,5 @@ test('callback OAuth fallido vuelve a login con estado de error', async ({ page 
   await page.goto('/auth/callback?oauth=error')
 
   await page.waitForURL('**/login?oauth=error')
-  await expect(page.getByRole('heading', { name: 'Inicia sesión' })).toBeVisible()
+  await expect(page.getByRole('heading', { name: 'Entra al dojo' })).toBeVisible()
 })
