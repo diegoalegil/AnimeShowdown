@@ -1,0 +1,447 @@
+/* ════════════════════════════════════════════════════════════════════════
+   El colofón del recinto — FederationColophon
+   Pegar en index.css (CSP por hash: nada de estilos en runtime).
+   Solo se anima transform/opacity. Sin blur, sin filters, sin preserve-3d.
+   ════════════════════════════════════════════════════════════════════════ */
+
+.fc-root {
+  position: relative;
+  background: var(--color-bg);
+  color: var(--color-fg);
+}
+
+/* Hairline superior con hueco central para el sello */
+.fc-rule {
+  position: absolute;
+  inset: 0 0 auto 0;
+  height: 1px;
+  background: linear-gradient(
+    90deg,
+    transparent 0%,
+    var(--color-border-gold) 9%,
+    var(--color-border-gold) 44%,
+    transparent 47%,
+    transparent 53%,
+    var(--color-border-gold) 56%,
+    var(--color-border-gold) 91%,
+    transparent 100%
+  );
+}
+
+/* ── Sello hanko 戦 ─ caja reservada de 56px → cero CLS ─────────────────── */
+.fc-seal {
+  position: absolute;
+  left: 50%;
+  top: 0;
+  width: 56px;
+  height: 56px;
+  margin: -28px 0 0 -28px;
+  pointer-events: none;
+}
+.fc-seal__stamp {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  border-radius: 10px;
+  background: var(--color-hanko);
+  box-shadow: inset 0 0 0 2px color-mix(in srgb, var(--color-canvas) 28%, transparent);
+  opacity: 0;
+  transform: scale(1.2);
+}
+.fc-seal.is-stamped .fc-seal__stamp {
+  /* ease-stamp de la casa: overshoot de hanko */
+  animation: fc-stamp 300ms cubic-bezier(0.34, 1.56, 0.64, 1) both;
+}
+.fc-seal__kanji {
+  font-family: var(--font-kanji-serif);
+  font-weight: 900;
+  font-size: 30px;
+  line-height: 1;
+  color: var(--color-fg-strong);
+  transform: rotate(-3deg);
+}
+/* Sangrado de tinta: capa bermellón que aparece tras el golpe */
+.fc-seal__bleed {
+  position: absolute;
+  inset: -5px;
+  border-radius: 14px;
+  background: color-mix(in srgb, var(--color-hanko) 16%, transparent);
+  opacity: 0;
+}
+.fc-seal.is-stamped .fc-seal__bleed {
+  animation: fc-bleed 250ms ease 200ms both;
+}
+
+@keyframes fc-stamp {
+  from {
+    opacity: 0;
+    transform: scale(1.2);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+@keyframes fc-bleed {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+/* ── Detalles editoriales ───────────────────────────────────────────────── */
+.fc-vertical {
+  position: absolute;
+  right: clamp(10px, 2vw, 30px);
+  top: 64px;
+  writing-mode: vertical-rl;
+  font-family: var(--font-kanji-serif);
+  font-size: 14px;
+  font-weight: 700;
+  letter-spacing: 0.45em;
+  color: color-mix(in srgb, var(--color-gold) 42%, transparent);
+  pointer-events: none;
+  user-select: none;
+  display: none;
+}
+.fc-watermark {
+  position: absolute;
+  right: 3%;
+  bottom: -34px;
+  font-family: var(--font-kanji-serif);
+  font-weight: 900;
+  font-size: 230px;
+  line-height: 1;
+  color: color-mix(in srgb, var(--color-gold) 5%, transparent);
+  pointer-events: none;
+  user-select: none;
+  display: none;
+}
+@media (min-width: 641px) {
+  .fc-watermark {
+    display: block;
+  }
+}
+@media (min-width: 1025px) {
+  .fc-vertical {
+    display: block;
+  }
+}
+.fc-root {
+  overflow: clip; /* recorta la marca de agua; el sello queda fuera del clip… */
+  overflow-clip-margin: 36px; /* …gracias al margen de clip (sello sobresale 28px) */
+}
+
+.fc-inner {
+  position: relative;
+  max-width: 1180px;
+  margin: 0 auto;
+  padding: 60px clamp(20px, 5vw, 64px) 26px;
+}
+
+/* ── Sitemap ────────────────────────────────────────────────────────────── */
+.fc-nav {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 44px 40px;
+}
+.fc-nav.is-stack {
+  flex-direction: column;
+  gap: 0;
+}
+.fc-brand {
+  flex: 1.1 1 240px;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+.fc-nav.is-stack .fc-brand {
+  margin-bottom: 26px;
+}
+.fc-brand__link {
+  display: inline-flex;
+  align-items: center;
+  width: fit-content;
+  min-height: 44px;
+  text-decoration: none;
+}
+.fc-brand__name {
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: 19px;
+  letter-spacing: 0.01em;
+  color: var(--color-fg-strong);
+}
+.fc-brand__claim {
+  margin: 0;
+  max-width: 30ch;
+  font-size: 13px;
+  line-height: 1.65;
+  color: var(--color-fg-muted);
+  text-wrap: pretty;
+}
+
+.fc-col {
+  flex: 1 1 170px;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 13px;
+}
+.fc-col.is-wide {
+  flex: 1.5 1 280px;
+}
+.fc-col__title {
+  margin: 0;
+  font-family: var(--font-mono);
+  font-size: 12px;
+  font-weight: 500;
+  letter-spacing: 0.02em;
+  color: var(--color-fg-muted);
+}
+.fc-col__tick {
+  width: 22px;
+  height: 1px;
+  background: var(--color-border-gold);
+}
+.fc-links {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(132px, 1fr));
+  column-gap: 20px;
+  row-gap: 1px;
+}
+
+/* Enlace con subrayado de tinta: ::after scaleX — solo transform (60fps) */
+.fc-link {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  width: fit-content;
+  max-width: 100%;
+  min-height: 31px;
+  font-size: 13.5px;
+  line-height: 1.35;
+  color: var(--color-fg-muted);
+  text-decoration: none;
+  transition: color 150ms ease;
+}
+.fc-link::after {
+  content: '';
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 4px;
+  height: 1px;
+  background: var(--color-gold);
+  transform: scaleX(0);
+  transform-origin: left center;
+  transition: transform 150ms var(--ease-brush);
+}
+.fc-link:hover,
+.fc-link:focus-visible {
+  color: var(--color-fg-strong);
+}
+.fc-link:hover::after,
+.fc-link:focus-visible::after {
+  transform: scaleX(1);
+}
+
+/* ── Acordeones móviles ─────────────────────────────────────────────────── */
+.fc-acc {
+  border-top: 1px solid color-mix(in srgb, var(--color-gold) 14%, transparent);
+}
+.fc-acc__head {
+  width: 100%;
+  min-height: 52px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  background: none;
+  border: none;
+  padding: 0;
+  cursor: pointer;
+  font-family: var(--font-mono);
+  font-size: 12px;
+  color: var(--color-fg);
+  text-align: left;
+}
+.fc-acc__mark {
+  color: color-mix(in srgb, var(--color-gold) 85%, transparent);
+  font-size: 15px;
+  display: inline-block;
+  transition: transform 200ms var(--ease-lift);
+}
+.fc-acc__head[aria-expanded='true'] .fc-acc__mark {
+  transform: rotate(45deg);
+}
+.fc-acc__panel {
+  padding: 2px 0 16px;
+}
+.fc-acc__panel .fc-links {
+  grid-template-columns: 1fr;
+}
+.fc-acc__panel .fc-link {
+  min-height: 44px; /* hit target móvil */
+  font-size: 14px;
+}
+
+/* ── Horizonte: torii + grulla ──────────────────────────────────────────── */
+.fc-horizon {
+  position: relative;
+  margin-top: 46px;
+  height: 56px;
+}
+.fc-horizon::after {
+  content: '';
+  position: absolute;
+  inset: auto 0 0 0;
+  height: 1px;
+  background: linear-gradient(
+    90deg,
+    transparent 0%,
+    color-mix(in srgb, var(--color-gold) 35%, transparent) 12%,
+    color-mix(in srgb, var(--color-gold) 35%, transparent) 88%,
+    transparent 100%
+  );
+}
+.fc-torii {
+  position: absolute;
+  left: 50%;
+  bottom: 0;
+  transform: translateX(-50%);
+  display: block;
+  fill: none;
+  stroke: color-mix(in srgb, var(--color-gold) 50%, transparent);
+  stroke-width: 1.2;
+  stroke-linecap: round;
+}
+.fc-crane {
+  position: absolute;
+  right: clamp(6px, 2vw, 26px);
+  bottom: -1px;
+  width: 56px;
+  height: 52px;
+  display: grid;
+  place-items: end center;
+  background: none;
+  border: none;
+  padding: 0;
+  cursor: pointer;
+  border-radius: 8px;
+}
+.fc-crane__bird {
+  display: block;
+  transition: transform 400ms var(--ease-lift);
+}
+.fc-crane__bird.is-flying {
+  transform: translateY(-24px) rotate(-8deg);
+}
+.fc-crane__svg {
+  stroke: color-mix(in srgb, var(--color-gold) 85%, transparent);
+  stroke-width: 1;
+  stroke-linejoin: round;
+}
+.fc-facet-1 {
+  fill: color-mix(in srgb, var(--color-gold) 10%, transparent);
+}
+.fc-facet-2 {
+  fill: color-mix(in srgb, var(--color-gold) 16%, transparent);
+}
+.fc-facet-3 {
+  fill: color-mix(in srgb, var(--color-gold) 22%, transparent);
+}
+
+/* ── Colofón de imprenta ────────────────────────────────────────────────── */
+.fc-colophon {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+  padding-top: 20px;
+  text-align: center;
+}
+.fc-legal {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 0 6px;
+}
+.fc-legal__link {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  min-height: 44px;
+  padding: 0 8px;
+  font-size: 12px;
+  color: var(--color-fg-muted);
+  text-decoration: none;
+  transition: color 150ms ease;
+}
+.fc-legal__link::after {
+  content: '';
+  position: absolute;
+  left: 8px;
+  right: 8px;
+  top: calc(50% + 10px);
+  height: 1px;
+  background: var(--color-gold);
+  transform: scaleX(0);
+  transform-origin: left center;
+  transition: transform 150ms var(--ease-brush);
+}
+.fc-legal__link:hover,
+.fc-legal__link:focus-visible {
+  color: var(--color-fg-strong);
+}
+.fc-legal__link:hover::after,
+.fc-legal__link:focus-visible::after {
+  transform: scaleX(1);
+}
+.fc-copy {
+  margin: 0;
+  font-size: 12px;
+  color: var(--color-fg-muted);
+}
+.fc-build {
+  margin: 4px 0 0;
+  font-family: var(--font-mono);
+  font-size: 11px;
+  color: color-mix(in srgb, var(--color-fg-muted) 78%, transparent);
+}
+
+/* Focus visible (teclado) */
+.fc-link:focus-visible,
+.fc-legal__link:focus-visible,
+.fc-brand__link:focus-visible,
+.fc-acc__head:focus-visible,
+.fc-crane:focus-visible {
+  outline: 2px solid color-mix(in srgb, var(--color-gold) 70%, transparent);
+  outline-offset: 2px;
+}
+
+/* ── reduced-motion: sello ya estampado, grulla sin vuelo ───────────────── */
+@media (prefers-reduced-motion: reduce) {
+  .fc-seal.is-stamped .fc-seal__stamp,
+  .fc-seal.is-stamped .fc-seal__bleed {
+    animation: none;
+    opacity: 1;
+    transform: scale(1);
+  }
+  .fc-link::after,
+  .fc-legal__link::after,
+  .fc-crane__bird,
+  .fc-acc__mark {
+    transition: none;
+  }
+  .fc-crane__bird.is-flying {
+    transform: none;
+  }
+}

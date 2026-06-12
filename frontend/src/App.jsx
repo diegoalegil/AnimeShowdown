@@ -3,8 +3,10 @@ import { MotionConfig } from 'framer-motion'
 import { Routes, Route, Navigate, useLocation } from 'react-router-dom'
 import { Toaster } from 'sonner'
 import Header from './components/Header'
-import Footer from './components/Footer'
 import FooterSlim from './components/FooterSlim'
+import FederationColophon from './components/FederationColophon'
+import FooterTopAnimes from './components/FooterTopAnimes'
+import NewsletterForm from './components/NewsletterForm'
 import ErrorBoundary from './components/ErrorBoundary'
 import ScrollProgress from './components/ScrollProgress'
 import CommandPaletteLazyMount from './components/CommandPaletteLazyMount'
@@ -524,7 +526,14 @@ function App() {
           marca, legal y copyright para reducir peso visual repetido. */}
       {!isFullscreenRoute && (
         <div className="pb-[calc(7rem_+_env(safe-area-inset-bottom))] md:pb-0">
-          {location.pathname === '/' ? <Footer /> : <FooterSlim />}
+          {location.pathname === '/' ? (
+            <FederationColophon
+              newsletterSlot={<NewsletterForm />}
+              extraSlot={<FooterTopAnimes />}
+            />
+          ) : (
+            <FooterSlim />
+          )}
         </div>
       )}
     </div>

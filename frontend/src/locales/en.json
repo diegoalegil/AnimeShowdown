@@ -63,7 +63,9 @@
     "contacto": "Contact",
     "animesPopulares": "Animes with most characters",
     "copyright": "© 2026 AnimeShowdown",
-    "origen": "From Tenerife"
+    "origen": "From Tenerife",
+    "volverArriba": "back to top",
+    "pieDePagina": "page footer"
   },
   "newsletter": {
     "intro": "Get new tournaments, featured rankings and daily trials straight to your inbox.",
