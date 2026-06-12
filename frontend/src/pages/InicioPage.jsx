@@ -9,7 +9,7 @@ import {
   Inbox,
 } from 'lucide-react'
 import { AppLink } from '../components/AppLink'
-import Hero from '../components/Hero'
+import HearthHero from '../components/HearthHero'
 import SectionCombateEstelar from '../components/SectionCombateEstelar'
 import SectionGate from '../components/SectionGate'
 import SectionPulso from '../components/SectionPulso'
@@ -87,11 +87,12 @@ function InicioPage() {
   return (
     <>
       <JsonLd id="website" schema={webSiteSchema()} />
-      {/* Jerarquía de la portada: hero → combate estelar (cartel del día)
-          → pulso + misión diaria → top ranking → retos diarios → torneos
-          → explora por universo. Primero entender la propuesta, luego una
-          acción clara, luego ranking y el resto a explorar. */}
-      <Hero catalogoPersonajes={catalogoPersonajes} />
+      {/* Jerarquía de la portada: el hogar (hero) → combate estelar
+          (cartel del día) → pulso + misión diaria → top ranking → retos
+          diarios → torneos → explora por universo. Primero entender la
+          propuesta, luego una acción clara, luego ranking y el resto a
+          explorar. */}
+      <HearthHero />
       <SobreBienvenidaBanner />
       <HomeCatalogGuard
         isLoading={isCatalogLoading}

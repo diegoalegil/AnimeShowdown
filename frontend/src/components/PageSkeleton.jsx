@@ -173,23 +173,35 @@ function PageSkeleton({ pathname = '', reserveClassName = '' }) {
 
   switch (archetype) {
     case 'home':
-      // Hero a casi pantalla completa (como el Hero real) + bloques de sección.
+      // El hogar (HearthHero): llama+pebetero a un lado, titular+números
+      // al otro (columna única centrada en móvil) y las 3 tablillas
+      // debajo — la misma silueta que pinta el hero real al montar.
+      // Sin stage de marca: el hogar arde sobre el lienzo desnudo.
       return (
         <SkeletonSection
           archetype="home"
           reserveClassName={reserveClassName}
-          stage="as-stage as-stage-visual as-stage-home"
+          stage=""
           contentClassName="mx-auto w-full max-w-7xl"
           padding="px-5 pb-12 pt-6 sm:px-8"
         >
-          <div className="mb-10 flex min-h-[60vh] flex-col items-center justify-center gap-5 text-center">
-            <Skeleton variant="circle" className="h-28 w-28" />
-            <Skeleton variant="box" className="h-5 w-44" />
-            <Skeleton variant="box" className="h-14 w-[min(34rem,90%)]" />
-            <Skeleton variant="box" className="h-4 w-[min(22rem,80%)]" />
-            <div className="flex gap-3">
-              <Skeleton variant="box" className="h-11 w-40" />
-              <Skeleton variant="box" className="h-11 w-36" />
+          <div className="mx-auto mb-10 grid w-full max-w-6xl grid-cols-1 items-center gap-8 py-10 md:grid-cols-[minmax(270px,350px)_minmax(0,1fr)] md:gap-x-14">
+            <div className="flex justify-center">
+              <Skeleton variant="box" className="h-56 w-44" />
+            </div>
+            <div className="flex flex-col items-center gap-4 md:items-start">
+              <Skeleton variant="box" className="h-4 w-56" />
+              <Skeleton variant="box" className="h-14 w-[min(30rem,90%)]" />
+              <Skeleton variant="box" className="h-4 w-[min(24rem,80%)]" />
+              <div className="flex gap-9">
+                <Skeleton variant="box" className="h-12 w-32" />
+                <Skeleton variant="box" className="h-12 w-32" />
+              </div>
+            </div>
+            <div className="grid grid-cols-1 gap-4 md:col-span-2 md:grid-cols-3">
+              <Skeleton variant="box" className="h-[4.5rem]" />
+              <Skeleton variant="box" className="h-[4.5rem]" />
+              <Skeleton variant="box" className="h-[4.5rem]" />
             </div>
           </div>
           <HomeSkeletonBlocks />
