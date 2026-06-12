@@ -21,12 +21,13 @@
 .fdh-corner[data-pos='bl'] { bottom: 2px; left: 2px; border-bottom-width: 1px; border-left-width: 1px; }
 .fdh-corner[data-pos='br'] { bottom: 2px; right: 2px; border-bottom-width: 1px; border-right-width: 1px; }
 
-/* Sello hanko del anime, abajo-derecha. Estático: forma parte del
-   retrato y viaja con su morph. Inset (el contenedor del retrato
-   recorta con overflow-hidden, el sello no muerde el marco). */
+/* Sello hanko del anime, ARRIBA-derecha: los dos rincones inferiores
+   del retrato los ocupan los botones de la galeria y de "Ver en 3D"
+   (hallazgo de auditoria: el sello quedaba ~90% tapado). Estatico:
+   viaja con el morph; inset por el overflow-hidden del contenedor. */
 .fdh-seal {
   position: absolute;
-  bottom: 8px;
+  top: 8px;
   right: 8px;
   width: 46px;
   height: 46px;

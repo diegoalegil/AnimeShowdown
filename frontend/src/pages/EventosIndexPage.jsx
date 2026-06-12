@@ -54,7 +54,9 @@ function EventosIndexPage() {
           // data/eventos — el cartel degrada limpio sin chips ni cordón.
         }
       })
-      .sort((a, b) => b.inicio.getTime() - a.inicio.getTime())
+      // Orden del board: futuro → activo → pasado (el concat de los
+      // getters ya agrupa; el re-sort global por fecha rompia los grupos
+      // cuando un activo empezo antes que el fin de un pasado reciente).
   }, [ahora, eventos])
 
   const total = lista.length

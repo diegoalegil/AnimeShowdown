@@ -81,6 +81,12 @@ export default function OracleShrine({
   className = '',
 }) {
   const { muted } = useSound()
+  // El mute se consulta en el MOMENTO de sonar (ref): cambiarlo no debe
+  // re-ejecutar las ceremonias ni las campanillas.
+  const mutedRef = useRef(muted)
+  useEffect(() => {
+    mutedRef.current = muted
+  }, [muted])
   const rootRef = useRef(null)
   const stripRef = useRef(null)
   const slotRef = useRef(null)
@@ -119,17 +125,25 @@ export default function OracleShrine({
       setTimeout(() => setVerdictStage('card'), 300),
       setTimeout(() => {
         setVerdictStage('sealed')
-        if (verdict.outcome === true && !muted) playSello()
+        if (verdict.outcome === true && !mutedRef.current) playSello()
       }, 850),
     ]
     return () => timers.forEach(clearTimeout)
-  }, [status, verdict, muted])
+  }, [status, verdict])
 
-  // Campanilla por pregunta nueva (gateada por mute global).
+  // Campanilla por pregunta nueva (gateada por mute global). El primer
+  // montaje NO suena: sin gesto previo el AudioContext queda suspendido y
+  // la campanilla saldria fantasma al reanudarse mas tarde.
   const questionId = question?.id
+  const primeraPreguntaRef = useRef(true)
   useEffect(() => {
-    if (status === 'asking' && questionId && !muted) playCampanilla()
-  }, [status, questionId, muted])
+    if (status !== 'asking' || !questionId) return
+    if (primeraPreguntaRef.current) {
+      primeraPreguntaRef.current = false
+      return
+    }
+    if (!mutedRef.current) playCampanilla()
+  }, [status, questionId])
 
   // FLIP de la tira → ema: WAAPI sobre un ghost desmontable. El ema real
   // lo añade el motor en `history`; aquí solo se anima el viaje.

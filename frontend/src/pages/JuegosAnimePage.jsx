@@ -24,7 +24,7 @@ const JUEGOS = [
   {
     title: 'Shadow Guess',
     intent: 'adivina personaje anime',
-    text: 'Adivina el personaje por una silueta borrosa con intentos limitados.',
+    text: 'Adivina la sombra tras el biombo con intentos limitados.',
     cadence: 'Daily',
     to: '/games/shadow-guess',
     icon: Eye,

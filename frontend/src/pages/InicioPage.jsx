@@ -347,7 +347,7 @@ const RETOS_DIARIOS = [
     to: '/games/shadow-guess',
     kanji: '影',
     titulo: 'Shadow Guess',
-    desc: 'Silueta borrosa · 5 intentos',
+    desc: 'Sombra tras el biombo · 5 intentos',
     color: 'rose',
   },
   {

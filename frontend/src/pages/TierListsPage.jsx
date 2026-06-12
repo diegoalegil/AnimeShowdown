@@ -800,7 +800,7 @@ function TierCard({ personaje, readOnly, isDragSource, landing, onPointerDown, o
       }
       transition={{ duration: 0.34, ease: EASE_LIFT }}
       style={{ transformOrigin: '50% 85%' }}
-      className={`group relative aspect-[2/3] w-[4.25rem] shrink-0 cursor-grab touch-none overflow-hidden rounded-lg border border-white/10 bg-surface-alt transition-colors will-change-transform hover:border-gold/50 sm:w-[4.75rem] ${
+      className={`group relative aspect-[2/3] w-[4.25rem] shrink-0 cursor-grab touch-pan-y overflow-hidden rounded-lg border border-white/10 bg-surface-alt transition-colors will-change-transform hover:border-gold/50 sm:w-[4.75rem] ${
         isDragSource ? 'opacity-25 grayscale' : ''
       }`}
     >

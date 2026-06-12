@@ -104,6 +104,20 @@ function DojoLogin({
     async (e) => {
       e.preventDefault()
       if (submitting) return
+      // Validacion client-side minima (la que tenia el login clasico):
+      // evita viajes al server con campos vacios o demasiado cortos.
+      const id = identificador.trim()
+      if (id.length < 3 || password.length < 6) {
+        setError({
+          kind: 'cred',
+          title: 'Faltan datos en el registro.',
+          body:
+            id.length < 3
+              ? 'Tu usuario o email necesita al menos 3 caracteres.'
+              : 'Tu contraseña necesita al menos 6 caracteres.',
+        })
+        return
+      }
       setSubmitting(true)
       setError(null)
       try {
@@ -111,6 +125,7 @@ function DojoLogin({
         // El caller navega a `next` (o monta el paso 2FA) al resolver.
       } catch (err) {
         const isCred = err?.status === 401
+        const isRate = err?.status === 429
         setError(
           isCred
             ? {
@@ -118,11 +133,23 @@ function DojoLogin({
                 title: 'El dojo no te reconoce.',
                 body: 'Tu usuario y tu contraseña no coinciden con ningún registro. Revísalos y vuelve a llamar.',
               }
-            : {
-                kind: 'net',
-                title: 'No llegamos al servidor.',
-                body: 'No es un problema de tus credenciales: la conexión no respondió. Inténtalo de nuevo en unos segundos.',
-              },
+            : isRate
+              ? {
+                  kind: 'cred',
+                  title: 'Demasiadas llamadas a la puerta.',
+                  body: 'Espera unos segundos antes de volver a intentarlo.',
+                }
+              : err?.status
+                ? {
+                    kind: 'net',
+                    title: 'El dojo no pudo atenderte.',
+                    body: err?.message || 'El servidor respondió con un error. Inténtalo de nuevo en un momento.',
+                  }
+                : {
+                    kind: 'net',
+                    title: 'No llegamos al servidor.',
+                    body: 'No es un problema de tus credenciales: la conexión no respondió. Inténtalo de nuevo en unos segundos.',
+                  },
         )
         // Tremor SOLO con credenciales incorrectas, una vez por intento,
         // y nunca con reduced-motion (el error queda por color y texto).
