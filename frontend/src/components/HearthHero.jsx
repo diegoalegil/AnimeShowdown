@@ -1,11 +1,15 @@
 import { useEffect, useRef, useState } from 'react'
-import { useTranslation } from 'react-i18next'
+import { Trans, useTranslation } from 'react-i18next'
 import { AppLink } from './AppLink'
 import { useReducedMotionPref } from '../hooks/useReducedMotionPref'
 import { useInstantSoundPress } from '../hooks/useInstantSoundPress'
 import { useTorneos } from '../lib/torneosQueries'
 import { useRankingPulso } from '../features/home/pulso/pulsoQueries'
-import { contarTorneosEnVivo, sumarVotosComunidad } from './hearth-hero-core'
+import {
+  sumarVotosComunidad,
+  UMBRAL_COMUNIDAD_JOVEN,
+} from '../features/home/pulso/pulso-utils'
+import { contarTorneosEnVivo, contarTorneosProgramados } from './hearth-hero-core'
 import './hearth-hero.css'
 
 /**
@@ -49,6 +53,7 @@ function HearthHero() {
     <HearthHeroView
       votosComunidad={sumarVotosComunidad(ranking)}
       torneosEnVivo={contarTorneosEnVivo(torneos)}
+      torneosProgramados={contarTorneosProgramados(torneos)}
     />
   )
 }
@@ -60,11 +65,19 @@ function HearthHero() {
  *
  * @param {object} props
  * @param {number|null} [props.votosComunidad=null] Votos all-time de la
- *   comunidad (contrato del hito de millar). null = query sin datos → "—".
+ *   comunidad (contrato del hito de millar). null = query sin datos → "—";
+ *   por debajo de UMBRAL_COMUNIDAD_JOVEN, copy de arranque (mismo criterio
+ *   de honestidad que el disclaimer del Pulso).
  * @param {number|null} [props.torneosEnVivo=null]  Torneos IN_PROGRESS.
- *   Con 0, la cifra dice "ninguno ahora — enciende tú el primero".
+ *   Con 0 y programados, "N a punto de empezar"; con 0 y nada programado,
+ *   "ninguno ahora — enciende tú el primero" (link a crear torneo).
+ * @param {number|null} [props.torneosProgramados=null] Torneos SCHEDULED.
  */
-function HearthHeroView({ votosComunidad = null, torneosEnVivo = null }) {
+function HearthHeroView({
+  votosComunidad = null,
+  torneosEnVivo = null,
+  torneosProgramados = null,
+}) {
   const { t } = useTranslation()
   const staticMode = useReducedMotionPref()
   const sectionRef = useRef(null)
@@ -78,7 +91,9 @@ function HearthHeroView({ votosComunidad = null, torneosEnVivo = null }) {
     const node = sectionRef.current
     if (!node || typeof IntersectionObserver === 'undefined') return undefined
     const io = new IntersectionObserver(
-      ([entry]) => setInView(entry.isIntersecting),
+      // La última entry del batch es el estado más reciente: con cruces
+      // rápidos de viewport, quedarse con la primera deja la pausa stale.
+      (entries) => setInView(entries[entries.length - 1].isIntersecting),
       { threshold: 0.05 },
     )
     io.observe(node)
@@ -92,16 +107,18 @@ function HearthHeroView({ votosComunidad = null, torneosEnVivo = null }) {
     return () => document.removeEventListener('visibilitychange', onVis)
   }, [])
 
-  // Hito keyed por millar: ajuste de estado durante el render (patrón
-  // oficial de React para derivar de props; compatible React Compiler —
-  // sin setState en efectos ni refs en render).
+  // Hito por cruce ascendente de millar: ajuste de estado durante el
+  // render (patrón oficial de React para derivar de props; compatible
+  // React Compiler — sin setState en efectos ni refs en render). La key
+  // es el número de cruces vistos, no el millar: una bajada no re-monta
+  // nada y re-cruzar el MISMO millar vuelve a celebrarse.
   const millar = votosComunidad != null ? Math.floor(votosComunidad / 1000) : null
   const [lastMillar, setLastMillar] = useState(millar)
-  const [hitoKey, setHitoKey] = useState(null)
+  const [hitoSeq, setHitoSeq] = useState(0)
   if (millar !== lastMillar) {
     setLastMillar(millar)
     if (lastMillar != null && millar != null && millar > lastMillar) {
-      setHitoKey(millar)
+      setHitoSeq(hitoSeq + 1)
     }
   }
 
@@ -123,8 +140,8 @@ function HearthHeroView({ votosComunidad = null, torneosEnVivo = null }) {
           <span className="hearth-glow hearth-glow--b"></span>
           <div className="hearth-ignite">
             <div
-              key={hitoKey ?? 'reposo'}
-              className={hitoKey != null ? 'hearth-hito-pop' : undefined}
+              key={hitoSeq}
+              className={hitoSeq > 0 ? 'hearth-hito-pop' : undefined}
             >
               <HearthFlameSvg />
             </div>
@@ -144,10 +161,15 @@ function HearthHeroView({ votosComunidad = null, torneosEnVivo = null }) {
           {t('hero.kicker')}
         </span>
         <div className="hearth-cut">
+          {/* El titular es UNA clave por locale (<gold> como markup):
+              componerlo en 3 segmentos con espacios ASCII fijaba el orden
+              de palabras desde el JSX y metía espacios occidentales
+              dentro de la frase japonesa (antes de la partícula を). */}
           <h1 className="hearth-title">
-            {t('hero.tituloAntes')}{' '}
-            <span className="hearth-title__gold">{t('hero.tituloAnime')}</span>{' '}
-            {t('hero.tituloDespues')}
+            <Trans
+              i18nKey="hero.titulo"
+              components={{ gold: <span className="hearth-title__gold" /> }}
+            />
           </h1>
           <span className="hearth-cut__cover" aria-hidden="true"></span>
         </div>
@@ -158,7 +180,17 @@ function HearthHeroView({ votosComunidad = null, torneosEnVivo = null }) {
           <div className="hearth-stat">
             <dt>{t('hero.statVotos')}</dt>
             <dd>
-              <HearthOdometer value={votosComunidad} instant={staticMode} />
+              {/* Comunidad joven: mismo criterio de honestidad que el
+                  disclaimer del Pulso — bajo el umbral no se presenta la
+                  cifra como señal, se invita a prender la llama. */}
+              {votosComunidad != null && votosComunidad < UMBRAL_COMUNIDAD_JOVEN ? (
+                <span className="hearth-stat__vacio">
+                  {t('hero.statVotosVacio')}{' '}
+                  <HearthVacioCta to="/votar" labelKey="hero.statVotosVacioCta" />
+                </span>
+              ) : (
+                <HearthOdometer value={votosComunidad} instant={staticMode} />
+              )}
             </dd>
           </div>
           <div className="hearth-stat">
@@ -171,8 +203,17 @@ function HearthHeroView({ votosComunidad = null, torneosEnVivo = null }) {
             <dd>
               {torneosEnVivo === 0 ? (
                 <span className="hearth-stat__vacio">
-                  {t('hero.statTorneosVacio')}{' '}
-                  <strong>{t('hero.statTorneosVacioCta')}</strong>
+                  {torneosProgramados != null && torneosProgramados > 0 ? (
+                    t('hero.statTorneosProgramados', { count: torneosProgramados })
+                  ) : (
+                    <>
+                      {t('hero.statTorneosVacio')}{' '}
+                      <HearthVacioCta
+                        to="/torneos/crear"
+                        labelKey="hero.statTorneosVacioCta"
+                      />
+                    </>
+                  )}
                 </span>
               ) : (
                 <HearthOdometer value={torneosEnVivo} instant={staticMode} />
@@ -198,6 +239,29 @@ const TABLILLAS = [
   { to: '/torneos', kanji: '戦', labelKey: 'hero.tablillaTorneosLabel', descKey: 'hero.tablillaTorneosDesc' },
   { to: '/games', kanji: '遊', labelKey: 'hero.tablillaJuegosLabel', descKey: 'hero.tablillaJuegosDesc' },
 ]
+
+/**
+ * CTA de los estados vacíos de las cifras: el copy de acción ("enciende
+ * tú el primero" / "vota tú") es un link de verdad, con hit-area >=44px
+ * por padding negativo-compensado (la línea de texto no se mueve) y
+ * subrayado para que la afordancia no dependa solo del color.
+ * Componente propio para llamar useInstantSoundPress incondicionalmente
+ * (el estado vacío es condicional en el JSX del padre).
+ */
+function HearthVacioCta({ to, labelKey }) {
+  const { t } = useTranslation()
+  const press = useInstantSoundPress('playClick')
+  return (
+    <AppLink
+      to={to}
+      className="hearth-stat__vacio-cta"
+      onPointerDown={press.onPointerDown}
+      onClick={press.onClick}
+    >
+      <strong>{t(labelKey)}</strong>
+    </AppLink>
+  )
+}
 
 /**
  * Tablilla individual: componente propio para que cada CTA tenga su
@@ -283,14 +347,37 @@ const ODO_DIGITS = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9]
  *                                           alineado con el rise de los números.
  */
 function HearthOdometer({ value, instant = false, entranceMs = 450 }) {
-  const { i18n } = useTranslation()
+  const { t, i18n } = useTranslation()
   const [armed, setArmed] = useState(false)
-  useEffect(() => {
-    const id = setTimeout(() => setArmed(true), entranceMs)
-    return () => clearTimeout(id)
-  }, [entranceMs])
+  const montadoEnRef = useRef(null)
+  const hasValue = value != null
 
-  if (value == null) return <span className="hearth-odo">—</span>
+  // Marca de montaje (ref solo en efectos: regla Compiler).
+  useEffect(() => {
+    montadoEnRef.current ??= performance.now()
+  }, [])
+
+  // El primer rodillo se arma cuando HAY cifra: con dato en caché queda
+  // alineado con el rise (t+entranceMs desde el montaje); si el dato
+  // llega tarde (red fría > entranceMs), rueda de inmediato — el suelo
+  // de 50ms garantiza que el frame a translateY(0) se pinte y la
+  // transición CSS tenga punto de partida.
+  useEffect(() => {
+    if (!hasValue || armed) return undefined
+    const transcurrido = performance.now() - (montadoEnRef.current ?? performance.now())
+    const id = setTimeout(() => setArmed(true), Math.max(50, entranceMs - transcurrido))
+    return () => clearTimeout(id)
+  }, [hasValue, armed, entranceMs])
+
+  if (value == null) {
+    // null cubre también query fallida: nada de "cargando…" — honesto.
+    return (
+      <span className="hearth-odo">
+        <span className="sr-only">{t('hero.statSinDatos')}</span>
+        <span aria-hidden="true">—</span>
+      </span>
+    )
+  }
 
   const safe = Math.max(0, Math.floor(value))
   const text = new Intl.NumberFormat(i18n.language || 'es').format(safe)

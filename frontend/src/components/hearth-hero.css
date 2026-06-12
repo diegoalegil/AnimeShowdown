@@ -11,6 +11,10 @@
 
 .hearth-hero {
   position: relative;
+  /* Aísla el eje z del hogar: sin esto, la llama (z1) y el pebetero (z2)
+     escaparían al stacking context raíz y pintarían sobre el grano
+     global de body::before (mismo patrón isolate que SectionPulso). */
+  isolation: isolate;
   display: grid;
   grid-template-columns: minmax(270px, 350px) minmax(0, 1fr);
   grid-template-areas:
@@ -51,7 +55,9 @@
   margin-top: 1.25rem;
 }
 
-@media (max-width: 760px) {
+/* Móvil: bajo md (48rem) — alineado con el resto de breakpoints de la
+   home (Tailwind md); el rem respeta el zoom de fuente del usuario. */
+@media (width < 48rem) {
   .hearth-hero {
     grid-template-columns: minmax(0, 1fr);
     grid-template-areas:
@@ -268,7 +274,10 @@
 .hearth-cut__cover {
   position: absolute;
   inset: -6px -8px;
-  background: var(--color-canvas);
+  /* El tope del linear-gradient del body en la franja del hero es
+     --color-bg (canvas es el fondo del FINAL de la página): el cover
+     debe fundirse con lo que hay detrás del titular. */
+  background: var(--color-bg);
   transform-origin: left center;
   animation: hearth-cut-cover 420ms var(--ease-brush) 200ms both;
   pointer-events: none;
@@ -341,6 +350,19 @@
   font-size: clamp(1.7rem, 2.6vw, 2.15rem);
   line-height: 1;
   color: var(--color-gold-bright);
+  /* Anti-CLS: reserva la variante más alta (vacío = 2 líneas de
+     0.95rem/1.45) para que el dd no cambie de altura al resolver las
+     queries ni al pasar de cifra a copy de vacío. */
+  min-height: calc(2 * 1.45 * 0.95rem);
+  display: flex;
+  align-items: center;
+}
+
+/* La cifra de votos crece con la comunidad: reservar el ancho del peor
+   caso razonable (hasta 9 chars con separadores, <10M) evita el shift
+   lateral del divisor dorado cuando el número rueda y gana columnas. */
+.hearth-stat:first-child dd {
+  min-width: 9ch;
 }
 
 .hearth-stat__dot {
@@ -365,12 +387,32 @@
   font-weight: 700;
 }
 
-@media (max-width: 760px) {
+/* El copy de acción de los vacíos es un LINK: hit-area >=44px por
+   padding compensado con margin negativo (la línea de texto no se
+   mueve) y subrayado para que la afordancia no dependa del color. */
+.hearth-stat__vacio-cta {
+  display: inline-block;
+  padding: 0.75rem 0.5rem;
+  margin: -0.75rem -0.5rem;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+.hearth-stat__vacio-cta:focus-visible {
+  outline: 2px solid var(--color-gold);
+  outline-offset: 2px;
+}
+
+@media (width < 48rem) {
   .hearth-stats {
     justify-content: center;
   }
   .hearth-stat {
     align-items: center;
+  }
+  .hearth-stat dd {
+    /* Los flex children no obedecen el text-align:center del hero. */
+    justify-content: center;
   }
 }
 
@@ -388,11 +430,13 @@
   height: 1em;
 }
 
+/* Sin will-change: la transition de transform ya promueve capa al
+   arrancar; mantener una capa compositada por dígito mientras el hero
+   viva (incluso en estático) costaría más que la promoción tardía. */
 .hearth-odo__strip {
   display: flex;
   flex-direction: column;
   transition: transform 900ms var(--ease-lift);
-  will-change: transform;
 }
 
 .hearth-odo__digit,

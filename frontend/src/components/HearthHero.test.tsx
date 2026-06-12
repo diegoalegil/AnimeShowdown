@@ -7,6 +7,7 @@ import { useReducedMotionPref } from '../hooks/useReducedMotionPref'
 
 vi.mock('react-i18next', () => ({
   useTranslation: () => ({ t: (key: string) => key, i18n: { language: 'es' } }),
+  Trans: ({ i18nKey }: { i18nKey: string }) => i18nKey,
 }))
 
 vi.mock('../hooks/useInstantSoundPress', () => ({
@@ -25,6 +26,7 @@ afterEach(() => {
 type HearthProps = {
   votosComunidad?: number | null
   torneosEnVivo?: number | null
+  torneosProgramados?: number | null
 }
 
 function renderHearth(props: HearthProps = {}) {
@@ -51,7 +53,7 @@ describe('HearthHeroView', () => {
     renderHearth({ votosComunidad: 1234, torneosEnVivo: 2 })
 
     expect(screen.getByRole('heading', { level: 1 })).toHaveTextContent(
-      'hero.tituloAntes hero.tituloAnime hero.tituloDespues',
+      'hero.titulo',
     )
     expect(screen.getByText('hero.statVotos')).toBeInTheDocument()
     expect(screen.getByText('hero.statTorneos')).toBeInTheDocument()
@@ -63,21 +65,41 @@ describe('HearthHeroView', () => {
     expect(links).toEqual(['/votar', '/torneos', '/games'])
   })
 
-  it('sin datos muestra "—" sin romper la coreografía', () => {
+  it('sin datos muestra "—" legible para SR sin romper la coreografía', () => {
     const { container } = renderHearth({ votosComunidad: null, torneosEnVivo: null })
     const cifras = container.querySelectorAll('.hearth-odo')
     expect(cifras).toHaveLength(2)
     expect(cifras[0]).toHaveTextContent('—')
-    expect(cifras[1]).toHaveTextContent('—')
+    expect(cifras[0].querySelector('.sr-only')).toHaveTextContent(
+      'hero.statSinDatos',
+    )
     // Sin dato de torneos no hay dot "en vivo" ni frase de vacío.
     expect(container.querySelector('.hearth-stat__dot')).toBeNull()
     expect(container.querySelector('.hearth-stat__vacio')).toBeNull()
   })
 
-  it('0 torneos en marcha enseña la frase de encendido, no un 0', () => {
-    const { container } = renderHearth({ votosComunidad: 50, torneosEnVivo: 0 })
-    expect(screen.getByText('hero.statTorneosVacioCta')).toBeInTheDocument()
+  it('comunidad joven (bajo umbral) enseña copy de arranque con CTA a /votar, no la cifra', () => {
+    const { container } = renderHearth({ votosComunidad: 12, torneosEnVivo: 1 })
+    expect(screen.getByText('hero.statVotosVacioCta')).toBeInTheDocument()
+    const cta = container.querySelector('a.hearth-stat__vacio-cta')
+    expect(cta?.getAttribute('href')).toBe('/votar')
+  })
+
+  it('0 torneos sin programados enseña el CTA de encendido como link a crear torneo', () => {
+    const { container } = renderHearth({
+      votosComunidad: 50,
+      torneosEnVivo: 0,
+      torneosProgramados: 0,
+    })
+    const cta = screen.getByText('hero.statTorneosVacioCta').closest('a')
+    expect(cta?.getAttribute('href')).toBe('/torneos/crear')
     expect(container.querySelector('.hearth-stat__dot')).toBeNull()
+  })
+
+  it('0 en juego pero N programados anuncia los que vienen', () => {
+    renderHearth({ votosComunidad: 50, torneosEnVivo: 0, torneosProgramados: 3 })
+    expect(screen.getByText('hero.statTorneosProgramados')).toBeInTheDocument()
+    expect(screen.queryByText('hero.statTorneosVacioCta')).toBeNull()
   })
 
   it('con torneos en juego enciende el dot de en vivo', () => {
@@ -111,6 +133,23 @@ describe('HearthHeroView', () => {
       rerenderHearth(rerender, { votosComunidad: 4900 })
       expect(container.querySelector('.hearth-hito-pop')).toBeNull()
     })
+
+    it('una bajada no re-monta y re-cruzar el MISMO millar vuelve a celebrarse', () => {
+      const { container, rerender } = renderHearth({ votosComunidad: 3998 })
+      rerenderHearth(rerender, { votosComunidad: 4002 })
+      const pop1 = container.querySelector('.hearth-hito-pop')
+      expect(pop1).not.toBeNull()
+
+      // Bajada (jitter del refetch): sin ceremonia, sin remount.
+      rerenderHearth(rerender, { votosComunidad: 3990 })
+      expect(container.querySelector('.hearth-hito-pop')).toBe(pop1)
+
+      // Re-cruce ascendente del mismo millar: nueva key = nueva celebración.
+      rerenderHearth(rerender, { votosComunidad: 4002 })
+      const pop2 = container.querySelector('.hearth-hito-pop')
+      expect(pop2).not.toBeNull()
+      expect(pop2).not.toBe(pop1)
+    })
   })
 
   it('en modo estático marca data-hearth-static (calma/reduced-motion)', () => {
@@ -142,8 +181,11 @@ describe('HearthOdometer', () => {
     ])
   })
 
-  it('null muestra el guion largo', () => {
+  it('null anuncia "sin datos" a SR y el guion solo decora', () => {
     const { container } = render(<HearthOdometer value={null} />)
-    expect(container.querySelector('.hearth-odo')).toHaveTextContent('—')
+    expect(container.querySelector('.sr-only')).toHaveTextContent(
+      'hero.statSinDatos',
+    )
+    expect(container.querySelector('[aria-hidden="true"]')).toHaveTextContent('—')
   })
 })

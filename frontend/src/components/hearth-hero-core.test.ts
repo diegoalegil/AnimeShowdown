@@ -1,31 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { contarTorneosEnVivo, sumarVotosComunidad } from './hearth-hero-core'
-
-describe('sumarVotosComunidad', () => {
-  it('devuelve null mientras la query no resolvió (undefined/null)', () => {
-    expect(sumarVotosComunidad(undefined)).toBeNull()
-    expect(sumarVotosComunidad(null)).toBeNull()
-  })
-
-  it('suma los votos del ranking ignorando entradas sin campo', () => {
-    expect(
-      sumarVotosComunidad([
-        { votos: 1200 },
-        { votos: 34 },
-        {},
-        { votos: null },
-      ]),
-    ).toBe(1234)
-  })
-
-  it('ranking vacío (DB joven) es 0 honesto, no null', () => {
-    expect(sumarVotosComunidad([])).toBe(0)
-  })
-
-  it('tolera votos no numéricos sin propagar NaN', () => {
-    expect(sumarVotosComunidad([{ votos: 10 }, { votos: 'x' as never }])).toBe(10)
-  })
-})
+import { contarTorneosEnVivo, contarTorneosProgramados } from './hearth-hero-core'
 
 describe('contarTorneosEnVivo', () => {
   it('devuelve null mientras la query no resolvió', () => {
@@ -46,5 +20,22 @@ describe('contarTorneosEnVivo', () => {
 
   it('lista vacía es 0 (estado "enciende tú el primero")', () => {
     expect(contarTorneosEnVivo([])).toBe(0)
+  })
+})
+
+describe('contarTorneosProgramados', () => {
+  it('devuelve null mientras la query no resolvió', () => {
+    expect(contarTorneosProgramados(null)).toBeNull()
+  })
+
+  it('cuenta solo SCHEDULED (el segundo nivel del vacío)', () => {
+    expect(
+      contarTorneosProgramados([
+        { estado: 'IN_PROGRESS' },
+        { estado: 'SCHEDULED' },
+        { estado: 'SCHEDULED' },
+        { estado: 'FINISHED' },
+      ]),
+    ).toBe(2)
   })
 })

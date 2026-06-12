@@ -8,6 +8,10 @@ import { personajeDelDia } from '../lib/games'
 import ResponsivePicture from './ResponsivePicture'
 import FavoritosPulsoBanner from './FavoritosPulsoBanner'
 import { PULSE_STALE, useRankingPulso } from '../features/home/pulso/pulsoQueries'
+import {
+  sumarVotosComunidad,
+  UMBRAL_COMUNIDAD_JOVEN,
+} from '../features/home/pulso/pulso-utils'
 import CampeonCard from '../features/home/pulso/components/CampeonCard'
 import DueloAbiertoCard from '../features/home/pulso/components/DueloAbiertoCard'
 import DueloDestacadoCard from '../features/home/pulso/components/DueloDestacadoCard'
@@ -136,12 +140,12 @@ function SectionPulso() {
   const esFallback = !campeonReal
   // Nota de producto: el backend devuelve top por COUNT(votos),
   // así que en una DB joven con 1-5 votos totales presentar al top como
-  // "campeón actual" es engañoso. Sumamos los votos del ranking servido
-  // y aplicamos disclaimer si el total comunidad es pequeño.
-  const totalVotosComunidad = Array.isArray(ranking)
-    ? ranking.reduce((acc, r) => acc + Number(r.votos ?? 0), 0)
-    : 0
-  const comunidadArrancando = !esFallback && totalVotosComunidad < 30
+  // "campeón actual" es engañoso. La suma y el umbral son los MISMOS
+  // que usa el hogar del hero (pulso-utils): un solo criterio de
+  // honestidad para toda la home.
+  const totalVotosComunidad = sumarVotosComunidad(ranking) ?? 0
+  const comunidadArrancando =
+    !esFallback && totalVotosComunidad < UMBRAL_COMUNIDAD_JOVEN
   const votosCampeon = Number(campeon?.votos ?? 0)
   const mostrarCampeon =
     rankingLoading ||
@@ -169,6 +173,7 @@ function SectionPulso() {
   const pulseImage = pulseVisual.image || pulseVisual.fallbackImage
   return (
     <motion.section
+      lang="es"
       className="relative isolate overflow-hidden px-5 py-10 sm:px-8 sm:py-14"
       style={{
         '--visual-accent': pulseVisual.accentRgb,
