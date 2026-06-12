@@ -13,7 +13,7 @@ describe('VotarPage mobile viewport', () => {
   )
 
   it('compacta la cabecera antes de la arena en movil', () => {
-    expect(source).toContain('contentClassName="mx-auto flex max-w-5xl flex-col gap-3 sm:gap-4"')
+    expect(source).toContain('contentClassName="relative mx-auto flex max-w-5xl flex-col gap-3 sm:gap-4"')
     expect(source).toContain('className="min-h-[calc(100svh-5rem)] py-3 sm:py-8 lg:py-10"')
   })
 
