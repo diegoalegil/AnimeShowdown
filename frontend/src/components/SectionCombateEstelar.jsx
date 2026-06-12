@@ -4,6 +4,7 @@ import { useTranslation } from 'react-i18next'
 import { motion, useMotionValue, useReducedMotion, useTransform } from 'framer-motion'
 import { ArrowRight, Swords } from 'lucide-react'
 import PersonajeImg from './PersonajeImg'
+import SectionGate from './SectionGate'
 import Button from './Button'
 import { Embers, LightningStrike } from './AtmosphereEffects'
 import { useInstantSoundPress } from '../hooks/useInstantSoundPress'
@@ -126,14 +127,14 @@ function SectionCombateEstelar() {
   return (
     <section className="px-5 py-14 sm:px-8 sm:py-20">
       <div className="mx-auto max-w-7xl">
-        <div className="mb-6 flex flex-col gap-2 sm:mb-8">
-          <span className="text-[12px] font-semibold text-fg-muted">
-            {t('combate.eyebrow')}
-          </span>
-          <h2 className="text-[clamp(1.75rem,4vw,2.5rem)] tracking-tight">
-            {t('combate.titulo')}
-          </h2>
-          <p className="max-w-2xl text-[14px] text-fg-muted">
+        <div className="mb-6 sm:mb-8">
+          <SectionGate
+            kanji="決"
+            kanjiMeaning="decidir — la batalla decisiva"
+            eyebrow={t('combate.eyebrow')}
+            title={t('combate.titulo')}
+          />
+          <p className="mt-3 max-w-2xl text-[14px] text-fg-muted">
             {t('combate.descripcion')}
           </p>
         </div>
