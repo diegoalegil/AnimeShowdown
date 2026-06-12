@@ -152,6 +152,10 @@ function OraculoGame({ todayKey, catalogoPersonajes }) {
     if (top) setDescartados((d) => [...d, top.slug])
     setOutcome(null)
     setRevelado(false)
+    // Reabrir también el cierre: si el jugador terminó y se arrepiente,
+    // la confirmación del siguiente veredicto debe volver (soft-lock real
+    // detectado en auditoría).
+    setCerrado(false)
   }
 
   const shareText = top
