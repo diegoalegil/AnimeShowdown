@@ -1,6 +1,5 @@
 import { useDeferredValue, useEffect, useMemo, useRef, useState } from 'react'
 import { Link, useSearchParams } from 'react-router-dom'
-import { useQuery } from '@tanstack/react-query'
 import {
   AlertTriangle,
   ArrowRight,
@@ -29,7 +28,6 @@ import { BRAND_VISUALS } from '../data/visual-assets'
 import { useSeo } from '../hooks/useSeo'
 import { breadcrumbsSchema } from '../lib/schema'
 import JsonLd from '../components/JsonLd'
-import { endpoints } from '../lib/api'
 import {
   useAnimesConVotos,
   useCategoriasConVotos,
@@ -49,6 +47,8 @@ import EditorialRankingsStrip from '../features/ranking/components/EditorialRank
 import EloExplainer from '../features/ranking/components/EloExplainer'
 import MoversStrip from '../features/ranking/components/MoversStrip'
 import RankingPodium from '../features/ranking/components/RankingPodium'
+import { ANIMES_KANJI } from '../data/animes-kanji'
+import { slugifyAnime } from '../lib/animes'
 import { RankRowVotos } from '../features/ranking/components/RankingRows'
 import FederationTable from '../features/ranking/components/FederationTable'
 import RankingTabs from '../features/ranking/components/RankingTabs'
@@ -653,17 +653,13 @@ function ListaEloLocal({
 
   const rankingSlices = useMemo(() => {
     const top100 = filtered.slice(0, 100)
-    const top10 = top100.slice(0, 10)
-    const top10Slugs = top10.map((p) => p.slug)
     return {
       filteredTop100: top100,
       podio: top100.slice(0, 3),
       resto: top100.slice(3),
-      top10Slugs,
-      top10SlugKey: top10Slugs.join(','),
     }
   }, [filtered])
-  const { filteredTop100, podio, resto, top10Slugs, top10SlugKey } = rankingSlices
+  const { filteredTop100, podio, resto } = rankingSlices
   const hayFiltros = Boolean(search) || Boolean(animeFilter)
   const visibleRankingRows = useMemo(
     () => (hayFiltros ? filteredTop100 : resto),
@@ -677,12 +673,14 @@ function ListaEloLocal({
         .join('\n'),
     [filtered],
   )
-  const { data: eloHistoryTop10 } = useQuery({
-    queryKey: ['ranking', 'elo-history', 'top10', top10SlugKey],
-    queryFn: () => endpoints.personajesEloHistoryBatch(top10Slugs, { dias: 7 }),
-    enabled: top10Slugs.length > 0,
-    staleTime: 60 * 60 * 1000,
-  })
+  // Mapa nombre→slug de los universos del podio: brandImage() resuelve la
+  // escena de fondo con el slug canónico (los nombres del catálogo ya
+  // slugifican 1:1 con los assets de marca; sin asset, el podio degrada a
+  // scrim sin escena).
+  const animeSlugsPodio = useMemo(
+    () => Object.fromEntries(podio.map((p) => [p.anime, slugifyAnime(p.anime)])),
+    [podio],
+  )
   const compartirVista = async () => {
     if (filtered.length === 0) {
       toast.error('No hay personajes para compartir con estos filtros')
@@ -799,7 +797,11 @@ function ListaEloLocal({
               usuario filtra perdería sentido ver "Top 3 global" mezclado
               con un subconjunto. */}
           {!hayFiltros && podio.length === 3 && (
-            <RankingPodium top3={podio} historyBySlug={eloHistoryTop10 ?? {}} />
+            <RankingPodium
+              top3={podio}
+              kanjiPorAnime={ANIMES_KANJI}
+              animeSlugPorNombre={animeSlugsPodio}
+            />
           )}
 
           {hayFiltros && (

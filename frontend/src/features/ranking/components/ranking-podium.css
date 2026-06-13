@@ -1,0 +1,468 @@
+/* ============================================================
+   PODIO DE LOS TRES — importado por RankingPodium (pegar tal cual)
+   ------------------------------------------------------------
+   Tres estandartes verticales de tela colgados de una varilla
+   dorada sobre la tabla del ranking. Reemplaza al "Salón del
+   Trono" (.trono-*) en /ranking.
+
+   Reglas Kessen que cumple:
+   - Solo transform/opacity en TODO lo animado. El clip-path del
+     corte golondrina es ESTÁTICO (forma, no animación).
+   - Cero blur()/backdrop-blur/SVG filters. El "sangrado" del
+     sello 王 es una capa pre-renderizada (::after) que solo
+     cross-fadea opacity.
+   - Cero loops infinitos: la ondulación de hover es UNA pasada;
+     la entrada y el relevo son one-shot. No hay nada que pausar
+     fuera de viewport (el único loop es el .skl existente, que
+     ya respeta as-tab-hidden / as-calm / reduced-motion).
+   - prefers-reduced-motion: estandartes ya desplegados; el
+     relevo degrada a cross-fade de 200ms (.podio-xfade).
+   - Todas las duraciones escalan con --podio-vel (1 = spec).
+
+   Escalera de tiempos (entrada):
+     t+0    cuerdas del oro     (220ms, --ease-lift)
+     t+80   tela del oro        (550ms, --ease-lift, scaleY .04→1)
+     t+120  cuerdas de plata    → t+200 su tela
+     t+240  cuerdas del bronce  → t+320 su tela
+     t+360  contenido del pie   (320ms, solo opacity, por tela)
+
+   Escalera de tiempos (relevo de nº1):
+     t+0    saliente se recoge  (400ms, --ease-brush, scaleY 1→.04)
+     t+400  entrante cae        (550ms, --ease-lift)
+     t+400  laterales FLIP      (400ms, --ease-lift; WAAPI desde JS)
+     t+400  fondo cross-fade    (600ms, opacity)
+     t+950  sello 王 estampa    (380ms, ease-stamp overshoot)
+     t+1190 sangrado del sello  (260ms, opacity de capa pre-renderizada)
+   ============================================================ */
+
+/* Curva de los sellos (overshoot de hanko), hermana de --ease-lift
+   y --ease-brush. Si ya se promovió a @theme, eliminar esta línea. */
+:root {
+  --ease-stamp: cubic-bezier(0.34, 1.56, 0.64, 1);
+  --podio-vel: 1;
+}
+
+/* ---------- keyframes (solo transform/opacity) ---------- */
+
+@keyframes podio-cuerda-cae {
+  from {
+    transform: scaleY(0);
+    opacity: 0;
+  }
+  to {
+    transform: scaleY(1);
+    opacity: 1;
+  }
+}
+
+@keyframes podio-tela-despliega {
+  from {
+    transform: scaleY(0.04);
+  }
+  to {
+    transform: scaleY(1);
+  }
+}
+
+@keyframes podio-tela-recoge {
+  from {
+    transform: scaleY(1);
+    opacity: 1;
+  }
+  85% {
+    opacity: 1;
+  }
+  to {
+    transform: scaleY(0.04);
+    opacity: 0;
+  }
+}
+
+@keyframes podio-contenido-revela {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+/* Ondulación de hover: UNA pasada, péndulo desde la varilla. */
+@keyframes podio-ondula {
+  0% {
+    transform: rotate(0deg);
+  }
+  35% {
+    transform: rotate(0.8deg);
+  }
+  70% {
+    transform: rotate(-0.8deg);
+  }
+  100% {
+    transform: rotate(0deg);
+  }
+}
+
+/* Sello 王: caída + overshoot + asentado (hanko). */
+@keyframes podio-sello-estampa {
+  0% {
+    transform: scale(1.6) rotate(-10deg);
+    opacity: 0;
+  }
+  55% {
+    transform: scale(0.92) rotate(-5deg);
+    opacity: 1;
+  }
+  100% {
+    transform: scale(1) rotate(-6deg);
+    opacity: 1;
+  }
+}
+
+/* Sangrado: la capa pre-renderizada solo aparece (opacity). */
+@keyframes podio-sello-sangra {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 0.4;
+  }
+}
+
+@keyframes podio-xfade-in {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+/* ---------- escenario y fondo ---------- */
+
+.podio-escenario {
+  position: relative;
+  overflow: hidden;
+  isolation: isolate;
+}
+
+/* Dos capas de escena apiladas: el relevo cross-fadea opacity entre
+   ellas (nunca se anima el src de una sola). Scrim suficiente para que
+   las telas lean con CUALQUIER arte. */
+.podio-fondo {
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+}
+
+.podio-fondo img {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: center 30%;
+  opacity: 0;
+  transition: opacity calc(600ms * var(--podio-vel)) ease-out;
+}
+
+.podio-fondo img[data-activa] {
+  opacity: 0.5;
+}
+
+.podio-fondo-scrim {
+  position: absolute;
+  inset: 0;
+  background:
+    linear-gradient(180deg,
+      color-mix(in srgb, var(--color-canvas) 88%, transparent) 0%,
+      color-mix(in srgb, var(--color-canvas) 35%, transparent) 38%,
+      color-mix(in srgb, var(--color-canvas) 92%, transparent) 100%),
+    radial-gradient(120% 90% at 50% 110%,
+      color-mix(in srgb, var(--color-canvas) 95%, transparent) 30%,
+      transparent 70%);
+}
+
+/* Varilla dorada de la que cuelga todo. */
+.podio-varilla {
+  height: 2px;
+  background: linear-gradient(90deg,
+    transparent,
+    var(--color-border-gold) 12%,
+    var(--color-gold) 50%,
+    var(--color-border-gold) 88%,
+    transparent);
+}
+
+/* ---------- cuerdas ---------- */
+
+.podio-cuerdas {
+  position: relative;
+  height: 2.25rem;
+  flex: none;
+}
+
+.podio-cuerda {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  width: 1px;
+  background: linear-gradient(180deg, var(--color-gold), var(--color-border-gold-subtle));
+  transform-origin: top center;
+}
+
+.podio-cuerda--l {
+  left: 18%;
+  transform: rotate(-4deg);
+}
+
+.podio-cuerda--r {
+  right: 18%;
+  transform: rotate(4deg);
+}
+
+/* ---------- la tela ---------- */
+
+/* Pivote del péndulo de hover: nodo separado del que se despliega
+   para que las dos transforms no se pisen. */
+.podio-pivote {
+  transform-origin: top center;
+}
+
+@media (prefers-reduced-motion: no-preference) and (hover: hover) and (pointer: fine) {
+  .podio-banner:hover .podio-pivote,
+  .podio-banner:focus-visible .podio-pivote {
+    animation: podio-ondula calc(600ms * var(--podio-vel)) var(--ease-brush) 1;
+  }
+}
+
+.podio-tela {
+  position: relative;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  transform-origin: top center;
+  background-color: var(--color-surface);
+  /* Corte golondrina: las puntas exteriores cuelgan más que el centro. */
+  clip-path: polygon(0 0, 100% 0, 100% 100%, 50% calc(100% - 1.5rem), 0 100%);
+  /* Trama vertical de tela + sombra de la varilla. Estático, cero paint
+     por frame. */
+  background-image:
+    linear-gradient(180deg, color-mix(in srgb, var(--color-canvas) 50%, transparent), transparent 12%),
+    repeating-linear-gradient(90deg,
+      color-mix(in srgb, var(--color-fg-strong) 1.6%, transparent) 0 2px,
+      transparent 2px 7px);
+}
+
+/* Filos laterales dorados (hairlines, no border para sobrevivir al clip). */
+.podio-tela::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  z-index: 3;
+  background:
+    linear-gradient(180deg, var(--color-gold), var(--color-border-gold-subtle)) left / 1px 100% no-repeat,
+    linear-gradient(180deg, var(--color-gold), var(--color-border-gold-subtle)) right / 1px 100% no-repeat,
+    linear-gradient(90deg, var(--color-border-gold) , var(--color-gold), var(--color-border-gold)) top / 100% 2px no-repeat;
+}
+
+/* Cabecera de medalla: banda de 3px bajo el filo superior. */
+.podio-tela::after {
+  content: '';
+  position: absolute;
+  top: 2px;
+  left: 0;
+  right: 0;
+  height: 3px;
+  z-index: 3;
+  background: var(--podio-medalla, var(--color-gold));
+  opacity: 0.85;
+}
+
+.podio-tela--oro { --podio-medalla: var(--color-medal-gold); }
+.podio-tela--plata { --podio-medalla: var(--color-medal-silver); }
+.podio-tela--bronce { --podio-medalla: var(--color-medal-bronze); }
+
+.podio-retrato {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+}
+
+.podio-retrato img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: top center;
+}
+
+/* Scrim de legibilidad SOLO donde hay texto (el pie). */
+.podio-tela-scrim {
+  position: absolute;
+  inset: auto 0 0 0;
+  height: 58%;
+  z-index: 1;
+  background: linear-gradient(180deg,
+    transparent,
+    color-mix(in srgb, var(--color-canvas) 62%, transparent) 42%,
+    color-mix(in srgb, var(--color-canvas) 94%, transparent) 100%);
+}
+
+/* Kanji de universo en la esquina superior derecha. */
+.podio-kanji-universo {
+  position: absolute;
+  top: 0.875rem;
+  right: 0.75rem;
+  z-index: 2;
+  font-family: var(--font-kanji-serif);
+  font-weight: 700;
+  color: var(--color-gold-bright);
+  text-shadow: var(--text-shadow-scrim, 0 1px 4px color-mix(in srgb, var(--color-canvas) 60%, transparent));
+  opacity: 0.92;
+}
+
+/* Marca de agua kanji al 5% detrás del pie. */
+.podio-kanji-agua {
+  position: absolute;
+  bottom: 8%;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 1;
+  font-family: var(--font-kanji-serif);
+  font-weight: 700;
+  color: var(--color-fg-strong);
+  opacity: 0.05;
+  pointer-events: none;
+}
+
+/* ---------- entrada (gateada por [data-podio-vivo]) ---------- */
+
+@media (prefers-reduced-motion: no-preference) {
+  /* El estado BASE es el final: sin atributo (SSR, print, IO sin
+     disparar) todo se ve desplegado. Con [data-podio-vivo] las
+     animaciones corren una vez, ancladas en --podio-i (0 oro,
+     1 plata, 2 bronce). */
+  [data-podio-vivo] .podio-cuerda {
+    animation: podio-cuerda-cae calc(220ms * var(--podio-vel)) var(--ease-lift) both;
+    animation-delay: calc(var(--podio-i, 0) * 120ms * var(--podio-vel));
+  }
+
+  [data-podio-vivo] .podio-tela {
+    animation: podio-tela-despliega calc(550ms * var(--podio-vel)) var(--ease-lift) both;
+    animation-delay: calc((var(--podio-i, 0) * 120ms + 80ms) * var(--podio-vel));
+  }
+
+  [data-podio-vivo] .podio-pie {
+    animation: podio-contenido-revela calc(320ms * var(--podio-vel)) ease-out both;
+    animation-delay: calc((var(--podio-i, 0) * 120ms + 360ms) * var(--podio-vel));
+  }
+}
+
+/* ---------- relevo de nº1 ---------- */
+
+@media (prefers-reduced-motion: no-preference) {
+  .podio-tela--recoge {
+    animation: podio-tela-recoge calc(400ms * var(--podio-vel)) var(--ease-brush) both !important;
+  }
+
+  .podio-tela--cae {
+    animation: podio-tela-despliega calc(550ms * var(--podio-vel)) var(--ease-lift) both !important;
+    animation-delay: 0ms !important;
+  }
+
+  .podio-tela--cae .podio-pie {
+    animation: podio-contenido-revela calc(320ms * var(--podio-vel)) ease-out both !important;
+    animation-delay: calc(280ms * var(--podio-vel)) !important;
+  }
+}
+
+/* Sello 王 — solo existe en el DOM durante un relevo real. */
+.podio-sello-rey {
+  position: absolute;
+  top: 0.75rem;
+  left: 0.75rem;
+  z-index: 4;
+  display: grid;
+  place-items: center;
+  width: 2.75rem;
+  height: 2.75rem;
+  border-radius: 0.5rem;
+  background: var(--color-hanko);
+  color: var(--color-fg-strong);
+  font-family: var(--font-kanji-serif);
+  font-weight: 700;
+  font-size: 1.5rem;
+  line-height: 1;
+  transform: rotate(-6deg);
+  box-shadow: 0 2px 10px color-mix(in srgb, var(--color-canvas) 55%, transparent);
+}
+
+/* Sangrado pre-renderizado: copia ensanchada con alpha bajo que solo
+   cross-fadea. Nada de blur. */
+.podio-sello-rey::after {
+  content: '';
+  position: absolute;
+  inset: -3px;
+  border-radius: 0.625rem;
+  background: var(--color-hanko);
+  z-index: -1;
+  opacity: 0;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .podio-sello-rey {
+    animation: podio-sello-estampa calc(380ms * var(--podio-vel)) var(--ease-stamp) both;
+    animation-delay: calc(550ms * var(--podio-vel));
+  }
+
+  .podio-sello-rey::after {
+    animation: podio-sello-sangra calc(260ms * var(--podio-vel)) ease-out both;
+    animation-delay: calc(790ms * var(--podio-vel));
+  }
+}
+
+/* Degradación reduced-motion del relevo completo: cross-fade 200ms. */
+.podio-xfade {
+  animation: podio-xfade-in 200ms ease-out both;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .podio-cuerda,
+  .podio-tela,
+  .podio-pie,
+  .podio-sello-rey {
+    animation: none !important;
+    opacity: 1;
+    transform: none;
+  }
+  .podio-sello-rey {
+    transform: rotate(-6deg);
+  }
+  .podio-sello-rey::after {
+    animation: none !important;
+    opacity: 0.4;
+  }
+  .podio-fondo img {
+    transition-duration: 200ms;
+  }
+}
+
+/* ---------- estados auxiliares ---------- */
+
+/* Silueta de carga: la forma del estandarte con el barrido .skl
+   existente (el .skl global ya respeta calm/tab-hidden/reduced). */
+.podio-skl {
+  clip-path: polygon(0 0, 100% 0, 100% 100%, 50% calc(100% - 1.5rem), 0 100%);
+  background: var(--color-surface);
+}
+
+/* Regla de empate: hairline dorada que une los pies empatados. */
+.podio-empate-regla {
+  height: 1px;
+  background: linear-gradient(90deg,
+    transparent,
+    var(--color-border-gold) 18%,
+    var(--color-border-gold) 82%,
+    transparent);
+}
