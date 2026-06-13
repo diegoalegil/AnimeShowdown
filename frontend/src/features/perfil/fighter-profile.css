@@ -1,0 +1,634 @@
+/* ============================================================
+   Ficha del Combatiente - CSS de feature
+   Lo importa FighterProfile.jsx (import './fighter-profile.css').
+   Solo tokens via var() y color-mix; cero literales de color.
+   Los keyframes viven aqui (CSP por hash: nada en runtime).
+   Responde al CONTENEDOR (container queries) para que la pieza
+   funcione igual embebida o a viewport completo.
+   ============================================================ */
+
+.fp-root {
+  /* ease-stamp: overshoot de hanko. NO es token global: local de la feature. */
+  --ease-stamp: cubic-bezier(0.34, 1.56, 0.64, 1);
+  position: relative;
+  background: var(--color-bg);
+  color: var(--color-fg);
+  font-family: var(--font-sans);
+  container-type: inline-size;
+  container-name: fp;
+}
+
+/* ---------------- estandarte (banner) ----------------
+   Es el LCP: se pinta con el scrim YA puesto, sin animacion. */
+.fp-banner {
+  position: relative;
+  height: clamp(190px, 30cqw, 330px);
+  background: var(--color-surface);
+  overflow: hidden;
+}
+.fp-banner-media {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  /* el fallback usa el arte 2:3 del favorito como estandarte apaisado:
+     anclar arriba muestra la cara, no el recorte central (precedente:
+     AnimeCinematicHero 50% 30%, Top5Altar top) */
+  object-position: 50% 28%;
+}
+.fp-banner-scrim {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background: linear-gradient(
+    to bottom,
+    color-mix(in srgb, var(--color-canvas) 42%, transparent) 0%,
+    transparent 30%,
+    transparent 54%,
+    color-mix(in srgb, var(--color-canvas) 92%, transparent) 100%
+  );
+}
+.fp-banner-hairline {
+  position: absolute;
+  inset: auto 0 0 0;
+  height: 1px;
+  background: var(--color-border-gold-subtle);
+}
+.fp-banner-edit {
+  position: absolute;
+  top: 14px;
+  right: 14px;
+  z-index: 2;
+}
+
+/* ---------------- cabecera: avatar + marco + sello ---------------- */
+.fp-head {
+  position: relative;
+  z-index: 1;
+  max-width: 1020px;
+  margin: -52px auto 0;
+  padding: 0 24px;
+  display: flex;
+  align-items: flex-end;
+  gap: 20px;
+}
+.fp-avatar-wrap {
+  position: relative;
+  flex: none;
+  width: 124px;
+  height: 124px;
+}
+.fp-avatar {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  border-radius: var(--radius-xl);
+  background: var(--color-surface-alt);
+  overflow: hidden;
+}
+/* CardMarcos se monta aqui TAL CUAL; esta clase solo posiciona. */
+.fp-marco {
+  position: absolute;
+  inset: -9px;
+  pointer-events: none;
+}
+/* sangrado del golpe: capa pre-renderizada, SOLO cross-fade de opacity */
+.fp-stamp-bleed {
+  position: absolute;
+  inset: -9px;
+  border-radius: var(--radius-xl);
+  pointer-events: none;
+  opacity: 0;
+  box-shadow: 0 0 0 7px color-mix(in srgb, var(--color-hanko) 24%, transparent);
+}
+.fp-id {
+  flex: 1 1 auto;
+  min-width: 0;
+  padding-bottom: 6px;
+}
+.fp-username-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-width: 0;
+}
+.fp-username {
+  margin: 0;
+  font-size: clamp(1.45rem, 3.4cqw, 2.05rem);
+  line-height: 1.1;
+  font-weight: 700;
+  color: var(--color-fg-strong);
+  overflow-wrap: anywhere;
+}
+.fp-sello {
+  flex: none;
+  width: 38px;
+  height: 38px;
+  display: grid;
+  place-items: center;
+  border: 2px solid var(--color-hanko);
+  border-radius: 6px;
+  background: color-mix(in srgb, var(--color-hanko) 9%, transparent);
+  color: var(--color-hanko);
+  font-family: var(--font-kanji-serif);
+  font-size: 1.35rem;
+  transform: rotate(-4deg);
+}
+.fp-rango {
+  margin: 6px 0 0;
+  font-size: 0.8rem;
+  color: var(--color-fg-muted);
+}
+.fp-own-actions {
+  display: flex;
+  gap: 10px;
+  flex: none;
+  flex-wrap: wrap;
+  padding-bottom: 8px;
+}
+
+/* ---------------- tablillas (botones discretos de la casa) ---------------- */
+.fp-tablilla {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  min-height: 44px;
+  padding: 0 16px;
+  border: 1px solid var(--color-border-gold-subtle);
+  border-radius: var(--radius-lg);
+  background: color-mix(in srgb, var(--color-surface-alt) 88%, transparent);
+  color: var(--color-fg);
+  font: inherit;
+  font-size: 0.85rem;
+  cursor: pointer;
+  text-decoration: none;
+  transition: transform 160ms var(--ease-lift), border-color 160ms var(--ease-lift),
+    background-color 160ms var(--ease-lift);
+}
+.fp-tablilla:hover {
+  border-color: var(--color-border-gold);
+  transform: translateY(-1px);
+}
+.fp-tablilla:active {
+  transform: translateY(0);
+}
+.fp-tablilla:focus-visible {
+  outline: 2px solid var(--color-gold);
+  outline-offset: 2px;
+}
+.fp-tablilla--primary {
+  border-color: color-mix(in srgb, var(--color-accent) 70%, transparent);
+  background: color-mix(in srgb, var(--color-accent) 22%, transparent);
+  color: var(--color-fg-strong);
+}
+.fp-tablilla--primary:hover {
+  border-color: var(--color-accent-hover);
+  background: color-mix(in srgb, var(--color-accent-hover) 30%, transparent);
+}
+
+/* ---------------- KPIs acunados ---------------- */
+.fp-kpis {
+  max-width: 1020px;
+  margin: 24px auto 0;
+  padding: 0 24px;
+}
+.fp-kpis-grid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  margin: 0;
+  border-block: 1px solid var(--color-border-gold-subtle);
+}
+.fp-kpi {
+  margin: 0;
+  padding: 14px 12px 14px 18px;
+}
+.fp-kpi + .fp-kpi {
+  border-left: 1px solid color-mix(in srgb, var(--color-gold) 16%, transparent);
+}
+.fp-kpi dt {
+  margin: 0 0 4px;
+  font-size: var(--text-2xs);
+  color: var(--color-fg-muted);
+}
+.fp-kpi dd {
+  margin: 0;
+  font-family: var(--font-mono);
+  font-variant-numeric: tabular-nums;
+  font-size: clamp(1.05rem, 2.3cqw, 1.45rem);
+  color: var(--color-gold);
+}
+
+/* ---------------- vitrina ---------------- */
+.fp-vitrina {
+  position: relative;
+  max-width: 1020px;
+  margin: 32px auto 0;
+  padding: 0 24px 72px;
+  display: grid;
+  grid-template-columns: minmax(0, 1.3fr) minmax(0, 1fr);
+  gap: 20px 40px;
+  align-items: start;
+}
+/* marca de agua kanji al 5% */
+.fp-vitrina-mark {
+  position: absolute;
+  top: -26px;
+  right: 16px;
+  font-family: var(--font-kanji-serif);
+  font-size: clamp(90px, 14cqw, 150px);
+  line-height: 1;
+  color: var(--color-fg-strong);
+  opacity: 0.05;
+  pointer-events: none;
+  user-select: none;
+  writing-mode: vertical-rl;
+}
+.fp-col {
+  display: grid;
+  gap: 28px;
+  min-width: 0;
+}
+.fp-sec {
+  min-width: 0;
+}
+.fp-sec-title {
+  margin: 0 0 14px;
+  font-size: 0.82rem;
+  font-weight: 600;
+  color: var(--color-fg-muted);
+}
+.fp-sec-kanji {
+  font-family: var(--font-kanji-serif);
+  color: var(--color-gold);
+  margin-right: 8px;
+}
+
+/* corte de tinta canonico: cover que se retira con filo dorado de 3px */
+.fp-cut {
+  position: relative;
+  display: inline-block;
+  padding: 2px 0;
+}
+.fp-cut-cover {
+  display: none;
+  position: absolute;
+  inset: 0 -4px;
+  background: var(--color-bg);
+  border-right: 3px solid var(--color-gold);
+  transform: scaleX(1);
+  transform-origin: left;
+  pointer-events: none;
+}
+
+/* ---------------- top 5 en miniatura (2:3) ---------------- */
+.fp-top5 {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  gap: 10px;
+}
+.fp-mini {
+  position: relative;
+  aspect-ratio: 2 / 3;
+  border-radius: var(--radius-lg);
+  overflow: hidden;
+  border: 1px solid var(--color-border);
+  background: var(--color-surface);
+}
+.fp-mini--first {
+  border-color: var(--color-border-gold);
+  box-shadow: 0 0 0 1px color-mix(in srgb, var(--color-gold) 25%, transparent);
+}
+.fp-mini-img {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+.fp-mini-link {
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+}
+.fp-mini-link:focus-visible {
+  outline: 2px solid var(--color-gold);
+  outline-offset: 2px;
+}
+.fp-mini-rank {
+  position: absolute;
+  top: 6px;
+  left: 6px;
+  width: 22px;
+  height: 22px;
+  display: grid;
+  place-items: center;
+  font-family: var(--font-kanji-serif);
+  font-size: 0.8rem;
+  color: var(--color-gold-bright);
+  background: color-mix(in srgb, var(--color-canvas) 80%, transparent);
+  border: 1px solid var(--color-border-gold-subtle);
+  border-radius: 4px;
+}
+.fp-mini-name {
+  position: absolute;
+  inset: auto 0 0 0;
+  padding: 14px 7px 6px;
+  font-size: var(--text-2xs);
+  color: var(--color-fg);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  background: linear-gradient(
+    to top,
+    color-mix(in srgb, var(--color-canvas) 88%, transparent),
+    transparent
+  );
+}
+
+/* ---------------- medallas hanko de logros ---------------- */
+.fp-medals {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+.fp-medal {
+  position: relative;
+  width: 54px;
+  height: 54px;
+  display: grid;
+  place-items: center;
+  border: 2px solid var(--color-hanko);
+  border-radius: 50%;
+  background: color-mix(in srgb, var(--color-hanko) 8%, transparent);
+  color: color-mix(in srgb, var(--color-hanko) 85%, var(--color-fg-strong));
+  font-family: var(--font-kanji-serif);
+  font-size: 1.5rem;
+  transform: rotate(var(--fp-rot, 0deg));
+  transition: translate 180ms var(--ease-lift);
+}
+.fp-medal:hover,
+.fp-medal:focus-visible {
+  translate: 0 -2px;
+}
+
+/* ---------------- carta destacada ---------------- */
+.fp-carta {
+  position: relative;
+  width: min(210px, 100%);
+  aspect-ratio: 2 / 3;
+  margin: 0;
+  border-radius: var(--radius-card);
+  overflow: hidden;
+  border: 1px solid var(--color-border-gold);
+  background: var(--color-surface);
+  box-shadow: var(--shadow-elev-2);
+}
+.fp-carta-img {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+.fp-carta-foot {
+  position: absolute;
+  inset: auto 0 0 0;
+  padding: 26px 12px 10px;
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 8px;
+  background: linear-gradient(
+    to top,
+    color-mix(in srgb, var(--color-canvas) 92%, transparent),
+    transparent
+  );
+}
+.fp-carta-nombre {
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: var(--color-fg-strong);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.fp-carta-elo {
+  font-family: var(--font-mono);
+  font-variant-numeric: tabular-nums;
+  color: var(--color-elo-number);
+  font-size: 1.05rem;
+  flex: none;
+}
+.fp-carta-elo-label {
+  font-size: 0.6em;
+  color: var(--color-fg-muted);
+  margin-right: 4px;
+}
+
+/* ---------------- degradacion: CTAs de construir / lineas vacias ---------------- */
+.fp-cta-tile {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 12px;
+  padding: 20px;
+  border: 1px dashed var(--color-border-gold-subtle);
+  border-radius: var(--radius-xl);
+  background: color-mix(in srgb, var(--color-surface) 55%, transparent);
+}
+.fp-cta-tile p {
+  margin: 0;
+  font-size: 0.88rem;
+  color: var(--color-fg-muted);
+  max-width: 38ch;
+}
+.fp-cta-kanji {
+  font-family: var(--font-kanji-serif);
+  font-size: 1.6rem;
+  line-height: 1;
+  color: color-mix(in srgb, var(--color-gold) 55%, transparent);
+}
+.fp-empty {
+  margin: 0;
+  font-size: 0.85rem;
+  color: var(--color-fg-muted);
+  font-style: italic;
+}
+
+/* ---------------- utilidades ---------------- */
+.fp-sr {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+  border: 0;
+}
+
+/* ============================================================
+   COREOGRAFIA - todo transform/opacity, gateado por reduced-motion.
+   Estado base = estado FINAL visible (print/reduced-motion seguros).
+   .fp-anim la pone el componente; .fp-stamped / .fp-revealed via JS.
+   fill backwards (no forwards) para no pisar los hover por transition.
+   ============================================================ */
+@media (prefers-reduced-motion: no-preference) {
+  /* avatar + marco: UN golpe a t+150ms */
+  .fp-anim .fp-avatar-wrap {
+    opacity: 0;
+  }
+  .fp-anim .fp-stamped .fp-avatar-wrap {
+    opacity: 1;
+    animation: fp-stamp 300ms var(--ease-stamp) 150ms backwards;
+  }
+  .fp-anim .fp-stamped .fp-stamp-bleed {
+    animation: fp-bleed 420ms var(--ease-brush) 340ms both;
+  }
+
+  /* vitrina: stagger 50ms por pieza */
+  .fp-anim .fp-v-item {
+    opacity: 0;
+  }
+  .fp-anim .fp-revealed .fp-v-item {
+    opacity: 1;
+    animation: fp-rise 460ms var(--ease-lift) backwards;
+    animation-delay: calc(120ms + var(--fp-i, 0) * 50ms);
+  }
+
+  /* corte de tinta en titulos de seccion */
+  .fp-anim .fp-cut-cover {
+    display: block;
+  }
+  .fp-anim .fp-revealed .fp-cut-cover {
+    animation: fp-ink-retire 520ms var(--ease-brush) 60ms forwards;
+  }
+}
+
+@keyframes fp-stamp {
+  from {
+    opacity: 0;
+    scale: 1.18;
+    translate: 0 -10px;
+  }
+}
+@keyframes fp-bleed {
+  0% {
+    opacity: 0;
+  }
+  35% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 0;
+  }
+}
+@keyframes fp-rise {
+  from {
+    opacity: 0;
+    translate: 0 12px;
+  }
+}
+@keyframes fp-ink-retire {
+  to {
+    transform: scaleX(0);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .fp-tablilla,
+  .fp-medal {
+    transition: none;
+  }
+}
+
+/* ============================================================
+   RESPONSIVE (container queries; 390px = una columna, cero desbordes)
+   ============================================================ */
+@container fp (max-width: 720px) {
+  .fp-vitrina {
+    grid-template-columns: 1fr;
+    gap: 28px;
+  }
+  .fp-vitrina-mark {
+    top: -18px;
+    font-size: 84px;
+  }
+}
+
+@container fp (max-width: 560px) {
+  .fp-head {
+    margin-top: -42px;
+    gap: 14px;
+    flex-wrap: wrap;
+  }
+  .fp-avatar-wrap {
+    width: 96px;
+    height: 96px;
+  }
+  .fp-own-actions {
+    order: 3;
+    width: 100%;
+    padding-bottom: 0;
+    margin-top: 4px;
+  }
+  .fp-kpis-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+  .fp-kpi + .fp-kpi {
+    border-left: none;
+  }
+  .fp-kpi:nth-child(even) {
+    border-left: 1px solid color-mix(in srgb, var(--color-gold) 16%, transparent);
+  }
+  .fp-kpi:nth-child(n + 3) {
+    border-top: 1px solid color-mix(in srgb, var(--color-gold) 16%, transparent);
+  }
+  .fp-top5 {
+    gap: 6px;
+  }
+  .fp-mini-rank {
+    width: 18px;
+    height: 18px;
+    font-size: 0.65rem;
+  }
+  .fp-banner-edit {
+    top: 10px;
+    right: 10px;
+  }
+}
+
+/* ---------- Meta de comunidad (seguidores · seguidos · bio) ----------
+   Datos existentes del perfil que la ficha conserva bajo el username. */
+
+.fp-meta {
+  margin: 0.15rem 0 0;
+  font-family: var(--font-mono);
+  font-size: var(--text-2xs);
+  color: var(--color-fg-muted);
+}
+
+.fp-meta strong {
+  color: var(--color-fg-strong);
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+}
+
+.fp-bio {
+  margin: 0.4rem 0 0;
+  max-width: 38rem;
+  font-size: 0.82rem;
+  line-height: 1.5;
+  color: var(--color-fg-muted);
+  white-space: pre-line;
+}

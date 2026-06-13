@@ -1,11 +1,8 @@
 import { useNavigate, useParams } from 'react-router-dom'
 import { motion } from 'framer-motion'
 import { toast } from 'sonner'
-import { AlertTriangle, CalendarDays, UserMinus, UserPlus, Users, UserCheck } from 'lucide-react'
-import Avatar from '../components/Avatar'
-import ProfileBanner from '../components/ProfileBanner'
-import CardStats from '../components/CardStats'
-import CardTop5 from '../components/CardTop5'
+import { AlertTriangle, Settings, UserMinus, UserPlus } from 'lucide-react'
+import { AppLink } from '../components/AppLink'
 import CardLogros from '../components/CardLogros'
 import CardDanKyu from '../components/CardDanKyu'
 import EmptyState from '../components/EmptyState'
@@ -16,6 +13,7 @@ import { breadcrumbsSchema } from '../lib/schema'
 import JsonLd from '../components/JsonLd'
 import { usePerfilPublico, useToggleSeguir } from '../hooks/usePerfil'
 import MissingFighter from '../features/perfil/MissingFighter'
+import FighterProfile from '../features/perfil/FighterProfile'
 import { ApiError } from '../lib/api'
 import { VisualPageShell } from '../components/VisualSystem'
 import { BRAND_VISUALS } from '../data/visual-assets'
@@ -30,15 +28,15 @@ const containerVariants = {
 }
 
 /**
- * Perfil público de cualquier usuario.
+ * Perfil público de cualquier usuario — «La Ficha del Combatiente».
  *
  * Ruta: /u/:username. Endpoint backend permitAll así que se ve sin login,
  * pero si hay sesión los flags `siguiendo` y `esMismoUsuario` permiten
- * pintar el botón Follow / Dejar de seguir.
+ * pintar el botón Follow / el atajo a editar el perfil propio.
  *
- * Layout: header horizontal (avatar + datos + Follow) → stats → top5 →
- * logros con catálogo completo y locked. Sin historial detallado de
- * votos — eso queda en /perfil del propio user.
+ * Layout: FighterProfile (estandarte + avatar con marco + KPIs acuñados +
+ * vitrina top5/medallas) → Dan/Kyu → catálogo completo de logros. La
+ * edición vive en /perfil (no se duplica aquí).
  */
 function UsuarioPage() {
   const { username } = useParams()
@@ -64,7 +62,7 @@ function UsuarioPage() {
 
   if (isLoading) {
     return (
-      <section className="mx-auto grid w-full max-w-2xl gap-4 px-5 py-12">
+      <section className="mx-auto grid w-full max-w-4xl gap-4 px-5 py-12">
         <Skeleton variant="banner" />
         <Skeleton variant="line" className="h-20 w-full rounded-lg" />
         <Skeleton variant="line" className="h-20 w-full rounded-lg" />
@@ -114,8 +112,22 @@ function UsuarioPage() {
     }
   }
 
+  const accionPrincipal = perfil.esMismoUsuario ? (
+    <AppLink to="/perfil" className="fp-tablilla">
+      <Settings className="h-3.5 w-3.5" />
+      Editar perfil
+    </AppLink>
+  ) : (
+    <BotonSeguir
+      perfil={perfil}
+      onToggle={handleToggle}
+      pending={toggleSeguir.isPending}
+      userLogueado={Boolean(user)}
+    />
+  )
+
   return (
-    <VisualPageShell visual={BRAND_VISUALS.usuarioHero} contentClassName="mx-auto max-w-2xl" density="low" lateralKanji={{left: "客", right: "人"}}>
+    <VisualPageShell visual={BRAND_VISUALS.usuarioHero} contentClassName="mx-auto max-w-4xl" density="low" lateralKanji={{left: "客", right: "人"}}>
       <JsonLd
         id="breadcrumbs"
         schema={breadcrumbsSchema([
@@ -129,20 +141,13 @@ function UsuarioPage() {
           variants={containerVariants}
           className="grid gap-6"
         >
-          <HeaderCard
+          <FighterProfile
             perfil={perfil}
-            onToggle={handleToggle}
-            pending={toggleSeguir.isPending}
-            userLogueado={Boolean(user)}
+            esPropio={Boolean(perfil.esMismoUsuario)}
+            accionPrincipal={accionPrincipal}
+            hrefPersonaje={(slug) => `/personajes/${slug}`}
           />
-          <CardStats data={perfil.stats} />
           <CardDanKyu data={perfil.stats} />
-          <CardTop5
-            data={perfil.top}
-            titulo={`Top 5 de ${perfil.username}`}
-            mensajeIntro={`Los personajes a los que ${perfil.username} más ha votado.`}
-            mensajeVacio={`${perfil.username} todavía no ha votado a ningún personaje.`}
-          />
           <CardLogros
             data={perfil.logros}
             mensajeIntro={`Los logros que ${perfil.username} ha conseguido. En gris los que aún le faltan.`}
@@ -152,98 +157,40 @@ function UsuarioPage() {
   )
 }
 
-function mesAlta(fechaRegistro) {
-  if (!fechaRegistro) return null
-  const d = new Date(fechaRegistro)
-  if (Number.isNaN(d.getTime())) return null
-  return new Intl.DateTimeFormat('es', { month: 'long', year: 'numeric' }).format(d)
-}
-
-function HeaderCard({ perfil, onToggle, pending, userLogueado }) {
-  const { esMismoUsuario, siguiendo } = perfil
-  const desde = mesAlta(perfil.fechaRegistro)
+function BotonSeguir({ perfil, onToggle, pending, userLogueado }) {
+  const { siguiendo } = perfil
   return (
-    <div className="overflow-hidden rounded-2xl border border-border bg-surface">
-      {/* Banner: imagen del usuario o, si no tiene, el arte de su personaje
-          favorito (top[0]) — nunca queda genérico. El avatar solapa el borde
-          inferior, estilo perfil social. */}
-      <ProfileBanner
-        bannerUrl={perfil.bannerUrl}
-        fallbackImagenUrl={perfil.top?.[0]?.imagenUrl}
-        alt={`Banner de ${perfil.username}`}
-        className="h-32 sm:h-44"
-      />
-      <div className="flex items-start gap-5 px-6 pb-6">
-        <div className="-mt-10 shrink-0 sm:-mt-12">
-          <Avatar user={perfil} size={88} className="ring-4 ring-surface" />
-        </div>
-        <div className="flex min-w-0 flex-1 flex-col gap-2 pt-3">
-          <h1 className="truncate text-2xl font-bold tracking-tight text-fg-strong">
-            {perfil.username}
-          </h1>
-          <div className="flex flex-wrap gap-4 text-[13px] text-fg-muted">
-            <span className="inline-flex items-center gap-1.5">
-              <Users className="h-3.5 w-3.5" />
-              <strong className="font-semibold tabular-nums text-fg-strong">
-                {perfil.seguidores}
-              </strong>{' '}
-              seguidores
-            </span>
-            <span className="inline-flex items-center gap-1.5">
-              <UserCheck className="h-3.5 w-3.5" />
-              <strong className="font-semibold tabular-nums text-fg-strong">
-                {perfil.seguidos}
-              </strong>{' '}
-              seguidos
-            </span>
-            {desde && (
-              <span className="inline-flex items-center gap-1.5">
-                <CalendarDays className="h-3.5 w-3.5" />
-                miembro desde {desde}
-              </span>
-            )}
-          </div>
-          {perfil.bio && (
-            <p className="mt-1 whitespace-pre-line text-[13px] leading-relaxed text-fg-muted">
-              {perfil.bio}
-            </p>
-          )}
-        </div>
-        {!esMismoUsuario && (
-          <button
-            type="button"
-            onClick={onToggle}
-            disabled={pending}
-            aria-label={
-              siguiendo
-                ? `Dejar de seguir a ${perfil.username}`
-                : `Seguir a ${perfil.username}`
-            }
-            className={
-              siguiendo
-                ? 'mt-3 inline-flex shrink-0 items-center gap-2 rounded-lg border border-danger/40 bg-danger/10 px-4 py-2.5 text-sm font-semibold text-danger transition-colors hover:bg-danger/20 disabled:cursor-not-allowed disabled:opacity-60'
-                : 'mt-3 inline-flex shrink-0 items-center gap-2 rounded-lg bg-accent px-4 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-accent-hover disabled:cursor-not-allowed disabled:opacity-60'
-            }
-          >
-            {siguiendo ? (
-              <>
-                <UserMinus className="h-4 w-4" />
-                {pending ? 'Quitando…' : 'Dejar de seguir'}
-              </>
-            ) : (
-              <>
-                <UserPlus className="h-4 w-4" />
-                {pending
-                  ? 'Siguiendo…'
-                  : userLogueado
-                    ? 'Seguir'
-                    : 'Entrar para seguir'}
-              </>
-            )}
-          </button>
-        )}
-      </div>
-    </div>
+    <button
+      type="button"
+      onClick={onToggle}
+      disabled={pending}
+      aria-label={
+        siguiendo
+          ? `Dejar de seguir a ${perfil.username}`
+          : `Seguir a ${perfil.username}`
+      }
+      className={
+        siguiendo
+          ? 'inline-flex min-h-11 shrink-0 items-center gap-2 rounded-lg border border-danger/40 bg-danger/10 px-4 py-2.5 text-sm font-semibold text-danger transition-colors hover:bg-danger/20 disabled:cursor-not-allowed disabled:opacity-60'
+          : 'inline-flex min-h-11 shrink-0 items-center gap-2 rounded-lg bg-accent px-4 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-accent-hover disabled:cursor-not-allowed disabled:opacity-60'
+      }
+    >
+      {siguiendo ? (
+        <>
+          <UserMinus className="h-4 w-4" />
+          {pending ? 'Quitando…' : 'Dejar de seguir'}
+        </>
+      ) : (
+        <>
+          <UserPlus className="h-4 w-4" />
+          {pending
+            ? 'Siguiendo…'
+            : userLogueado
+              ? 'Seguir'
+              : 'Entrar para seguir'}
+        </>
+      )}
+    </button>
   )
 }
 
