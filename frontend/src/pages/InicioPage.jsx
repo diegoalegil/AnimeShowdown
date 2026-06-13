@@ -1,24 +1,23 @@
 import { useMemo } from 'react'
 import { motion } from 'framer-motion'
-import { Link, useNavigate } from 'react-router-dom'
+import { useNavigate } from 'react-router-dom'
 import { useSeo } from '../hooks/useSeo'
 import { webSiteSchema } from '../lib/schema'
 import JsonLd from '../components/JsonLd'
 import {
   AlertTriangle,
-  ArrowRight,
   Inbox,
 } from 'lucide-react'
 import { AppLink } from '../components/AppLink'
 import Hero from '../components/Hero'
 import SectionCombateEstelar from '../components/SectionCombateEstelar'
+import SectionGate from '../components/SectionGate'
 import SectionPulso from '../components/SectionPulso'
 import TorneoCard from '../components/TorneoCard'
 import CarouselRow from '../components/CarouselRow'
 import LazyOnView from '../components/LazyOnView'
 import DailyMissionPanel from '../components/DailyMissionPanel'
 import SobreBienvenidaBanner from '../features/cartas/SobreBienvenidaBanner'
-import Button from '../components/Button'
 import Card from '../components/Card'
 import Section from '../components/Section'
 import EmptyState from '../components/EmptyState'
@@ -222,14 +221,14 @@ function SectionPorAnime({ carousels }) {
       viewport={{ once: true, amount: 0.05 }}
     >
       <div className="mx-auto max-w-7xl px-5 pb-2 pt-12 sm:px-8 sm:pt-16">
-        <div className="flex flex-col items-start gap-2">
-          <span className="text-[12px] font-semibold text-fg-muted">
-            Por anime
-          </span>
-          <h2 className="text-[clamp(1.75rem,4vw,2.5rem)] tracking-tight">
-            Explora por universo
-          </h2>
-        </div>
+        <SectionGate
+          kanji="界"
+          kanjiMeaning="mundo, esfera"
+          eyebrow="Por anime"
+          title="Explora por universo"
+          viewAllTo="/animes"
+          viewAllLabel="Ver todos"
+        />
       </div>
       {carousels.map(({ anime, list }) => (
         <CarouselRow
@@ -258,21 +257,17 @@ function SectionTorneosActivos() {
       initial="hidden"
       whileInView="visible"
       viewport={{ once: true, amount: 0.2 }}
-      eyebrow="Torneos"
-      title="Brackets en marcha"
-      titleClassName="text-[clamp(1.75rem,4vw,2.5rem)] tracking-tight"
-      eyebrowClassName="text-[12px] font-semibold text-fg-muted"
-      headerClassName="mb-8 flex items-end justify-between gap-4"
-      headerAction={
-        <AppLink
-          to="/torneos"
-          className="hidden items-center gap-1.5 text-sm font-medium text-fg-muted transition-colors hover:text-gold sm:inline-flex"
-        >
-          Ver todos
-          <ArrowRight className="h-4 w-4" />
-        </AppLink>
-      }
     >
+        <SectionGate
+          id="torneos"
+          kanji="戦"
+          kanjiMeaning="batalla"
+          eyebrow="Torneos"
+          title="Brackets en marcha"
+          viewAllTo="/torneos"
+          viewAllLabel="Ver todos"
+          className="mb-8"
+        />
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
           {torneosPreview.map((t) => (
             <TorneoCard key={t.slug} torneo={t} />
@@ -311,23 +306,23 @@ function SectionTop10Ranking({ top10 }) {
       initial="hidden"
       whileInView="visible"
       viewport={{ once: true, amount: 0.1 }}
-      eyebrow="Top 10 · ELO base ·b"
-      title="Coliseo de Leyendas"
-      description="El top 10 por ELO base gira en la arena: arrastra el anillo o usa las flechas, y toca la carta frontal para abrir su ficha. Orden estimado por popularidad, no por votos — el ranking competitivo real está en /ranking."
-      descriptionClassName="max-w-2xl text-[14px] text-fg-muted"
-      headerClassName="mb-8 flex flex-wrap items-end justify-between gap-3"
-      headerAction={
-        <Button
-          as={AppLink}
-          to="/ranking"
-          variant="secondary"
-          className="group"
-        >
-          Ver ranking completo
-          <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-0.5" />
-        </Button>
-      }
     >
+      <div className="mb-8">
+        <SectionGate
+          kanji="位"
+          kanjiMeaning="rango, posición"
+          eyebrow="Top 10 · ELO base ·b"
+          title="Coliseo de Leyendas"
+          viewAllTo="/ranking"
+          viewAllLabel="Ver ranking completo"
+        />
+        <p className="mt-3 max-w-2xl text-[14px] text-fg-muted">
+          El top 10 por ELO base gira en la arena: arrastra el anillo o usa
+          las flechas, y toca la carta frontal para abrir su ficha. Orden
+          estimado por popularidad, no por votos — el ranking competitivo
+          real está en /ranking.
+        </p>
+      </div>
       <ColiseoTop10
         items={items}
         onOpen={(slug, retrato) => {
@@ -412,23 +407,21 @@ function SectionRetosDiarios() {
       initial="hidden"
       whileInView="visible"
       viewport={{ once: true, amount: 0.15 }}
-      eyebrow={<><span lang="ja">御</span> · Anime Daily Trials</>}
-      title="Retos diarios de anime"
-      description="Pon a prueba tu memoria otaku con modos rápidos: adivina personajes, detecta impostores y protege tu racha diaria."
-      descriptionClassName="max-w-2xl text-[14px] text-fg-muted"
-      headerClassName="mb-8 flex flex-wrap items-end justify-between gap-3"
-      headerAction={
-        <Button
-          as={AppLink}
-          to="/games"
-          variant="secondary"
-          className="group"
-        >
-          Jugar retos diarios
-          <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-0.5" />
-        </Button>
-      }
     >
+      <div className="mb-8">
+        <SectionGate
+          kanji="遊"
+          kanjiMeaning="jugar"
+          eyebrow={<><span lang="ja">御</span> · Anime Daily Trials</>}
+          title="Retos diarios de anime"
+          viewAllTo="/games"
+          viewAllLabel="Jugar retos diarios"
+        />
+        <p className="mt-3 max-w-2xl text-[14px] text-fg-muted">
+          Pon a prueba tu memoria otaku con modos rápidos: adivina
+          personajes, detecta impostores y protege tu racha diaria.
+        </p>
+      </div>
         {/* Layout 1/2/3 cols con cover real de cada juego, altura estable y
             overlay inferior para legibilidad. El kanji decorativo respira
             sobre la imagen. */}
@@ -441,7 +434,7 @@ function SectionRetosDiarios() {
             const coverImage = visual?.image || visual?.fallbackImage
             return (
               <Card
-                as={Link}
+                as={AppLink}
                 key={r.to}
                 to={r.to}
                 className={`group relative flex min-h-[13rem] flex-col gap-2 overflow-hidden rounded-2xl border bg-surface/85 p-5 transition-all duration-300 hover:-translate-y-1.5 hover:bg-surface hover:shadow-lift backdrop-blur-sm sm:min-h-[14rem] ${colorClasses}`}
