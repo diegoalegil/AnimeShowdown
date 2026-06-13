@@ -1,4 +1,4 @@
-import { useEffect, useMemo } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { Link, useSearchParams } from 'react-router-dom'
 import { motion, useReducedMotion } from 'framer-motion'
 import { useTranslation } from 'react-i18next'
@@ -15,6 +15,7 @@ import {
   useStatsLogros,
 } from '../hooks/useLogros'
 import TrophyHall from '../features/logros/TrophyHall'
+import { leerLogrosVistos, marcarLogrosVistos } from '../features/logros/logros-vistos'
 import { iconoDeBadge } from '../lib/badgeIcons'
 import { kanjiDeBadge } from '../lib/badgeKanji'
 
@@ -29,12 +30,13 @@ const containerVariants = {
 
 // Estanterías del salón: la rareza ES la categoría (legendarios arriba).
 // Kanji con significado: 伝 leyenda · 極 extremo · 稀 raro · 準 semi · 常 común.
+// tier = laca de la medalla (tokens --color-medal-*).
 const ESTANTERIAS_RAREZA = [
-  { value: 5, kanji: '伝', name: 'Legendarios' },
-  { value: 4, kanji: '極', name: 'Épicos' },
-  { value: 3, kanji: '稀', name: 'Raros' },
-  { value: 2, kanji: '準', name: 'Poco comunes' },
-  { value: 1, kanji: '常', name: 'Comunes' },
+  { value: 5, kanji: '伝', name: 'Legendarios', tier: 'gold' },
+  { value: 4, kanji: '極', name: 'Épicos', tier: 'gold' },
+  { value: 3, kanji: '稀', name: 'Raros', tier: 'silver' },
+  { value: 2, kanji: '準', name: 'Poco comunes', tier: 'bronze' },
+  { value: 1, kanji: '常', name: 'Comunes', tier: 'bronze' },
 ]
 
 /**
@@ -64,6 +66,12 @@ function LogrosPage() {
   // conseguirlo".
   const fuente = user ? mios : catalogo
 
+  // Registro local de medallas ya estampadas: lo desbloqueado que aún no
+  // esté aquí entra con ceremonia de estampado en vivo (el backend no tiene
+  // flag de no-visto — mismo patrón local que el snapshot de /mi-ranking).
+  // Inicializador puro: una sola lectura por montaje.
+  const [vistosIniciales] = useState(() => leerLogrosVistos())
+
   // Estanterías del salón por rareza, con kanji real de badgeKanji (fallback
   // al icono lucide del logro) y conteo de comunidad. Dentro de cada
   // estantería: desbloqueados primero, luego alfabético con collation del
@@ -73,6 +81,7 @@ function LogrosPage() {
     return ESTANTERIAS_RAREZA.map((nivel) => ({
       kanji: nivel.kanji,
       name: nivel.name,
+      tier: nivel.tier,
       items: fuente
         .filter((l) => l.rareza === nivel.value)
         .map((l) => ({
@@ -81,8 +90,12 @@ function LogrosPage() {
           Icon: iconoDeBadge(l.icono),
           nombre: l.nombre,
           descripcion: l.descripcion,
-          // Sin sesión, modo escaparate: placas a plena luz (catálogo).
+          // Sin sesión, modo escaparate: medallas a plena luz (catálogo).
           unlocked: user ? Boolean(l.desbloqueadoEn) : true,
+          fecha: user ? (l.desbloqueadoEn ?? null) : null,
+          nuevo: Boolean(
+            user && l.desbloqueadoEn && !vistosIniciales.has(l.codigo),
+          ),
           count: stats?.[l.codigo] ?? null,
         }))
         .sort((a, b) => {
@@ -90,7 +103,7 @@ function LogrosPage() {
           return a.nombre.localeCompare(b.nombre, i18n.language || undefined)
         }),
     })).filter((shelf) => shelf.items.length > 0)
-  }, [fuente, i18n.language, stats, user])
+  }, [fuente, i18n.language, stats, user, vistosIniciales])
 
   const total = catalogo?.length ?? 16
   const desbloqueados = mios?.filter((l) => l.desbloqueadoEn).length ?? 0
@@ -255,6 +268,7 @@ function LogrosPage() {
             estanterias={estanterias}
             logueado={Boolean(user)}
             logroDestacado={logroDestacado}
+            onEstampadosVistos={marcarLogrosVistos}
           />
         )}
 
