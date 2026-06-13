@@ -115,8 +115,12 @@ test('votar un duelo fijado actualiza el ranking local y mantiene el matchup exa
 
   await page.goto('/mi-ranking')
   const main = page.getByRole('main')
-  await expect(main.getByText('Luffy', { exact: true }).first()).toBeVisible()
-  await expect(main.getByText('One Piece').first()).toBeVisible()
+  // El expediente muestra el voto como una placa cuyo nombre accesible reúne
+  // personaje + anime ("Puesto 1: Luffy, One Piece"). Afinamos a la placa: el
+  // retrato decorativo (aria-hidden) repite el anime como texto de placeholder
+  // de imagen y su visibilidad depende de si la imagen cargó, así que un
+  // getByText laxo cazaría ese nodo frágil en vez del dato del expediente.
+  await expect(main.getByRole('listitem', { name: /Luffy, One Piece/i })).toBeVisible()
   await expect
     .poll(() =>
       page.evaluate(() => {
