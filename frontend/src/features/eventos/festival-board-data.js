@@ -22,7 +22,8 @@ export function formatAriaSpan(ms) {
     const m = Math.floor((ms % HORA) / MIN)
     return `${h} ${h === 1 ? 'hora' : 'horas'}${m ? ` y ${m} minutos` : ''}`
   }
-  return `${Math.max(1, Math.floor(ms / MIN))} minutos`
+  const min = Math.max(1, Math.floor(ms / MIN))
+  return `${min} ${min === 1 ? 'minuto' : 'minutos'}`
 }
 
 /** Estado temporal derivado — única verdad para los tres tratamientos. */
