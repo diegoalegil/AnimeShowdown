@@ -1,42 +1,58 @@
 import { useEffect, useMemo, useState } from 'react'
 import { Link } from 'react-router-dom'
+import { useQuery } from '@tanstack/react-query'
 import { toast } from 'sonner'
 import {
-  ArrowRight,
   BarChart3,
   CalendarDays,
   Image as ImageIcon,
-  RefreshCw,
   Share2,
   Swords,
   Trash2,
-  Trophy,
   UserRound,
 } from 'lucide-react'
 import { useSeo } from '../hooks/useSeo'
 import { breadcrumbsSchema } from '../lib/schema'
 import JsonLd from '../components/JsonLd'
-import { CinematicHero, VisualPageShell } from '../components/VisualSystem'
+import { VisualPageShell } from '../components/VisualSystem'
 import { BRAND_VISUALS } from '../data/visual-assets'
-import PersonajeImg from '../components/PersonajeImg'
 import { usePersonajesCatalogo } from '../hooks/usePersonajesCatalogo'
-import { imagenPersonaje } from '../lib/personajes-core'
+import { useAuth } from '../contexts/AuthContext'
+import { endpoints } from '../lib/api'
 import {
   clearLocalVotes,
-  filterLocalVotesByPeriod,
   getLocalVoteStats,
   listenLocalVotes,
   readLocalVotes,
 } from '../lib/localVoteRanking'
 import { recordDailyShare } from '../lib/dailyProgress'
 import { shareOrCopy } from '../lib/share'
+import PersonalDossier from '../features/miRanking/PersonalDossier'
+import { dossierStorage } from '../features/miRanking/dossierStorage'
+import {
+  buildDossierEntries,
+  buildGlobalRankMap,
+  computeRecentVoteSlug,
+} from '../features/miRanking/dossier-data'
 
-const PERIODS = [
-  { id: 'today', label: 'Hoy' },
-  { id: '7d', label: '7 días' },
-  { id: 'all', label: 'Todo' },
-]
+// Re-entradas en la misma sesión (back-nav): el expediente no repite la
+// ceremonia del sello.
+const DOSSIER_SEEN_KEY = 'animeshowdown.mi-ranking.entered'
 
+/**
+ * /mi-ranking — «El archivo de <username>»: el ranking personal local
+ * como expediente del usuario (PersonalDossier). Las placas comparan
+ * contra el snapshot de la última visita (cintas ▲▼), contrastan con la
+ * posición global (toggle persistente) y el voto recién emitido late al
+ * volver de /votar.
+ *
+ * Nota de producto: el banzuke personal es ALL-TIME POR DISEÑO. El filtro
+ * por periodo (Hoy/7d) del diseño anterior se retiró; la recencia se aborda
+ * ahora por DOS vías distintas y complementarias —las cintas ▲▼ comparan
+ * contra la última visita (movimiento personal) y "Últimos votos" es el log
+ * cronológico— pero NINGUNA reintroduce la vista filtrada por ventana
+ * temporal. Si producto la quiere de vuelta, es una decisión aparte.
+ */
 function MiRankingPage() {
   useSeo({
     title: 'Mi ranking anime',
@@ -47,8 +63,8 @@ function MiRankingPage() {
   })
 
   const { personajes: catalogoPersonajes } = usePersonajesCatalogo()
+  const { usuario } = useAuth()
   const [votes, setVotes] = useState(() => readLocalVotes())
-  const [period, setPeriod] = useState('all')
 
   useEffect(
     () => listenLocalVotes((nextVotes) => setVotes(nextVotes)),
@@ -59,14 +75,47 @@ function MiRankingPage() {
     () => new Map(catalogoPersonajes.map((personaje) => [personaje.slug, personaje])),
     [catalogoPersonajes],
   )
-  const filteredVotes = useMemo(
-    () => filterLocalVotesByPeriod(votes, period),
-    [period, votes],
+  const stats = useMemo(() => getLocalVoteStats(votes), [votes])
+
+  // Posición global por slug: la misma query/cache del Pulso de la home.
+  const { data: globalRanking } = useQuery({
+    queryKey: ['pulso', 'ranking'],
+    queryFn: endpoints.ranking,
+    staleTime: 60 * 1000,
+  })
+  const globalBySlug = useMemo(
+    () => buildGlobalRankMap(globalRanking),
+    [globalRanking],
   )
-  const stats = useMemo(
-    () => getLocalVoteStats(filteredVotes),
-    [filteredVotes],
+
+  const entries = useMemo(
+    () => buildDossierEntries(stats.top, catalogBySlug, globalBySlug),
+    [stats.top, catalogBySlug, globalBySlug],
   )
+
+  // Voto reciente (vuelta de /votar) + marca de sesión para skipEntrance.
+  // Lecturas dentro de rAF en el mount: mismo patrón Compiler-safe que el
+  // propio dossier (cero setState síncrono en cuerpo de effect).
+  const [recentVoteSlug, setRecentVoteSlug] = useState(null)
+  const [skipEntrance] = useState(() => {
+    try {
+      return sessionStorage.getItem(DOSSIER_SEEN_KEY) === '1'
+    } catch {
+      return false
+    }
+  })
+  useEffect(() => {
+    const id = requestAnimationFrame(() => {
+      setRecentVoteSlug(computeRecentVoteSlug(readLocalVotes(), Date.now()))
+      try {
+        sessionStorage.setItem(DOSSIER_SEEN_KEY, '1')
+      } catch {
+        // ignore
+      }
+    })
+    return () => cancelAnimationFrame(id)
+  }, [])
+
   const top = useMemo(
     () =>
       stats.top.map((item) => ({
@@ -124,22 +173,27 @@ function MiRankingPage() {
       />
       <JsonLd id="mi-ranking-page" schema={miRankingSchema()} />
 
-      <div className="mx-auto max-w-6xl">
-        <CinematicHero
-          visual={BRAND_VISUALS.ranking}
-          icon={Trophy}
-          eyebrow="Ranking personal"
-          title="Tu top se escribe con tus votos"
-          subtitle="Un ranking local y privado que resume a qué personajes estás empujando. Sirve para volver, comparar y compartir tu sesgo de fan sin esperar a una red social completa."
-          actions={
-            <>
+      <div className="mx-auto max-w-4xl">
+        <PersonalDossier
+          username={usuario?.username ?? 'invitado'}
+          entries={entries}
+          storage={dossierStorage}
+          recentVoteSlug={recentVoteSlug}
+          skipEntrance={skipEntrance}
+        />
+
+        {entries.length > 0 ? (
+          <>
+            <section
+              aria-label="Acciones del archivo"
+              className="mt-6 flex flex-wrap gap-2"
+            >
               <Link
                 to="/votar"
                 className="as-button-primary inline-flex items-center gap-1.5 rounded-lg px-4 py-2 text-sm font-black"
               >
                 <Swords className="h-4 w-4" />
-                Votar para subirlo
-                <ArrowRight className="h-3.5 w-3.5" />
+                Votar para moverlo
               </Link>
               <button
                 type="button"
@@ -156,139 +210,34 @@ function MiRankingPage() {
                 <ImageIcon className="h-4 w-4" />
                 Crear imagen
               </Link>
-            </>
-          }
-          aside={
-            <div className="rounded-2xl border border-white/10 bg-bg/60 p-5 backdrop-blur-md">
-              <p className="text-[11px] font-black text-gold">
-                Votos locales
-              </p>
-              <p className="mt-3 font-mono text-5xl font-black text-fg-strong">
-                {stats.total}
-              </p>
-              <p className="mt-1 text-[12px] leading-5 text-fg-muted">
-                {stats.uniqueCharacters} personaje{stats.uniqueCharacters === 1 ? '' : 's'} en tu ranking.
-              </p>
-            </div>
-          }
-        />
-
-        <section className="mb-5 flex flex-col gap-3 rounded-2xl border border-border bg-surface p-4 sm:flex-row sm:items-center sm:justify-between">
-          <div className="flex flex-wrap gap-2">
-            {PERIODS.map((item) => (
+              {topTwo.length === 2 && (
+                <Link
+                  to={`/comparar?a=${encodeURIComponent(topTwo[0].slug)}&b=${encodeURIComponent(topTwo[1].slug)}`}
+                  className="inline-flex items-center gap-1.5 rounded-lg border border-accent/40 bg-accent-soft px-3 py-2 text-[12px] font-bold text-gold transition-colors hover:bg-accent/20"
+                >
+                  <BarChart3 className="h-3.5 w-3.5" />
+                  Comparar mi top 2
+                </Link>
+              )}
               <button
-                key={item.id}
                 type="button"
-                onClick={() => setPeriod(item.id)}
-                aria-pressed={period === item.id}
-                className={`rounded-lg border px-3 py-2 text-[12px] font-black transition-colors ${
-                  period === item.id
-                    ? 'border-gold/55 bg-gold-soft text-gold'
-                    : 'border-border bg-bg/50 text-fg-muted hover:border-accent/45 hover:text-fg-strong'
-                }`}
+                onClick={reiniciar}
+                className="inline-flex items-center gap-1.5 rounded-lg border border-border bg-bg/50 px-3 py-2 text-[12px] font-bold text-fg-muted transition-colors hover:border-danger/45 hover:text-danger"
               >
-                {item.label}
+                <Trash2 className="h-3.5 w-3.5" />
+                Reiniciar
               </button>
-            ))}
-          </div>
-          <div className="flex flex-wrap gap-2">
-            {topTwo.length === 2 && (
-              <Link
-                to={`/comparar?a=${encodeURIComponent(topTwo[0].slug)}&b=${encodeURIComponent(topTwo[1].slug)}`}
-                className="inline-flex items-center gap-1.5 rounded-lg border border-accent/40 bg-accent-soft px-3 py-2 text-[12px] font-bold text-gold transition-colors hover:bg-accent/20"
-              >
-                <BarChart3 className="h-3.5 w-3.5" />
-                Comparar mi top 2
-              </Link>
-            )}
-            {top.length > 0 && (
-              <Link
-                to="/mi-top5"
-                className="inline-flex items-center gap-1.5 rounded-lg border border-gold/35 bg-gold-soft px-3 py-2 text-[12px] font-bold text-gold transition-colors hover:bg-gold/10"
-              >
-                <ImageIcon className="h-3.5 w-3.5" />
-                Pasar a imagen
-              </Link>
-            )}
-            <button
-              type="button"
-              onClick={reiniciar}
-              className="inline-flex items-center gap-1.5 rounded-lg border border-border bg-bg/50 px-3 py-2 text-[12px] font-bold text-fg-muted transition-colors hover:border-danger/45 hover:text-danger"
-            >
-              <Trash2 className="h-3.5 w-3.5" />
-              Reiniciar
-            </button>
-          </div>
-        </section>
+            </section>
 
-        {top.length > 0 ? (
-          <section className="grid gap-4 lg:grid-cols-[minmax(0,1fr)_minmax(18rem,0.34fr)]">
-            <div className="grid gap-3">
-              {top.slice(0, 10).map((item, index) => (
-                <RankingRow key={item.slug} item={item} rank={index + 1} />
-              ))}
-            </div>
-
-            <aside className="flex flex-col gap-4">
+            <section className="mt-6 grid gap-4 sm:grid-cols-3" aria-label="Detalle del archivo">
               <SummaryPanel stats={stats} />
               <AnimePanel animes={stats.animes} />
               <LatestVotes votes={stats.latest} />
-            </aside>
-          </section>
-        ) : (
-          <EmptyState />
-        )}
+            </section>
+          </>
+        ) : null}
       </div>
     </VisualPageShell>
-  )
-}
-
-function RankingRow({ item, rank }) {
-  const personaje = item.personaje
-  const imageSrc = personaje?.imagenUrl ?? personaje?.imagen ?? imagenPersonaje(item.slug)
-  return (
-    <article className="flex min-w-0 items-center gap-3 rounded-xl border border-border bg-surface p-3 sm:gap-4 sm:p-4">
-      <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg border border-gold/40 bg-gold-soft font-mono text-sm font-black text-gold">
-        #{rank}
-      </div>
-      <Link
-        to={`/personajes/${item.slug}`}
-        className="relative h-16 w-12 shrink-0 overflow-hidden rounded-lg border border-border bg-bg"
-      >
-        <PersonajeImg
-          slug={item.slug}
-          src={imageSrc}
-          alt={item.nombre}
-          className="h-full w-full object-cover object-top"
-          loading={rank <= 3 ? 'eager' : 'lazy'}
-        />
-      </Link>
-      <div className="min-w-0 flex-1">
-        <Link
-          to={`/personajes/${item.slug}`}
-          className="line-clamp-1 text-base font-black text-fg-strong hover:text-gold"
-        >
-          {item.nombre}
-        </Link>
-        <p className="line-clamp-1 text-[12px] text-fg-muted">
-          {item.anime || personaje?.anime || 'Anime no especificado'}
-        </p>
-      </div>
-      <div className="hidden min-w-[5rem] text-right sm:block">
-        <p className="font-mono text-2xl font-black text-fg-strong">{item.count}</p>
-        <p className="text-[10px] text-fg-muted">
-          votos tuyos
-        </p>
-      </div>
-      <div className="flex shrink-0 flex-col gap-2 sm:flex-row">
-        <Link
-          to={`/votar?personaje=${encodeURIComponent(item.slug)}`}
-          className="inline-flex min-h-11 items-center justify-center rounded-lg border border-accent/45 bg-accent-soft px-3 text-[12px] font-black text-gold transition-colors hover:bg-accent/20"
-        >
-          Retar
-        </Link>
-      </div>
-    </article>
   )
 }
 
@@ -353,30 +302,6 @@ function LatestVotes({ votes }) {
           </div>
         ))}
       </div>
-    </section>
-  )
-}
-
-function EmptyState() {
-  return (
-    <section className="rounded-2xl border border-border bg-surface p-6 text-center">
-      <div className="mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-xl border border-gold/35 bg-gold-soft text-gold">
-        <RefreshCw className="h-6 w-6" />
-      </div>
-      <h2 className="text-2xl font-black text-fg-strong">
-        Todavía no hay ranking personal
-      </h2>
-      <p className="mx-auto mt-2 max-w-xl text-sm leading-6 text-fg-muted">
-        Vota algunos duelos y esta página se convertirá en tu top personal. Se guarda
-        en este navegador, no cambia el ranking global por sí solo y no requiere login.
-      </p>
-      <Link
-        to="/votar"
-        className="as-button-primary mt-5 inline-flex items-center gap-1.5 rounded-lg px-4 py-2 text-sm font-black"
-      >
-        <Swords className="h-4 w-4" />
-        Empezar a votar
-      </Link>
     </section>
   )
 }
