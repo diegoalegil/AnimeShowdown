@@ -49,6 +49,15 @@
   transition: transform 220ms var(--ease-brush);
 }
 .scribe-control:focus ~ .scribe-ink { transform: scaleX(1); }
+/* Anillo de foco de teclado: el outline:none de arriba (sin capa) le gana al
+   :focus-visible global de @layer base, así que el control se quedaba sin
+   anillo del sistema. Lo restituimos igual que .scribe-eye / .scribe-toggle
+   (el trazo de tinta es refuerzo, no el único indicador). */
+.scribe-control:focus-visible {
+  outline: 2px solid var(--color-gold);
+  outline-offset: 2px;
+  border-radius: var(--radius-lg);
+}
 
 /* LABEL FLOTANTE en mono: translateY + scale 0.85, 150ms var(--ease-lift).
    Flota con :focus, con contenido y con AUTOFILL (ver bloque autofill).
@@ -120,7 +129,10 @@ textarea.scribe-control:not(:placeholder-shown) ~ .scribe-label { transform: tra
 .scribe-msg {
   margin: 0;
   font: 500 12.5px/1.5 var(--font-mono);
-  color: var(--color-accent-text); /* el único carmesí AA como texto */
+  /* Token de error del sistema: AA sobre surface/surface-alt/bg (el carmesí
+     accent-text solo llega a AA contra el lienzo casi-negro, no contra las
+     superficies del formulario). Iguala el error raíz del propio form. */
+  color: var(--color-danger);
   animation: scribe-tremor 150ms linear 1;
 }
 @keyframes scribe-tremor {
@@ -165,7 +177,7 @@ textarea.scribe-control:not(:placeholder-shown) ~ .scribe-label { transform: tra
   transition: color 150ms ease;
 }
 .scribe-count.is-warn { color: var(--color-warning); }
-.scribe-count.is-max { color: var(--color-accent-text); }
+.scribe-count.is-max { color: var(--color-danger); }
 
 /* ---- Aviso de Bloq Mayús (solo password) + hint ---- */
 .scribe-caps { margin: 0; font: 500 11.5px/1.5 var(--font-mono); color: var(--color-warning); }

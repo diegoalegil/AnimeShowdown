@@ -1,4 +1,4 @@
-import { memo, useEffect, useId, useRef, useState } from 'react'
+import { memo, useCallback, useEffect, useId, useRef, useState } from 'react'
 import './scribe-kit.css'
 
 // field-sizing: content (Chrome 123+). Safari/Firefox caen al fallback de
@@ -31,8 +31,6 @@ const SUPPORTS_FIELD_SIZING =
  * @param {string} props.value             Valor controlado
  * @param {(e: import('react').ChangeEvent) => void} props.onChange  Evento nativo, como los inputs actuales
  * @param {string|null} [props.error]      Mensaje de error o null. El padre valida (blur/submit, nunca por keystroke)
- * @param {number}  [props.errorNonce]     Increméntalo en cada validación para re-disparar el tremor
- *                                         cuando el mensaje no cambia (criterio: UN tremor por validación)
  * @param {'text'|'password'|'email'|'url'|'search'|'tel'} [props.type='text']
  * @param {boolean} [props.multiline=false]  textarea que crece (field-sizing o medición; jamás anima height)
  * @param {number}  [props.rows=3]
@@ -55,7 +53,6 @@ const ScribeField = memo(function ScribeField({
   value,
   onChange,
   error = null,
-  errorNonce,
   type = 'text',
   multiline = false,
   rows = 3,
@@ -79,11 +76,11 @@ const ScribeField = memo(function ScribeField({
   // Ref combinada: la interna (autofill/autosize/caps) + la externa (RHF
   // enfoca el primer campo inválido). Sin return: un callback-ref que
   // devuelve función sería tratado como cleanup por React 19.
-  const setControlRef = (el) => {
+  const setControlRef = useCallback((el) => {
     inputRef.current = el
     if (typeof ref === 'function') ref(el)
     else if (ref) ref.current = el
-  }
+  }, [ref])
 
   const isPassword = type === 'password'
   const [revealed, setRevealed] = useState(false)
@@ -102,12 +99,6 @@ const ScribeField = memo(function ScribeField({
       setTremorKey((k) => k + 1)
     }
   }
-  const [prevNonce, setPrevNonce] = useState(errorNonce)
-  if (prevNonce !== errorNonce) {
-    setPrevNonce(errorNonce)
-    if (error) setTremorKey((k) => k + 1)
-  }
-
   // El check se desvanece a los 2s (CSS) y se desmonta a los 2.4s (JS).
   useEffect(() => {
     if (!corrected) return undefined
@@ -187,7 +178,7 @@ const ScribeField = memo(function ScribeField({
           name={name}
           autoComplete={autoComplete}
           aria-invalid={error ? true : undefined}
-          aria-describedby={error || (isPassword && capsOn) ? msgId : undefined}
+          aria-describedby={error || (isPassword && capsOn) || hint ? msgId : undefined}
           data-autofilled={autofilled || undefined}
         />
         <label className="scribe-label" htmlFor={id}>

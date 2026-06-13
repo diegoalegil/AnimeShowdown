@@ -192,6 +192,7 @@ function RegisterPage() {
         <AuthLegalNote action="crear tu cuenta" />
         <form
           onSubmit={handleSubmit(onSubmit)}
+          noValidate
           className="mt-4 flex flex-col gap-4 rounded-2xl border border-border bg-surface p-6"
         >
           {/* Campos del kit del escriba: label flotante (sobrevive al
@@ -205,6 +206,7 @@ function RegisterPage() {
             id="username"
             label="Nombre de usuario"
             autoComplete="username"
+            required
             hint="Letras, números, guion y guion bajo"
           />
           <ScribeFieldRhf
@@ -214,6 +216,8 @@ function RegisterPage() {
             type="email"
             label="Email"
             autoComplete="email"
+            required
+            hint="Lo usaremos para recuperar tu cuenta"
           />
           <div className="flex flex-col gap-1.5">
             <ScribeFieldRhf
@@ -223,6 +227,7 @@ function RegisterPage() {
               type="password"
               label="Contraseña"
               autoComplete="new-password"
+              required
               hint="Mínimo 8, con letra y número"
             />
             <PasswordStrengthMeter password={password} />
@@ -234,6 +239,7 @@ function RegisterPage() {
             type="password"
             label="Confirma la contraseña"
             autoComplete="new-password"
+            required
           />
           <ScribeFieldRhf
             control={control}
