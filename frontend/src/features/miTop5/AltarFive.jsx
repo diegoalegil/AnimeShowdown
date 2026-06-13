@@ -121,6 +121,17 @@ export default function AltarFive({
     })
     setPrevSig(sig)
     setArriving(fresh)
+    // a11y: una llegada (añadir desde sugerencias/buscador) ES un cambio del
+    // altar — anunciarla por la misma región aria-live que swap/remove, para
+    // que el lector de pantalla no se quede sin el evento más importante.
+    // setState en render con guard = adjust-during-render canónico (legal).
+    if (fresh.size > 0) {
+      const llegada = slots
+        .map((e, i) => (e && fresh.has(e.slug) ? e.name + ' al puesto ' + (i + 1) : null))
+        .filter(Boolean)
+        .join(', ')
+      if (llegada) setAnnounce('Añadido a tu altar: ' + llegada + '.')
+    }
   }
 
   const rootRef = useRef(null)
@@ -193,7 +204,7 @@ export default function AltarFive({
 
   /* ---------- ritual de intercambio (camino único: drag y teclado) ---------- */
 
-  function commitSwap(from, to, firstRectOverride) {
+  function commitSwap(from, to, firstRectOverride, announceText) {
     if (from === to || to < 0 || to > 4) return
     const mover = slots[from]
     if (!mover) return
@@ -214,7 +225,9 @@ export default function AltarFive({
     next[to] = mover
     if (reduced) play('playAcunado')
     if (onChange) onChange(next, { type: 'swap', from, to })
-    setAnnounce(orderText(next))
+    // El drag puede mover a cualquier puesto → roster completo; el teclado
+    // pasa un texto relativo (intercambio concreto) para no recitar los 5.
+    setAnnounce(announceText || orderText(next))
   }
 
   /* ---------- drag (pointer events + setPointerCapture) ---------- */
@@ -294,8 +307,13 @@ export default function AltarFive({
     setTargetIdx(null)
     const goal = commit ? d.target : null
     if (goal !== null && goal !== undefined && goal !== d.idx) {
-      /* "first" = posición actual del card arrastrado (con transform) */
-      commitSwap(d.idx, goal, d.el.getBoundingClientRect())
+      /* "first" = posición arrastrada (con transform); se LIMPIA el inline
+         ANTES del swap: el .af-card del puesto de origen no tiene key propia,
+         así que React reusa ese nodo para el otro personaje — si no se limpia,
+         hereda el offset del arrastre. El FLIP arranca igual desde `first`. */
+      const first = d.el.getBoundingClientRect()
+      d.el.style.transform = ''
+      commitSwap(d.idx, goal, first)
       return
     }
     /* vuelta a casa */
@@ -319,7 +337,15 @@ export default function AltarFive({
     if (!mover) return
     pendingFocusRef.current = { slug: mover.slug, dir }
     play('playClick')
-    commitSwap(idx, idx + dir)
+    const otra = slots[idx + dir]
+    const texto =
+      mover.name +
+      ' al puesto ' +
+      (idx + dir + 1) +
+      ' (intercambia con ' +
+      (otra ? otra.name : 'puesto vacío') +
+      ').'
+    commitSwap(idx, idx + dir, undefined, texto)
   }
 
   function removeAt(idx) {
@@ -439,7 +465,11 @@ export default function AltarFive({
                     data-move={entry ? entry.slug + ':-1' : undefined}
                     disabled={!entry || i === 0}
                     aria-label={
-                      entry ? 'Subir a ' + entry.name + ' al puesto ' + i : 'Puesto vacío'
+                      !entry
+                        ? 'Puesto vacío'
+                        : i === 0
+                          ? entry.name + ' ya está en el primer puesto'
+                          : 'Subir a ' + entry.name + ' al puesto ' + i
                     }
                     onClick={() => moveByRank(i, -1)}
                   >
@@ -451,9 +481,11 @@ export default function AltarFive({
                     data-move={entry ? entry.slug + ':1' : undefined}
                     disabled={!entry || i === 4}
                     aria-label={
-                      entry
-                        ? 'Bajar a ' + entry.name + ' al puesto ' + (i + 2)
-                        : 'Puesto vacío'
+                      !entry
+                        ? 'Puesto vacío'
+                        : i === 4
+                          ? entry.name + ' ya está en el último puesto'
+                          : 'Bajar a ' + entry.name + ' al puesto ' + (i + 2)
                     }
                     onClick={() => moveByRank(i, 1)}
                   >
@@ -486,7 +518,7 @@ export default function AltarFive({
           <p className="af-empty__sub">
             {guestUsername
               ? 'Este altar aún está vacío.'
-              : 'Tus cinco te esperan abajo, en el buscador.'}
+              : 'Toca una sugerencia rápida o búscalos abajo.'}
           </p>
           {!isReadOnly ? (
             <button type="button" className="af-cta" onClick={onBrowseCatalog}>

@@ -169,7 +169,6 @@
   user-select: none;
   -webkit-user-select: none;
   transition: transform 150ms var(--ease-lift), border-color 150ms linear;
-  will-change: transform;
 }
 
 .af-altar[data-readonly="true"] .af-card { cursor: default; touch-action: auto; }
@@ -181,6 +180,8 @@
   z-index: 40;
   cursor: grabbing;
   border-color: var(--color-border-gold);
+  /* hint de capa SOLO mientras se arrastra (no permanente en las 5 cartas) */
+  will-change: transform;
 }
 
 /* sombra de contacto: capa de opacity FUERA del nodo que se mueve

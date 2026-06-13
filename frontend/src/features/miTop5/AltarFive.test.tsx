@@ -58,17 +58,18 @@ describe('AltarFive', () => {
       null,
     ])
     expect(meta).toEqual({ type: 'swap', from: 0, to: 1 })
+    // El reorden por teclado anuncia el cambio relativo (no recita los 5).
     expect(container.querySelector('.af-sr')?.textContent).toContain(
-      'puesto 2: Luffy',
+      'Luffy al puesto 2',
     )
     // jsdom no implementa WAAPI: el ritual degrada a swap directo con golpe.
     expect(play).toHaveBeenCalledWith('playAcunado')
   })
 
-  it('▲ está deshabilitado en el puesto 1 y ▼ en el 5', () => {
+  it('▲ está deshabilitado en el puesto 1 con etiqueta de borde con sentido', () => {
     renderAltar()
     expect(
-      screen.getByRole('button', { name: 'Subir a Luffy al puesto 0' }),
+      screen.getByRole('button', { name: 'Luffy ya está en el primer puesto' }),
     ).toBeDisabled()
   })
 

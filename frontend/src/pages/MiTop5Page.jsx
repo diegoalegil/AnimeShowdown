@@ -179,9 +179,11 @@ function MiTop5Page() {
       toast.info('Ese personaje ya está en tu top.')
       return
     }
-    // El altar detecta la llegada (render-adjust por slug) y anima el
-    // descenso a la peana — el vuelo FLIP del altar viejo se retiró.
+    // El altar detecta la llegada (render-adjust por slug), la anima y la
+    // anuncia por aria-live; el toast cierra el hilo acción→resultado que
+    // antes daba el vuelo FLIP de la carta (retirado con el altar viejo).
     setSlot(idx, slug)
+    toast.success(`Añadido como tu nº${idx + 1}`)
   }
 
   const rellenarDesdeRanking = () => {
