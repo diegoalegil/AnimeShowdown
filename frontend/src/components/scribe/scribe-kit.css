@@ -1,0 +1,284 @@
+/* ================================================================
+   EL KIT DEL ESCRIBA — campos de formulario con trazo de tinta.
+   Importado por los componentes del kit (NO va en index.css: zona
+   compartida). CSP por hash: cero <style> en runtime — todos los
+   keyframes viven aquí. Solo transform/opacity/color.
+   El select de papel y el sello de submit del canvas quedan retenidos
+   hasta que exista un select de formulario real (ver PR).
+   ================================================================ */
+
+/* ---- Campo ---- */
+.scribe-field { position: relative; }
+.scribe-well { position: relative; padding-top: 24px; }
+
+.scribe-control {
+  display: block;
+  width: 100%;
+  appearance: none;
+  background: transparent;
+  border: 0;
+  outline: none;
+  border-radius: 0;
+  min-height: 2.75rem; /* 44px — hit target del sistema */
+  padding: 10px 2px;
+  color: var(--color-fg-strong);
+  font: 500 16px/1.45 var(--font-sans); /* 16px: evita el zoom de iOS */
+  caret-color: var(--color-gold);
+}
+
+/* Hairline + tinta. EL TRAZO: scaleX origin-left, 220ms var(--ease-brush),
+   carmesí que muere en oro al final del trazo. Solo transform — 60fps. */
+.scribe-hairline {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  height: 1px;
+  background: color-mix(in srgb, var(--color-fg-strong) 14%, transparent);
+}
+.scribe-ink {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  height: 2px;
+  pointer-events: none;
+  transform: scaleX(0);
+  transform-origin: left center;
+  background: linear-gradient(90deg, var(--color-accent) 0%, var(--color-accent) 58%, var(--color-gold) 100%);
+  transition: transform 220ms var(--ease-brush);
+}
+.scribe-control:focus ~ .scribe-ink { transform: scaleX(1); }
+/* Anillo de foco de teclado: el outline:none de arriba (sin capa) le gana al
+   :focus-visible global de @layer base, así que el control se quedaba sin
+   anillo del sistema. Lo restituimos igual que .scribe-eye / .scribe-toggle
+   (el trazo de tinta es refuerzo, no el único indicador). */
+.scribe-control:focus-visible {
+  outline: 2px solid var(--color-gold);
+  outline-offset: 2px;
+  border-radius: var(--radius-lg);
+}
+
+/* LABEL FLOTANTE en mono: translateY + scale 0.85, 150ms var(--ease-lift).
+   Flota con :focus, con contenido y con AUTOFILL (ver bloque autofill).
+   El componente pone placeholder=" " para que :placeholder-shown funcione. */
+.scribe-label {
+  position: absolute;
+  left: 2px;
+  top: 38px;
+  font: 500 15px/1 var(--font-mono);
+  color: var(--color-fg-muted);
+  transform-origin: left top;
+  pointer-events: none;
+  transition: transform 150ms var(--ease-lift), color 150ms ease;
+}
+.scribe-control:focus ~ .scribe-label { transform: translateY(-30px) scale(0.85); color: var(--color-gold); }
+input.scribe-control:not(:placeholder-shown) ~ .scribe-label { transform: translateY(-30px) scale(0.85); }
+textarea.scribe-control:not(:placeholder-shown) ~ .scribe-label { transform: translateY(-30px) scale(0.85); }
+
+/* AUTOFILL — el caso que rompe el 90% de estos kits.
+   ⚠ Reglas SEPARADAS a propósito: un selector no soportado dentro de una
+   lista invalida la lista ENTERA (Safari viejo y :autofill). NO unificar.
+   - El inset box-shadow gigante re-pinta el azul de Chrome con superficie de marca.
+   - animation-name dispara animationstart → hook JS (telemetría/data-attr).
+   - El float de la label es CSS puro: funciona aunque React no vea evento. */
+.scribe-control:-webkit-autofill {
+  animation-name: scribe-autofill-start;
+  animation-duration: 1ms;
+  -webkit-box-shadow: 0 0 0 1000px var(--color-surface) inset;
+  -webkit-text-fill-color: var(--color-fg-strong);
+  caret-color: var(--color-gold);
+  border-radius: 8px 8px 0 0;
+}
+.scribe-control:not(:-webkit-autofill) { animation-name: scribe-autofill-cancel; animation-duration: 1ms; }
+.scribe-control:-webkit-autofill ~ .scribe-label { transform: translateY(-30px) scale(0.85); }
+.scribe-control:autofill ~ .scribe-label { transform: translateY(-30px) scale(0.85); }
+
+/* ---- Estados ---- */
+/* Error: el subrayado sangra carmesí (box-shadow con spread negativo — es
+   sombra compuesta una vez, NO blur() vivo). Solo al blur o submit. */
+.scribe-field.is-error .scribe-ink {
+  transform: scaleX(1);
+  background: var(--color-accent);
+  box-shadow: 0 1px 10px -3px color-mix(in srgb, var(--color-accent) 70%, transparent);
+}
+/* Corregido: la tinta queda en oro mientras vive el check (~2.4s). */
+.scribe-field.is-ok .scribe-ink { transform: scaleX(1); background: var(--color-gold); }
+
+/* Tinta seca (disabled): hairline punteada, texto fg-muted (AA sobre el
+   lienzo — NO bajar la opacity del texto), ornamento apagado. */
+.scribe-field.is-disabled .scribe-control { color: var(--color-fg-muted); cursor: not-allowed; }
+.scribe-field.is-disabled .scribe-label { color: color-mix(in srgb, var(--color-fg-muted) 78%, transparent); }
+.scribe-field.is-disabled .scribe-hairline {
+  background: repeating-linear-gradient(
+    90deg,
+    color-mix(in srgb, var(--color-fg-strong) 22%, transparent) 0 5px,
+    transparent 5px 9px
+  );
+}
+.scribe-field.is-disabled .scribe-ink { display: none; }
+
+/* Readonly: consultable — el focus traza en oro, no en carmesí. */
+.scribe-field.is-readonly .scribe-ink { background: var(--color-gold); opacity: 0.55; }
+
+/* ---- Mensaje de error: entra con UN tremor de 2px (150ms, UNA sola vez
+   por validación — el componente re-monta el <p> con key). aria-live polite
+   vive en .scribe-live, que está SIEMPRE montada. ---- */
+.scribe-meta { display: flex; justify-content: space-between; align-items: flex-start; gap: 12px; min-height: 24px; padding-top: 6px; }
+.scribe-live { flex: 1; min-width: 0; }
+.scribe-msg {
+  margin: 0;
+  font: 500 12.5px/1.5 var(--font-mono);
+  /* Token de error del sistema: AA sobre surface/surface-alt/bg (el carmesí
+     accent-text solo llega a AA contra el lienzo casi-negro, no contra las
+     superficies del formulario). Iguala el error raíz del propio form. */
+  color: var(--color-danger);
+  animation: scribe-tremor 150ms linear 1;
+}
+@keyframes scribe-tremor {
+  0% { opacity: 0; transform: translateX(-2px); }
+  30% { opacity: 1; transform: translateX(2px); }
+  60% { transform: translateX(-2px); }
+  100% { opacity: 1; transform: translateX(0); }
+}
+
+/* ---- Check de un solo trazo: dash 250ms ease-brush; se desvanece a los 2s
+   (el componente lo desmonta a los 2.4s). pathLength="1" en el SVG. ---- */
+.scribe-check {
+  position: absolute;
+  right: 4px;
+  top: 38px;
+  width: 18px;
+  height: 18px;
+  color: var(--color-gold);
+  overflow: visible;
+  animation: scribe-check-fade 300ms ease 2000ms forwards;
+}
+.scribe-field.has-eye .scribe-check { right: 48px; }
+.scribe-check path {
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 2.2;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  stroke-dasharray: 1;
+  stroke-dashoffset: 1;
+  animation: scribe-check-draw 250ms var(--ease-brush) forwards;
+}
+@keyframes scribe-check-draw { to { stroke-dashoffset: 0; } }
+@keyframes scribe-check-fade { to { opacity: 0; } }
+
+/* ---- Contador: mono tabular; ámbar al 90% del límite, carmesí al 100% ---- */
+.scribe-count {
+  font: 500 11.5px/1.8 var(--font-mono);
+  color: var(--color-fg-muted);
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+  transition: color 150ms ease;
+}
+.scribe-count.is-warn { color: var(--color-warning); }
+.scribe-count.is-max { color: var(--color-danger); }
+
+/* ---- Aviso de Bloq Mayús (solo password) + hint ---- */
+.scribe-caps { margin: 0; font: 500 11.5px/1.5 var(--font-mono); color: var(--color-warning); }
+.scribe-hint { margin: 0; font: 500 11.5px/1.5 var(--font-mono); color: var(--color-fg-muted); }
+
+/* ---- Ojo de revelar: se entinta al activarse ---- */
+.scribe-eye {
+  position: absolute;
+  right: 0;
+  top: 24px;
+  width: 44px;
+  height: 44px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: transparent;
+  border: 0;
+  padding: 0;
+  cursor: pointer;
+  color: var(--color-fg-muted);
+  transition: color 150ms ease;
+}
+.scribe-eye:hover { color: var(--color-fg); }
+.scribe-eye:focus-visible { outline: 2px solid var(--color-gold); outline-offset: 2px; border-radius: var(--radius-lg); }
+.scribe-eye[aria-pressed="true"] { color: var(--color-gold); }
+.scribe-eye .scribe-eye-lid { fill: none; stroke: currentColor; stroke-width: 1.8; transition: fill 150ms ease; }
+.scribe-eye[aria-pressed="true"] .scribe-eye-lid { fill: color-mix(in srgb, var(--color-gold) 18%, transparent); }
+.scribe-eye .scribe-eye-pupil { fill: currentColor; }
+
+/* ---- Textarea: crece con field-sizing; Safari/Firefox usan el fallback de
+   medición del componente. JAMÁS se anima height. ---- */
+.scribe-area { resize: none; min-height: 78px; max-height: 240px; overflow: auto; field-sizing: content; }
+
+/* ---- Toggle lacado: recorrido corto translateX(16px), 150ms ---- */
+.scribe-toggle {
+  position: relative;
+  flex: none;
+  width: 40px;
+  height: 24px;
+  border-radius: var(--radius-pill);
+  border: 1px solid color-mix(in srgb, var(--color-fg-strong) 14%, transparent);
+  padding: 0;
+  cursor: pointer;
+  background:
+    linear-gradient(
+      180deg,
+      color-mix(in srgb, var(--color-fg-strong) 6%, transparent),
+      color-mix(in srgb, var(--color-canvas) 25%, transparent)
+    ),
+    var(--color-surface);
+  box-shadow:
+    inset 0 1px 2px color-mix(in srgb, var(--color-canvas) 50%, transparent),
+    inset 0 -1px 0 color-mix(in srgb, var(--color-fg-strong) 4%, transparent);
+  transition: border-color 150ms ease, background-color 150ms ease;
+}
+.scribe-toggle::after { content: ""; position: absolute; inset: -10px; } /* hit target 44px */
+.scribe-toggle:focus-visible { outline: 2px solid var(--color-gold); outline-offset: 3px; }
+.scribe-toggle[aria-checked="true"] {
+  background: linear-gradient(180deg, var(--color-accent-hover), var(--color-accent));
+  border-color: var(--color-border-gold);
+  box-shadow:
+    inset 0 1px 0 color-mix(in srgb, var(--color-fg-strong) 25%, transparent),
+    inset 0 -2px 4px color-mix(in srgb, var(--color-canvas) 35%, transparent);
+}
+.scribe-toggle:disabled { opacity: 0.5; cursor: not-allowed; }
+.scribe-knob {
+  position: absolute;
+  left: 2px;
+  top: 2px;
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  background: linear-gradient(
+    180deg,
+    var(--color-fg-strong),
+    color-mix(in srgb, var(--color-fg-strong) 78%, var(--color-gold))
+  );
+  box-shadow:
+    0 1px 2px color-mix(in srgb, var(--color-canvas) 60%, transparent),
+    inset 0 1px 0 color-mix(in srgb, var(--color-fg-strong) 70%, transparent);
+  transition: transform 150ms var(--ease-lift);
+}
+.scribe-toggle[aria-checked="true"] .scribe-knob { transform: translateX(16px); }
+
+/* Hooks de autofill: keyframes vacíos, solo disparan animationstart. */
+@keyframes scribe-autofill-start { from { opacity: 1; } to { opacity: 1; } }
+@keyframes scribe-autofill-cancel { from { opacity: 1; } to { opacity: 1; } }
+
+/* ---- reduced-motion: estados directos — sin trazo, sin tremor.
+   Cero animación de height en ningún caso. ---- */
+@media (prefers-reduced-motion: reduce) {
+  .scribe-ink,
+  .scribe-label,
+  .scribe-knob,
+  .scribe-eye,
+  .scribe-count {
+    transition: none;
+  }
+  .scribe-msg {
+    animation: none;
+  }
+  .scribe-check { animation: none; }
+  .scribe-check path { animation: none; stroke-dashoffset: 0; }
+}

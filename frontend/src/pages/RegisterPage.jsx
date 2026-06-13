@@ -7,7 +7,7 @@ import { z } from 'zod'
 import { useAuth } from '../contexts/AuthContext'
 import { useSeo } from '../hooks/useSeo'
 import PasswordStrengthMeter from '../components/PasswordStrengthMeter'
-import PasswordInput from '../components/PasswordInput'
+import ScribeFieldRhf from '../components/scribe/ScribeFieldRhf'
 import AuthSocialButtons from '../components/AuthSocialButtons'
 import AuthLegalNote from '../components/AuthLegalNote'
 // Import ESTÁTICO a propósito: el rito es el primer momento-recompensa de la
@@ -105,14 +105,20 @@ function RegisterPage() {
   // propio rito navega al terminar.
   const [acunando, setAcunando] = useState(null)
   const {
-    register,
+    control,
     handleSubmit,
     watch,
     setError,
     setValue,
     formState: { errors, isSubmitting },
   } = useForm({
-    defaultValues: { referralCode: refDeQuery },
+    defaultValues: {
+      username: '',
+      email: '',
+      password: '',
+      confirmPassword: '',
+      referralCode: refDeQuery,
+    },
     mode: 'onBlur',
     reValidateMode: 'onChange',
     resolver: zodFormResolver(registerSchema),
@@ -186,128 +192,64 @@ function RegisterPage() {
         <AuthLegalNote action="crear tu cuenta" />
         <form
           onSubmit={handleSubmit(onSubmit)}
+          noValidate
           className="mt-4 flex flex-col gap-4 rounded-2xl border border-border bg-surface p-6"
         >
+          {/* Campos del kit del escriba: label flotante (sobrevive al
+              autofill vía CSS), trazo de tinta al foco, error con tremor y
+              aria-describedby propios, ojo de revelar + aviso de Bloq Mayús
+              en las contraseñas. La validación no cambia: resolver zod del
+              form, mode onBlur. */}
+          <ScribeFieldRhf
+            control={control}
+            name="username"
+            id="username"
+            label="Nombre de usuario"
+            autoComplete="username"
+            required
+            hint="Letras, números, guion y guion bajo"
+          />
+          <ScribeFieldRhf
+            control={control}
+            name="email"
+            id="email"
+            type="email"
+            label="Email"
+            autoComplete="email"
+            required
+            hint="Lo usaremos para recuperar tu cuenta"
+          />
           <div className="flex flex-col gap-1.5">
-            <label
-              htmlFor="username"
-              className="text-[13px] font-medium text-fg-strong"
-            >
-              Nombre de usuario
-            </label>
-            <input
-              id="username"
-              type="text"
-              autoComplete="username"
-              aria-invalid={Boolean(errors.username)}
-              aria-describedby={errors.username ? 'username-error' : undefined}
-              {...register('username')}
-              className={`rounded-lg border bg-bg px-3.5 py-2.5 text-sm text-fg-strong placeholder:text-fg-muted focus:outline-none focus:ring-2 focus:ring-accent/40 ${
-                errors.username ? 'border-danger' : 'border-border'
-              }`}
-              placeholder="Elige un nombre de usuario"
-            />
-            {errors.username && (
-              <p id="username-error" className="text-[12px] text-danger">
-                {errors.username.message}
-              </p>
-            )}
-          </div>
-          <div className="flex flex-col gap-1.5">
-            <label
-              htmlFor="email"
-              className="text-[13px] font-medium text-fg-strong"
-            >
-              Email
-            </label>
-            <input
-              id="email"
-              type="email"
-              autoComplete="email"
-              aria-invalid={Boolean(errors.email)}
-              aria-describedby={errors.email ? 'email-error' : undefined}
-              {...register('email')}
-              className={`rounded-lg border bg-bg px-3.5 py-2.5 text-sm text-fg-strong placeholder:text-fg-muted focus:outline-none focus:ring-2 focus:ring-accent/40 ${
-                errors.email ? 'border-danger' : 'border-border'
-              }`}
-              placeholder="tu@correo.com"
-            />
-            {errors.email && (
-              <p id="email-error" className="text-[12px] text-danger">{errors.email.message}</p>
-            )}
-          </div>
-          <div className="flex flex-col gap-1.5">
-            <label
-              htmlFor="password"
-              className="text-[13px] font-medium text-fg-strong"
-            >
-              Contraseña
-            </label>
-            <PasswordInput
+            <ScribeFieldRhf
+              control={control}
+              name="password"
               id="password"
+              type="password"
+              label="Contraseña"
               autoComplete="new-password"
-              error={Boolean(errors.password)}
-              placeholder="Mínimo 8, con letra y número"
-              aria-invalid={Boolean(errors.password)}
-              aria-describedby={errors.password ? 'password-error' : undefined}
-              {...register('password')}
+              required
+              hint="Mínimo 8, con letra y número"
             />
-            {errors.password && (
-              <p id="password-error" className="text-[12px] text-danger">
-                {errors.password.message}
-              </p>
-            )}
             <PasswordStrengthMeter password={password} />
           </div>
-          <div className="flex flex-col gap-1.5">
-            <label
-              htmlFor="confirmPassword"
-              className="text-[13px] font-medium text-fg-strong"
-            >
-              Confirma la contraseña
-            </label>
-            <PasswordInput
-              id="confirmPassword"
-              autoComplete="new-password"
-              error={Boolean(errors.confirmPassword)}
-              placeholder="Repite tu contraseña"
-              aria-invalid={Boolean(errors.confirmPassword)}
-              aria-describedby={errors.confirmPassword ? 'confirmPassword-error' : undefined}
-              {...register('confirmPassword')}
-            />
-            {errors.confirmPassword && (
-              <p id="confirmPassword-error" className="text-[12px] text-danger">
-                {errors.confirmPassword.message}
-              </p>
-            )}
-          </div>
-          <div className="flex flex-col gap-1.5">
-            <label
-              htmlFor="referralCode"
-              className="text-[13px] font-medium text-fg-strong"
-            >
-              Código de referral{' '}
-              <span className="text-[11px] font-normal text-fg-muted">
-                (opcional)
-              </span>
-            </label>
-            <input
-              id="referralCode"
-              type="text"
-              autoComplete="off"
-              maxLength={16}
-              aria-invalid={Boolean(errors.referralCode)}
-              aria-describedby={errors.referralCode ? 'referralCode-error' : undefined}
-              {...register('referralCode')}
-              className="rounded-lg border border-border bg-bg px-3.5 py-2.5 font-mono text-sm text-fg-strong placeholder:text-fg-muted focus:outline-none focus:ring-2 focus:ring-accent/40"
-              placeholder="Si un amigo te invitó…"
-            />
-            {errors.referralCode && (
-              <p id="referralCode-error" className="text-[12px] text-danger">
-                {errors.referralCode.message}
-              </p>
-            )}
-          </div>
+          <ScribeFieldRhf
+            control={control}
+            name="confirmPassword"
+            id="confirmPassword"
+            type="password"
+            label="Confirma la contraseña"
+            autoComplete="new-password"
+            required
+          />
+          <ScribeFieldRhf
+            control={control}
+            name="referralCode"
+            id="referralCode"
+            label="Código de referral (opcional)"
+            autoComplete="off"
+            maxLength={16}
+            hint="Si un amigo te invitó…"
+          />
           {errors.root && (
             <p role="alert" className="text-[12px] text-danger">{errors.root.message}</p>
           )}

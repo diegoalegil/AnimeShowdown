@@ -855,3 +855,38 @@ export async function playClink() {
     osc.stop(now + 0.36)
   })
 }
+
+/**
+ * Clack del toggle lacado — golpe corto de madera lacada (ScribeToggle).
+ * Dos capas: tap cuadrado agudo que cae 1050→640Hz + cuerpo sinusoidal
+ * grave 190→90Hz. Las rampas exponenciales nunca llegan a 0 (mínimo 0.0001).
+ */
+export async function playClack() {
+  const ctx = await ensureRunning()
+  if (!ctx) return
+  const now = ctx.currentTime
+  const top = ctx.createOscillator()
+  const tg = ctx.createGain()
+  top.type = 'square'
+  top.frequency.setValueAtTime(1050, now)
+  top.frequency.exponentialRampToValueAtTime(640, now + 0.05)
+  tg.gain.setValueAtTime(0.0001, now)
+  tg.gain.exponentialRampToValueAtTime(0.07, now + 0.008)
+  tg.gain.exponentialRampToValueAtTime(0.0001, now + 0.05)
+  top.connect(tg)
+  tg.connect(ctx.destination)
+  top.start(now)
+  top.stop(now + 0.08)
+  const sub = ctx.createOscillator()
+  const sg = ctx.createGain()
+  sub.type = 'sine'
+  sub.frequency.setValueAtTime(190, now)
+  sub.frequency.exponentialRampToValueAtTime(90, now + 0.07)
+  sg.gain.setValueAtTime(0.0001, now)
+  sg.gain.exponentialRampToValueAtTime(0.06, now + 0.008)
+  sg.gain.exponentialRampToValueAtTime(0.0001, now + 0.07)
+  sub.connect(sg)
+  sg.connect(ctx.destination)
+  sub.start(now)
+  sub.stop(now + 0.1)
+}
