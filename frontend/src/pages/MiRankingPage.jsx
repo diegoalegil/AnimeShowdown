@@ -46,9 +46,12 @@ const DOSSIER_SEEN_KEY = 'animeshowdown.mi-ranking.entered'
  * posición global (toggle persistente) y el voto recién emitido late al
  * volver de /votar.
  *
- * Nota de producto: el banzuke personal es ALL-TIME por definición — el
- * filtro por periodo (Hoy/7d) del diseño anterior se retiró; la lateral
- * de "Últimos votos" cubre la recencia.
+ * Nota de producto: el banzuke personal es ALL-TIME POR DISEÑO. El filtro
+ * por periodo (Hoy/7d) del diseño anterior se retiró; la recencia se aborda
+ * ahora por DOS vías distintas y complementarias —las cintas ▲▼ comparan
+ * contra la última visita (movimiento personal) y "Últimos votos" es el log
+ * cronológico— pero NINGUNA reintroduce la vista filtrada por ventana
+ * temporal. Si producto la quiere de vuelta, es una decisión aparte.
  */
 function MiRankingPage() {
   useSeo({

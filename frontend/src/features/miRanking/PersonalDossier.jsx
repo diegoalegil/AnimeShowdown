@@ -34,7 +34,7 @@
  * referencia estable): localStorage solo se toca al montar
  * (loadSnapshot/loadGlobalPref) y al desmontar (saveSnapshot).
  */
-import { useEffect, useRef, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import { AppLink } from '../../components/AppLink'
 import { useSound } from '../../contexts/SoundContext'
 import PersonajeImg from '../../components/PersonajeImg'
@@ -133,6 +133,7 @@ function DossierPlate({ row, index, delta, ribbonState, showGlobal, pulsing }) {
       data-slug={row.slug}
       data-moved={moved ? 'true' : undefined}
       style={{ '--pd-i': index }}
+      aria-label={`Puesto ${row.yourRank}${row.tied ? ' (empatado)' : ''}: ${row.name}, ${row.anime}`}
     >
       {moved ? (
         <span
@@ -153,18 +154,30 @@ function DossierPlate({ row, index, delta, ribbonState, showGlobal, pulsing }) {
         ) : null}
       </span>
 
-      <PersonajeImg
-        slug={row.slug}
-        alt=""
-        colorDominante={row.colorDominante}
-        loading="lazy"
-        sizes="34px"
-        fit="cover"
-        className="pd-thumb"
-      />
+      {/* miniatura → ficha (decorativa: la navegación accesible la lleva el
+          nombre; este enlace es comodidad de puntero, fuera del orden de tab) */}
+      <AppLink
+        to={`/personajes/${row.slug}`}
+        className="pd-thumblink"
+        tabIndex={-1}
+        aria-hidden="true"
+      >
+        <PersonajeImg
+          slug={row.slug}
+          alt=""
+          colorDominante={row.colorDominante}
+          loading="lazy"
+          sizes="34px"
+          fit="cover"
+          className="pd-thumb"
+        />
+      </AppLink>
 
       <span className="pd-id">
-        <span className="pd-name">{row.name}</span>
+        {/* el nombre recupera la navegación a la ficha que tenía la fila vieja */}
+        <AppLink to={`/personajes/${row.slug}`} className="pd-name">
+          {row.name}
+        </AppLink>
         <span className="pd-anime">{row.anime}</span>
       </span>
 
@@ -197,7 +210,7 @@ function DossierPlate({ row, index, delta, ribbonState, showGlobal, pulsing }) {
  */
 export default function PersonalDossier({
   username,
-  entries,
+  entries = [],
   storage,
   recentVoteSlug = null,
   voteHref = '/votar',
@@ -205,10 +218,21 @@ export default function PersonalDossier({
 }) {
   const { play } = useSound()
 
-  // undefined = cargando · null = primera visita · objeto = snapshot real
-  const [snapshot, setSnapshot] = useState(undefined)
+  // Snapshot y pref se leen SÍNCRONOS en el initializer (leer localStorage en
+  // un initializer es el patrón del repo): la rejilla de la placa queda
+  // correcta desde el primer frame — la columna de cintas y la de global ya
+  // están (o no) sin esperar a un rAF, así que CERO CLS al montar. null del
+  // snapshot = primera visita; objeto = sesión previa real.
+  // (Caveat dev-only: bajo StrictMode el cleanup de guardado del primer mount
+  //  descartado pisa el snapshot que el remount lee, así que en DESARROLLO las
+  //  cintas pueden verse "sin cambios"; en producción no hay StrictMode y el
+  //  contrato de datos honestos se mantiene.)
+  const [snapshot] = useState(() => storage.loadSnapshot())
   const [sinceLabel, setSinceLabel] = useState(null)
-  const [showGlobal, setShowGlobal] = useState(true)
+  const [showGlobal, setShowGlobal] = useState(() => {
+    const pref = storage.loadGlobalPref()
+    return pref == null ? true : pref
+  })
   const [ribbons, setRibbons] = useState({}) // slug → 'on' | 'off'
   const [pulseOn, setPulseOn] = useState(false)
 
@@ -220,18 +244,19 @@ export default function PersonalDossier({
     entriesRef.current = entries
   }, [entries])
 
-  // mount: leer snapshot + pref (setState dentro de rAF — legal con Compiler).
+  // "última visita hace X": Date.now() no puede ir en render → lo calculamos
+  // en un rAF (setState dentro de callback = legal con el Compiler).
+  useEffect(() => {
+    if (!snapshot || !snapshot.savedAt) return undefined
+    const id = requestAnimationFrame(() =>
+      setSinceLabel(formatSince(snapshot.savedAt, Date.now())),
+    )
+    return () => cancelAnimationFrame(id)
+  }, [snapshot])
+
   // unmount: guardar el snapshot de ESTA sesión (única escritura).
   useEffect(() => {
-    const id = requestAnimationFrame(() => {
-      const snap = storage.loadSnapshot()
-      setSnapshot(snap)
-      if (snap && snap.savedAt) setSinceLabel(formatSince(snap.savedAt, Date.now()))
-      const pref = storage.loadGlobalPref()
-      if (pref != null) setShowGlobal(pref)
-    })
     return () => {
-      cancelAnimationFrame(id)
       const current = entriesRef.current
       if (current && current.length > 0) {
         const ranks = {}
@@ -298,12 +323,14 @@ export default function PersonalDossier({
     play('playClick')
   }
 
-  /* ——— derivados puros de render ——— */
+  /* ——— derivados memoizados (el repo memoiza a mano; no depende del
+     Compiler) — el componente re-renderiza por su estado interno (cintas,
+     latido, toggle) sin que cambien entries/snapshot ——— */
   const empty = entries.length === 0
   const firstVisit = snapshot === null
-  const deltas = computeDeltas(entries, snapshot)
-  const rows = annotateTies(entries)
-  const hasTies = rows.some((r) => r.tied)
+  const deltas = useMemo(() => computeDeltas(entries, snapshot), [entries, snapshot])
+  const rows = useMemo(() => annotateTies(entries), [entries])
+  const hasTies = useMemo(() => rows.some((r) => r.tied), [rows])
 
   let subtitle
   if (empty) subtitle = 'aún sin huellas'
@@ -329,7 +356,8 @@ export default function PersonalDossier({
         </div>
         {!empty ? (
           <button type="button" className="pd-toggle" aria-pressed={showGlobal} onClick={handleToggleGlobal}>
-            <span className="pd-toggle-label">global</span>
+            <span className="pd-toggle-label-full">global</span>
+            <span className="pd-toggle-label-min" aria-hidden="true" lang="ja">界</span>
             <span className="pd-toggle-track" aria-hidden="true">
               <span className="pd-toggle-knob"></span>
             </span>

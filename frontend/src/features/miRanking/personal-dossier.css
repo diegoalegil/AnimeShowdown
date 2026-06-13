@@ -158,6 +158,13 @@
 }
 .pd-toggle:hover { color: var(--color-fg); }
 .pd-toggle:focus-visible { outline: 2px solid var(--color-gold); outline-offset: 2px; }
+/* etiqueta del toggle: "global" en ancho, su kanji 界 en columna estrecha
+   (espeja el par -full/-min de la columna global) */
+.pd-toggle-label-min {
+  display: none;
+  font-family: var(--font-kanji-serif);
+  color: var(--color-gold);
+}
 .pd-toggle-track {
   position: relative;
   width: 34px;
@@ -273,6 +280,15 @@
 }
 
 /* miniatura 2:3 */
+.pd-thumblink {
+  display: block;
+  line-height: 0;
+  border-radius: calc(var(--radius-lg) - 2px);
+}
+.pd-thumblink:focus-visible {
+  outline: 2px solid var(--color-gold);
+  outline-offset: 2px;
+}
 .pd-thumb {
   width: 2.1rem;
   aspect-ratio: 2 / 3;
@@ -288,9 +304,17 @@
   font-size: 0.95rem;
   font-weight: 600;
   color: var(--color-fg-strong);
+  text-decoration: none;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
+  transition: color 150ms linear;
+}
+.pd-name:hover { color: var(--color-gold); }
+.pd-name:focus-visible {
+  outline: 2px solid var(--color-gold);
+  outline-offset: 2px;
+  border-radius: var(--radius-lg);
 }
 .pd-anime {
   display: block;
@@ -314,7 +338,9 @@
   white-space: nowrap;
 }
 .pd-delta--up   { color: var(--color-electric); }
-.pd-delta--down { color: var(--color-accent-text); }
+/* aclarado ~20% con el off-white del sistema para cruzar AA 4.5:1 sobre la
+   placa (el accent-text crudo se quedaba al borde) */
+.pd-delta--down { color: color-mix(in srgb, var(--color-fg-strong) 20%, var(--color-accent-text)); }
 .pd-delta--same { color: color-mix(in srgb, var(--color-fg-muted) 55%, transparent); }
 .pd-delta--new {
   color: var(--color-gold-bright);
@@ -455,15 +481,21 @@
 }
 
 /* ============ Compacto (≤430px de columna) ============ */
-/* container query (no media query): funciona a 390px de viewport
-   y en cualquier columna estrecha del rediseno */
+/* container query (no media query): funciona a 390px de viewport y en
+   cualquier columna estrecha del rediseño. CAVEAT: el colapso compacto
+   depende de container queries (Safari ≥16 / baseline 2022); en navegadores
+   anteriores degrada al estado completo ("global: Nº", etiqueta "global"
+   visible) sin romper nada — el contenido sigue legible. */
 @container dossier (max-width: 430px) {
   .pd-root { padding: 1rem 0.85rem 0.9rem; }
   .pd-title { font-size: 1.12rem; }
   .pd-watermark { right: 2.6rem; font-size: 3.4rem; }
   .pd-plate { gap: 0.55rem; padding: 0.4rem 0.6rem 0.4rem 0.75rem; min-height: 52px; }
   .pd-toggle { padding-left: 0.3rem; }
-  .pd-toggle-label { display: none; }
+  /* la etiqueta "global" no desaparece: colapsa a su kanji 界 (igual que la
+     columna que controla), nunca a solo el switch */
+  .pd-toggle-label-full { display: none; }
+  .pd-toggle-label-min { display: inline; }
   .pd-delta { min-width: 2.1rem; }
   /* contraste global colapsa a icono kanji + numero */
   .pd-global { min-width: 2.4rem; }
