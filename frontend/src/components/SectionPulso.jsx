@@ -7,6 +7,11 @@ import { imagenPersonaje, personajes, getStatsPersonaje } from '../lib/personaje
 import { personajeDelDia } from '../lib/games'
 import ResponsivePicture from './ResponsivePicture'
 import FavoritosPulsoBanner from './FavoritosPulsoBanner'
+import { PULSE_STALE, useRankingPulso } from '../features/home/pulso/pulsoQueries'
+import {
+  sumarVotosComunidad,
+  UMBRAL_COMUNIDAD_JOVEN,
+} from '../features/home/pulso/pulso-utils'
 import CampeonCard from '../features/home/pulso/components/CampeonCard'
 import DueloAbiertoCard from '../features/home/pulso/components/DueloAbiertoCard'
 import DueloDestacadoCard from '../features/home/pulso/components/DueloDestacadoCard'
@@ -76,16 +81,6 @@ function tieneImagenPromocionable(item, catalogoPersonajes = personajes) {
  * null si la query falla o devuelve vacío). El stale-time de 1min recarga
  * silenciosamente cuando el usuario vuelve a la home tras un rato.
  */
-const PULSE_STALE = 60 * 1000
-
-function useRanking() {
-  return useQuery({
-    queryKey: ['pulso', 'ranking'],
-    queryFn: endpoints.ranking,
-    staleTime: PULSE_STALE,
-  })
-}
-
 function useMovimientos() {
   // limit 100: cubre el top de movers Y la mayoría de slugs que un usuario
   // pueda tener en su roster — esto comparte cache con
@@ -126,7 +121,7 @@ function useUltimosVotos() {
 
 function SectionPulso() {
   const { personajes: catalogoPersonajes } = usePersonajesCatalogo()
-  const { data: ranking, isLoading: rankingLoading } = useRanking()
+  const { data: ranking, isLoading: rankingLoading } = useRankingPulso()
   const { data: movimientos } = useMovimientos()
   const { data: torneos = [] } = useTorneos()
   const { data: duelo } = useDueloAbierto()
@@ -145,12 +140,12 @@ function SectionPulso() {
   const esFallback = !campeonReal
   // Nota de producto: el backend devuelve top por COUNT(votos),
   // así que en una DB joven con 1-5 votos totales presentar al top como
-  // "campeón actual" es engañoso. Sumamos los votos del ranking servido
-  // y aplicamos disclaimer si el total comunidad es pequeño.
-  const totalVotosComunidad = Array.isArray(ranking)
-    ? ranking.reduce((acc, r) => acc + Number(r.votos ?? 0), 0)
-    : 0
-  const comunidadArrancando = !esFallback && totalVotosComunidad < 30
+  // "campeón actual" es engañoso. La suma y el umbral son los MISMOS
+  // que usa el hogar del hero (pulso-utils): un solo criterio de
+  // honestidad para toda la home.
+  const totalVotosComunidad = sumarVotosComunidad(ranking) ?? 0
+  const comunidadArrancando =
+    !esFallback && totalVotosComunidad < UMBRAL_COMUNIDAD_JOVEN
   const votosCampeon = Number(campeon?.votos ?? 0)
   const mostrarCampeon =
     rankingLoading ||
@@ -178,6 +173,7 @@ function SectionPulso() {
   const pulseImage = pulseVisual.image || pulseVisual.fallbackImage
   return (
     <motion.section
+      lang="es"
       className="relative isolate overflow-hidden px-5 py-10 sm:px-8 sm:py-14"
       style={{
         '--visual-accent': pulseVisual.accentRgb,

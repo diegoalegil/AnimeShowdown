@@ -224,7 +224,8 @@ function hashSlug(slug: string): number {
  * <p>Consumers actuales revisados (rg "getStatsPersonaje" frontend/src,
  * 2026-05-23, ~60 referencias en 15 archivos):
  * <ul>
- *   <li>{@code Hero.jsx} — "Top ELO base" stat ✅ etiquetado.</li>
+ *   <li>{@code InicioPage.jsx} (getHomeTop10 → ColiseoTop10) — eyebrow
+ *       "Top 10 · ELO base ·b" + copy que redirige a /ranking ✅ etiquetado.</li>
  *   <li>{@code PersonajeCard.jsx} — badges con sufijo "·b"/"·e" ✅.</li>
  *   <li>{@code PersonajeDetailPage.jsx} — labels "ELO base", "Récord est." ✅.</li>
  *   <li>{@code SectionPulso.jsx} — usa fallback (CAMPEON_FALLBACK) cuando

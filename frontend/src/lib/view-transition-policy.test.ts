@@ -16,7 +16,7 @@ const SUPERFICIES_APPLINK = [
   'src/components/PersonajeCard.jsx',
   'src/features/ranking/components/RankingRows.jsx',
   'src/features/ranking/components/RankingPodium.jsx',
-  'src/components/Hero.jsx',
+  'src/components/HearthHero.jsx',
   'src/pages/InicioPage.jsx',
   'src/pages/RankingPage.jsx',
   'src/pages/AnimesPage.jsx',

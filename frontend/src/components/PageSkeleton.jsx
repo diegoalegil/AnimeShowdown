@@ -1,4 +1,5 @@
 import Skeleton from './Skeleton'
+import { HOME_SECTION_RESERVES } from './home-section-reserves'
 
 // V-2 (perf "blanco al navegar"): mientras se descarga el chunk lazy de una
 // ruta o se hidrata el catálogo de personajes, en vez de un spinner genérico
@@ -135,23 +136,19 @@ function CardGrid({ className, count }) {
   )
 }
 
-// Bloques de la home (alturas calibradas a las secciones reales de InicioPage:
-// pulso, stats, top10, retos, torneos, universos). Compartidos con InicioPage
-// vía <HomeSkeleton> para no duplicar las medidas.
-const HOME_SKELETON_BLOCKS = [
-  { id: 'pulse', className: 'h-[926px]' },
-  { id: 'stats', className: 'h-[224px]' },
-  { id: 'ranking', className: 'h-[606px]' },
-  { id: 'daily-trials', className: 'h-[620px]' },
-  { id: 'tournaments', className: 'h-[520px]' },
-  { id: 'anime-universes', className: 'h-[520px]' },
-]
-
+// Bloques fantasma de la home: las medidas viven en
+// home-section-reserves.js (fuente única compartida con los LazyOnView
+// de InicioPage para que skeleton y reservas no diverjan).
 function HomeSkeletonBlocks() {
   return (
     <>
-      {HOME_SKELETON_BLOCKS.map((block) => (
-        <Skeleton key={block.id} variant="banner" className={`w-full ${block.className}`} />
+      {HOME_SECTION_RESERVES.map((block) => (
+        <Skeleton
+          key={block.id}
+          variant="banner"
+          className="w-full"
+          style={{ height: block.px }}
+        />
       ))}
     </>
   )
@@ -173,23 +170,39 @@ function PageSkeleton({ pathname = '', reserveClassName = '' }) {
 
   switch (archetype) {
     case 'home':
-      // Hero a casi pantalla completa (como el Hero real) + bloques de sección.
+      // El hogar (HearthHero): llama+pebetero a un lado, titular+números
+      // al otro (columna única centrada en móvil) y las 3 tablillas
+      // debajo — la misma silueta que pinta el hero real al montar.
+      // Sin stage de marca: el hogar arde sobre el lienzo desnudo.
       return (
         <SkeletonSection
           archetype="home"
           reserveClassName={reserveClassName}
-          stage="as-stage as-stage-visual as-stage-home"
+          stage=""
           contentClassName="mx-auto w-full max-w-7xl"
           padding="px-5 pb-12 pt-6 sm:px-8"
         >
-          <div className="mb-10 flex min-h-[60vh] flex-col items-center justify-center gap-5 text-center">
-            <Skeleton variant="circle" className="h-28 w-28" />
-            <Skeleton variant="box" className="h-5 w-44" />
-            <Skeleton variant="box" className="h-14 w-[min(34rem,90%)]" />
-            <Skeleton variant="box" className="h-4 w-[min(22rem,80%)]" />
-            <div className="flex gap-3">
-              <Skeleton variant="box" className="h-11 w-40" />
-              <Skeleton variant="box" className="h-11 w-36" />
+          {/* Medidas espejo del hearth real (hearth-hero.css): llama
+              min-height 250/300, row-gap 2rem/2.75rem, tablillas mt 1.25rem,
+              padding 2.75/2.5 móvil y 4.5/3.5 desktop descontando el pt-6
+              que ya aporta SkeletonSection. */}
+          <div className="mx-auto grid w-full max-w-6xl grid-cols-1 items-center gap-x-8 gap-y-8 pb-10 pt-5 md:grid-cols-[minmax(270px,350px)_minmax(0,1fr)] md:gap-x-14 md:gap-y-11 md:pb-14 md:pt-12">
+            <div className="flex h-[250px] items-end justify-center md:h-[300px]">
+              <Skeleton variant="box" className="h-56 w-44" />
+            </div>
+            <div className="flex flex-col items-center gap-4 md:items-start">
+              <Skeleton variant="box" className="h-4 w-56" />
+              <Skeleton variant="box" className="h-14 w-[min(30rem,90%)]" />
+              <Skeleton variant="box" className="h-4 w-[min(24rem,80%)]" />
+              <div className="flex gap-9">
+                <Skeleton variant="box" className="h-12 w-32" />
+                <Skeleton variant="box" className="h-12 w-32" />
+              </div>
+            </div>
+            <div className="mt-5 grid grid-cols-1 gap-4 md:col-span-2 md:grid-cols-3">
+              <Skeleton variant="box" className="h-[4.5rem]" />
+              <Skeleton variant="box" className="h-[4.5rem]" />
+              <Skeleton variant="box" className="h-[4.5rem]" />
             </div>
           </div>
           <HomeSkeletonBlocks />

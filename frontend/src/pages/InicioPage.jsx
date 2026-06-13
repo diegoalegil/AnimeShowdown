@@ -9,7 +9,7 @@ import {
   Inbox,
 } from 'lucide-react'
 import { AppLink } from '../components/AppLink'
-import Hero from '../components/Hero'
+import HearthHero from '../components/HearthHero'
 import SectionCombateEstelar from '../components/SectionCombateEstelar'
 import SectionGate from '../components/SectionGate'
 import SectionPulso from '../components/SectionPulso'
@@ -23,6 +23,7 @@ import Section from '../components/Section'
 import EmptyState from '../components/EmptyState'
 import ErrorBoundary from '../components/ErrorBoundary'
 import { HomeSkeleton } from '../components/PageSkeleton'
+import { homeSectionReserve } from '../components/home-section-reserves'
 import { useTorneos } from '../lib/torneosQueries'
 import { getStatsPersonaje, imagenPersonaje } from '../lib/personajes-core'
 import { markPersonajeHero } from '../lib/viewTransitions'
@@ -76,6 +77,10 @@ function InicioPage() {
     () => getHomeTop10(catalogoPersonajes),
     [catalogoPersonajes],
   )
+  const universos = useMemo(
+    () => new Set(catalogoPersonajes.map((p) => p.anime)).size,
+    [catalogoPersonajes],
+  )
   // useSeo en la home no setea title (el HTML inicial ya tiene el correcto
   // y queremos preservarlo como canonical); pero sí añadimos canonical
   // explícito y aseguramos OG con la imagen del logo.
@@ -87,11 +92,12 @@ function InicioPage() {
   return (
     <>
       <JsonLd id="website" schema={webSiteSchema()} />
-      {/* Jerarquía de la portada: hero → combate estelar (cartel del día)
-          → pulso + misión diaria → top ranking → retos diarios → torneos
-          → explora por universo. Primero entender la propuesta, luego una
-          acción clara, luego ranking y el resto a explorar. */}
-      <Hero catalogoPersonajes={catalogoPersonajes} />
+      {/* Jerarquía de la portada: el hogar (hero) → combate estelar
+          (cartel del día) → pulso + misión diaria → top ranking → retos
+          diarios → torneos → explora por universo. Primero entender la
+          propuesta, luego una acción clara, luego ranking y el resto a
+          explorar. */}
+      <HearthHero />
       <SobreBienvenidaBanner />
       <HomeCatalogGuard
         isLoading={isCatalogLoading}
@@ -101,10 +107,10 @@ function InicioPage() {
       >
       {/* Combate estelar: el cartel del duelo del día justo tras el hero.
           LazyOnView lo saca del primer paint (el hero sigue siendo el LCP).
-          minHeight = altura real medida de la sección (961px @390px de
-          viewport, 1086px @1440px; se reserva la menor redondeada a decenas
-          para no sobre-reservar en móvil). */}
-      <LazyOnView minHeight={960}>
+          Las reservas de TODAS las secciones viven en HOME_SECTION_RESERVES
+          (PageSkeleton): una sola calibración para el skeleton y para estos
+          minHeight — medidas @390px, la menor, para no sobre-reservar. */}
+      <LazyOnView minHeight={homeSectionReserve('combate-estelar')}>
         <HomeSectionBoundary title="No pudimos mostrar el combate estelar">
           <SectionCombateEstelar />
         </HomeSectionBoundary>
@@ -114,19 +120,24 @@ function InicioPage() {
           una sección suelta propia; fusionarla aquí recorta la home. */}
       <HomeSectionBoundary title="No pudimos mostrar el pulso">
         <SectionPulso />
-        <section className="mx-auto w-full max-w-6xl px-4 pb-6 sm:px-6">
+        {/* lang interim: el cuerpo de la home aún es es-only (los locales
+            en/ja cubren hero/combate); marcarlo evita que un SR en en/ja
+            pronuncie español con fonética inglesa/japonesa. */}
+        <section lang="es" className="mx-auto w-full max-w-6xl px-4 pb-6 sm:px-6">
           <DailyMissionPanel />
         </section>
       </HomeSectionBoundary>
-      {/* La sección de stats se retiró: duplicaba 1:1 el panel de cifras
-          del hero (personajes/torneos/universos/ELO máx) una pantalla más
-          abajo. El top ranking sube y la home se acorta. */}
+      {/* La sección de stats sigue retirada: el hogar (hero) muestra las
+          dos señales vivas (votos de la comunidad / torneos en marcha) y
+          la escala del catálogo (personajes/universos, cifras exactas)
+          vive en la puerta de "Explora por universo". eloMax se retiró a
+          propósito por ser estimación, no dato competitivo. */}
       {/* Coliseo: única sección below-the-fold que montaba en el primer
           paint (anillo 3D = ~30 <img> + escena perspective + rAF). LazyOnView
           difiere el mount como sus vecinas; el pause al salir del viewport
           lo da el gate IO interno del propio anillo. minHeight = sección
           h-[680px] + cabecera/descripción del wrapper. */}
-      <LazyOnView minHeight={820}>
+      <LazyOnView minHeight={homeSectionReserve('ranking')}>
         <HomeSectionBoundary title="No pudimos mostrar el top ranking">
           <SectionTop10Ranking top10={top10} />
         </HomeSectionBoundary>
@@ -135,13 +146,19 @@ function InicioPage() {
           "Plataforma" (feature-list estilo SaaS) y "Cómo funciona" (vive ya en
           /como-funciona) para que el ranking y las acciones no queden
           enterrados. LazyOnView monta el resto al acercarse al viewport. */}
-      <LazyOnView minHeight={620}><SectionRetosDiarios /></LazyOnView>
-      <LazyOnView minHeight={520}>
+      <LazyOnView minHeight={homeSectionReserve('daily-trials')}><SectionRetosDiarios /></LazyOnView>
+      <LazyOnView minHeight={homeSectionReserve('tournaments')}>
         <HomeSectionBoundary title="No pudimos mostrar torneos activos">
           <SectionTorneosActivos />
         </HomeSectionBoundary>
       </LazyOnView>
-      <LazyOnView minHeight={520}><SectionPorAnime carousels={carousels} /></LazyOnView>
+      <LazyOnView minHeight={homeSectionReserve('anime-universes')}>
+        <SectionPorAnime
+          carousels={carousels}
+          totalPersonajes={catalogoPersonajes.length}
+          totalUniversos={universos}
+        />
+      </LazyOnView>
       </HomeCatalogGuard>
     </>
   )
@@ -151,7 +168,7 @@ function HomeCatalogGuard({ isLoading, isError, hasItems, onRetry, children }) {
   if (isLoading && !hasItems) return <HomeSkeleton />
   if (isError && !hasItems) {
     return (
-      <div className="mx-auto w-full max-w-6xl px-5 py-12">
+      <div lang="es" className="mx-auto w-full max-w-6xl px-5 py-12">
         <EmptyState
           icon={AlertTriangle}
           title="No pudimos cargar la portada"
@@ -171,7 +188,7 @@ function HomeCatalogGuard({ isLoading, isError, hasItems, onRetry, children }) {
   }
   if (!hasItems) {
     return (
-      <div className="mx-auto w-full max-w-6xl px-5 py-12">
+      <div lang="es" className="mx-auto w-full max-w-6xl px-5 py-12">
         <EmptyState
           icon={Inbox}
           title="Aún no hay personajes en la arena"
@@ -187,7 +204,7 @@ function HomeSectionBoundary({ title, children }) {
   return (
     <ErrorBoundary
       fallback={({ reset }) => (
-        <div className="mx-auto w-full max-w-6xl px-5 py-8">
+        <div lang="es" className="mx-auto w-full max-w-6xl px-5 py-8">
           <EmptyState
             icon={AlertTriangle}
             title={title}
@@ -210,21 +227,25 @@ function HomeSectionBoundary({ title, children }) {
   )
 }
 
-function SectionPorAnime({ carousels }) {
+function SectionPorAnime({ carousels, totalPersonajes, totalUniversos }) {
   if (carousels.length === 0) return null
 
   return (
     <motion.div
+      lang="es"
       variants={sectionVariants}
       initial="hidden"
       whileInView="visible"
       viewport={{ once: true, amount: 0.05 }}
     >
       <div className="mx-auto max-w-7xl px-5 pb-2 pt-12 sm:px-8 sm:pt-16">
+        {/* La escala del catálogo (cifras EXACTAS, no "1000+") vive aquí
+            desde que el hogar dejó el panel de stats: es la puerta natural
+            — explora N personajes de M universos. */}
         <SectionGate
           kanji="界"
           kanjiMeaning="mundo, esfera"
-          eyebrow="Por anime"
+          eyebrow={`${totalPersonajes} personajes · ${totalUniversos} universos`}
           title="Explora por universo"
           viewAllTo="/animes"
           viewAllLabel="Ver todos"
@@ -252,6 +273,7 @@ function SectionTorneosActivos() {
   return (
     <Section
       as={motion.section}
+      lang="es"
       containerClassName="mx-auto max-w-6xl"
       variants={sectionVariants}
       initial="hidden"
@@ -300,6 +322,7 @@ function SectionTop10Ranking({ top10 }) {
   return (
     <Section
       as={motion.section}
+      lang="es"
       className="bg-surface/40"
       containerClassName="mx-auto max-w-7xl"
       variants={sectionVariants}
@@ -401,6 +424,7 @@ function SectionRetosDiarios() {
   return (
     <Section
       as={motion.section}
+      lang="es"
       className="bg-surface/30"
       containerClassName="mx-auto max-w-6xl"
       variants={sectionVariants}

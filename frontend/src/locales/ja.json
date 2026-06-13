@@ -80,31 +80,24 @@
     "errorEnvio": "送信できませんでした。少し時間をおいて再度お試しください。"
   },
   "hero": {
-    "tituloAntes": "究極の",
-    "tituloAnime": "アニメランキング",
-    "tituloDespues": "を決めるのはあなた。",
-    "subtitulo": "1対1デュエル、リアルタイムELOランキング、毎週のトーナメント。あなたの一票がランキングを動かします。",
-    "ctaTorneos": "投票を始める",
-    "ctaRuleta": "ルーレット",
-    "ctaRuletaLoading": "抽選中",
-    "ctaRanking": "ランキングを見る",
-    "features": "デュエルに投票 · ランキングを決める · トーナメントで競う",
-    "torneoDestacado": "注目トーナメント",
-    "verComunidad": "コミュニティを見る",
-    "votesAria": "コミュニティの最新投票",
-    "votesNow": "現在",
-    "votesFallbackUser": "誰か",
-    "votesAction": "が投票した相手",
-    "timeNow": "今",
-    "timeMinutes": "{{count}}分前",
-    "timeHours": "{{count}}時間前",
-    "timeToday": "今日",
-    "stats": {
-      "personajes": "キャラクター",
-      "torneos": "トーナメント",
-      "universos": "作品世界",
-      "eloMaximo": "最高ELO"
-    }
+    "titulo": "究極の<gold>アニメランキング</gold>を決めるのはあなた。",
+    "subtitulo": "1対1デュエル、リアルタイムELOランキング、コミュニティトーナメント。あなたの一票がランキングを動かします。",
+    "kicker": "1対1アリーナ・ライブランキング・デイリーチャレンジ",
+    "accionesAria": "主なアクション",
+    "statVotos": "コミュニティの投票数",
+    "statSinDatos": "まだデータがありません",
+    "statVotosVacio": "炎はまだ小さい —",
+    "statVotosVacioCta": "あなたの一票で育てよう",
+    "statTorneos": "開催中のトーナメント",
+    "statTorneosVacio": "現在はなし —",
+    "statTorneosVacioCta": "最初の火を灯そう",
+    "statTorneosProgramados": "{{count}}件がまもなく開始",
+    "tablillaVotarLabel": "投票",
+    "tablillaVotarDesc": "1対1デュエル・あなたの一票がランキングを動かす",
+    "tablillaTorneosLabel": "トーナメント",
+    "tablillaTorneosDesc": "コミュニティのブラケット・自分でも作れる",
+    "tablillaJuegosLabel": "ゲーム",
+    "tablillaJuegosDesc": "Anime Daily Trials・デイリーチャレンジ"
   },
   "combate": {
     "eyebrow": "本日の対戦カード",
@@ -170,7 +163,7 @@
       "completedDetail": "連続記録を守りました。明日も新しいラウンドがあります。",
       "todayTitle": "今日のミッション",
       "votesDetail": "アリーナを締めるまであと{{count}}票。",
-      "gamesDetail": "リズムを保つためにデイリートライアルを1つ完了しましょう。",
+      "gamesDetail": "リズムを保つためにデイリーチャレンジを1つ完了しましょう。",
       "rankingDetail": "投票後にランキングがどう動いたか見てみましょう。"
     }
   },

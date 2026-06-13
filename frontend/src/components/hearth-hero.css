@@ -1,0 +1,658 @@
+/* ============================================================
+   EL HOGAR — hero de la home (HearthHero)
+   CSS de feature (importado por el componente; bundlea con su
+   chunk, CSP-safe). Solo tokens, cero literales.
+   Reglas de la casa: solo transform/opacity animan; cero blur;
+   loops pausables vía [data-hearth-paused]; estático vía
+   [data-hearth-static] y prefers-reduced-motion.
+   ============================================================ */
+
+/* ---------- Layout ---------- */
+
+.hearth-hero {
+  position: relative;
+  /* Aísla el eje z del hogar: sin esto, la llama (z1) y el pebetero (z2)
+     escaparían al stacking context raíz y pintarían sobre el grano
+     global de body::before (mismo patrón isolate que SectionPulso). */
+  isolation: isolate;
+  display: grid;
+  grid-template-columns: minmax(270px, 350px) minmax(0, 1fr);
+  grid-template-areas:
+    'media copy'
+    'tablillas tablillas';
+  align-items: center;
+  gap: 2.75rem 3.5rem;
+  max-width: 72rem;
+  margin-inline: auto;
+  padding: 4.5rem 2rem 3.5rem;
+  overflow: hidden;
+}
+
+.hearth-media {
+  grid-area: media;
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: end;
+  min-height: 300px;
+}
+
+.hearth-copy {
+  grid-area: copy;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 1rem;
+  min-width: 0;
+}
+
+.hearth-tablillas {
+  grid-area: tablillas;
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 1rem;
+  margin-top: 1.25rem;
+}
+
+/* Móvil: bajo md (48rem) — alineado con el resto de breakpoints de la
+   home (Tailwind md); el rem respeta el zoom de fuente del usuario. */
+@media (width < 48rem) {
+  .hearth-hero {
+    grid-template-columns: minmax(0, 1fr);
+    grid-template-areas:
+      'media'
+      'copy'
+      'tablillas';
+    gap: 2rem;
+    padding: 2.75rem 1.25rem 2.5rem;
+    text-align: center;
+  }
+  .hearth-media {
+    min-height: 250px;
+  }
+  .hearth-copy {
+    align-items: center;
+  }
+  .hearth-tablillas {
+    grid-template-columns: minmax(0, 1fr);
+    margin-top: 0.25rem;
+  }
+}
+
+/* ---------- Marca de agua (canon: kanji al 5%) ---------- */
+
+.hearth-watermark {
+  position: absolute;
+  top: -1.5rem;
+  left: 50%;
+  margin-left: -5.5rem;
+  font-family: var(--font-kanji-serif);
+  font-size: 11rem;
+  line-height: 1;
+  color: var(--color-fg-strong);
+  opacity: 0.05;
+  pointer-events: none;
+  user-select: none;
+}
+
+/* ---------- La llama ---------- */
+
+.hearth-fire {
+  position: relative;
+  width: min(178px, 46vw);
+  z-index: 1;
+}
+
+.hearth-flame {
+  display: block;
+  width: 100%;
+  height: auto;
+}
+
+/* Capas de luz pre-horneadas: dos radial-gradients de tokens.
+   Solo anima su OPACITY (cross-fade) — cero blur, cero partículas. */
+.hearth-glow {
+  position: absolute;
+  left: 50%;
+  border-radius: 50%;
+  pointer-events: none;
+  z-index: -1;
+  opacity: var(--glow-hi);
+  animation:
+    hearth-breathe 3.2s ease-in-out var(--breathe-delay, 0.5s) infinite,
+    hearth-glow-in 500ms var(--ease-lift) backwards;
+}
+
+.hearth-glow--a {
+  --glow-hi: 0.9;
+  --glow-lo: 0.55;
+  --glow-in-to: var(--glow-hi);
+  --breathe-delay: 0.5s; /* arranca al terminar el encendido, en fase 0 (hi) */
+  width: 260px;
+  height: 260px;
+  bottom: -36px;
+  margin-left: -130px;
+  background: radial-gradient(
+    circle,
+    var(--color-gold-aura) 0%,
+    var(--color-accent-soft) 42%,
+    transparent 70%
+  );
+}
+
+.hearth-glow--b {
+  --glow-hi: 0.7;
+  --glow-lo: 0.4;
+  --glow-in-to: var(--glow-lo);
+  /* desfase -1.6s respecto a A (−1.6s + 0.5s): a t+500ms está en fase 50% (lo),
+     que coincide con el destino de su fade-in — sin salto. */
+  --breathe-delay: -1.1s;
+  width: 360px;
+  height: 360px;
+  bottom: -80px;
+  margin-left: -180px;
+  background: radial-gradient(
+    circle,
+    var(--color-gold-soft) 0%,
+    var(--color-accent-soft) 48%,
+    transparent 72%
+  );
+}
+
+/* Prendido: scaleY 0.2→1 desde la base, 350ms ease-lift. */
+.hearth-ignite {
+  transform-origin: 50% 100%;
+  animation: hearth-ignite 350ms var(--ease-lift) backwards;
+}
+
+/* Hito de millar: crece UNA vez (el wrapper se re-monta keyed por millar). */
+.hearth-hito-pop {
+  transform-origin: 50% 100%;
+  animation: hearth-hito 400ms var(--ease-lift);
+}
+
+/* Chasquido: UNA lengua, rotate 1.5°, ventana corta en un ciclo de 7s.
+   --i (inline desde JSX) desincroniza si hubiera más lenguas con flick. */
+.hearth-lengua {
+  transform-box: fill-box;
+  transform-origin: 50% 100%;
+}
+
+.hearth-lengua--flick {
+  animation: hearth-flick 7s linear calc(var(--i, 0) * -2.3s) infinite;
+}
+
+/* ---------- Pebetero ---------- */
+
+.hearth-pebetero {
+  position: relative;
+  z-index: 2;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  margin-top: -14px;
+}
+
+.hearth-pebetero__brasas {
+  position: absolute;
+  top: -5px;
+  width: 140px;
+  height: 12px;
+  border-radius: var(--radius-pill);
+  background: radial-gradient(
+    ellipse at center,
+    var(--color-gold-aura) 0%,
+    transparent 75%
+  );
+  opacity: 0.55;
+}
+
+.hearth-pebetero__rim {
+  width: 212px;
+  height: 12px;
+  border-radius: var(--radius-pill);
+  background: linear-gradient(180deg, var(--color-surface-alt), var(--color-surface));
+  box-shadow:
+    inset 0 1px 0 var(--color-border-gold-subtle),
+    var(--shadow-elev-1);
+}
+
+.hearth-pebetero__bowl {
+  width: 188px;
+  height: 42px;
+  margin-top: -3px;
+  border-radius: 0 0 120px 120px / 0 0 76px 76px;
+  background: linear-gradient(180deg, var(--color-surface), var(--color-bg));
+  box-shadow: var(--inset-shadow-hairline), var(--shadow-elev-1);
+}
+
+.hearth-pebetero__stem {
+  width: 34px;
+  height: 20px;
+  background: linear-gradient(180deg, var(--color-bg), var(--color-surface-alt));
+}
+
+.hearth-pebetero__base {
+  width: 112px;
+  height: 10px;
+  border-radius: var(--radius-pill);
+  background: var(--color-surface-alt);
+  box-shadow: var(--inset-shadow-hairline);
+}
+
+/* ---------- Titular: el corte de tinta ---------- */
+
+.hearth-kicker {
+  font-size: var(--text-2xs);
+  font-weight: 600;
+  color: var(--color-gold);
+}
+
+.hearth-cut {
+  position: relative;
+  max-width: 36rem;
+}
+
+.hearth-title {
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: clamp(2.1rem, 4.5vw, 3.5rem);
+  line-height: 1.05;
+  letter-spacing: normal;
+  text-wrap: balance;
+  color: var(--color-fg-strong);
+  margin: 0;
+}
+
+.hearth-title__gold {
+  color: var(--color-gold);
+}
+
+/* Cover scaleX origin-left que se retira (patrón as-cmdk-cut) con el
+   filo dorado de 3px en el borde que viaja. */
+.hearth-cut__cover {
+  position: absolute;
+  inset: -6px -8px;
+  /* El tope del linear-gradient del body en la franja del hero es
+     --color-bg (canvas es el fondo del FINAL de la página): el cover
+     debe fundirse con lo que hay detrás del titular. */
+  background: var(--color-bg);
+  transform-origin: left center;
+  animation: hearth-cut-cover 420ms var(--ease-brush) 200ms both;
+  pointer-events: none;
+}
+
+.hearth-cut__cover::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  right: 0;
+  width: 3px;
+  background: linear-gradient(
+    180deg,
+    transparent,
+    var(--color-gold) 28%,
+    var(--color-gold) 72%,
+    transparent
+  );
+}
+
+.hearth-sub {
+  max-width: 30rem;
+  font-size: clamp(0.98rem, 1.5vw, 1.12rem);
+  line-height: 1.6;
+  color: var(--color-fg-muted);
+  margin: 0;
+}
+
+/* ---------- Entradas (rise) ---------- */
+
+.hearth-rise {
+  animation: hearth-rise 500ms var(--ease-lift) var(--rise-delay, 0ms) backwards;
+}
+
+/* ---------- Los dos números ---------- */
+
+.hearth-stats {
+  display: flex;
+  align-items: stretch;
+  gap: 2.25rem;
+  margin: 0.5rem 0 0;
+}
+
+.hearth-stat {
+  display: flex;
+  flex-direction: column;
+  gap: 0.3rem;
+}
+
+.hearth-stat + .hearth-stat {
+  border-left: 1px solid var(--color-border-gold-subtle);
+  padding-left: 2.25rem;
+}
+
+.hearth-stat dt {
+  font-family: var(--font-mono);
+  font-size: var(--text-2xs);
+  color: var(--color-fg-muted);
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+}
+
+.hearth-stat dd {
+  margin: 0;
+  font-family: var(--font-mono);
+  font-variant-numeric: tabular-nums;
+  font-weight: 700;
+  font-size: clamp(1.7rem, 2.6vw, 2.15rem);
+  line-height: 1;
+  color: var(--color-gold-bright);
+  /* Anti-CLS: reserva la variante más alta (vacío = 2 líneas de
+     0.95rem/1.45) para que el dd no cambie de altura al resolver las
+     queries ni al pasar de cifra a copy de vacío. */
+  min-height: calc(2 * 1.45 * 0.95rem);
+  display: flex;
+  align-items: center;
+}
+
+/* La cifra de votos crece con la comunidad: reservar el ancho del peor
+   caso razonable (hasta 9 chars con separadores, <10M) evita el shift
+   lateral del divisor dorado cuando el número rueda y gana columnas. */
+.hearth-stat:first-child dd {
+  min-width: 9ch;
+}
+
+.hearth-stat__dot {
+  width: 6px;
+  height: 6px;
+  border-radius: var(--radius-pill);
+  background: var(--color-success);
+}
+
+/* 0 duelos en vivo: la cifra habla. */
+.hearth-stat__vacio {
+  font-family: var(--font-mono);
+  font-weight: 500;
+  font-size: 0.95rem;
+  line-height: 1.45;
+  color: var(--color-fg-muted);
+  max-width: 13rem;
+}
+
+.hearth-stat__vacio strong {
+  color: var(--color-gold);
+  font-weight: 700;
+}
+
+/* El copy de acción de los vacíos es un LINK: hit-area >=44px por
+   padding compensado con margin negativo (la línea de texto no se
+   mueve) y subrayado para que la afordancia no dependa del color. */
+.hearth-stat__vacio-cta {
+  display: inline-block;
+  padding: 0.75rem 0.5rem;
+  margin: -0.75rem -0.5rem;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+.hearth-stat__vacio-cta:focus-visible {
+  outline: 2px solid var(--color-gold);
+  outline-offset: 2px;
+}
+
+@media (width < 48rem) {
+  .hearth-stats {
+    justify-content: center;
+  }
+  .hearth-stat {
+    align-items: center;
+  }
+  .hearth-stat dd {
+    /* Los flex children no obedecen el text-align:center del hero. */
+    justify-content: center;
+  }
+}
+
+/* ---------- Odómetro (HearthOdometer) ---------- */
+
+.hearth-odo {
+  display: inline-flex;
+  overflow: hidden;
+  height: 1em;
+  line-height: 1;
+}
+
+.hearth-odo__col {
+  display: inline-block;
+  height: 1em;
+}
+
+/* Sin will-change: la transition de transform ya promueve capa al
+   arrancar; mantener una capa compositada por dígito mientras el hero
+   viva (incluso en estático) costaría más que la promoción tardía. */
+.hearth-odo__strip {
+  display: flex;
+  flex-direction: column;
+  transition: transform 900ms var(--ease-lift);
+}
+
+.hearth-odo__digit,
+.hearth-odo__sep {
+  display: block;
+  height: 1em;
+  line-height: 1;
+}
+
+/* ---------- Tablillas (las 3 CTAs) ---------- */
+
+.hearth-tablilla {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 0.9rem;
+  min-height: 4.5rem;
+  padding: 0.9rem 1.1rem;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-xl);
+  background: var(--color-surface);
+  box-shadow: var(--inset-shadow-hairline);
+  text-decoration: none;
+  transition:
+    transform 250ms var(--ease-lift),
+    border-color 250ms var(--ease-lift);
+}
+
+.hearth-tablilla:hover {
+  transform: translateY(-3px);
+  border-color: var(--color-border-gold);
+}
+
+.hearth-tablilla:focus-visible {
+  outline: 2px solid var(--color-gold);
+  outline-offset: 2px;
+}
+
+.hearth-tablilla__kanji {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 2.75rem;
+  height: 2.75rem;
+  flex: none;
+  border: 1px solid var(--color-border-gold-subtle);
+  border-radius: var(--radius-lg);
+  font-family: var(--font-kanji-serif);
+  font-size: 1.45rem;
+  color: var(--color-gold);
+  background: var(--color-gold-soft);
+}
+
+.hearth-tablilla__texto {
+  display: flex;
+  flex-direction: column;
+  gap: 0.15rem;
+  min-width: 0;
+  text-align: left;
+}
+
+.hearth-tablilla__label {
+  font-weight: 800;
+  font-size: 0.95rem;
+  color: var(--color-fg-strong);
+  transition: color 250ms var(--ease-lift);
+}
+
+.hearth-tablilla:hover .hearth-tablilla__label {
+  color: var(--color-gold);
+}
+
+.hearth-tablilla__desc {
+  font-size: 0.8rem;
+  color: var(--color-fg-muted);
+}
+
+/* ---------- Keyframes ---------- */
+
+@keyframes hearth-ignite {
+  from {
+    transform: scaleY(0.2);
+  }
+  to {
+    transform: scaleY(1);
+  }
+}
+
+@keyframes hearth-glow-in {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: var(--glow-in-to, var(--glow-hi));
+  }
+}
+
+@keyframes hearth-breathe {
+  0%,
+  100% {
+    opacity: var(--glow-hi);
+  }
+  50% {
+    opacity: var(--glow-lo);
+  }
+}
+
+@keyframes hearth-flick {
+  0%,
+  94% {
+    transform: rotate(0deg);
+  }
+  97% {
+    transform: rotate(1.5deg);
+  }
+  100% {
+    transform: rotate(0deg);
+  }
+}
+
+@keyframes hearth-hito {
+  0% {
+    transform: scale(1);
+  }
+  45% {
+    transform: scale(1.06);
+  }
+  100% {
+    transform: scale(1);
+  }
+}
+
+@keyframes hearth-cut-cover {
+  from {
+    transform: scaleX(1);
+  }
+  to {
+    transform: scaleX(0);
+  }
+}
+
+@keyframes hearth-rise {
+  from {
+    opacity: 0;
+    transform: translateY(14px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* ---------- Pausa (viewport / pestaña / calma) ---------- */
+
+[data-hearth-paused='true'] .hearth-glow,
+[data-hearth-paused='true'] .hearth-lengua--flick {
+  animation-play-state: paused;
+}
+
+/* ---------- Estático: reduced-motion y modo calma ----------
+   La llama queda en su frame más noble; solo los odómetros viven. */
+
+[data-hearth-static='true'] .hearth-glow,
+[data-hearth-static='true'] .hearth-lengua--flick,
+[data-hearth-static='true'] .hearth-ignite,
+[data-hearth-static='true'] .hearth-hito-pop,
+[data-hearth-static='true'] .hearth-rise,
+[data-hearth-static='true'] .hearth-cut__cover {
+  animation: none;
+}
+
+[data-hearth-static='true'] .hearth-glow--a {
+  opacity: 0.8;
+}
+
+[data-hearth-static='true'] .hearth-glow--b {
+  opacity: 0.55;
+}
+
+[data-hearth-static='true'] .hearth-cut__cover {
+  transform: scaleX(0);
+}
+
+[data-hearth-static='true'] .hearth-odo__strip {
+  transition: none;
+}
+
+[data-hearth-static='true'] .hearth-tablilla,
+[data-hearth-static='true'] .hearth-tablilla:hover {
+  transform: none;
+}
+
+/* Kill-switch CSS (sin JS): mismo frame noble. */
+@media (prefers-reduced-motion: reduce) {
+  .hearth-glow,
+  .hearth-lengua--flick,
+  .hearth-ignite,
+  .hearth-hito-pop,
+  .hearth-rise,
+  .hearth-cut__cover {
+    animation: none;
+  }
+  .hearth-glow--a {
+    opacity: 0.8;
+  }
+  .hearth-glow--b {
+    opacity: 0.55;
+  }
+  .hearth-cut__cover {
+    transform: scaleX(0);
+  }
+  .hearth-odo__strip {
+    transition: none;
+  }
+  .hearth-tablilla,
+  .hearth-tablilla:hover {
+    transform: none;
+  }
+}

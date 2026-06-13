@@ -274,19 +274,21 @@ function Ring({ items }) {
               {f.kanji}
             </span>
           </div>
-          <h2 className="text-[26px] font-semibold leading-tight">{f.name}</h2>
+          <h3 className="text-[26px] font-semibold leading-tight">{f.name}</h3>
           <div className="flex items-baseline gap-3">
             <span className="text-[12.5px] opacity-50">{f.anime}</span>
             <span className="font-mono text-sm text-electric" title="ELO base estimado por popularidad. El ranking competitivo real está en /ranking.">ELO base {f.elo}</span>
           </div>
         </div>
-        <nav className="flex" aria-label="Ir a posición">
+        {/* Targets reales de 44×44 (regla táctil); en móvil 10×44px no
+            caben en una fila → flex-wrap a dos filas. */}
+        <nav className="flex flex-wrap justify-center" aria-label="Ir a posición">
           {items.map((c, i) => (
             <button
               key={c.slug}
               onClick={() => goTo(i)}
               aria-label={`Posición ${i + 1}: ${c.name}`}
-              className={`px-1.5 py-1.5 font-mono text-[10px] leading-none transition-colors hover:text-gold ${
+              className={`inline-flex min-h-11 min-w-11 items-center justify-center font-mono text-[10px] leading-none transition-colors hover:text-gold ${
                 i === front ? "text-gold" : "text-fg-muted/60"
               }`}
             >

@@ -1,4 +1,4 @@
-import type { ReactNode } from 'react'
+import type { CSSProperties, ReactNode } from 'react'
 
 type SkeletonVariant = 'card' | 'line' | 'circle' | 'banner' | 'box'
 
@@ -42,16 +42,24 @@ const CONTENT: Partial<Record<SkeletonVariant, ReactNode>> = {
 interface SkeletonProps {
   variant?: SkeletonVariant
   className?: string
+  // Para alturas que vienen de datos (las reservas calibradas de la home):
+  // las clases arbitrarias generadas en runtime no sobreviven el purge de
+  // Tailwind, un style inline sí.
+  style?: CSSProperties
 }
 
-function Skeleton({ variant = 'line', className = '' }: SkeletonProps) {
+function Skeleton({ variant = 'line', className = '', style }: SkeletonProps) {
   const variantClass = VARIANTS[variant] ?? VARIANTS.line
   // Las variantes sin contenido interno SON el ghost: el barrido va en la
   // raíz. card/banner lo llevan en sus spans internos.
   const sweep = CONTENT[variant] ? '' : ' skl'
 
   return (
-    <span className={`block${sweep} ${variantClass} ${className}`} aria-hidden="true">
+    <span
+      className={`block${sweep} ${variantClass} ${className}`}
+      style={style}
+      aria-hidden="true"
+    >
       {CONTENT[variant]}
     </span>
   )

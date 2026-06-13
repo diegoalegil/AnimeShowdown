@@ -159,11 +159,13 @@ test('prefers-reduced-motion desactiva animaciones decorativas clave', async ({ 
   await prepareCriticalPage(page)
   await page.goto('/')
 
-  const marquee = page.locator('.animate-marquee').first()
-  await expect(marquee).toBeVisible()
+  // La capa de luz del hogar respira en bucle (cross-fade de opacity);
+  // con reduced-motion el kill-switch CSS del hearth la deja en seco.
+  const glow = page.locator('.hearth-glow').first()
+  await expect(glow).toBeVisible()
   await expect
     .poll(() =>
-      marquee.evaluate((element) => {
+      glow.evaluate((element) => {
         const style = window.getComputedStyle(element)
         return {
           reducedMotion: window.matchMedia('(prefers-reduced-motion: reduce)').matches,

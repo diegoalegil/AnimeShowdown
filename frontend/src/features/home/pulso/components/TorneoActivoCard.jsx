@@ -11,8 +11,8 @@ function TorneoActivoCard({ torneo }) {
       <PulseCard tono="cyan">
         <CardEyebrow icon={Trophy} label="Torneo activo" tono="text-electric" />
         <p className="text-[13px] text-fg-muted">
-          Sin torneos en marcha ahora mismo. Lanzamos un nuevo bracket cada
-          pocos días — vuelve pronto.
+          Sin torneos en marcha ahora mismo. La comunidad enciende brackets
+          nuevos cada poco — o crea tú el siguiente.
         </p>
       </PulseCard>
     )
