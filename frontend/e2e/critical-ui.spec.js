@@ -199,20 +199,26 @@ test('la navegacion movil no tapa el contenido final al hacer scroll al fondo', 
   await expect(nav).toBeVisible()
   await expect(footer).toBeVisible()
 
-  const clearance = await page.evaluate(() => {
-    const navRect = document
-      .querySelector('nav[aria-label="Navegación móvil principal"]')
-      ?.getBoundingClientRect()
-    const footerLinks = Array.from(document.querySelectorAll('footer a'))
-      .filter((element) => {
-        const rect = element.getBoundingClientRect()
-        const style = window.getComputedStyle(element)
-        return rect.width > 0 && rect.height > 0 && style.visibility !== 'hidden'
-      })
-      .map((element) => element.getBoundingClientRect())
-    const lastLinkBottom = Math.max(...footerLinks.map((rect) => rect.bottom))
-    return navRect ? Math.round(navRect.top - lastLinkBottom) : -1
-  })
+  // El fondo de página puede asentarse un par de frames después del scroll
+  // (contenido lazy / fuentes), así que MEDIMOS CON POLL: leer una sola vez
+  // justo tras el scroll capturaba en CI un estado intermedio (clearance
+  // negativo esporádico) que se corregía al asentar. El poll reintenta la
+  // medición hasta que el hueco es real.
+  const medirClearance = () =>
+    page.evaluate(() => {
+      const navRect = document
+        .querySelector('nav[aria-label="Navegación móvil principal"]')
+        ?.getBoundingClientRect()
+      const footerLinks = Array.from(document.querySelectorAll('footer a'))
+        .filter((element) => {
+          const rect = element.getBoundingClientRect()
+          const style = window.getComputedStyle(element)
+          return rect.width > 0 && rect.height > 0 && style.visibility !== 'hidden'
+        })
+        .map((element) => element.getBoundingClientRect())
+      const lastLinkBottom = Math.max(...footerLinks.map((rect) => rect.bottom))
+      return navRect ? Math.round(navRect.top - lastLinkBottom) : -1
+    })
 
-  expect(clearance).toBeGreaterThanOrEqual(12)
+  await expect.poll(medirClearance, { timeout: 5000 }).toBeGreaterThanOrEqual(12)
 })
