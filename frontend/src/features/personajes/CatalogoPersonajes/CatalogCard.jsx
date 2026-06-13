@@ -4,6 +4,7 @@ import { AppLink } from '../../../components/AppLink'
 import PersonajeImg from '../../../components/PersonajeImg'
 import { getStatsPersonaje } from '../../../lib/personajes-core'
 import { markPersonajeHero } from '../../../lib/viewTransitions'
+import KanbanTooltip from '../../../components/KanbanTooltip'
 import './catalogo-archivo.css'
 
 /**
@@ -101,21 +102,25 @@ function CatalogCardBadges({ rank, elo, nombre, anime }) {
   return (
     <>
       {rank && rank <= 10 && (
-        <span
-          className="absolute left-2 top-2 inline-flex items-center gap-0.5 rounded-md border border-medal-gold/50 bg-black/80 px-1.5 py-0.5 font-mono text-[10px] font-extrabold text-medal-gold"
-          title="Posición en el ranking del catálogo por ELO base estimado. El ranking competitivo real se mueve con votos en /ranking."
-        >
-          #{rank}
-        </span>
+        <KanbanTooltip content="Posición del catálogo por ELO base estimado. El ranking competitivo real se mueve con votos en /ranking.">
+          <span className="absolute left-2 top-2 inline-flex items-center gap-0.5 rounded-md border border-medal-gold/50 bg-black/80 px-1.5 py-0.5 font-mono text-[10px] font-extrabold text-medal-gold">
+            #{rank}
+          </span>
+        </KanbanTooltip>
       )}
-      <span
-        className="absolute right-2 top-2 inline-flex items-center gap-1 rounded-md border border-accent/40 bg-black/80 px-1.5 py-0.5 font-mono text-[10px] font-extrabold text-gold"
-        title="ELO base estimado por popularidad. El ranking competitivo real está en /ranking."
-        aria-label={`${elo} ELO base estimado`}
+      <KanbanTooltip
+        variant="data"
+        value={String(elo)}
+        label="ELO base estimado por popularidad — el competitivo real vive en /ranking"
       >
-        {elo}
-        <span className="ml-0.5 text-[8px] font-bold text-gold">·b</span>
-      </span>
+        <span
+          className="absolute right-2 top-2 inline-flex items-center gap-1 rounded-md border border-accent/40 bg-black/80 px-1.5 py-0.5 font-mono text-[10px] font-extrabold text-gold"
+          aria-label={`${elo} ELO base estimado`}
+        >
+          {elo}
+          <span className="ml-0.5 text-[8px] font-bold text-gold">·b</span>
+        </span>
+      </KanbanTooltip>
       <div className="pointer-events-none absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/95 via-black/60 to-transparent p-3.5 pt-10">
         <h3 className="line-clamp-1 text-sm font-bold text-fg-strong">{nombre}</h3>
         <p className="line-clamp-1 text-[12px] text-fg-muted">{anime}</p>

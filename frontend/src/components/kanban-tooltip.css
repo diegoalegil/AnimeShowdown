@@ -1,0 +1,183 @@
+/* ============================================================================
+   KanbanTooltip («Las etiquetas del archivo») — pegar en index.css.
+   Tablilla kanban colgada de un hilo de 1px; pliegue de papel como flecha.
+   Solo anima transform/opacity. Sin blur ni filtros (regla Safari del repo).
+   ========================================================================= */
+
+/* Capa singleton: left/top los escribe el JS (una vez por apertura / rAF en
+   scroll); NUNCA se animan — el movimiento vive en .kt-swing. */
+.kt-layer {
+  position: fixed;
+  left: 0;
+  top: 0;
+  z-index: 60;
+  display: none;
+  pointer-events: none;
+}
+
+.kt-swing {
+  position: relative;
+  will-change: transform, opacity;
+}
+
+/* — coreografía — */
+
+/* Colgado: desciende 4px con UN balanceo de péndulo (2° → −1° → 0°).
+   transform-origin = punto del hilo (lo fija el JS). */
+.kt-enter {
+  animation: kt-hang 240ms var(--ease-lift) both;
+}
+
+/* Cadena (gracia 400ms): el siguiente tooltip entra sin delay y sin
+   re-balanceo — micro-fade para que el cambio de contenido no corte. */
+.kt-enter-chain {
+  animation: kt-chain-in 60ms ease-out both;
+}
+
+.kt-leave {
+  animation: kt-fade-out 120ms ease-in both;
+}
+
+@keyframes kt-hang {
+  0% {
+    opacity: 0;
+    transform: translateY(-4px) rotate(2deg);
+  }
+  42% {
+    opacity: 1;
+    transform: translateY(0) rotate(2deg);
+  }
+  75% {
+    transform: translateY(0) rotate(-1deg);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0) rotate(0deg);
+  }
+}
+
+@keyframes kt-chain-in {
+  from {
+    opacity: 0.55;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes kt-fade-out {
+  to {
+    opacity: 0;
+  }
+}
+
+/* — la tablilla (papel surface + hairline oro) — */
+
+.kt-tablet {
+  position: relative;
+  z-index: 1;
+  box-sizing: border-box;
+  max-width: min(17.5rem, calc(100vw - 1rem)); /* nunca desborda a 390px */
+  padding: 0.5625rem 0.8125rem;
+  border: 1px solid var(--color-border-gold);
+  border-radius: var(--radius-lg);
+  background:
+    linear-gradient(180deg, color-mix(in srgb, var(--color-fg-strong) 5%, transparent), color-mix(in srgb, var(--color-fg-strong) 1.5%, transparent)),
+    var(--color-surface);
+  box-shadow: var(--inset-shadow-hairline), var(--shadow-elev-1);
+}
+
+/* Variante AYUDA: texto, máx. 2 líneas. */
+.kt-help {
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+  overflow: hidden;
+  font-size: 0.8125rem;
+  line-height: 1.45;
+  color: var(--color-fg);
+}
+
+/* Variante DATO: valor grande en mono + label pequeño (ELO, odds, fechas). */
+.kt-value {
+  font-family: var(--font-mono);
+  font-variant-numeric: tabular-nums;
+  font-size: 1.25rem;
+  line-height: 1.15;
+  font-weight: 600;
+  color: var(--color-gold);
+  white-space: nowrap;
+}
+
+.kt-label {
+  margin-top: 2px;
+  font-size: var(--text-2xs);
+  line-height: 1.35;
+  color: var(--color-fg-muted);
+}
+
+/* — hilo, ojal y pliegue (la flecha NO es el triángulo CSS de siempre) — */
+
+/* Hilo de 1px desde el ancla; left/top/origin los fija el JS para que siga
+   clavado al ancla aunque el clamp desplace la tablilla. */
+.kt-thread {
+  position: absolute;
+  z-index: 2;
+  width: 1px;
+  height: 8px;
+  background: linear-gradient(180deg, color-mix(in srgb, var(--color-gold) 15%, transparent), color-mix(in srgb, var(--color-gold) 80%, transparent));
+}
+
+.kt-layer[data-side='top'] .kt-thread {
+  background: linear-gradient(0deg, color-mix(in srgb, var(--color-gold) 15%, transparent), color-mix(in srgb, var(--color-gold) 80%, transparent));
+}
+
+/* Ojal: el agujero troquelado por el que pasa el hilo. */
+.kt-hole {
+  position: absolute;
+  z-index: 3;
+  box-sizing: border-box;
+  width: 6px;
+  height: 6px;
+  border: 1px solid color-mix(in srgb, var(--color-gold) 80%, transparent);
+  border-radius: 50%;
+  background: var(--color-canvas);
+}
+
+/* Pliegue de papel: rombo a dos aguas (cara iluminada / cara en sombra) que
+   asoma media altura por el canto de la tablilla. */
+.kt-fold {
+  position: absolute;
+  z-index: 0;
+  box-sizing: border-box;
+  width: 14px;
+  height: 14px;
+  transform: rotate(45deg);
+  border: 1px solid color-mix(in srgb, var(--color-gold) 50%, transparent);
+  border-radius: 2px;
+  background: linear-gradient(135deg, color-mix(in srgb, var(--color-surface-alt) 70%, var(--color-border)) 46%, color-mix(in srgb, var(--color-bg) 70%, var(--color-surface)) 54%);
+}
+
+/* — reduced motion: fade sin péndulo — */
+
+@media (prefers-reduced-motion: reduce) {
+  .kt-enter {
+    animation: kt-chain-in 120ms ease-out both;
+  }
+}
+
+/* — progressive enhancement: CSS anchor positioning —
+   Activado desde JS con .kt-anchored SOLO tras el kill-switch
+   KT_USE_NATIVE_ANCHOR (NOTAS-HANDOFF §3): el flip lo haría position-try,
+   pero el pliegue/hilo siguen necesitando la medida del clamp, así que el
+   camino medido sigue siendo el canónico hasta validar Safari. */
+@supports (anchor-name: --kt-a) {
+  .kt-layer.kt-anchored {
+    position-anchor: --kt-a;
+    position-area: block-end;
+    position-try-fallbacks: flip-block;
+    justify-self: anchor-center;
+    margin: 12px 8px;
+    inset: auto;
+  }
+}
