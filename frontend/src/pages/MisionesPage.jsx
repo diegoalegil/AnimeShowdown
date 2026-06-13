@@ -13,7 +13,6 @@ import {
 import { useSeo } from '../hooks/useSeo'
 import { breadcrumbsSchema } from '../lib/schema'
 import JsonLd from '../components/JsonLd'
-import DailyMissionPanel from '../components/DailyMissionPanel'
 import PersonalRankingTeaser from '../components/PersonalRankingTeaser'
 import { CinematicHero, VisualPageShell } from '../components/VisualSystem'
 import { BRAND_VISUALS } from '../data/visual-assets'
@@ -26,6 +25,7 @@ import {
   readRecentDailyProgress,
   recordDailyShare,
 } from '../lib/dailyProgress'
+import StampCard from '../features/misiones/StampCard'
 import { shareOrCopy } from '../lib/share'
 
 function MisionesPage() {
@@ -46,6 +46,73 @@ function MisionesPage() {
   const progress = readDailyProgress()
   const streak = readDailyStreak()
   const days = readRecentDailyProgress(14)
+
+  // Adaptadores de la cartilla de sellos. TZ: el dia se calcula con el
+  // reloj LOCAL (fechaDelDia actual del repo); cuando el backend exponga
+  // serverNow/resetAt, estos adaptadores los toman tal cual.
+  const week = readRecentDailyProgress(7).map((day, i, arr) => {
+    const fecha = new Date(day.date + 'T12:00:00')
+    const done =
+      (day.votes >= DAILY_VOTE_TARGET ? 1 : 0) +
+      (day.gamesCompleted >= DAILY_GAME_TARGET ? 1 : 0) +
+      (day.rankingViewed ? 1 : 0)
+    return {
+      key: day.date,
+      dayNum: fecha.getDate(),
+      weekdayShort: fecha.toLocaleDateString('es-ES', { weekday: 'short' }).replace('.', ''),
+      weekdayLong: fecha.toLocaleDateString('es-ES', { weekday: 'long' }),
+      done,
+      total: 3,
+      isToday: i === arr.length - 1,
+      isPast: i < arr.length - 1,
+    }
+  })
+  const cartillaMissions = [
+    {
+      id: 'votos',
+      kanji: '\u7968',
+      label: 'Vota ' + DAILY_VOTE_TARGET + ' duelos',
+      progress: Math.min(progress.votes, DAILY_VOTE_TARGET) + '/' + DAILY_VOTE_TARGET + ' votos',
+      reward: 'monedas al completar',
+      state: progress.votes >= DAILY_VOTE_TARGET ? 'completed' : 'pending',
+    },
+    {
+      id: 'juego',
+      kanji: '\u6226',
+      label: 'Juega un daily trial',
+      progress: Math.min(progress.gamesCompleted, DAILY_GAME_TARGET) + '/' + DAILY_GAME_TARGET + ' juego',
+      reward: 'monedas al completar',
+      state: progress.gamesCompleted >= DAILY_GAME_TARGET ? 'completed' : 'pending',
+    },
+    {
+      id: 'ranking',
+      kanji: '\u89a7',
+      label: 'Revisa el ranking',
+      progress: progress.rankingViewed ? 'visto' : 'pendiente',
+      reward: 'monedas al completar',
+      state: progress.rankingViewed ? 'completed' : 'pending',
+    },
+  ]
+  const semanaFin = new Date((week.at(-1)?.key ?? progress.date) + 'T12:00:00')
+  const semanaIni = new Date((week[0]?.key ?? progress.date) + 'T12:00:00')
+  const weekLabel = semanaIni.getDate() + ' \u2013 ' + semanaFin.getDate() + ' ' + semanaFin.toLocaleDateString('es-ES', { month: 'short' }).replace('.', '')
+  // Reset de medianoche: reloj fuera del render (regla del Compiler) y
+  // con paso de MINUTO, no de segundo.
+  const [resetLabel, setResetLabel] = useState('')
+  useEffect(() => {
+    const calcula = () => {
+      const medianoche = new Date()
+      medianoche.setHours(24, 0, 0, 0)
+      const mins = Math.max(0, Math.round((medianoche.getTime() - Date.now()) / 60000))
+      setResetLabel(Math.floor(mins / 60) + ' h ' + String(mins % 60).padStart(2, '0') + ' min')
+    }
+    const primero = setTimeout(calcula, 0)
+    const cada = setInterval(calcula, 60000)
+    return () => {
+      clearTimeout(primero)
+      clearInterval(cada)
+    }
+  }, [])
   const completedDays = days.filter((day) => day.completed).length
   const startedDays = days.filter(
     (day) => day.votes > 0 || day.gamesCompleted > 0 || day.rankingViewed,
@@ -138,7 +205,16 @@ function MisionesPage() {
           }
         />
 
-        <DailyMissionPanel className="mb-6" />
+        {/* La cartilla de sellos: las 3 misiones de hoy como botones-sello
+            y la semana como casillas con cordon de racha. */}
+        <StampCard
+          className="mb-6"
+          weekLabel={weekLabel}
+          week={week}
+          missions={cartillaMissions}
+          streak={streak.current}
+          resetLabel={resetLabel}
+        />
 
         <PersonalRankingTeaser className="mb-6" compact />
 
