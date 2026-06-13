@@ -8,13 +8,15 @@ import { useEffect, useState } from 'react'
  * predictible — la sección padre tiene su propio whileInView y para cuando el
  * user scrollea aquí los counters ya tienen valor estable.
  */
-function CountUp({ target, duration = 1.6, suffix = '' }) {
+function CountUp({ target, duration = 1.6, suffix = '', instant = false }) {
   const [value, setValue] = useState(0)
   // Cuando target no es animable (no número o 0) renderizamos el valor
   // directamente sin pasar por setState dentro del effect — el lint de
   // react-compiler marca el setState síncrono al inicio de un effect
   // como cascading render. Render derivado evita el problema.
-  const inanimable = typeof target !== 'number' || target === 0
+  // instant (prefers-reduced-motion / calma): la cifra aparece asentada
+  // sin rAF — misma vía de render derivado que el caso inanimable.
+  const inanimable = typeof target !== 'number' || target === 0 || instant
   const display = inanimable ? (target || 0) : value
 
   useEffect(() => {

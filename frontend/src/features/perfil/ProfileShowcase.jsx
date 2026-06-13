@@ -7,7 +7,7 @@
  *                vacío + propio → CTA informativo · vacío + ajeno → línea discreta
  *   · carta      llena → carta 2:3 con ELO · vacía + propio → tile informativo
  *                vacía + ajeno → el bloque SE OMITE (el flujo de carta de
- *                perfil no existe aún — PR #282 en hold)
+ *                perfil no existe aún — PR num. 282 en hold)
  *
  * Stagger 50ms continuo por toda la vitrina vía --fp-i (CSS en fighter-profile.css).
  */
@@ -113,9 +113,15 @@ function BloqueTop5({ top5, esPropio, votarHref, hrefPersonaje }) {
                 style={{ '--fp-i': i }}
               >
                 {hrefPersonaje ? (
-                  /* AppLink: navegación con view transition (morph
-                     personaje-hero de lib/viewTransitions.js) */
-                  <AppLink className="fp-mini-link" to={hrefPersonaje(p.slug)}>
+                  /* AppLink: navega con la transición de PÁGINA estándar
+                     (cross-fade de root); NO marca el morph personaje-hero
+                     (eso requeriría markPersonajeHero al click). title para
+                     que el nombre truncado por ellipsis sea legible al hover. */
+                  <AppLink
+                    className="fp-mini-link"
+                    to={hrefPersonaje(p.slug)}
+                    title={p.nombre}
+                  >
                     {inner}
                   </AppLink>
                 ) : (
@@ -149,7 +155,11 @@ function BloqueLogros({ logros, esPropio, baseIndex }) {
     <section className="fp-sec">
       <SecTitle kanji="印">Últimos logros</SecTitle>
       {logros.length ? (
-        <ul className="fp-medals">
+        /* Fila de medallas DECORATIVA (aria-hidden): la lista accesible e
+           interactiva de logros, con nombres visibles, vive en CardLogros
+           justo debajo — duplicar el nombre por placa aquí solo añadiría
+           ruido al lector de pantalla. El title da el nombre al hover. */
+        <ul className="fp-medals" aria-hidden="true">
           {logros.map((l, i) => (
             /* rotación determinista por índice (nada de Math.random en render) */
             <li
@@ -158,8 +168,7 @@ function BloqueLogros({ logros, esPropio, baseIndex }) {
               style={{ '--fp-i': baseIndex + i, '--fp-rot': `${((i * 7) % 9) - 4}deg` }}
               title={l.nombre}
             >
-              <span aria-hidden="true" lang="ja">{l.kanji}</span>
-              <span className="fp-sr">{l.nombre}</span>
+              <span lang="ja">{l.kanji}</span>
             </li>
           ))}
         </ul>
@@ -204,7 +213,14 @@ function BloqueCarta({ carta, esPropio, baseIndex, onElegirCarta }) {
       ) : (
         <div className="fp-cta-tile fp-v-item" style={{ '--fp-i': baseIndex }}>
           <span className="fp-cta-kanji" aria-hidden="true" lang="ja">王</span>
-          <p>Elige la carta que te representa en los duelos.</p>
+          {/* copy informativo (no imperativo): el flujo de elegir carta de
+              perfil aún no existe; el botón se reactiva solo si llega
+              onElegirCarta — entonces el copy imperativo tendría sentido. */}
+          <p>
+            {onElegirCarta
+              ? 'Elige la carta que te representa en los duelos.'
+              : 'Pronto podrás destacar aquí la carta que te representa.'}
+          </p>
           {onElegirCarta ? (
             <button type="button" className="fp-tablilla" onClick={onElegirCarta}>
               Elegir carta

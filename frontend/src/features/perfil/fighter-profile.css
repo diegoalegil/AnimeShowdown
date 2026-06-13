@@ -32,6 +32,10 @@
   width: 100%;
   height: 100%;
   object-fit: cover;
+  /* el fallback usa el arte 2:3 del favorito como estandarte apaisado:
+     anclar arriba muestra la cara, no el recorte central (precedente:
+     AnimeCinematicHero 50% 30%, Top5Altar top) */
+  object-position: 50% 28%;
 }
 .fp-banner-scrim {
   position: absolute;

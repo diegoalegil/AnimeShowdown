@@ -17,14 +17,14 @@
  *
  * Datos NO disponibles hoy (degradan en silencio, documentado):
  *   - selloKanji (sello personal): solo se pinta si llega la prop.
- *   - cartaDestacada: el flujo de carta de perfil no existe aún (PR #282
+ *   - cartaDestacada: el flujo de carta de perfil no existe aún (PR num. 282
  *     quedó en hold) — el bloque se omite para ajenos y queda informativo
  *     para el propio usuario.
  */
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import './fighter-profile.css'
 import ProfileShowcase from './ProfileShowcase'
-import { usePrefersReducedMotion, useRevealOnce } from './fpHooks'
+import { usePrefersReducedMotion } from './fpHooks'
 import Avatar from '../../components/Avatar'
 import CountUp from '../../components/CountUp'
 import { useSound } from '../../contexts/SoundContext'
@@ -52,18 +52,27 @@ export default function FighterProfile({
   const { play } = useSound()
   const [stamped, setStamped] = useState(false)
 
+  // `play` cambia de identidad con el mute global (useCallback sobre [muted]);
+  // leerla por ref mantiene el sello como one-shot por montaje y evita que el
+  // golpe se re-dispare al des-mutear (mismo patrón que VoteVerdict).
+  const playRef = useRef(play)
+  useEffect(() => {
+    playRef.current = play
+  })
+
   /* el golpe se arma en el primer frame pintado (setState dentro de rAF: legal) */
   useEffect(() => {
     const raf = requestAnimationFrame(() => setStamped(true))
     return () => cancelAnimationFrame(raf)
   }, [])
 
-  /* sonido en el contacto del hanko (t+300ms; directo con reduced-motion) */
+  /* sonido en el contacto del hanko (t+300ms; directo con reduced-motion);
+     mount-only: suena una vez por montaje, independiente del toggle de mute */
   useEffect(() => {
     if (!stamped) return undefined
-    const t = setTimeout(() => play('playVerdictStamp'), reduced ? 0 : 300)
+    const t = setTimeout(() => playRef.current('playVerdictStamp'), reduced ? 0 : 300)
     return () => clearTimeout(t)
-  }, [stamped, reduced, play])
+  }, [stamped, reduced])
 
   /* estandarte: banner subido o, si no hay, el arte del favorito (regla actual) */
   const bannerSrc = perfil.bannerUrl || perfil.top?.[0]?.imagenUrl || null
@@ -169,23 +178,38 @@ function medallasRecientes(logros) {
     }))
 }
 
-/** Fila de KPIs acuñados; CountUp asienta las cifras al montar. */
-function KpiGrid({ stats, miembroDesde }) {
-  const [ref] = useRevealOnce(0.4)
+/**
+ * Fila de KPIs acuñados. CountUp asienta las cifras al montar (instant con
+ * reduced-motion). Recupera las métricas que el perfil viejo mostraba en
+ * CardStats — predicciones y torneos — todas con degradado HONESTO a "—"
+ * cuando aún no hay datos (nunca un 0/1000 engañoso).
+ */
+function KpiGrid({ stats, miembroDesde, reduced }) {
   const eloPvp = stats?.pvpPartidos > 0 ? stats.eloPvp : null
+  const pctAciertos =
+    stats?.prediccionesResueltas > 0 ? Math.round(stats.porcentajeAciertos ?? 0) : null
+  const torneos = Number(stats?.torneosCreados ?? 0)
   return (
-    <dl className="fp-kpis-grid" ref={ref}>
+    <dl className="fp-kpis-grid">
       <div className="fp-kpi">
         <dt>Votos emitidos</dt>
-        <dd><CountUp target={Number(stats?.votosTotales ?? 0)} /></dd>
+        <dd><CountUp target={Number(stats?.votosTotales ?? 0)} instant={reduced} /></dd>
       </div>
       <div className="fp-kpi">
-        <dt>Logros</dt>
-        <dd><CountUp target={Number(stats?.badgesDesbloqueados ?? 0)} /></dd>
+        <dt>% Aciertos</dt>
+        <dd>{pctAciertos != null ? <CountUp target={pctAciertos} suffix="%" instant={reduced} /> : '—'}</dd>
+      </div>
+      <div className="fp-kpi">
+        <dt>Torneos creados</dt>
+        <dd><CountUp target={torneos} instant={reduced} /></dd>
       </div>
       <div className="fp-kpi">
         <dt>ELO duelo</dt>
-        <dd>{eloPvp != null ? <CountUp target={eloPvp} /> : '—'}</dd>
+        <dd>{eloPvp != null ? <CountUp target={eloPvp} instant={reduced} /> : '—'}</dd>
+      </div>
+      <div className="fp-kpi">
+        <dt>Logros</dt>
+        <dd><CountUp target={Number(stats?.badgesDesbloqueados ?? 0)} instant={reduced} /></dd>
       </div>
       <div className="fp-kpi">
         <dt>Miembro desde</dt>
