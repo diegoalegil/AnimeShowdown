@@ -19,7 +19,7 @@
  * Sin loops infinitos (el humo de secretos del diseño original quedó
  * fuera: el producto no tiene logros secretos hoy).
  */
-import { useState, useEffect, useMemo } from 'react'
+import { useState, useEffect, useMemo, useRef } from 'react'
 import { brandImage } from '../../lib/brand-assets'
 import { useSound } from '../../contexts/SoundContext'
 import './trophy-hall.css'
@@ -66,16 +66,20 @@ function Glifo({ item }) {
 function Medalla({ item, tier, estampando, sinEstampar, entrada, indice, destacada }) {
   const lograda = Boolean(item.unlocked) && !sinEstampar
 
-  let ariaLabel
-  if (estampando) {
-    ariaLabel = `${item.nombre}: ${item.descripcion}, conseguido ahora mismo`
-  } else if (lograda && item.fecha) {
-    ariaLabel = `${item.nombre}: ${item.descripcion}, conseguido el ${FECHA_LARGA.format(fechaLocal(item.fecha))}`
-  } else if (lograda) {
-    ariaLabel = `${item.nombre}: ${item.descripcion}`
-  } else {
-    ariaLabel = `${item.nombre}: ${item.descripcion}, pendiente`
-  }
+  // count comunitario: dato social, va en el aria-label de TODA medalla (no
+  // solo las pendientes) — antes los logros conseguidos lo perdían.
+  const countTxt =
+    item.count != null
+      ? `, ${item.count} ${item.count === 1 ? 'persona lo tiene' : 'personas lo tienen'}`
+      : ''
+  let estado
+  if (estampando) estado = ', conseguido ahora mismo'
+  else if (lograda && item.fecha) estado = `, conseguido el ${FECHA_LARGA.format(fechaLocal(item.fecha))}`
+  else if (lograda) estado = ', conseguido'
+  else estado = ', pendiente'
+  const ariaLabel =
+    `${item.nombre}: ${item.descripcion}${estado}${countTxt}` +
+    (destacada ? ' (resaltado por enlace)' : '')
 
   const cls =
     'th-medal' +
@@ -90,7 +94,7 @@ function Medalla({ item, tier, estampando, sinEstampar, entrada, indice, destaca
       <button
         type="button"
         className={cls}
-        style={{ '--th-i': indice, '--th-p': lograda ? 1 : 0, '--th-tier': `var(--color-medal-${tier})` }}
+        style={{ '--th-i': indice, '--th-tier': `var(--color-medal-${tier})` }}
         aria-label={ariaLabel}
         title={ariaLabel}
       >
@@ -103,14 +107,22 @@ function Medalla({ item, tier, estampando, sinEstampar, entrada, indice, destaca
         </span>
         <span className="th-caption">
           <span className="th-name">{item.nombre}</span>
-          {lograda && item.fecha ? (
-            <span className="th-meta">{FECHA_CORTA.format(fechaLocal(item.fecha))}</span>
+          {lograda ? (
+            <span className="th-meta">
+              {item.fecha ? FECHA_CORTA.format(fechaLocal(item.fecha)) : 'conseguido'}
+              {item.count != null ? (
+                <span className="th-meta--count">
+                  {' · '}
+                  {item.count.toLocaleString('es-ES')} {item.count === 1 ? 'lo tiene' : 'lo tienen'}
+                </span>
+              ) : null}
+            </span>
           ) : item.count != null ? (
             <span className="th-meta th-meta--count">
               {item.count.toLocaleString('es-ES')} {item.count === 1 ? 'lo tiene' : 'lo tienen'}
             </span>
           ) : (
-            <span className="th-meta">{lograda ? 'conseguido' : 'pendiente'}</span>
+            <span className="th-meta">pendiente</span>
           )}
         </span>
       </button>
@@ -124,7 +136,9 @@ function Medalla({ item, tier, estampando, sinEstampar, entrada, indice, destaca
 function MedalShelf({ shelf, logueado, logroDestacado, estampandoId, pendientes, entrada }) {
   const logradas = shelf.items.filter((l) => l.unlocked && !pendientes.has(l.codigo)).length
   const completa = logueado && shelf.items.length > 0 && logradas === shelf.items.length
-  const idHead = `th-cat-${shelf.name}`
+  // id slug-safe por rareza (los nombres con espacio — "Poco comunes" —
+  // producían un id inválido y la sección perdía su nombre accesible)
+  const idHead = `th-cat-${shelf.value ?? shelf.name.replace(/\s+/g, '-')}`
 
   return (
     <section
@@ -170,6 +184,10 @@ function MedalShelf({ shelf, logueado, logroDestacado, estampandoId, pendientes,
  * @param {(codigos: string[]) => void} [props.onEstampadosVistos]
  *   fin de la cola de estampado — persistir el registro local
  */
+// tope de estampados con ceremonia a la vez: el resto se asienta al instante.
+// 5 × 1400ms ≈ 7s de ceremonia como mucho; sin tope, 30 logros = 42s bloqueantes.
+const MAX_CEREMONIA = 5
+
 function TrophyHall({ estanterias, logueado = false, logroDestacado = null, onEstampadosVistos }) {
   const { play } = useSound()
 
@@ -178,21 +196,53 @@ function TrophyHall({ estanterias, logueado = false, logroDestacado = null, onEs
     () => (logueado ? todos.filter((l) => l.nuevo && l.unlocked).map((l) => l.codigo) : []),
     [todos, logueado],
   )
+  // clave por CONTENIDO: una query tardía (stats) recalcula `estanterias` y da
+  // arrays nuevos con los MISMOS códigos → sin esto el effect haría cleanup y
+  // reiniciaría la ceremonia en vuelo. Con la clave, solo re-corre si los
+  // códigos cambian de verdad (p.ej. un badge nuevo por WS).
+  const nuevosKey = codigosNuevos.join('|')
 
-  // inicializador PURO (función de props): seguro bajo StrictMode doble-mount
+  // inicializador PURO: con el gate del padre (espera a `mios`), codigosNuevos
+  // ya está poblado al montar; el effect concilia los que lleguen después.
   const [pendientes, setPendientes] = useState(() => new Set(codigosNuevos))
   const [estampandoId, setEstampandoId] = useState(null)
   const [anuncio, setAnuncio] = useState('')
 
+  // refs estables (play cambia de identidad con el mute; los callbacks/datos no
+  // deben re-disparar ni interrumpir la ceremonia)
+  const playRef = useRef(play)
+  const onVistosRef = useRef(onEstampadosVistos)
+  const todosRef = useRef(todos)
+  const yaCeremoniados = useRef(new Set()) // códigos ya estampados esta sesión
   useEffect(() => {
-    if (codigosNuevos.length === 0) return undefined
-    const porCodigo = new Map(todos.map((l) => [l.codigo, l]))
+    playRef.current = play
+    onVistosRef.current = onEstampadosVistos
+    todosRef.current = todos
+  })
+
+  useEffect(() => {
+    const aCeremoniar = codigosNuevos.filter((c) => !yaCeremoniados.current.has(c))
+    if (aCeremoniar.length === 0) return undefined
+    aCeremoniar.forEach((c) => yaCeremoniados.current.add(c))
+    const porCodigo = new Map(todosRef.current.map((l) => [l.codigo, l]))
+    const conCeremonia = aCeremoniar.slice(0, MAX_CEREMONIA)
+    const sinCeremonia = aCeremoniar.slice(MAX_CEREMONIA)
     const timers = []
-    codigosNuevos.forEach((codigo, i) => {
+    // siembra siluetas de los que llegan tarde (WS) + asienta al instante el
+    // excedente del tope (setState en callback de timer = legal con Compiler)
+    timers.push(setTimeout(() => {
+      setPendientes((prev) => {
+        const s = new Set(prev)
+        conCeremonia.forEach((c) => s.add(c))
+        sinCeremonia.forEach((c) => s.delete(c))
+        return s
+      })
+    }, 0))
+    conCeremonia.forEach((codigo, i) => {
       const t0 = 700 + i * 1400 // 700ms deja asentarse la entrada
       timers.push(setTimeout(() => {
         setEstampandoId(codigo) // arranca th-stamp (380ms) + sangrado + barrido
-        play('playVerdictStamp')
+        playRef.current('playVerdictStamp')
       }, t0))
       timers.push(setTimeout(() => {
         // el contador rueda cuando el sello ya "tocó" la madera
@@ -208,10 +258,14 @@ function TrophyHall({ estanterias, logueado = false, logroDestacado = null, onEs
       }, t0 + 500))
     })
     timers.push(setTimeout(() => {
-      if (onEstampadosVistos) onEstampadosVistos(codigosNuevos)
-    }, 700 + codigosNuevos.length * 1400))
+      // marca vistos TODOS (incl. el excedente sin ceremonia) para no repetir
+      onVistosRef.current?.(aCeremoniar)
+    }, 700 + conCeremonia.length * 1400))
     return () => timers.forEach(clearTimeout)
-  }, [codigosNuevos, todos, play, onEstampadosVistos])
+    // deps por clave de contenido + refs estables: la ceremonia no se reinicia
+    // con queries tardías y solo añade los códigos genuinamente nuevos.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [nuevosKey])
 
   const total = todos.length
   const logrados = todos.filter((l) => l.unlocked && !pendientes.has(l.codigo)).length

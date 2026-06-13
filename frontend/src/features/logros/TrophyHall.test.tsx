@@ -86,7 +86,8 @@ describe('TrophyHall', () => {
     const { container } = render(
       <TrophyHall estanterias={ESTANTERIAS} logueado />,
     )
-    expect(screen.getByText('10 jun 2026')).toBeInTheDocument()
+    // la medalla lograda muestra fecha + count comunitario en la misma meta
+    expect(screen.getByText(/10 jun 2026/)).toBeInTheDocument()
     expect(screen.getByText(/12 lo tienen/)).toBeInTheDocument()
     expect(container.querySelector('.th-counter')).not.toBeNull()
   })

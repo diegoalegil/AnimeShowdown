@@ -15,7 +15,9 @@
   container-type: inline-size;
   max-width: 1120px;
   margin-inline: auto;
-  padding: clamp(20px, 4cqi, 48px);
+  /* vw, no cqi: un elemento no es su propio container, así que cqi aquí
+     resolvería contra el viewport igualmente — vw lo deja explícito */
+  padding: clamp(20px, 4vw, 48px);
   color: var(--color-fg);
   font-family: var(--font-sans);
 }
@@ -90,8 +92,9 @@
 .th-odo__reel {
   display: flex;
   flex-direction: column;
+  /* la propia transition promueve capa lo justo al rodar; will-change
+     permanente mantenía una capa de compositor por dígito en reposo */
   transition: transform 450ms var(--ease-lift);
-  will-change: transform;
 }
 
 .th-odo__reel > span {
@@ -244,6 +247,9 @@
   inset: 0;
   border-radius: 50%;
   overflow: hidden;
+  /* aísla el barrido (th-sweep) dentro del disco circular: en Safari el
+     overflow:hidden + border-radius puede dejar escapar un hijo transformado */
+  isolation: isolate;
   display: grid;
   place-items: center;
   transition: box-shadow 180ms var(--ease-lift);
@@ -305,74 +311,6 @@
   color: color-mix(in srgb, var(--color-fg) 26%, transparent);
 }
 
-/* tinta de progreso real: altura estatica (no se anima) */
-.th-ink {
-  position: absolute;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  height: calc(var(--th-p, 0) * 100%);
-  background: linear-gradient(
-    to top,
-    color-mix(in srgb, var(--color-accent) 36%, transparent),
-    color-mix(in srgb, var(--color-accent) 22%, transparent)
-  );
-  border-top: 1px solid color-mix(in srgb, var(--color-accent-text) 45%, transparent);
-}
-
-/* secreta: solo el nombre oculto; humo de tinta sin blur */
-.th-medal.is-secreta .th-disc {
-  border-style: solid;
-  background: color-mix(in srgb, var(--color-surface) 70%, transparent);
-}
-
-.th-medal.is-secreta .th-disc__kanji {
-  color: color-mix(in srgb, var(--color-fg) 32%, transparent);
-  font-size: calc(var(--th-medal) * 0.38);
-}
-
-.th-smoke {
-  position: absolute;
-  left: 5%;
-  bottom: 8%;
-  width: 90%;
-  height: 62%;
-  border-radius: 50%;
-  background: radial-gradient(
-    closest-side,
-    color-mix(in srgb, var(--color-fg) 10%, transparent),
-    transparent 72%
-  );
-  animation: th-smoke-a 8s ease-in-out infinite alternate;
-  will-change: transform, opacity;
-  pointer-events: none;
-}
-
-.th-smoke + .th-smoke {
-  left: auto;
-  right: 0;
-  bottom: 22%;
-  width: 70%;
-  height: 52%;
-  animation: th-smoke-b 11s ease-in-out infinite alternate;
-}
-
-@keyframes th-smoke-a {
-  from { transform: translate(-10%, 16%) scale(0.9);  opacity: 0.3; }
-  to   { transform: translate(8%, -14%)  scale(1.12); opacity: 0.65; }
-}
-
-@keyframes th-smoke-b {
-  from { transform: translate(8%, -6%)  scale(1.05); opacity: 0.5; }
-  to   { transform: translate(-12%, 12%) scale(0.85); opacity: 0.2; }
-}
-
-/* los loops decorativos se pausan con la sala en calma / pestana oculta */
-html.as-calm .th-smoke,
-html.as-tab-hidden .th-smoke {
-  animation-play-state: paused;
-}
-
 /* ---- caption ------------------------------------------------ */
 
 .th-caption {
@@ -399,22 +337,6 @@ html.as-tab-hidden .th-smoke {
   font-family: var(--font-mono);
   font-size: var(--text-2xs);
   color: var(--color-fg-muted);
-}
-
-/* barra de tinta fina del progreso */
-.th-bar {
-  display: block;
-  width: 56px;
-  height: 2px;
-  margin-top: 2px;
-  background: color-mix(in srgb, var(--color-fg) 14%, transparent);
-}
-
-.th-bar__fill {
-  display: block;
-  height: 100%;
-  width: calc(var(--th-p, 0) * 100%);
-  background: var(--color-accent-hover);
 }
 
 /* ---- coreografia: entrada ----------------------------------- */
@@ -512,11 +434,6 @@ html.as-tab-hidden .th-smoke {
     animation: none;
   }
 
-  .th-smoke {
-    animation: none;
-    opacity: 0.35;
-  }
-
   .th-odo__reel {
     transition: none;
   }
@@ -543,7 +460,9 @@ html.as-tab-hidden .th-smoke {
 
 /* Meta de comunidad bajo la medalla (dato existente del catálogo). */
 .th-meta--count {
-  color: color-mix(in srgb, var(--color-gold) 60%, transparent);
+  /* oro mezclado con fg (no con transparent): el 60%-transparent caía bajo
+     AA 4.5:1 sobre la placa; esta mezcla queda ~8.5:1 manteniendo el matiz */
+  color: color-mix(in srgb, var(--color-gold) 90%, var(--color-fg));
 }
 
 /* Arte del hall del banco como capa del propio salón (contrato heredado

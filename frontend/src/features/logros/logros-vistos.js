@@ -9,6 +9,21 @@
 
 const KEY = 'animeshowdown.logros.vistos.v1'
 
+/**
+ * ¿Es la primera vez que este navegador abre la sala? (el registro nunca se
+ * ha escrito). En la primera visita NO se estampa la colección entera: se
+ * siembra el registro con lo ya conseguido, así la ceremonia solo dispara
+ * con logros desbloqueados DESPUÉS de esta visita.
+ * @returns {boolean}
+ */
+export function esPrimeraVisitaLogros() {
+  try {
+    return localStorage.getItem(KEY) === null
+  } catch {
+    return false
+  }
+}
+
 /** @returns {Set<string>} codigos ya estampados en este navegador */
 export function leerLogrosVistos() {
   try {
