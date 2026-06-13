@@ -1,7 +1,9 @@
 import { afterEach, describe, expect, it, vi } from 'vitest'
 import { cleanup, fireEvent, render, screen } from '@testing-library/react'
 
+import { MemoryRouter } from 'react-router-dom'
 import VoteArena from './VoteArena'
+import { SoundProvider } from '../../../contexts/SoundContext'
 
 vi.mock('./VoteCard', () => ({
   default: ({ personaje, isTie }: { personaje: { nombre: string }, isTie?: boolean }) => (
@@ -35,6 +37,8 @@ describe('VoteArena', () => {
   it('muestra la accion neutral y llama a handleTieVote', () => {
     const handleTieVote = vi.fn()
     render(
+      <MemoryRouter>
+      <SoundProvider>
       <VoteArena
         a={a}
         b={b}
@@ -46,7 +50,9 @@ describe('VoteArena', () => {
         handleVoteRight={() => {}}
         handleTieVote={handleTieVote}
         canTie
-      />,
+      />
+      </SoundProvider>
+      </MemoryRouter>,
     )
 
     fireEvent.click(screen.getAllByRole('button', { name: /no puedo decidir/i })[0])
@@ -55,6 +61,8 @@ describe('VoteArena', () => {
 
   it('marca el empate desde el voto optimista, antes de la respuesta', () => {
     render(
+      <MemoryRouter>
+      <SoundProvider>
       <VoteArena
         a={a}
         b={b}
@@ -66,7 +74,9 @@ describe('VoteArena', () => {
         handleVoteRight={() => {}}
         handleTieVote={() => {}}
         canTie
-      />,
+      />
+      </SoundProvider>
+      </MemoryRouter>,
     )
 
     expect(screen.getAllByTestId('vote-card').map((card) => card.dataset.tie)).toEqual([
@@ -77,6 +87,8 @@ describe('VoteArena', () => {
 
   it('marca ambas cartas como empate cuando el resultado es neutral', () => {
     render(
+      <MemoryRouter>
+      <SoundProvider>
       <VoteArena
         a={a}
         b={b}
@@ -88,7 +100,9 @@ describe('VoteArena', () => {
         handleVoteRight={() => {}}
         handleTieVote={() => {}}
         canTie
-      />,
+      />
+      </SoundProvider>
+      </MemoryRouter>,
     )
 
     expect(screen.getAllByTestId('vote-card').map((card) => card.dataset.tie)).toEqual([

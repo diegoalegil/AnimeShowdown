@@ -6,6 +6,7 @@ import { ArrowRight, EyeOff, SkipForward, Swords, Zap } from 'lucide-react'
  * icon-first (texto sr-only hasta el breakpoint sm).
  */
 function VotarTopBar({
+  live = false,
   arenaStatusLabel,
   showChallenge,
   onChallenge,
@@ -20,9 +21,15 @@ function VotarTopBar({
   return (
     <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between sm:gap-3">
       <span className="inline-flex max-w-full items-center gap-1.5 self-start rounded-full border border-border bg-surface px-3 py-1.5 text-[10px] font-semibold text-fg-muted sm:text-[11px]">
+        {/* El latido solo cuando hay directo REAL (modo backend); en casual
+            el punto es estático — señal de en-vivo sin en-vivo es mentira. */}
         <span className="relative inline-flex h-2 w-2">
-          <span className="absolute inline-flex h-full w-full rounded-full bg-success opacity-75 motion-safe:animate-ping" />
-          <span className="relative inline-flex h-2 w-2 rounded-full bg-success" />
+          {live && (
+            <span className="absolute inline-flex h-full w-full rounded-full bg-success opacity-75 motion-safe:animate-ping" />
+          )}
+          <span
+            className={`relative inline-flex h-2 w-2 rounded-full ${live ? 'bg-success' : 'bg-fg-muted/60'}`}
+          />
         </span>
         {arenaStatusLabel}
       </span>

@@ -20,7 +20,7 @@ const base = {
 
 describe('getArenaStatusLabel', () => {
   it('precedencia: backend > duelo fijado > reto > anime > sugerido > aleatorio', () => {
-    expect(getArenaStatusLabel({ ...base, modoBackend: true })).toBe('Match en juego · En vivo')
+    expect(getArenaStatusLabel({ ...base, modoBackend: true })).toBe('Duelo en juego · En vivo')
     expect(getArenaStatusLabel({
       ...base, exactDuelActive: true, fixedPersonaje: luffy, fixedRival: zoro,
     })).toBe('Monkey D. Luffy vs Roronoa Zoro')

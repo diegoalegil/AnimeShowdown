@@ -76,6 +76,12 @@ export function useSaldo() {
  * el badge "tienes la especial" en duelos/votos. Disabled sin user (→ undefined,
  * el consumidor trata como vacío).
  */
+// Identidad estable a nivel de módulo: TanStack v5 cachea el resultado del
+// select por (función, data) — una arrow inline re-corría filter+map+Set en
+// cada render del consumidor (VotarPage, el hot path).
+const selectEspecialesPoseidas = (data) =>
+  new Set((data?.cartas ?? []).filter((c) => c.poseida).map((c) => c.personajeSlug))
+
 export function useMisEspeciales() {
   const { user } = useAuth()
   return useQuery({
@@ -83,8 +89,7 @@ export function useMisEspeciales() {
     queryFn: () => endpoints.coleccionPagina({ rareza: 'ESPECIAL', limit: 120 }),
     enabled: Boolean(user),
     staleTime: 5 * 60 * 1000,
-    select: (data) =>
-      new Set((data?.cartas ?? []).filter((c) => c.poseida).map((c) => c.personajeSlug)),
+    select: selectEspecialesPoseidas,
   })
 }
 

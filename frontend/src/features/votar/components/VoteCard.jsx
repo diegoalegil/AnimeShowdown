@@ -15,6 +15,7 @@ import { EASE_LIFT } from '../../../lib/motion'
 const FALLBACK_DOMINANT_COLOR = 'var(--color-surface)'
 
 const VoteCard = memo(function VoteCard({
+  captionHidden = false,
   personaje,
   onClick,
   disabled,
@@ -161,7 +162,7 @@ const VoteCard = memo(function VoteCard({
                 colorDominante={dominantColor}
                 loading="eager"
                 decoding="async"
-                fetchPriority={side === 'left' ? 'high' : 'auto'}
+                fetchPriority="high"
                 sizes="(max-width: 640px) 42vw, (max-width: 1024px) 38vw, 320px"
                 fit="contain"
                 position="center"
@@ -221,13 +222,9 @@ const VoteCard = memo(function VoteCard({
             particles={false}
             label={isTie ? 'Medio voto' : 'Voto registrado'}
           />
-          {anonymousLimited && !showResult && (
-            <div className="pointer-events-none absolute inset-x-3 bottom-3 rounded-full border border-gold/50 bg-black/70 px-3 py-1.5 text-center text-[11px] font-bold text-gold backdrop-blur-sm">
-              Voto invitado
-            </div>
-          )}
         </div>
       </motion.button>
+      {!captionHidden && (
       <div
         className={`flex min-w-0 flex-col px-1 ${
           side === 'right' ? 'items-end text-right' : 'items-start text-left'
@@ -249,6 +246,7 @@ const VoteCard = memo(function VoteCard({
           </Link>
         )}
       </div>
+      )}
     </div>
   )
 })

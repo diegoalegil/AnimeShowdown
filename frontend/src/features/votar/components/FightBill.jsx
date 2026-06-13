@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useLayoutEffect, useRef, useState } from 'react'
+import { memo, useCallback, useEffect, useLayoutEffect, useRef, useState } from 'react'
 import PersonajeImg from '../../../components/PersonajeImg'
 import { useReducedMotionPref } from '../../../hooks/useReducedMotionPref'
 import './fight-bill.css'
@@ -249,4 +249,4 @@ function Retrato({ p, side, size, decorativo = false }) {
   )
 }
 
-export default FightBill
+export default memo(FightBill)

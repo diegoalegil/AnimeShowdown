@@ -2561,7 +2561,8 @@ html.as-calm .trono-ray,
 html.as-calm .trono-aura,
 html.as-calm .trono-crown,
 html.as-calm .animate-aurora-1,
-html.as-calm .animate-aurora-2 {
+html.as-calm .animate-aurora-2,
+html.as-calm .animate-ping {
   animation-play-state: paused !important;
 }
 
