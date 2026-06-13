@@ -75,7 +75,17 @@ const FederationRow = memo(function FederationRow({
         />
       </td>
       <td role="cell" className="fed-cell fed-cell-id">
-        <span className="fed-furigana" lang="ja" title={row.anime}>
+        {/* Sello de universo (decorativo): aria-hidden porque el anime ya
+            viaja en el aria-label del enlace de abajo — así no se anuncia dos
+            veces. lang="ja" SOLO cuando hay japonés real (animeJp); nunca
+            sobre el título latino de fallback (no se pronuncia con fonética
+            japonesa). */}
+        <span
+          className="fed-furigana"
+          lang={row.animeJp ? 'ja' : undefined}
+          aria-hidden="true"
+          title={row.anime}
+        >
           {row.animeJp ?? row.anime}
         </span>
         <span className="fed-name">

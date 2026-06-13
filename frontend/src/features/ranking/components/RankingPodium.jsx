@@ -79,18 +79,25 @@ function RankingPodium({
     return () => clearTimeout(t)
   }, [])
 
-  // Contrato del relevo, Compiler-safe en dos mitades:
-  //  - mismo líder → `mostrar` converge a top3 AJUSTANDO DURANTE EL RENDER
-  //    (patrón oficial de derived state; refetch del ELO y re-renders del
-  //    padre jamás re-animan).
-  //  - cambia el líder → se agenda el relevo como estado pendiente y un
-  //    effect corre la ceremonia con timers (setState solo en callbacks).
+  // Contrato del relevo, Compiler-safe en tres mitades (ajuste durante el
+  // render, patrón oficial de derived state):
+  //  - mismo líder → `mostrar` converge a top3 sin ceremonia.
+  //  - cambia el líder DURANTE la ventana de entrada (`vivo`, ~1.6s) → es el
+  //    asentamiento de datos al cargar (hidratación del catálogo + llegada del
+  //    ELO canónico mueven el nº1 justo tras montar), NO un relevo real: se
+  //    adopta el nuevo líder sin sello, sin ceremonia y sin anunciar un falso
+  //    "nuevo número uno" al lector de pantalla.
+  //  - cambia el líder con la entrada ya cerrada → relevo real: se agenda como
+  //    estado pendiente y un effect corre la ceremonia con timers.
   const [prevTop3, setPrevTop3] = useState(top3)
   const [liderVisto, setLiderVisto] = useState(top3[0]?.slug)
   const [relevoPendiente, setRelevoPendiente] = useState(null)
   if (prevTop3 !== top3) {
     setPrevTop3(top3)
     if (top3[0]?.slug === liderVisto) {
+      setMostrar(top3)
+    } else if (vivo) {
+      setLiderVisto(top3[0]?.slug)
       setMostrar(top3)
     } else {
       setLiderVisto(top3[0]?.slug)
@@ -180,13 +187,13 @@ function RankingPodium({
       className={`podio-escenario rounded-2xl border border-border bg-bg px-3 pb-5 pt-6 sm:px-6 sm:pb-8 sm:pt-9 ${
         ceremonia?.fase === 'xfade' ? 'podio-xfade' : ''
       }`}
-      aria-label="podio del ranking"
+      aria-label="podio del top 3"
     >
       {escena && <FondoEscena escena={escena} />}
       <div className="podio-varilla mx-auto max-w-3xl" aria-hidden="true" />
       <ol
         role="list"
-        aria-label="podio del ranking"
+        aria-label="campeones del top 3"
         aria-busy={isLoading || undefined}
         data-podio-vivo={vivo || undefined}
         className="mx-auto flex max-w-3xl items-start justify-center gap-2 sm:gap-7"
@@ -212,8 +219,8 @@ function RankingPodium({
           <div className="podio-empate-regla" aria-hidden="true" />
           <p className="mt-2 font-mono text-[11px] text-fg-muted">
             empate a <strong className="font-bold text-gold">{eloEmpatado} ELO</strong>{' '}
-            en el top 3 · desempate: orden de catálogo (
-            <strong className="font-bold text-gold">personaje.id</strong> ascendente)
+            en el top 3 · a igualdad de ELO manda el{' '}
+            <strong className="font-bold text-gold">nombre</strong>, de la A a la Z
           </p>
         </div>
       )}
@@ -226,9 +233,11 @@ function RankingPodium({
 
 const MEDALLA = ['oro', 'plata', 'bronce']
 const ETIQUETA = ['Campeón actual', '2º puesto', '3er puesto']
-// Oro al centro: orden visual plata | oro | bronce; el DOM mantiene 1º→3º
-// para lectores de pantalla. Stagger: oro primero.
-const ORDEN_VISUAL = ['order-2', 'order-1', 'order-3']
+// Oro al centro en ESCRITORIO (orden visual plata | oro | bronce); el DOM
+// mantiene 1º→3º para lectores de pantalla. En MÓVIL no se reordena: el foco
+// de teclado sigue el orden visual de puestos, de izquierda a derecha
+// (WCAG 2.4.3). Stagger: oro primero.
+const ORDEN_VISUAL = ['sm:order-2', 'sm:order-1', 'sm:order-3']
 const STAGGER_I = [0, 1, 2]
 
 function Estandarte({

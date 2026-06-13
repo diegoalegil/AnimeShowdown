@@ -229,7 +229,7 @@
   transform-origin: top center;
 }
 
-@media (hover: hover) and (pointer: fine) {
+@media (prefers-reduced-motion: no-preference) and (hover: hover) and (pointer: fine) {
   .podio-banner:hover .podio-pivote,
   .podio-banner:focus-visible .podio-pivote {
     animation: podio-ondula calc(600ms * var(--podio-vel)) var(--ease-brush) 1;

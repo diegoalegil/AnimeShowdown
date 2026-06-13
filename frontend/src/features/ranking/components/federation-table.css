@@ -45,7 +45,7 @@
    del registro; scrollea con el contenido. */
 .fed-watermark {
   position: absolute;
-  top: -0.18em;
+  top: 0;
   right: 0.02em;
   z-index: 0;
   font-family: var(--font-kanji-serif);
@@ -99,10 +99,21 @@
 
 .fed-thead {
   position: sticky;
-  top: 0;
   z-index: 3;
   /* Casi opaco SIN backdrop-blur (jank medido de Safari al scrollear). */
   background: color-mix(in srgb, var(--color-canvas) 92%, transparent);
+}
+
+/* Offset del sticky según el modo. Contained: pega al techo del wrap.
+   Page (el que usa /ranking): el scroll es del documento, así que la
+   cabecera de columnas se ancla JUSTO bajo el header global (misma altura
+   que scroll-padding-top), no detrás de él. */
+.fed-wrap[data-scroll] .fed-thead {
+  top: 0;
+}
+
+.fed-wrap:not([data-scroll]) .fed-thead {
+  top: calc(4.5rem + env(safe-area-inset-top));
 }
 
 .fed-row-head {
@@ -268,7 +279,7 @@
 }
 
 .fed-delta[data-dir="down"] {
-  color: var(--color-accent-text);
+  color: var(--color-danger);
 }
 
 /* Retrato 2:3 en miniatura con marco hairline. */
