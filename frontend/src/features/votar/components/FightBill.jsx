@@ -73,16 +73,23 @@ function FightBill({
 
   const runTransition = useCallback(
     function run(snapshot) {
+      // Purga los ids de timers YA disparados al arrancar la transición: aquí
+      // nunca hay timers vivos (run solo entra con animatingRef en false o
+      // encadenado desde el drenaje tras su F4), así que el array se acota a
+      // esta tanda sin perder ningún pendiente del cleanup de desmontaje.
+      timersRef.current = []
       const t = (fn, ms) => timersRef.current.push(setTimeout(fn, ms))
       const drainPending = () => {
-        const next = pendingRef.current[0]
-        if (!next) return
+        if (pendingRef.current.length === 0) return
         const coalesced = pendingRef.current.coalesced
-        pendingRef.current = []
-        // Coalescido o no, siempre animamos el salto al snapshot más
-        // reciente: los intermedios ya no existen (se pisaron), así la
-        // ráfaga produce exactamente una segunda transición.
-        t(() => run(next), coalesced ? 0 : 60)
+        // Leemos el pendiente AL DISPARAR (no ahora): si llega otra key en
+        // este hueco se coalesce sobre pendingRef y animamos directo al
+        // estado MÁS RECIENTE → la ráfaga produce anim(1) → anim(final).
+        t(() => {
+          const next = pendingRef.current[0]
+          pendingRef.current = []
+          if (next) run(next)
+        }, coalesced ? 0 : 60)
       }
       if (reduceMotion) {
         setView({ actual: snapshot.actual, cola: snapshot.cola, phase: 'idle' })
@@ -101,7 +108,11 @@ function FightBill({
         // F4 · settle a los ~470ms del commit (300 FLIP + 80 stagger + margen)
         t(() => {
           setView((v) => ({ ...v, phase: 'idle' }))
-          animatingRef.current = false
+          // Solo soltamos el flag si NO queda relevo encadenado: mantenerlo
+          // en true durante el hueco del drenaje hace que una key que llegue
+          // ahí se ENCOLE (coalesce) en lugar de disparar una 2ª transición
+          // en paralelo que dejaría el cartel anclado en un duelo viejo.
+          if (pendingRef.current.length === 0) animatingRef.current = false
           drainPending()
         }, 470)
       }, 240)
@@ -151,9 +162,9 @@ function FightBill({
         {/* ── Titular: combate actual, marco oro ─────────────────────── */}
         <article className="fb-headliner" aria-label="Combate actual">
           <div className="fb-headliner-inner">
-            <Retrato p={view.actual.a} side="a" size={horizontal ? 'xs' : 'md'} />
+            <Retrato p={view.actual.a} side="a" size={horizontal ? 'xs' : 'md'} decorativo={!horizontal} />
             <span className="fb-tai" aria-hidden="true">対</span>
-            <Retrato p={view.actual.b} side="b" size={horizontal ? 'xs' : 'md'} />
+            <Retrato p={view.actual.b} side="b" size={horizontal ? 'xs' : 'md'} decorativo={!horizontal} />
           </div>
           <span className="fb-now font-mono">ahora</span>
           {/* Sello hanko re-keyed por duelo: se estampa una vez por key */}
@@ -170,7 +181,7 @@ function FightBill({
 
         {/* ── Cola ────────────────────────────────────────────────────── */}
         {empty ? (
-          <div className="fb-empty" role="status">
+          <div className="fb-empty" aria-hidden="true">
             <div className="fb-empty-card skl" />
             {!horizontal && maxSlots > 1 && <div className="fb-empty-card skl" />}
             <p className="fb-empty-label font-mono">
@@ -193,13 +204,13 @@ function FightBill({
                     onJumpToDuel ? 'fb-cartel--btn' : ''
                   }`}
                 >
-                  <Retrato p={d.a} side="a" size="xs" />
+                  <Retrato p={d.a} side="a" size="xs" decorativo />
                   <span className="fb-cartel-names">
                     <span>{d.a.nombre}</span>
                     <span className="fb-tai fb-tai--sm" aria-hidden="true">対</span>
                     <span>{d.b.nombre}</span>
                   </span>
-                  <Retrato p={d.b} side="b" size="xs" />
+                  <Retrato p={d.b} side="b" size="xs" decorativo />
                 </Cartel>
               </li>
             ))}
@@ -220,9 +231,12 @@ function FightBill({
 }
 
 /** Retrato 2:3 lazy con el color dominante como base mientras carga. */
-function Retrato({ p, side, size }) {
+function Retrato({ p, side, size, decorativo = false }) {
   return (
-    <span className={`fb-retrato fb-retrato--${size} fb-retrato--${side}`}>
+    <span
+      className={`fb-retrato fb-retrato--${size} fb-retrato--${side}`}
+      aria-hidden={decorativo || undefined}
+    >
       <PersonajeImg
         slug={p.slug}
         src={p.imagenUrl ?? p.imagen}

@@ -108,6 +108,9 @@
   color: var(--color-fg-strong);
   font-family: var(--font-kanji-serif);
   font-size: 0.875rem;
+  /* Reposo del sello ladeado = final de fb-stamp: así cuando la animación se
+     apaga (reduced-motion o calma) el sello queda estampado, no recto. */
+  transform: rotate(-8deg);
   /* relieve de sello sin blur */
   box-shadow:
     inset 0 1px 0 color-mix(in srgb, var(--color-fg-strong) 18%, transparent),
@@ -311,6 +314,9 @@
 }
 /* La calma apaga el único loop decorativo (as-tab-hidden ya pausa global). */
 html.as-calm .fb-empty-label { animation: none; }
+/* …y el re-estampado del sello en cada duelo: su @media de PRM no matchea
+   bajo calma explícita cuando el SO no pide reduced-motion. */
+html.as-calm .fb-hanko { animation: none; }
 
 /* ── reduced-motion: swap directo, sin vuelos ─────────────────── */
 @media (prefers-reduced-motion: reduce) {

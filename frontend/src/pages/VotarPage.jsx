@@ -861,7 +861,7 @@ function VotarPage() {
             anchas (≥2xl: el gutter derecho del max-w-5xl da los 240px sin
             tocar la columna del duelo). En sm..2xl vive como tira inferior
             junto a los extras; en móvil no se monta (el duelo manda). */}
-        {cartelActual && (
+        {cartelActual && !blindMode && (
           <div className="absolute left-full top-24 ml-8 hidden w-60 2xl:block">
             <FightBill
               current={cartelActual}
@@ -974,7 +974,7 @@ function VotarPage() {
             blindMode={identitiesHidden}
           />
           <DailyMissionPanel compact />
-          {cartelActual && (
+          {cartelActual && !blindMode && (
             <div className="2xl:hidden">
               <FightBill
                 current={cartelActual}

@@ -1,19 +1,26 @@
 import { afterEach, describe, expect, it, vi } from 'vitest'
-import { cleanup, render, screen } from '@testing-library/react'
+import { act, cleanup, render, screen } from '@testing-library/react'
 
 import FightBill from './FightBill'
 
-// Camino reduced-motion: swap directo sin timers → asserts deterministas.
+// reduced-motion controlable por test: por defecto true (swap directo → asserts
+// deterministas); los tests de coreografía lo bajan a false con timers falsos.
+const motion = vi.hoisted(() => ({ rm: true }))
 vi.mock('../../../hooks/useReducedMotionPref', () => ({
-  useReducedMotionPref: () => true,
+  useReducedMotionPref: () => motion.rm,
 }))
 
-afterEach(() => cleanup())
+afterEach(() => {
+  cleanup()
+  motion.rm = true
+})
 
 const goku = { slug: 'goku', nombre: 'Goku' }
 const luffy = { slug: 'monkey-d-luffy', nombre: 'Luffy' }
 const naruto = { slug: 'naruto-uzumaki', nombre: 'Naruto' }
 const ichigo = { slug: 'ichigo-kurosaki', nombre: 'Ichigo' }
+const gojo = { slug: 'gojo-satoru', nombre: 'Gojo' }
+const sukuna = { slug: 'ryomen-sukuna', nombre: 'Sukuna' }
 
 describe('FightBill', () => {
   it('pinta el titular con sus nombres y el siguiente cartel de la cola', () => {
@@ -45,7 +52,7 @@ describe('FightBill', () => {
     const { rerender } = render(
       <FightBill current={{ key: '101', a: goku, b: luffy }} queue={[]} maxSlots={1} />,
     )
-    expect(screen.getByRole('status')).toHaveTextContent('la arena respira…')
+    expect(screen.getByText('la arena respira…')).toBeInTheDocument()
     rerender(
       <FightBill
         current={{ key: '101', a: goku, b: luffy }}
@@ -65,7 +72,7 @@ describe('FightBill', () => {
         maxSlots={1}
       />,
     )
-    expect(screen.getByRole('status')).toHaveTextContent('pidiendo el siguiente…')
+    expect(screen.getByText(/pidiendo el siguiente…/)).toBeInTheDocument()
   })
 
   it('sin onJumpToDuel los carteles son presentacionales (sin botón)', () => {
@@ -77,5 +84,45 @@ describe('FightBill', () => {
       />,
     )
     expect(screen.queryByRole('button')).toBeNull()
+  })
+
+  it('placement="bottom" pinta la tira horizontal', () => {
+    render(
+      <FightBill
+        current={{ key: '101', a: goku, b: luffy }}
+        queue={[{ key: '102', a: naruto, b: ichigo }]}
+        placement="bottom"
+        maxSlots={1}
+      />,
+    )
+    expect(screen.getByLabelText('El cartel de la velada')).toHaveClass('fb--bottom')
+  })
+
+  it('coalesce una ráfaga de keys: converge al duelo final sin anclarse en uno viejo', () => {
+    // El camino animado (rm=false) es el que ejercita runTransition/pendingRef:
+    // 102 arranca la transición; 103 y 104 llegan durante la animación → se
+    // coalescen (103 se pisa) y solo se anima el salto al más reciente (104).
+    motion.rm = false
+    vi.useFakeTimers()
+    try {
+      const { rerender } = render(
+        <FightBill current={{ key: '101', a: goku, b: luffy }} queue={[]} maxSlots={1} />,
+      )
+      act(() => {
+        rerender(<FightBill current={{ key: '102', a: naruto, b: ichigo }} queue={[]} maxSlots={1} />)
+        rerender(<FightBill current={{ key: '103', a: ichigo, b: naruto }} queue={[]} maxSlots={1} />)
+        rerender(<FightBill current={{ key: '104', a: gojo, b: sukuna }} queue={[]} maxSlots={1} />)
+      })
+      act(() => {
+        vi.advanceTimersByTime(3000)
+      })
+      const titular = screen.getByLabelText('Combate actual')
+      expect(titular).toHaveTextContent('Gojo')
+      expect(titular).toHaveTextContent('Sukuna')
+      // no se queda anclado en el duelo inicial (regresión de carrera del drenaje)
+      expect(titular).not.toHaveTextContent('Goku')
+    } finally {
+      vi.useRealTimers()
+    }
   })
 })
