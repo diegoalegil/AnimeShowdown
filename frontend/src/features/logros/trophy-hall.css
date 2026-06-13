@@ -1,0 +1,587 @@
+/* ============================================================
+   sala-de-trofeos / trophy-hall.css
+   CSS de feature: lo importa TrophyHall.jsx (import './trophy-hall.css').
+   - Solo tokens via var() y color-mix(). Cero literales de color.
+   - Todos los @keyframes viven aqui (CSP por hash: nada en runtime).
+   - ease-stamp NO es token global: se declara LOCAL en .th-root.
+   ============================================================ */
+
+.th-root {
+  --ease-stamp: cubic-bezier(0.34, 1.56, 0.64, 1);
+  --th-medal: clamp(68px, 8cqi, 84px);
+  --th-madera: color-mix(in srgb, var(--color-gold) 16%, var(--color-bg));
+  --th-madera-luz: color-mix(in srgb, var(--color-gold) 30%, var(--color-bg));
+  position: relative;
+  container-type: inline-size;
+  max-width: 1120px;
+  margin-inline: auto;
+  padding: clamp(20px, 4cqi, 48px);
+  color: var(--color-fg);
+  font-family: var(--font-sans);
+}
+
+/* ---- cabecera de la sala ---------------------------------- */
+
+.th-mark {
+  position: absolute;
+  top: -12px;
+  right: 4px;
+  font-family: var(--font-kanji-serif);
+  font-size: clamp(120px, 20cqi, 210px);
+  line-height: 1;
+  color: var(--color-fg-strong);
+  opacity: 0.05;
+  pointer-events: none;
+  user-select: none;
+}
+
+.th-header {
+  display: flex;
+  align-items: flex-end;
+  gap: 16px;
+  padding-bottom: 18px;
+  border-bottom: 1px solid var(--color-border);
+}
+
+.th-title {
+  margin: 0;
+  font-size: clamp(24px, 3.4cqi, 32px);
+  font-weight: 650;
+  letter-spacing: -0.01em;
+  color: var(--color-fg-strong);
+}
+
+.th-empty {
+  margin: 6px 0 0;
+  font-size: 14px;
+  color: var(--color-fg-muted);
+  text-wrap: pretty;
+}
+
+.th-counter {
+  margin-left: auto;
+  display: flex;
+  align-items: baseline;
+  gap: 6px;
+  white-space: nowrap;
+}
+
+.th-counter__total {
+  font-family: var(--font-mono);
+  font-size: 13px;
+  color: var(--color-fg-muted);
+}
+
+/* odometro (en repo: sustituible por LiveNumber) */
+.th-odo {
+  display: inline-flex;
+  font-family: var(--font-mono);
+  font-variant-numeric: tabular-nums;
+  font-size: 24px;
+  color: var(--color-elo-number);
+}
+
+.th-odo__digit {
+  height: 1em;
+  overflow: hidden;
+  line-height: 1;
+}
+
+.th-odo__reel {
+  display: flex;
+  flex-direction: column;
+  transition: transform 450ms var(--ease-lift);
+  will-change: transform;
+}
+
+.th-odo__reel > span {
+  display: block;
+  height: 1em;
+  line-height: 1;
+}
+
+/* ---- estanteria ------------------------------------------- */
+
+.th-shelf {
+  margin-top: 34px;
+}
+
+.th-shelf__head {
+  display: flex;
+  align-items: baseline;
+  gap: 10px;
+  margin-bottom: 6px;
+}
+
+.th-shelf__kanji {
+  font-family: var(--font-kanji-serif);
+  font-size: 20px;
+  line-height: 1;
+  color: var(--color-gold);
+}
+
+.th-shelf__name {
+  margin: 0;
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--color-fg-strong);
+}
+
+.th-shelf__count {
+  margin-left: auto;
+  font-family: var(--font-mono);
+  font-size: 12px;
+  color: var(--color-fg-muted);
+}
+
+.th-shelf--completa .th-shelf__count {
+  color: var(--color-gold-bright);
+}
+
+/* hairline dorada de remate (solo categoria completa) */
+.th-shelf__hairline {
+  height: 1px;
+  margin-bottom: 4px;
+  background: linear-gradient(
+    to right,
+    var(--color-gold-bright),
+    color-mix(in srgb, var(--color-gold) 30%, transparent)
+  );
+  transform-origin: left;
+}
+
+.th-shelf--remate .th-shelf__hairline {
+  animation: th-hairline 600ms var(--ease-brush) both;
+}
+
+@keyframes th-hairline {
+  from { transform: scaleX(0); }
+  to   { transform: scaleX(1); }
+}
+
+.th-shelf__grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(104px, 1fr));
+  column-gap: 0;
+  row-gap: 26px;
+  margin-top: 8px;
+}
+
+/* ---- balda + cuerda (la medalla cuelga de la madera) ------- */
+
+.th-slot {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.th-slot::before {
+  /* tabla de madera: continua entre celdas (column-gap 0) */
+  content: "";
+  display: block;
+  width: 100%;
+  height: 7px;
+  background: linear-gradient(
+    to bottom,
+    var(--th-madera-luz),
+    var(--th-madera) 45%,
+    color-mix(in srgb, var(--color-canvas) 55%, var(--th-madera))
+  );
+  border-top: 1px solid var(--color-border-gold-subtle);
+  box-shadow: 0 6px 10px -2px color-mix(in srgb, var(--color-canvas) 85%, transparent);
+}
+
+.th-shelf--completa .th-slot::before {
+  border-top-color: var(--color-border-gold);
+}
+
+.th-cord {
+  width: 1px;
+  height: 12px;
+  background: var(--color-border-gold-subtle);
+}
+
+/* ---- medalla hanko ----------------------------------------- */
+
+.th-medal {
+  appearance: none;
+  background: none;
+  border: 0;
+  margin: 0;
+  padding: 0 6px 8px;
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 9px;
+  cursor: pointer;
+  color: inherit;
+  font: inherit;
+  border-radius: var(--radius-lg);
+  text-align: center;
+}
+
+.th-medal:focus-visible {
+  outline: 2px solid var(--color-gold);
+  outline-offset: 2px;
+}
+
+.th-discwrap {
+  position: relative;
+  display: block;
+  width: var(--th-medal);
+  height: var(--th-medal);
+  transition: transform 180ms var(--ease-lift);
+}
+
+.th-medal:hover .th-discwrap,
+.th-medal:focus-visible .th-discwrap {
+  transform: translateY(-2px); /* levitacion: solo transform */
+}
+
+.th-disc {
+  position: absolute;
+  inset: 0;
+  border-radius: 50%;
+  overflow: hidden;
+  display: grid;
+  place-items: center;
+  transition: box-shadow 180ms var(--ease-lift);
+}
+
+.th-disc__kanji {
+  position: relative;
+  z-index: 1;
+  font-family: var(--font-kanji-serif);
+  font-weight: 600;
+  font-size: calc(var(--th-medal) * 0.46);
+  line-height: 1;
+}
+
+/* conseguida: laca viva + anillo de tier */
+.th-medal.is-lograda .th-disc {
+  background: radial-gradient(
+    circle at 32% 28%,
+    var(--color-accent-hover),
+    var(--color-accent) 58%,
+    color-mix(in srgb, var(--color-accent) 72%, var(--color-canvas))
+  );
+  box-shadow:
+    0 0 0 2px color-mix(in srgb, var(--th-tier, var(--color-gold)) 85%, transparent),
+    inset 0 1px 0 color-mix(in srgb, var(--color-fg-strong) 16%, transparent),
+    0 6px 14px color-mix(in srgb, var(--color-canvas) 80%, transparent);
+}
+
+.th-medal.is-lograda:hover .th-disc,
+.th-medal.is-lograda:focus-visible .th-disc {
+  box-shadow:
+    0 0 0 2px color-mix(in srgb, var(--th-tier, var(--color-gold)) 85%, transparent),
+    inset 0 1px 0 color-mix(in srgb, var(--color-fg-strong) 16%, transparent),
+    var(--shadow-elev-2);
+}
+
+.th-medal.is-lograda .th-disc::after {
+  /* anillo interior del sello */
+  content: "";
+  position: absolute;
+  inset: 5px;
+  border-radius: 50%;
+  border: 1px solid color-mix(in srgb, var(--color-fg-strong) 28%, transparent);
+  pointer-events: none;
+}
+
+.th-medal.is-lograda .th-disc__kanji {
+  color: color-mix(in srgb, var(--color-fg-strong) 95%, transparent);
+  text-shadow: 0 1px 0 color-mix(in srgb, var(--color-canvas) 35%, transparent);
+}
+
+/* pendiente: silueta entintada al 20% */
+.th-medal.is-pendiente .th-disc {
+  border: 1px solid color-mix(in srgb, var(--color-fg) 22%, transparent);
+  background: color-mix(in srgb, var(--color-fg) 5%, transparent);
+}
+
+.th-medal.is-pendiente .th-disc__kanji {
+  color: color-mix(in srgb, var(--color-fg) 26%, transparent);
+}
+
+/* tinta de progreso real: altura estatica (no se anima) */
+.th-ink {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  height: calc(var(--th-p, 0) * 100%);
+  background: linear-gradient(
+    to top,
+    color-mix(in srgb, var(--color-accent) 36%, transparent),
+    color-mix(in srgb, var(--color-accent) 22%, transparent)
+  );
+  border-top: 1px solid color-mix(in srgb, var(--color-accent-text) 45%, transparent);
+}
+
+/* secreta: solo el nombre oculto; humo de tinta sin blur */
+.th-medal.is-secreta .th-disc {
+  border-style: solid;
+  background: color-mix(in srgb, var(--color-surface) 70%, transparent);
+}
+
+.th-medal.is-secreta .th-disc__kanji {
+  color: color-mix(in srgb, var(--color-fg) 32%, transparent);
+  font-size: calc(var(--th-medal) * 0.38);
+}
+
+.th-smoke {
+  position: absolute;
+  left: 5%;
+  bottom: 8%;
+  width: 90%;
+  height: 62%;
+  border-radius: 50%;
+  background: radial-gradient(
+    closest-side,
+    color-mix(in srgb, var(--color-fg) 10%, transparent),
+    transparent 72%
+  );
+  animation: th-smoke-a 8s ease-in-out infinite alternate;
+  will-change: transform, opacity;
+  pointer-events: none;
+}
+
+.th-smoke + .th-smoke {
+  left: auto;
+  right: 0;
+  bottom: 22%;
+  width: 70%;
+  height: 52%;
+  animation: th-smoke-b 11s ease-in-out infinite alternate;
+}
+
+@keyframes th-smoke-a {
+  from { transform: translate(-10%, 16%) scale(0.9);  opacity: 0.3; }
+  to   { transform: translate(8%, -14%)  scale(1.12); opacity: 0.65; }
+}
+
+@keyframes th-smoke-b {
+  from { transform: translate(8%, -6%)  scale(1.05); opacity: 0.5; }
+  to   { transform: translate(-12%, 12%) scale(0.85); opacity: 0.2; }
+}
+
+/* los loops decorativos se pausan con la sala en calma / pestana oculta */
+html.as-calm .th-smoke,
+html.as-tab-hidden .th-smoke {
+  animation-play-state: paused;
+}
+
+/* ---- caption ------------------------------------------------ */
+
+.th-caption {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 3px;
+  min-height: 44px;
+}
+
+.th-name {
+  font-size: 13px;
+  font-weight: 550;
+  line-height: 1.25;
+  color: var(--color-fg);
+  text-wrap: balance;
+}
+
+.th-medal.is-pendiente .th-name {
+  color: var(--color-fg-muted);
+}
+
+.th-meta {
+  font-family: var(--font-mono);
+  font-size: var(--text-2xs);
+  color: var(--color-fg-muted);
+}
+
+/* barra de tinta fina del progreso */
+.th-bar {
+  display: block;
+  width: 56px;
+  height: 2px;
+  margin-top: 2px;
+  background: color-mix(in srgb, var(--color-fg) 14%, transparent);
+}
+
+.th-bar__fill {
+  display: block;
+  height: 100%;
+  width: calc(var(--th-p, 0) * 100%);
+  background: var(--color-accent-hover);
+}
+
+/* ---- coreografia: entrada ----------------------------------- */
+
+.th-medal.has-entrada {
+  animation: th-fall 250ms var(--ease-lift) both;
+  animation-delay: calc(var(--th-i, 0) * 30ms);
+}
+
+@keyframes th-fall {
+  from { transform: translateY(-8px); opacity: 0; }
+  to   { transform: translateY(0);    opacity: 1; }
+}
+
+/* ---- coreografia: estampado en vivo -------------------------- */
+
+.th-medal.is-stamping .th-discwrap {
+  animation: th-stamp 380ms var(--ease-stamp) both;
+}
+
+@keyframes th-stamp {
+  0%   { transform: translateY(-14px) scale(1.55); opacity: 0; }
+  16%  { opacity: 1; }
+  100% { transform: translateY(0) scale(1); opacity: 1; }
+}
+
+/* sangrado del sello (anillo, fuera del disco) */
+.th-bleed {
+  position: absolute;
+  inset: -10px;
+  border-radius: 50%;
+  opacity: 0;
+  pointer-events: none;
+  background: radial-gradient(
+    closest-side,
+    transparent 52%,
+    color-mix(in srgb, var(--color-hanko) 50%, transparent) 70%,
+    transparent 86%
+  );
+}
+
+.th-medal.is-stamping .th-bleed {
+  animation: th-bleed 320ms var(--ease-brush) 300ms both;
+}
+
+@keyframes th-bleed {
+  from { opacity: 0.9; transform: scale(0.72); }
+  to   { opacity: 0;   transform: scale(1.18); }
+}
+
+/* brillo de barrido (clipeado por el disco) */
+.th-sweep {
+  position: absolute;
+  inset: 0;
+  transform: translateX(-130%);
+  pointer-events: none;
+  background: linear-gradient(
+    105deg,
+    transparent 32%,
+    color-mix(in srgb, var(--color-gold-bright) 38%, transparent) 50%,
+    transparent 68%
+  );
+}
+
+.th-medal.is-stamping .th-sweep {
+  animation: th-sweep 500ms var(--ease-brush) 380ms both;
+}
+
+@keyframes th-sweep {
+  to { transform: translateX(130%); }
+}
+
+/* ---- utilidades ---------------------------------------------- */
+
+.th-vh {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  margin: -1px;
+  padding: 0;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+  border: 0;
+}
+
+/* ---- prefers-reduced-motion: estampado directo, sin barridos -- */
+
+@media (prefers-reduced-motion: reduce) {
+  .th-medal.has-entrada,
+  .th-medal.is-stamping .th-discwrap,
+  .th-medal.is-stamping .th-bleed,
+  .th-medal.is-stamping .th-sweep,
+  .th-shelf--remate .th-shelf__hairline {
+    animation: none;
+  }
+
+  .th-smoke {
+    animation: none;
+    opacity: 0.35;
+  }
+
+  .th-odo__reel {
+    transition: none;
+  }
+
+  .th-discwrap,
+  .th-disc {
+    transition: none;
+  }
+}
+
+/* ---------- Adaptaciones del repo ---------- */
+
+/* Deep-link ?logro=<codigo>: la medalla señalada se marca en cian. */
+.th-medal--destacada {
+  outline: 2px solid var(--color-electric);
+  outline-offset: 3px;
+}
+
+/* Glifo lucide de respaldo cuando el badge no tiene kanji asignado. */
+.th-disc__icon {
+  width: 1.6rem;
+  height: 1.6rem;
+}
+
+/* Meta de comunidad bajo la medalla (dato existente del catálogo). */
+.th-meta--count {
+  color: color-mix(in srgb, var(--color-gold) 60%, transparent);
+}
+
+/* Arte del hall del banco como capa del propio salón (contrato heredado
+   del salón anterior: convive con VisualPageShell, no es fixed). */
+.th-hallart {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: 50% 30%;
+  opacity: 0.55;
+  z-index: 0;
+}
+
+.th-hallscrim {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  background: linear-gradient(
+    180deg,
+    color-mix(in srgb, var(--color-bg) 90%, transparent),
+    color-mix(in srgb, var(--color-bg) 55%, transparent) 40%,
+    color-mix(in srgb, var(--color-bg) 95%, transparent)
+  );
+}
+
+/* El salón se recorta como panel (las capas del hall quedan dentro) y todo
+   el contenido pinta por encima del arte. */
+.th-root {
+  overflow: hidden;
+  border-radius: var(--radius-card);
+  border: 1px solid var(--color-border-gold-subtle);
+}
+
+.th-header,
+.th-shelf,
+.th-vh {
+  position: relative;
+  z-index: 1;
+}
