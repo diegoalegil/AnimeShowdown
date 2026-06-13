@@ -49,7 +49,8 @@ import EditorialRankingsStrip from '../features/ranking/components/EditorialRank
 import EloExplainer from '../features/ranking/components/EloExplainer'
 import MoversStrip from '../features/ranking/components/MoversStrip'
 import RankingPodium from '../features/ranking/components/RankingPodium'
-import { RankRowElo, RankRowVotos } from '../features/ranking/components/RankingRows'
+import { RankRowVotos } from '../features/ranking/components/RankingRows'
+import FederationTable from '../features/ranking/components/FederationTable'
 import RankingTabs from '../features/ranking/components/RankingTabs'
 import RankingTechnicalTable from '../features/ranking/components/RankingTechnicalTable'
 import { RANKING_TABS } from '../features/ranking/ranking-tabs'
@@ -668,14 +669,6 @@ function ListaEloLocal({
     () => (hayFiltros ? filteredTop100 : resto),
     [filteredTop100, hayFiltros, resto],
   )
-  // Tabla viva: cuando el ELO canónico refresca y reordena, las filas
-  // deslizan a su nueva posición (FLIP manual sobre data-flip-key).
-  const listRef = useRef(null)
-  const flipOrder = useMemo(
-    () => visibleRankingRows.map((p) => p.slug),
-    [visibleRankingRows],
-  )
-  useFlipList(listRef, flipOrder)
   const top5ShareText = useMemo(
     () =>
       filtered
@@ -784,29 +777,22 @@ function ListaEloLocal({
         </button>
       </div>
 
+      {/* El Registro de la Federación: la <table> con placas lacadas trae
+          su propio FLIP (cinta + delta sobre live-flip), skeleton .skl y
+          vacío honesto — reemplaza al <ol>+RankRowElo y a useFlipList aquí.
+          scrollMode="page": /ranking conserva el scroll de documento. */}
       {isCatalogLoading && rankedElo.length === 0 ? (
-        <RankingSkeletonList />
+        <FederationTable items={[]} loading scrollMode="page" />
       ) : filtered.length === 0 ? (
-        <EmptyState scene
-          visual={BRAND_VISUALS.empty}
-          icon={Search}
-          title="El salón de la fama no encontró ese combatiente"
-        >
-          <p>
-            Revisa el nombre, prueba otro universo o limpia filtros para volver
-            al ranking completo.
-          </p>
-          <button
-            type="button"
-            onClick={() => {
-              setSearch('')
-              setAnimeFilter('')
-            }}
-            className="as-button-ghost mt-3 rounded-lg px-5 py-3 text-sm font-bold"
-          >
-            Limpiar filtros
-          </button>
-        </EmptyState>
+        <FederationTable
+          items={[]}
+          vacioMotivo="busqueda"
+          scrollMode="page"
+          onClearSearch={() => {
+            setSearch('')
+            setAnimeFilter('')
+          }}
+        />
       ) : (
         <>
           {/* Podio Top 3 — solo cuando no hay filtros activos. Si el
@@ -825,16 +811,11 @@ function ListaEloLocal({
             </p>
           )}
 
-          <ol ref={listRef} className="flex flex-col gap-2">
-            {visibleRankingRows.map((p, i) => (
-              <RankRowElo
-                key={p.slug}
-                rank={hayFiltros ? i + 1 : i + 4}
-                history={eloHistoryTop10?.[p.slug]}
-                {...p}
-              />
-            ))}
-          </ol>
+          <FederationTable
+            items={visibleRankingRows}
+            rankBase={hayFiltros ? 1 : 4}
+            scrollMode="page"
+          />
         </>
       )}
     </div>

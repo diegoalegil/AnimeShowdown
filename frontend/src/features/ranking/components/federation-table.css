@@ -1,0 +1,640 @@
+/* ============================================================
+   REGISTRO DE LA FEDERACIÓN — /ranking (FederationTable)
+   Importado por FederationTable (CSP por hash: nada en runtime).
+
+   Reglas del sistema que este bloque respeta:
+   - Solo transform/opacity en TODO lo animado (cero blur, cero filters).
+   - Curvas de la casa: var(--ease-lift) para elevaciones/FLIP,
+     var(--ease-brush) para la hairline que se pinta.
+   - Los keyframes solo definen el "from": el estado base ES el final,
+     así reduced-motion y print salen gratis (patrón totb-*).
+
+   Semántica: la tabla es <table> real. El display custom (grid por fila,
+   necesario para la placa lacada + cinta + hairline de ancho completo)
+   elimina la semántica implícita, y los roles ARIA explícitos del JSX la
+   restauran (role=table/rowgroup/row/columnheader/cell + aria-labelledby
+   al <caption>). Ver notas de handoff §A11y.
+   ============================================================ */
+
+/* Entrada de página: translateY(8px)→0, 300ms, stagger 30ms (12 filas). */
+@keyframes fed-row-in {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+}
+
+.fed-shell {
+  position: relative;
+}
+
+/* Contenedor de scroll (modo contained). En modo page el wrap no scrollea
+   y el locator pasa a fixed (lo decide el JSX). */
+.fed-wrap {
+  position: relative;
+  border-radius: var(--radius-card);
+}
+
+.fed-wrap[data-scroll] {
+  overflow-y: auto;
+  overscroll-behavior: contain;
+}
+
+/* Marca de agua kanji al 5% — 番付 (banzuke, la tabla oficial de rangos
+   del sumo: el significado ES el producto). Grabada en la primera página
+   del registro; scrollea con el contenido. */
+.fed-watermark {
+  position: absolute;
+  top: -0.18em;
+  right: 0.02em;
+  z-index: 0;
+  font-family: var(--font-kanji-serif);
+  font-size: 132px;
+  line-height: 1;
+  letter-spacing: 0.04em;
+  color: var(--color-gold);
+  opacity: 0.05;
+  pointer-events: none;
+  user-select: none;
+  writing-mode: vertical-rl;
+}
+
+/* ---------- Tabla ---------- */
+
+.fed-table {
+  position: relative;
+  z-index: 1;
+  display: block;
+  width: 100%;
+  border-collapse: separate;
+  /* Columnas: puesto+delta | retrato | combatiente | acción | elo */
+  --fed-cols: 76px 44px minmax(0, 1fr) auto 112px;
+  --fed-pad-x: 16px;
+}
+
+.fed-table caption {
+  display: flex;
+  align-items: baseline;
+  gap: 12px;
+  text-align: left;
+  padding: 2px 2px 12px;
+}
+
+.fed-caption-title {
+  font-size: 15px;
+  font-weight: 800;
+  color: var(--color-fg-strong);
+}
+
+.fed-caption-sub {
+  font-family: var(--font-mono);
+  font-size: var(--text-2xs);
+  color: var(--color-fg-muted);
+}
+
+.fed-thead,
+.fed-tbody {
+  display: block;
+}
+
+.fed-thead {
+  position: sticky;
+  top: 0;
+  z-index: 3;
+  /* Casi opaco SIN backdrop-blur (jank medido de Safari al scrollear). */
+  background: color-mix(in srgb, var(--color-canvas) 92%, transparent);
+}
+
+.fed-row-head {
+  display: grid;
+  grid-template-columns: var(--fed-cols);
+  column-gap: 12px;
+  align-items: end;
+  padding: 6px var(--fed-pad-x) 8px 14px;
+  border-bottom: 1px solid var(--color-border-gold-subtle);
+}
+
+.fed-th {
+  display: block;
+  font-family: var(--font-mono);
+  font-size: var(--text-2xs);
+  font-weight: 600;
+  color: var(--color-fg-muted);
+  text-align: left;
+}
+
+.fed-th-elo {
+  text-align: right;
+}
+
+.fed-tbody {
+  display: grid;
+  gap: 8px;
+  padding-top: 8px;
+}
+
+/* ---------- La placa lacada ---------- */
+
+.fed-row {
+  position: relative;
+  display: grid;
+  grid-template-columns: var(--fed-cols);
+  column-gap: 12px;
+  align-items: center;
+  min-height: 68px;
+  padding: 7px var(--fed-pad-x) 7px 14px;
+  border: 1px solid color-mix(in srgb, var(--color-fg-strong) 8%, transparent);
+  border-radius: var(--radius-xl);
+  background:
+    linear-gradient(180deg, color-mix(in srgb, var(--color-fg-strong) 3.5%, transparent), transparent 58%),
+    var(--color-surface);
+  /* Laca: gloss hairline superior, sombra de asiento mínima. */
+  box-shadow:
+    inset 0 1px 0 color-mix(in srgb, var(--color-fg-strong) 5%, transparent),
+    0 1px 0 color-mix(in srgb, var(--color-canvas) 40%, transparent);
+  transition:
+    transform 150ms var(--ease-lift),
+    border-color 150ms ease;
+}
+
+/* Con 200+ filas el navegador se salta layout/paint fuera de viewport.
+   offsetTop sigue estable (lo exige live-flip.js). El JSX lo aplica a
+   partir de la fila ~20. */
+.fed-row[data-cv] {
+  content-visibility: auto;
+  contain-intrinsic-size: auto 68px;
+}
+
+/* Hover: lift 2px + hairline dorada inferior que SE PINTA (scaleX
+   origin-left, ease-brush). Solo con hover real. */
+.fed-row::after {
+  content: "";
+  position: absolute;
+  left: 14px;
+  right: 14px;
+  bottom: 0;
+  height: 1px;
+  background: linear-gradient(90deg, var(--color-gold), transparent);
+  transform: scaleX(0);
+  transform-origin: left;
+  transition: transform 150ms var(--ease-brush);
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .fed-row:hover {
+    transform: translateY(-2px);
+    border-color: color-mix(in srgb, var(--color-gold) 28%, transparent);
+  }
+
+  .fed-row:hover::after {
+    transform: scaleX(1);
+  }
+}
+
+/* Entrada de página: solo filas marcadas (las 12 primeras) y solo
+   mientras el shell lleva .fed-entrance — re-renders, búsqueda y
+   paginación montan sin ceremonia. */
+@media (prefers-reduced-motion: no-preference) {
+  .fed-entrance .fed-row[data-stagger] {
+    animation: fed-row-in 300ms var(--ease-lift) both;
+    animation-delay: calc(var(--fed-i, 0) * 30ms);
+  }
+}
+
+/* ---------- Cinta lateral de movimiento (WAAPI escribe la animación;
+   aquí solo el estado base y los colores por dirección) ---------- */
+
+.fed-ribbon {
+  position: absolute;
+  left: 0;
+  top: 6px;
+  bottom: 6px;
+  width: 3px;
+  border-radius: 2px;
+  opacity: 0;
+  transform: scaleY(0);
+  pointer-events: none;
+}
+
+.fed-ribbon[data-dir="up"] {
+  background: var(--color-gold);
+  transform-origin: bottom;
+}
+
+.fed-ribbon[data-dir="down"] {
+  background: var(--color-accent);
+  transform-origin: top;
+}
+
+/* ---------- Celdas ---------- */
+
+.fed-cell {
+  display: block;
+  min-width: 0;
+}
+
+.fed-cell-rank {
+  display: flex;
+  align-items: baseline;
+  gap: 6px;
+}
+
+/* Puesto acuñado: mono, bisel por text-shadow (luz arriba, hueco abajo).
+   Cero glow. */
+.fed-rank {
+  font-family: var(--font-mono);
+  font-size: 15px;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  letter-spacing: 0.02em;
+  color: var(--color-fg-muted);
+  text-shadow:
+    0 1px 0 color-mix(in srgb, var(--color-canvas) 85%, transparent),
+    0 -1px 0 color-mix(in srgb, var(--color-fg-strong) 7%, transparent);
+}
+
+/* Delta "+2" junto al puesto. Espacio SIEMPRE reservado (min-width):
+   aparecer no produce CLS. WAAPI lo enciende 1.2s. */
+.fed-delta {
+  min-width: 2.6ch;
+  font-family: var(--font-mono);
+  font-size: var(--text-2xs);
+  font-weight: 800;
+  opacity: 0;
+}
+
+.fed-delta[data-dir="up"] {
+  color: var(--color-gold-bright);
+}
+
+.fed-delta[data-dir="down"] {
+  color: var(--color-accent-text);
+}
+
+/* Retrato 2:3 en miniatura con marco hairline. */
+.fed-portrait {
+  position: relative;
+  display: block;
+  width: 36px;
+  aspect-ratio: 2 / 3;
+  border: 1px solid color-mix(in srgb, var(--color-fg-strong) 14%, transparent);
+  border-radius: var(--radius-lg);
+  overflow: hidden;
+  background: var(--color-bg);
+}
+
+.fed-cell-id {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 1px;
+  min-height: 44px;
+}
+
+/* Universo en furigana pequeña sobre el nombre. */
+.fed-furigana {
+  display: block;
+  font-family: var(--font-jp);
+  font-size: var(--text-2xs);
+  line-height: 1rem;
+  color: var(--color-fg-muted);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.fed-name {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--color-fg-strong);
+}
+
+.fed-name a {
+  color: inherit;
+  text-decoration: none;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.fed-name a:hover {
+  color: var(--color-gold);
+}
+
+.fed-name a:focus-visible {
+  outline: 2px solid var(--color-gold);
+  outline-offset: 3px;
+  border-radius: 4px;
+}
+
+.fed-you-chip {
+  flex: none;
+  font-family: var(--font-mono);
+  font-size: 10px;
+  font-weight: 800;
+  line-height: 1;
+  color: var(--color-gold);
+  border: 1px solid var(--color-border-gold);
+  border-radius: var(--radius-pill);
+  padding: 3px 7px 4px;
+}
+
+.fed-cell-action {
+  display: flex;
+  justify-content: flex-end;
+}
+
+.fed-action {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  min-height: 44px;
+  padding: 0 14px;
+  border: 1px solid color-mix(in srgb, var(--color-accent) 40%, transparent);
+  border-radius: var(--radius-lg);
+  background: var(--color-accent-soft);
+  font-family: var(--font-mono);
+  font-size: var(--text-2xs);
+  font-weight: 800;
+  color: var(--color-gold);
+  text-decoration: none;
+  transition: border-color 150ms ease;
+}
+
+.fed-action:hover {
+  border-color: var(--color-border-gold);
+}
+
+.fed-action:focus-visible {
+  outline: 2px solid var(--color-gold);
+  outline-offset: 2px;
+}
+
+.fed-cell-elo {
+  text-align: right;
+}
+
+/* ELO acuñado: bisel sutil, sin glow. */
+.fed-elo {
+  display: block;
+  font-family: var(--font-mono);
+  font-size: 17px;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  color: var(--color-elo-number);
+  text-shadow:
+    0 1px 0 color-mix(in srgb, var(--color-canvas) 90%, transparent),
+    0 -1px 0 color-mix(in srgb, var(--color-gold-bright) 16%, transparent);
+}
+
+.fed-elo-label {
+  display: block;
+  font-family: var(--font-mono);
+  font-size: 10px;
+  color: var(--color-fg-muted);
+}
+
+/* ---------- Top 3: lacas oro / plata / bronce (no emojis) ---------- */
+
+.fed-row[data-medal="oro"] {
+  border-color: color-mix(in srgb, var(--color-medal-gold) 30%, transparent);
+  background:
+    linear-gradient(90deg, color-mix(in srgb, var(--color-medal-gold) 9%, transparent), color-mix(in srgb, var(--color-medal-gold) 1.5%, transparent) 42%, transparent 65%),
+    linear-gradient(180deg, color-mix(in srgb, var(--color-fg-strong) 4%, transparent), transparent 58%),
+    var(--color-surface);
+}
+
+.fed-row[data-medal="plata"] {
+  border-color: color-mix(in srgb, var(--color-medal-silver) 26%, transparent);
+  background:
+    linear-gradient(90deg, color-mix(in srgb, var(--color-medal-silver) 7%, transparent), color-mix(in srgb, var(--color-medal-silver) 1.2%, transparent) 42%, transparent 65%),
+    linear-gradient(180deg, color-mix(in srgb, var(--color-fg-strong) 4%, transparent), transparent 58%),
+    var(--color-surface);
+}
+
+.fed-row[data-medal="bronce"] {
+  border-color: color-mix(in srgb, var(--color-medal-bronze) 26%, transparent);
+  background:
+    linear-gradient(90deg, color-mix(in srgb, var(--color-medal-bronze) 8%, transparent), color-mix(in srgb, var(--color-medal-bronze) 1.2%, transparent) 42%, transparent 65%),
+    linear-gradient(180deg, color-mix(in srgb, var(--color-fg-strong) 4%, transparent), transparent 58%),
+    var(--color-surface);
+}
+
+.fed-row[data-medal="oro"] .fed-rank {
+  color: var(--color-medal-gold);
+}
+
+.fed-row[data-medal="plata"] .fed-rank {
+  color: var(--color-medal-silver);
+}
+
+.fed-row[data-medal="bronce"] .fed-rank {
+  color: var(--color-medal-bronze);
+}
+
+.fed-row[data-medal] .fed-portrait {
+  border-color: var(--color-border-gold);
+}
+
+/* ---------- Fila propia ---------- */
+
+.fed-row[data-you] {
+  border-color: var(--color-border-gold);
+  box-shadow:
+    inset 0 1px 0 color-mix(in srgb, var(--color-fg-strong) 6%, transparent),
+    0 0 0 1px color-mix(in srgb, var(--color-gold) 18%, transparent);
+}
+
+/* Localizador sticky: aparece cuando la fila propia sale del viewport. */
+.fed-locator {
+  position: sticky;
+  bottom: 10px;
+  z-index: 4;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  width: max-content;
+  max-width: calc(100% - 20px);
+  margin: 10px auto 2px;
+  min-height: 44px;
+  padding: 0 16px;
+  border: 1px solid var(--color-border-gold);
+  border-radius: var(--radius-pill);
+  background: color-mix(in srgb, var(--color-surface) 97%, transparent);
+  box-shadow: 0 16px 48px -22px color-mix(in srgb, var(--color-canvas) 90%, transparent);
+  font-family: var(--font-mono);
+  font-size: var(--text-2xs);
+  font-weight: 700;
+  color: var(--color-gold);
+  cursor: pointer;
+}
+
+.fed-locator:focus-visible {
+  outline: 2px solid var(--color-gold);
+  outline-offset: 2px;
+}
+
+.fed-locator[hidden] {
+  display: none;
+}
+
+.fed-locator-dir {
+  font-size: 12px;
+}
+
+/* ---------- Skeleton (usa el sistema .skl del repo) ---------- */
+
+.fed-skl-row {
+  pointer-events: none;
+}
+
+.fed-skl-block {
+  display: block;
+  border-radius: var(--radius-lg);
+  background: color-mix(in srgb, var(--color-fg-strong) 5%, transparent);
+}
+
+.fed-skl-rank {
+  width: 30px;
+  height: 16px;
+}
+
+.fed-skl-portrait {
+  width: 36px;
+  aspect-ratio: 2 / 3;
+}
+
+.fed-skl-line {
+  height: 11px;
+  width: 56%;
+  margin-bottom: 7px;
+}
+
+.fed-skl-line + .fed-skl-line {
+  width: 38%;
+  margin-bottom: 0;
+}
+
+.fed-skl-elo {
+  width: 58px;
+  height: 18px;
+  margin-left: auto;
+}
+
+/* ---------- Vacío honesto ---------- */
+
+.fed-empty {
+  position: relative;
+  overflow: hidden;
+  border: 1px dashed var(--color-border);
+  border-radius: var(--radius-card);
+  background: color-mix(in srgb, var(--color-surface) 40%, transparent);
+  padding: 44px 24px;
+  text-align: center;
+}
+
+.fed-empty-kanji {
+  position: absolute;
+  right: 4%;
+  bottom: -14%;
+  font-family: var(--font-kanji-serif);
+  font-size: 120px;
+  line-height: 1;
+  color: var(--color-gold);
+  opacity: 0.05;
+  pointer-events: none;
+  user-select: none;
+}
+
+.fed-empty-title {
+  font-size: 15px;
+  font-weight: 800;
+  color: var(--color-fg-strong);
+}
+
+.fed-empty-body {
+  margin-top: 6px;
+  font-size: 13px;
+  line-height: 1.6;
+  color: var(--color-fg-muted);
+}
+
+.fed-empty-action {
+  display: inline-flex;
+  align-items: center;
+  min-height: 44px;
+  margin-top: 16px;
+  padding: 0 18px;
+  border: 1px solid var(--color-border-gold-subtle);
+  border-radius: var(--radius-lg);
+  background: var(--color-gold-soft);
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--color-gold);
+  cursor: pointer;
+}
+
+/* ---------- Responsive 390px: [puesto | retrato | nombre+universo | elo],
+   sin scroll horizontal, targets ≥44px ---------- */
+
+@media (max-width: 480px) {
+  .fed-table {
+    --fed-cols: 46px 30px minmax(0, 1fr) 84px;
+    --fed-pad-x: 12px;
+  }
+
+  .fed-row {
+    column-gap: 10px;
+    min-height: 60px;
+    padding: 6px var(--fed-pad-x) 6px 11px;
+  }
+
+  .fed-row[data-cv] {
+    contain-intrinsic-size: auto 60px;
+  }
+
+  .fed-row-head {
+    column-gap: 10px;
+    padding: 6px var(--fed-pad-x) 8px 11px;
+  }
+
+  .fed-cell-action,
+  .fed-th-action {
+    display: none;
+  }
+
+  .fed-portrait,
+  .fed-skl-portrait {
+    width: 30px;
+  }
+
+  .fed-rank {
+    font-size: 13px;
+  }
+
+  .fed-elo {
+    font-size: 15px;
+  }
+
+  .fed-watermark {
+    font-size: 92px;
+  }
+}
+
+/* ---------- reduced-motion: sin FLIP ni stagger (lo corta también el JS);
+   la cinta estática 1.2s la pone WAAPI solo en opacity. ---------- */
+
+@media (prefers-reduced-motion: reduce) {
+  .fed-row,
+  .fed-row::after {
+    transition: none;
+  }
+
+  .fed-row:hover {
+    transform: none;
+  }
+}
