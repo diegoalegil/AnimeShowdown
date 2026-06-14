@@ -103,3 +103,13 @@ export function useSound() {
   if (!ctx) throw new Error('useSound debe usarse dentro de <SoundProvider>')
   return ctx
 }
+
+// Variante tolerante para componentes reutilizables que pueden montarse fuera
+// del SoundProvider (p.ej. PressSheet en un harness de test o un futuro
+// contexto sin audio): el sonido es cosmético, así que sin provider devuelve
+// un play() no-op en vez de tirar. NUNCA lanza.
+const NOOP_SOUND = { play: () => {}, muted: true, toggleMute: () => {}, warm: () => {} }
+// eslint-disable-next-line react-refresh/only-export-components
+export function useSoundOptional() {
+  return useContext(SoundContext) ?? NOOP_SOUND
+}

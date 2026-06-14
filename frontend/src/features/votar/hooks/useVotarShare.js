@@ -1,4 +1,4 @@
-import { useCallback, useState } from 'react'
+import { useCallback, useMemo, useState } from 'react'
 import { toast } from 'sonner'
 import { recordDailyShare } from '../../../lib/dailyProgress'
 import { imagenPersonaje } from '../../../lib/personajes-core'
@@ -83,92 +83,73 @@ export function useVotarShare({
 
   // Card 1080×1080 del resultado pintada en canvas (duel-share-card.js,
   // cargado con import() para no meter el pintor en el chunk de la arena).
-  // Comparte el PNG como archivo si el dispositivo lo soporta (Web Share
-  // Level 2); si no, lo descarga y copia el texto+enlace del reto.
-  const [generandoCard, setGenerandoCard] = useState(false)
-  const handleShareResultImage = useCallback(async () => {
-    if (!votedPersonaje || !losingPersonaje) return
+  // El PINTOR no cambia (drawDuelShareCard/loadDuelImages/resolveDuelTheme):
+  // se envuelve como painter ()=>Promise<Blob> para la hoja de impresión
+  // (PressSheet), que ahora orquesta el preview + native/X/WhatsApp/copy/
+  // descargar. recordDailyShare cuelga del onShared de la hoja.
+  const [dueloShareOpen, setDueloShareOpen] = useState(false)
+
+  // Painter re-invocable: pinta la card 1080×1080 en un canvas offscreen con
+  // el mismo módulo y resuelve el PNG. PressSheet lo reintenta bajo demanda.
+  const pintarDueloBlob = useCallback(async () => {
+    if (!votedPersonaje || !losingPersonaje) {
+      throw new Error('Faltan los personajes del duelo.')
+    }
     const votosGanador = voteResult?.votosGanador
     const votosPerdedor = voteResult?.votosPerdedor
-    setGenerandoCard(true)
-    try {
-      const { DUEL_CARD_SIZE, drawDuelShareCard, loadDuelImages, resolveDuelTheme } =
-        await import('../duel-share-card')
-      const total = (votosGanador ?? 0) + (votosPerdedor ?? 0)
-      const duel = {
-        left: {
-          name: votedPersonaje.nombre,
-          anime: votedPersonaje.anime,
-          image: imagen600(votedPersonaje.slug),
-        },
-        right: {
-          name: losingPersonaje.nombre,
-          anime: losingPersonaje.anime,
-          image: imagen600(losingPersonaje.slug),
-        },
-        // Sin totales del backend (modo casual): 51/49 simbólico para que
-        // el oro caiga del lado votado sin inventar una paliza.
-        leftPct: total > 0 ? (votosGanador / total) * 100 : 51,
-      }
-      const canvas = document.createElement('canvas')
-      canvas.width = DUEL_CARD_SIZE
-      canvas.height = DUEL_CARD_SIZE
-      const ctx = canvas.getContext('2d')
-      const images = await loadDuelImages(duel)
-      drawDuelShareCard(ctx, duel, { images, theme: resolveDuelTheme(canvas) })
-      const blob = await new Promise((resolve, reject) => {
-        canvas.toBlob(
-          (b) => (b ? resolve(b) : reject(new Error('No se pudo generar el PNG'))),
-          'image/png',
-        )
-      })
-      const nombreFichero = `animeshowdown-${votedPersonaje.slug}-vs-${losingPersonaje.slug}.png`
-      const url = `/votar?personaje=${encodeURIComponent(votedPersonaje.slug)}&rival=${encodeURIComponent(losingPersonaje.slug)}`
-      const file = typeof File !== 'undefined'
-        ? new File([blob], nombreFichero, { type: 'image/png' })
-        : null
-      const payload = file
-        ? {
-            title: `${votedPersonaje.nombre} ganó mi duelo`,
-            text: `${votedPersonaje.nombre} vs ${losingPersonaje.nombre} en AnimeShowdown. ¿Tú a quién subes?`,
-            url: new URL(url, window.location.origin).toString(),
-            files: [file],
-          }
-        : null
-      if (
-        payload &&
-        navigator.share &&
-        (!navigator.canShare || navigator.canShare({ files: [file] }))
-      ) {
-        try {
-          await navigator.share(payload)
-          recordDailyShare()
-          toast.success('Card del duelo compartida')
-          return
-        } catch (error) {
-          if (error?.name === 'AbortError') return
-          // Si el share nativo falla por otra causa, caemos a la descarga.
-        }
-      }
-      const enlace = document.createElement('a')
-      enlace.href = URL.createObjectURL(blob)
-      enlace.download = nombreFichero
-      document.body.appendChild(enlace)
-      enlace.click()
-      enlace.remove()
-      URL.revokeObjectURL(enlace.href)
-      recordDailyShare()
-      toast.success('Card descargada', {
-        description: 'Adjúntala donde quieras presumir del duelo.',
-      })
-    } catch (error) {
-      toast.error('No se pudo generar la card', {
-        description: error?.message || 'Inténtalo otra vez.',
-      })
-    } finally {
-      setGenerandoCard(false)
+    const { DUEL_CARD_SIZE, drawDuelShareCard, loadDuelImages, resolveDuelTheme } =
+      await import('../duel-share-card')
+    const total = (votosGanador ?? 0) + (votosPerdedor ?? 0)
+    const duel = {
+      left: {
+        name: votedPersonaje.nombre,
+        anime: votedPersonaje.anime,
+        image: imagen600(votedPersonaje.slug),
+      },
+      right: {
+        name: losingPersonaje.nombre,
+        anime: losingPersonaje.anime,
+        image: imagen600(losingPersonaje.slug),
+      },
+      // Sin totales del backend (modo casual): 51/49 simbólico para que
+      // el oro caiga del lado votado sin inventar una paliza.
+      leftPct: total > 0 ? (votosGanador / total) * 100 : 51,
     }
+    const canvas = document.createElement('canvas')
+    canvas.width = DUEL_CARD_SIZE
+    canvas.height = DUEL_CARD_SIZE
+    const ctx = canvas.getContext('2d')
+    const images = await loadDuelImages(duel)
+    drawDuelShareCard(ctx, duel, { images, theme: resolveDuelTheme(canvas) })
+    return new Promise((resolve, reject) => {
+      canvas.toBlob(
+        (b) => (b ? resolve(b) : reject(new Error('No se pudo generar el PNG'))),
+        'image/png',
+      )
+    })
   }, [losingPersonaje, voteResult, votedPersonaje])
+
+  // Contexto del share del duelo (mismo título/texto/URL/fileName que antes).
+  const dueloContexto = useMemo(() => {
+    if (!votedPersonaje || !losingPersonaje) return null
+    return {
+      titulo: `${votedPersonaje.nombre} ganó mi duelo`,
+      texto: `${votedPersonaje.nombre} vs ${losingPersonaje.nombre} en AnimeShowdown. ¿Tú a quién subes?`,
+      url: `/votar?personaje=${encodeURIComponent(votedPersonaje.slug)}&rival=${encodeURIComponent(losingPersonaje.slug)}`,
+      alt: `Duelo: ${votedPersonaje.nombre} contra ${losingPersonaje.nombre}, con ${votedPersonaje.nombre} como ganador`,
+      fileName: `animeshowdown-${votedPersonaje.slug}-vs-${losingPersonaje.slug}.png`,
+      dims: [1080, 1080],
+    }
+  }, [losingPersonaje, votedPersonaje])
+
+  // Abre la hoja de impresión para la card del duelo.
+  const handleShareResultImage = useCallback(() => {
+    if (!votedPersonaje || !losingPersonaje) return
+    setDueloShareOpen(true)
+  }, [losingPersonaje, votedPersonaje])
+
+  const closeDueloShare = useCallback(() => setDueloShareOpen(false), [])
+  const onDueloShared = useCallback(() => recordDailyShare(), [])
 
   const handleShareSessionRecap = useCallback(async () => {
     if (sessionStats.total <= 0) return
@@ -206,6 +187,11 @@ export function useVotarShare({
     handleShareVote,
     handleShareSessionRecap,
     handleShareResultImage,
-    generandoCard,
+    // Estado/datos de la hoja de impresión del duelo (la consume VotarPage).
+    dueloShareOpen,
+    closeDueloShare,
+    pintarDueloBlob,
+    dueloContexto,
+    onDueloShared,
   }
 }

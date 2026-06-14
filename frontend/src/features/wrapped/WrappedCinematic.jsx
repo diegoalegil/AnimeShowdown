@@ -46,6 +46,8 @@ import {
 import { brandImage } from '../../lib/brand-assets'
 import PersonajeImg from '../../components/PersonajeImg'
 import ShareButtons from '../../components/ShareButtons'
+import PressSheet from '../../components/PressSheet'
+import { recordDailyShare } from '../../lib/dailyProgress'
 
 const nf = new Intl.NumberFormat('es-ES')
 
@@ -359,11 +361,12 @@ function FandomChapter({ sectionRef, scene, data, reduce }) {
 
 function FinalChapter({ sectionRef, cardData, shareUrl, shareText, reduce }) {
   const canvasRef = useRef(null)
-  const paintersRef = useRef(null)
   const [ready, setReady] = useState(false)
-  const [feedback, setFeedback] = useState('')
+  const [abierto, setAbierto] = useState(false)
 
-  // Pintado lazy: import() del painter cuando el capítulo se acerca.
+  // Preview en vivo del capítulo: pintado lazy del canvas en pantalla cuando
+  // el capítulo se acerca al viewport. Es el MISMO pintor (./wrapped-story-card,
+  // paintWrappedStoryCard) — solo la cinemática de la página; no cambia.
   useEffect(() => {
     const node = sectionRef.current
     if (!node) return undefined
@@ -374,7 +377,6 @@ function FinalChapter({ sectionRef, cardData, shareUrl, shareText, reduce }) {
         io.disconnect()
         import('./wrapped-story-card').then((mod) => {
           if (!alive || !canvasRef.current) return
-          paintersRef.current = mod
           mod.paintWrappedStoryCard(canvasRef.current, cardData).then(() => {
             if (alive) setReady(true)
           })
@@ -389,20 +391,16 @@ function FinalChapter({ sectionRef, cardData, shareUrl, shareText, reduce }) {
     }
   }, [sectionRef, cardData])
 
-  const onDownload = async () => {
-    const mod = paintersRef.current
-    if (!mod || !canvasRef.current) return
-    const ok = await mod.downloadWrappedStoryCard(canvasRef.current)
-    setFeedback(ok ? 'Tarjeta descargada' : 'No se pudo exportar')
-  }
-  const onShare = async () => {
-    const mod = paintersRef.current
-    if (!mod || !canvasRef.current) return
-    const result = await mod.shareWrappedStoryCard(canvasRef.current, {
-      title: 'Mi AnimeShowdown Wrapped',
-      text: shareText,
-    })
-    if (result === 'downloaded') setFeedback('Tu navegador no comparte archivos — descargada')
+  // Painter de la hoja de impresión: pinta la story-card 1080×1920 en un canvas
+  // offscreen con el MISMO módulo (paintWrappedStoryCard + wrappedStoryCardBlob)
+  // y resuelve el PNG. Re-invocable (PressSheet reintenta bajo demanda).
+  const pintarWrappedBlob = async () => {
+    const mod = await import('./wrapped-story-card')
+    const canvas = document.createElement('canvas')
+    await mod.paintWrappedStoryCard(canvas, cardData)
+    const blob = await mod.wrappedStoryCardBlob(canvas)
+    if (!blob) throw new Error('El navegador no pudo exportar la tarjeta.')
+    return blob
   }
 
   return (
@@ -428,17 +426,27 @@ function FinalChapter({ sectionRef, cardData, shareUrl, shareText, reduce }) {
         <div className="flex flex-wrap items-center justify-center gap-3">
           <button
             type="button"
-            onClick={onDownload}
+            onClick={() => setAbierto(true)}
             className="min-h-11 rounded-lg bg-accent px-5 py-2.5 text-sm font-bold text-fg-strong transition-colors hover:bg-accent-hover"
           >
-            Descargar imagen
-          </button>
-          <button type="button" onClick={onShare} className="as-button-ghost min-h-11 rounded-lg px-5 py-2.5 text-sm font-semibold">
             Compartir
           </button>
         </div>
-        {feedback && <p className="text-[13px] text-fg-muted" role="status">{feedback}</p>}
         <ShareButtons url={shareUrl} texto={shareText} />
+        <PressSheet
+          open={abierto}
+          onClose={() => setAbierto(false)}
+          painter={pintarWrappedBlob}
+          contexto={{
+            titulo: 'Mi AnimeShowdown Wrapped',
+            texto: shareText,
+            url: shareUrl,
+            alt: 'Tu tarjeta de temporada de AnimeShowdown Wrapped, lista para stories',
+            fileName: 'animeshowdown-wrapped.png',
+            dims: [1080, 1920],
+          }}
+          onShared={() => recordDailyShare()}
+        />
       </div>
     </ChapterShell>
   )

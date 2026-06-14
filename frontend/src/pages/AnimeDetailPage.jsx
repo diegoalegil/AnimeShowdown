@@ -24,10 +24,12 @@ import {
   getPersonalAnimeStats,
 } from '../features/animeDetail/anime-detail-utils'
 import {
-  shareAnimeRanking,
-  shareFeaturedAnimeDuel,
-  sharePersonalAnimeTop,
+  buildAnimeRankingContexto,
+  buildFeaturedAnimeDuelContexto,
+  buildPersonalAnimeTopContexto,
 } from '../features/animeDetail/anime-detail-share'
+import PressSheet from '../components/PressSheet'
+import { recordDailyShare } from '../lib/dailyProgress'
 
 /**
  * Ficha de un universo anime — mini-home del anime con stats agregados,
@@ -38,6 +40,9 @@ function AnimeDetailPage() {
   const { personajes: catalogoPersonajes, isLoading } = usePersonajesCatalogo()
   const data = getAnimePorSlug(slug, catalogoPersonajes)
   const [localVotes, setLocalVotes] = useState(() => readLocalVotes())
+  // Hoja de impresión única para los 3 shares de la ficha (todos texto+enlace,
+  // sin imagen): guarda el `contexto` del share que se está abriendo.
+  const [shareContexto, setShareContexto] = useState(null)
 
   useEffect(
     () => listenLocalVotes((nextVotes) => setLocalVotes(nextVotes)),
@@ -99,11 +104,14 @@ function AnimeDetailPage() {
   const dueloDestacado = top10.length >= 2 ? [top10[0], top10[1]] : null
   const visual = getAnimeVisual(slug, anime)
   const top5AnimeHref = buildTop5AnimeHref(top10)
-  const compartirRankingAnime = () => shareAnimeRanking({ anime, slug, top10 })
+  const compartirRankingAnime = () =>
+    setShareContexto(buildAnimeRankingContexto({ anime, slug, top10 }))
   const compartirTopPersonalAnime = () =>
-    sharePersonalAnimeTop({ anime, slug, stats: personalAnimeStats })
-  const compartirDueloDestacado = () =>
-    shareFeaturedAnimeDuel({ anime, dueloDestacado })
+    setShareContexto(buildPersonalAnimeTopContexto({ anime, slug, stats: personalAnimeStats }))
+  const compartirDueloDestacado = () => {
+    const ctx = buildFeaturedAnimeDuelContexto({ anime, dueloDestacado })
+    if (ctx) setShareContexto(ctx)
+  }
   const lateralKanji = {
     left: visual?.kanji ?? '界',
     right: visual?.identity?.sideKanji ?? visual?.kanji ?? '界',
@@ -219,6 +227,13 @@ function AnimeDetailPage() {
           topElo={topElo}
         />
       </div>
+
+      <PressSheet
+        open={Boolean(shareContexto)}
+        onClose={() => setShareContexto(null)}
+        contexto={shareContexto ?? { titulo: '', texto: '', url: '/', alt: '', fileName: '' }}
+        onShared={() => recordDailyShare()}
+      />
     </VisualPageShell>
   )
 }

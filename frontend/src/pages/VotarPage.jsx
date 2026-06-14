@@ -24,6 +24,7 @@ import VotarTopBar from '../features/votar/components/VotarTopBar'
 import VoteArena from '../features/votar/components/VoteArena'
 import FightBill from '../features/votar/components/FightBill'
 import VoteResultPanel from '../features/votar/components/VoteResultPanel'
+import PressSheet from '../components/PressSheet'
 import SessionStreakCounter from '../features/votar/components/SessionStreakCounter'
 import { useMisEspeciales } from '../hooks/useCartas'
 import VotarQuickModes from '../features/votar/components/VotarQuickModes'
@@ -648,7 +649,11 @@ function VotarPage() {
     handleShareVote,
     handleShareSessionRecap,
     handleShareResultImage,
-    generandoCard,
+    dueloShareOpen,
+    closeDueloShare,
+    pintarDueloBlob,
+    dueloContexto,
+    onDueloShared,
   } = useVotarShare({
     a,
     b,
@@ -660,6 +665,15 @@ function VotarPage() {
     fixedSlug,
     fixedAnime,
   })
+
+  // Cierra la hoja de compartir del duelo al AVANZAR: al pasar de duelo,
+  // votedPersonaje se limpia (handleNext) → dueloContexto pasa a null y el
+  // PressSheet se desmonta SIN llamar onClose, dejando dueloShareOpen pegajoso;
+  // sin este reset, el modal se autoabriría solo en el siguiente duelo (modo
+  // rápido). Resetear cuando no hay contexto cubre los 3 avances (click/Esc/auto).
+  useEffect(() => {
+    if (!dueloContexto) closeDueloShare()
+  }, [dueloContexto, closeDueloShare])
 
   const handleVote = useCallback(
     (personaje) => {
@@ -1050,7 +1064,16 @@ function VotarPage() {
             personalVoteImpact={personalVoteImpact}
             onShareVote={handleShareVote}
             onShareResultImage={handleShareResultImage}
-            generandoCard={generandoCard}
+          />
+        )}
+
+        {dueloContexto && (
+          <PressSheet
+            open={dueloShareOpen}
+            onClose={closeDueloShare}
+            painter={pintarDueloBlob}
+            contexto={dueloContexto}
+            onShared={onDueloShared}
           />
         )}
 

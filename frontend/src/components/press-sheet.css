@@ -1,0 +1,155 @@
+/* ============================================================
+   La hoja de impresión (PressSheet) — stylesheet del componente.
+   CSP por hash: TODOS los keyframes viven aquí, cero estilos en runtime.
+   60fps: solo transform/opacity; cero blur/backdrop-blur nuevos.
+   Cero literales de color: todo sale de los tokens de @theme (index.css)
+   o de color-mix sobre esos tokens.
+   ============================================================ */
+
+/* Corte de tinta del revelado — el MISMO lenguaje del Cmd+K
+   (as-cmdk-cut). Se duplica con namespace propio para poder
+   ajustar la hoja sin tocar la paleta de comandos. */
+@keyframes as-press-cut {
+  from { transform: scaleX(1); }
+  to   { transform: scaleX(0); }
+}
+
+@keyframes as-press-fade {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+
+/* Pincel placeholder: dash loop sobre un trazo circular (enso).
+   -239 = circunferencia (2π·38) -> loop perfecto sin salto. */
+@keyframes as-press-brush {
+  from { stroke-dashoffset: 0; }
+  to   { stroke-dashoffset: -239; }
+}
+
+/* Sello del kanji de copia — caída + overshoot de hanko (el "ease-stamp"). */
+@keyframes as-press-stamp {
+  0%   { opacity: 0; transform: scale(1.45) rotate(-14deg); }
+  100% { opacity: 1; transform: scale(1) rotate(-7deg); }
+}
+
+/* Anillo de tinta del sello (sangrado): transform/opacity puro. */
+@keyframes as-press-anillo {
+  0%   { opacity: 0.6; transform: scale(0.7); }
+  100% { opacity: 0;   transform: scale(1.7); }
+}
+
+/* Subrayado de oro del enlace copiado. */
+@keyframes as-press-underline {
+  from { transform: scaleX(0); }
+  to   { transform: scaleX(1); }
+}
+
+/* -- Clases --------------------------------------------------- */
+
+/* Cover del corte de tinta: opaco (tapa la imagen hasta el corte).
+   El lienzo de la zona de imagen es bg-canvas, así que el cover usa el
+   mismo token para fundir sin costura. */
+.as-press-cover {
+  background: var(--color-canvas);
+  transform-origin: left center;
+  animation: as-press-cut 240ms var(--ease-brush) both;
+  will-change: transform;
+}
+
+/* Filo dorado de 3px en el borde de fuga del cover. */
+.as-press-edge {
+  background: linear-gradient(
+    180deg,
+    color-mix(in srgb, var(--color-gold) 15%, transparent),
+    var(--color-gold) 30%,
+    var(--color-gold) 70%,
+    color-mix(in srgb, var(--color-gold) 15%, transparent)
+  );
+}
+
+.as-press-brush {
+  animation: as-press-brush 2.2s linear infinite;
+}
+/* Pausa del loop fuera del viewport / pestaña oculta — la clase la pone
+   el hook usePausaFueraDeViewport (IntersectionObserver + visibilitychange). */
+.as-press-brush.is-paused {
+  animation-play-state: paused;
+}
+
+.as-press-sello {
+  animation: as-press-stamp 250ms var(--ease-stamp) both;
+}
+
+.as-press-anillo {
+  animation: as-press-anillo 620ms ease-out 80ms both;
+}
+
+.as-press-underline {
+  transform-origin: left center;
+  animation: as-press-underline 400ms var(--ease-lift) both;
+}
+
+.as-press-img-fade {
+  animation: as-press-fade 200ms ease both;
+}
+
+/* Tablilla ema: madera oscura con veta sutil (repeating-gradient, cero
+   imágenes), hairline interior y clavo/agujero de cuelgue. La veta es
+   fg-strong al 1.4% sobre dos paradas; la madera es canvas templado con
+   un punto de oro para el calor de la madera lacada. */
+.as-press-tablilla {
+  background-image:
+    repeating-linear-gradient(
+      0deg,
+      color-mix(in srgb, var(--color-fg-strong) 1.4%, transparent) 0px,
+      color-mix(in srgb, var(--color-fg-strong) 1.4%, transparent) 1px,
+      transparent 1px,
+      transparent 7px
+    ),
+    linear-gradient(
+      180deg,
+      color-mix(in srgb, var(--color-canvas) 88%, var(--color-gold) 12%),
+      color-mix(in srgb, var(--color-canvas) 94%, var(--color-gold) 6%)
+    );
+  box-shadow:
+    var(--inset-shadow-hairline),
+    var(--shadow-elev-1);
+}
+
+.as-press-clavo {
+  position: absolute;
+  top: 5px;
+  left: 50%;
+  width: 6px;
+  height: 6px;
+  margin-left: -3px;
+  border-radius: 9999px;
+  border: 1px solid color-mix(in srgb, var(--color-gold) 40%, transparent);
+  background: var(--color-canvas);
+}
+
+/* Hundimiento al descargar: 160ms ease-brush, vuelve solo (re-render). */
+.as-press-hundida {
+  transform: translateY(3px) scale(0.985);
+  transition: transform 160ms var(--ease-brush);
+}
+
+/* -- prefers-reduced-motion: revelado por fade, pincel estático -- */
+@media (prefers-reduced-motion: reduce) {
+  .as-press-cover {
+    animation: none;
+    transform: scaleX(0);
+  }
+  .as-press-brush {
+    animation: none;
+    opacity: 0.7;
+  }
+  .as-press-sello,
+  .as-press-underline {
+    animation: as-press-fade 150ms ease both;
+  }
+  .as-press-anillo {
+    animation: none;
+    opacity: 0;
+  }
+}
