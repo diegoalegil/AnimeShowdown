@@ -1,19 +1,19 @@
+import { useMemo } from 'react'
 import { useQuery } from '@tanstack/react-query'
 import { Link } from 'react-router-dom'
 import {
   Activity,
-  Clock,
   History,
   Minus,
   Swords,
   TrendingDown,
   TrendingUp,
-  Trophy,
 } from 'lucide-react'
 import { endpoints, ApiError } from '../lib/api'
-import { formatRelativeSafe } from '../lib/dateUtils'
 import { useVotosPeriodo } from '../hooks/useVotosPeriodo'
+import { useSound } from '../contexts/SoundContext'
 import PersonajeImg from './PersonajeImg'
+import BattleChronicle from './BattleChronicle'
 
 /**
  * Historial competitivo de un personaje. Dos secciones que viven al final
@@ -159,8 +159,62 @@ function ActividadSkeleton() {
   )
 }
 
+const RESULTADO_A_CRONICA = {
+  WIN: 'victoria',
+  LOSS: 'derrota',
+}
+
+/**
+ * Adapta el shape real del endpoint duelos-recientes (DueloRecienteDto:
+ * `{ enfrentamientoId, fecha, rival:{slug,nombre,anime,imagenUrl}, resultado:
+ * 'WIN'|'LOSS'|'PENDING', torneoNombre, torneoSlug }`) al shape `combates`
+ * que documenta BattleChronicle (`{ id, rival:{slug,nombre,anime}, resultado:
+ * 'victoria'|'derrota', fechaISO }`).
+ *
+ * · WIN→victoria, LOSS→derrota. Los PENDING (sin ganador todavía) NO son
+ *   combates crónicables: no tienen sello 勝/負, así que se descartan.
+ * · Filas sin rival (rival === null en el DTO) se descartan: la crónica gira
+ *   en torno al adversario.
+ * · `deltaElo` se OMITE a propósito: el DueloRecienteDto no expone el cambio
+ *   de ELO y la regla prohíbe inventar datos. BattleChronicle ya soporta el
+ *   delta opcional (oculta la columna cuando falta).
+ *
+ * La lista llega del backend más reciente primero, que es justo el orden que
+ * BattleChronicle espera.
+ */
+function duelosACombates(duelos) {
+  if (!Array.isArray(duelos)) return []
+  return duelos.flatMap((d) => {
+    const resultado = RESULTADO_A_CRONICA[d?.resultado]
+    if (!resultado || !d?.rival) return []
+    return [
+      {
+        id: String(d.enfrentamientoId),
+        rival: {
+          slug: d.rival.slug,
+          nombre: d.rival.nombre,
+          anime: d.rival.anime ?? undefined,
+        },
+        resultado,
+        fechaISO: d.fecha,
+      },
+    ]
+  })
+}
+
 function UltimosDuelos({ slug, nombre }) {
-  const { data, isLoading, isError } = useDuelos(slug)
+  const { data, isLoading, isError, dataUpdatedAt } = useDuelos(slug)
+  const { play } = useSound()
+  const combates = useMemo(() => duelosACombates(data), [data])
+  // Sonido de la crónica: empuje (whoosh) al asentarse el combate nuevo,
+  // sello (playSello — `playStamp` NO existe en lib/sounds.js) al estampar.
+  const sonidos = useMemo(
+    () => ({
+      empuje: () => play('playWhoosh'),
+      estampar: () => play('playSello'),
+    }),
+    [play],
+  )
   return (
     <section className="flex flex-col gap-4">
       <div className="flex items-end justify-between gap-2 border-b border-border pb-2">
@@ -180,96 +234,18 @@ function UltimosDuelos({ slug, nombre }) {
           No se pudo cargar el historial. Inténtalo más tarde.
         </p>
       )}
-      {!isLoading && !isError && (!data || data.length === 0) && (
+      {!isLoading && !isError && combates.length === 0 && (
         <EmptyHistorial nombre={nombre} />
       )}
-      {!isLoading && !isError && data && data.length > 0 && (
-        <ul className="flex flex-col gap-2">
-          {data.map((d) => (
-            <DueloRow key={d.enfrentamientoId} duelo={d} />
-          ))}
-        </ul>
+      {!isLoading && !isError && combates.length > 0 && (
+        <BattleChronicle
+          combates={combates}
+          titulo="Crónica de combates"
+          ahora={dataUpdatedAt || null}
+          sonidos={sonidos}
+        />
       )}
     </section>
-  )
-}
-
-const RESULTADO_STYLE = {
-  WIN: {
-    label: 'Victoria',
-    chip: 'bg-success/15 border-success/40 text-success',
-    Icon: Trophy,
-  },
-  LOSS: {
-    label: 'Derrota',
-    chip: 'bg-danger/15 border-danger/40 text-danger',
-    Icon: TrendingDown,
-  },
-  PENDING: {
-    label: 'Pendiente',
-    chip: 'bg-surface-alt border-border text-fg-muted',
-    Icon: Clock,
-  },
-}
-
-function DueloRow({ duelo }) {
-  const { rival, resultado, fecha, torneoNombre, torneoSlug } = duelo
-  const style = RESULTADO_STYLE[resultado] ?? RESULTADO_STYLE.PENDING
-  const Icon = style.Icon
-  return (
-    <li className="group flex items-center gap-3 rounded-lg border border-border bg-surface p-3 transition-colors hover:border-accent/40">
-      <span
-        className={`inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-lg border ${style.chip}`}
-        title={style.label}
-        aria-label={style.label}
-      >
-        <Icon className="h-4 w-4" />
-      </span>
-      {rival ? (
-        <Link to={`/personajes/${rival.slug}`} className="shrink-0">
-          <PersonajeImg
-            slug={rival.slug}
-            src={rival.imagenUrl}
-            alt={rival.nombre}
-            loading="lazy"
-            sizes="48px"
-            className="h-12 w-9 rounded-lg object-cover object-top"
-          />
-        </Link>
-      ) : (
-        <div className="h-12 w-9 shrink-0 rounded-lg bg-surface-alt" aria-hidden="true" />
-      )}
-      <div className="min-w-0 flex-1">
-        <p className="line-clamp-1 text-[13px] font-semibold text-fg-strong">
-          <span className="text-fg-muted">vs </span>
-          {rival ? (
-            <Link
-              to={`/personajes/${rival.slug}`}
-              className="hover:text-gold"
-            >
-              {rival.nombre}
-            </Link>
-          ) : (
-            <span className="italic text-fg-muted">por asignar</span>
-          )}
-        </p>
-        <p className="line-clamp-1 text-[11px] text-fg-muted">
-          {rival?.anime && <>{rival.anime} · </>}
-          {formatRelativo(fecha)}
-          {torneoNombre && torneoSlug && (
-            <>
-              {' · '}
-              <Link
-                to={`/torneos/${torneoSlug}`}
-                className="hover:text-gold hover:underline"
-              >
-                {torneoNombre}
-              </Link>
-            </>
-          )}
-        </p>
-      </div>
-    </li>
   )
 }
 
@@ -486,10 +462,6 @@ function MatchupsSkeleton() {
       ))}
     </div>
   )
-}
-
-function formatRelativo(isoString) {
-  return formatRelativeSafe(isoString)
 }
 
 export default HistorialCompetitivo
