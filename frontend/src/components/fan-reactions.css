@@ -1,0 +1,238 @@
+/* ============================================================
+   fan-reactions.css — ReactionsBar ("los abanicos del público")
+   CSS de FEATURE: lo importa ReactionsBar.jsx (import './fan-reactions.css').
+   Los @keyframes viven aquí (CSP por hash: cero estilos en runtime).
+   Solo tokens del sistema + color-mix; sin literales de color en
+   reglas NI en comentarios (guard de CI).
+   ease-stamp NO es token global: se declara local en .fanr.
+   Animaciones: SOLO transform/opacity. Sin blur, sin filters,
+   sin preserve-3d. Sin loops infinitos (nada que enganchar a
+   html.as-calm / html.as-tab-hidden).
+   El conteo lo pinta LiveNumber (odómetro canónico), no este CSS.
+   ============================================================ */
+
+.fanr {
+  --fanr-ease-stamp: cubic-bezier(0.34, 1.56, 0.64, 1);
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: 0.375rem;
+  font-family: var(--font-sans);
+}
+
+/* fila: scrolleable con snap (a 390px desliza; en ancho no scrollea) */
+.fanr__row {
+  display: flex;
+  align-items: flex-end;
+  gap: 0.625rem;
+  overflow-x: auto;
+  scroll-snap-type: x proximity;
+  scrollbar-width: none;
+  padding: 0.25rem 0.125rem;
+}
+.fanr__row::-webkit-scrollbar { display: none; }
+
+/* boton real: hit >= 44px aunque el abanico dibuje menos */
+.fanr__btn {
+  position: relative;
+  flex: 0 0 auto;
+  display: grid;
+  justify-items: center;
+  gap: 0.25rem;
+  min-width: 2.75rem;
+  min-height: 2.75rem;
+  padding: 0.375rem 0.25rem 0.25rem;
+  background: none;
+  border: 0;
+  border-radius: var(--radius-lg);
+  color: var(--color-fg-muted);
+  cursor: pointer;
+  scroll-snap-align: center;
+  -webkit-tap-highlight-color: transparent;
+}
+.fanr__btn:disabled { cursor: not-allowed; opacity: 0.6; }
+/* hit area ampliada mas alla del dibujo (gap 10px: sin solapes) */
+.fanr__btn::after { content: ""; position: absolute; inset: -0.25rem; }
+.fanr__btn:focus-visible {
+  outline: 2px solid var(--color-gold);
+  outline-offset: 2px;
+}
+@media (hover: hover) {
+  .fanr__btn:not(:disabled):hover .fanr__closedFace {
+    border-color: var(--color-border-gold-subtle);
+    color: var(--color-fg);
+  }
+}
+
+/* ---- escenario del abanico: capas cerrada/abierta superpuestas ---- */
+.fanr__fan { position: relative; width: 2.625rem; height: 3.25rem; }
+
+.fanr__closed,
+.fanr__openWrap {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-end;
+}
+
+/* cerrado: paleta fina inclinada — reposo de toda reaccion no activa */
+.fanr__closed {
+  transform: rotate(-12deg);
+  transform-origin: 50% 92%;
+  transition: opacity 160ms linear, transform 220ms var(--ease-lift);
+}
+.fanr__closedFace {
+  width: 1.0625rem;
+  height: 2.25rem;
+  display: grid;
+  place-items: center;
+  border-radius: 0.5rem 0.5rem 0.3125rem 0.3125rem;
+  background: var(--color-surface-alt);
+  border: 1px solid var(--color-border);
+  font-family: var(--font-kanji-serif);
+  font-size: 0.8125rem;
+  line-height: 1;
+  color: var(--color-fg-muted);
+  transition: color 160ms linear, border-color 160ms linear;
+}
+.fanr__closedStick {
+  width: 0.1875rem;
+  height: 0.5rem;
+  margin-top: -1px;
+  border-radius: var(--radius-pill);
+  background: var(--color-border);
+}
+
+/* abierto: uchiwa pleno — reposo = plegado e invisible.
+   transicion base = CIERRE (220ms ease-lift) */
+.fanr__openWrap {
+  opacity: 0;
+  transform: rotate(-12deg) scaleX(0.2);
+  transform-origin: left bottom;
+  pointer-events: none;
+  transition: transform 220ms var(--ease-lift), opacity 150ms linear;
+}
+.fanr__openFace {
+  width: 2.5rem;
+  height: 2.5rem;
+  display: grid;
+  place-items: center;
+  border-radius: 52% 52% 46% 46% / 60% 60% 42% 42%;
+  background: color-mix(in srgb, var(--color-accent) 78%, var(--color-bg));
+  border: 1px solid color-mix(in srgb, var(--color-gold) 28%, transparent);
+  box-shadow: var(--shadow-elev-2);
+}
+.fanr__openGlyph {
+  display: block;
+  font-family: var(--font-kanji-serif);
+  font-size: 1.1875rem;
+  line-height: 1;
+  color: var(--color-fg-strong);
+}
+.fanr__openStick {
+  width: 0.25rem;
+  height: 0.625rem;
+  margin-top: -1px;
+  border-radius: var(--radius-pill);
+  background: color-mix(in srgb, var(--color-gold) 55%, var(--color-bg));
+}
+
+/* APERTURA: rotate -12deg -> 0 + scaleX 0.2 -> 1 origin-left, 300ms ease-lift */
+.fanr__btn[aria-pressed="true"] .fanr__openWrap {
+  opacity: 1;
+  transform: none;
+  transition: transform 300ms var(--ease-lift), opacity 120ms linear;
+}
+.fanr__btn[aria-pressed="true"] .fanr__closed {
+  opacity: 0;
+  transform: rotate(-6deg);
+}
+
+/* pop del glifo (1.15 -> 1, 120ms, ease-stamp local) — solo gesto del
+   usuario (clase --pop la pone el handler; al montar NO hay ceremonia) */
+.fanr__btn--pop[aria-pressed="true"] .fanr__openGlyph {
+  animation: fanr-pop 120ms var(--fanr-ease-stamp) 200ms backwards;
+}
+
+/* cambio de reaccion: la nueva demora 140ms => 80ms de solape con el
+   cierre (220ms) de la anterior; el pop se corre en consecuencia */
+.fanr__btn--switch[aria-pressed="true"] .fanr__openWrap {
+  transition-delay: 140ms, 140ms;
+}
+.fanr__btn--switch[aria-pressed="true"] .fanr__openGlyph {
+  animation-delay: 340ms;
+}
+
+@keyframes fanr-pop {
+  from { transform: scale(1.15); }
+  to   { transform: scale(1); }
+}
+
+/* lider real: laca oro — nunca tamano. Aplica abierto o cerrado. */
+.fanr__btn--leader .fanr__closedFace {
+  border-color: var(--color-border-gold);
+  color: var(--color-gold-bright);
+  background: color-mix(in srgb, var(--color-gold) 8%, var(--color-surface-alt));
+}
+.fanr__btn--leader .fanr__closedStick {
+  background: color-mix(in srgb, var(--color-gold) 45%, transparent);
+}
+.fanr__btn--leader .fanr__openFace {
+  --aura-color: color-mix(in srgb, var(--color-gold) 28%, transparent);
+  border-color: var(--color-border-gold);
+  box-shadow: var(--shadow-elev-2), var(--shadow-aura-sm);
+}
+.fanr__btn--leader .fanr__openGlyph { color: var(--color-gold-bright); }
+.fanr__btn--leader .fanr__count { color: var(--color-elo-number); }
+
+/* conteo: lo pinta LiveNumber (tabular-nums propio); aqui solo color/tamano */
+.fanr__count {
+  font-family: var(--font-mono);
+  font-size: var(--text-2xs);
+  line-height: 1.2;
+  color: var(--color-fg-muted);
+  transition: color 160ms linear;
+}
+.fanr__btn[aria-pressed="true"] .fanr__count { color: var(--color-fg-strong); }
+
+/* total de reacciones, al final de la fila */
+.fanr__total {
+  flex: 0 0 auto;
+  align-self: center;
+  margin-left: 0.25rem;
+  font-size: var(--text-2xs);
+  color: var(--color-fg-muted);
+  white-space: nowrap;
+}
+
+/* CTA de invitado bajo la barra */
+.fanr__login {
+  align-self: flex-start;
+  background: none;
+  border: 0;
+  padding: 0;
+  font-size: var(--text-2xs);
+  color: var(--color-fg-muted);
+  text-underline-offset: 2px;
+  cursor: pointer;
+}
+.fanr__login:hover {
+  color: var(--color-gold);
+  text-decoration: underline;
+}
+
+/* reduced motion: apertura por opacity simple; sin pop, sin rodillo */
+@media (prefers-reduced-motion: reduce) {
+  .fanr__closed {
+    transition: opacity 160ms linear;
+  }
+  .fanr__openWrap,
+  .fanr__btn[aria-pressed="true"] .fanr__openWrap {
+    transform: none;
+    transition: opacity 160ms linear;
+    transition-delay: 0ms;
+  }
+  .fanr__btn--pop[aria-pressed="true"] .fanr__openGlyph { animation: none; }
+}
