@@ -54,9 +54,15 @@ describe('política de view transitions', () => {
   })
 
   it('el hero del detalle adopta y libera el nombre compartido', () => {
-    const source = leer('src/pages/PersonajeDetailPage.jsx')
+    // El hero de la ficha es la cubierta del FighterCodex (.codex__hero), que
+    // ES el destino del morph carta → detalle. El adopt/release vive en su
+    // useLayoutEffect; la página ya no lo duplica para no repetir el
+    // view-transition-name. El contrato se conserva, solo cambia de archivo.
+    const source = leer('src/features/personajes/codex/FighterCodex.jsx')
     expect(source).toContain('adoptPersonajeHero')
     expect(source).toContain('releasePersonajeHero')
+    // Y la página monta el códice como su cabecera.
+    expect(leer('src/pages/PersonajeDetailPage.jsx')).toContain('<FighterCodex')
   })
 
   it('el catálogo de animes marca la scene al click y la cover viaja en el morph', () => {

@@ -1,5 +1,6 @@
-import { lazy, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react'
-import { useParams, Link, Navigate } from 'react-router-dom'
+import { lazy, useEffect, useMemo, useRef, useState } from 'react'
+import { useParams, Link, Navigate, useNavigate } from 'react-router-dom'
+import { useQuery } from '@tanstack/react-query'
 import { motion } from 'framer-motion'
 import {
   ArrowLeft,
@@ -50,7 +51,10 @@ import ShareButtons from '../components/ShareButtons'
 import ComentariosPersonaje from '../components/ComentariosPersonaje'
 import { usePersonajesSimilares } from '../hooks/usePersonajesSimilares'
 import { useImagenesPersonaje } from '../hooks/useImagenesPersonaje'
+import { useVotosPeriodo } from '../hooks/useVotosPeriodo'
+import { endpoints, ApiError } from '../lib/api'
 import { useSound } from '../contexts/SoundContext'
+import FighterCodex from '../features/personajes/codex/FighterCodex'
 import NotFoundPage from './NotFoundPage'
 import { VisualPageShell } from '../components/VisualSystem'
 import { hexToRgbChannels } from '../lib/color'
@@ -66,7 +70,6 @@ import {
 import RetoRecomendado from '../features/personajes/components/RetoRecomendado'
 import { getRetoRecomendado } from '../features/personajes/reto-recomendado'
 import { buildPersonajeDetailContext } from '../features/personajes/personaje-detail-data'
-import { adoptPersonajeHero, releasePersonajeHero } from '../lib/viewTransitions'
 
 const loadPersonaje3D = () => import('../components/Personaje3D')
 const Personaje3D = lazy(loadPersonaje3D)
@@ -188,16 +191,52 @@ function PersonajeDetailPage() {
     () => listenLocalVotes((nextVotes) => setLocalVotes(nextVotes)),
     [],
   )
-  // Morph de navegación: el contenedor del hero adopta el view-transition-name
-  // compartido en cuanto commitea (destino del morph carta → detalle, y origen
-  // al navegar a otra ficha). Layout effect a propósito: el nombre tiene que
-  // estar puesto cuando la transición capture el estado nuevo.
-  const heroMorphRef = useRef(null)
-  useLayoutEffect(() => {
-    const el = heroMorphRef.current
-    adoptPersonajeHero(el)
-    return () => releasePersonajeHero(el)
-  }, [slug])
+  const navigate = useNavigate()
+  // Datos de los pliegos del FighterCodex (la cabecera-libro). Todos públicos
+  // y honestos: si el backend no responde, el pliego correspondiente pinta su
+  // estado vacío (río seco 空 / páginas en blanco / sin votos) — nunca inventa.
+  //   - río de tinta (InkRiver): serie de votos acumulados de /elo-history,
+  //     remapeada a la clave `votos` que el componente espera.
+  //   - páginas enfrentadas (FacingPages): agregado /matchups (rival/wins/losses).
+  //   - pliego de votos: useVotosPeriodo (mismo hook que el historial competitivo).
+  const { data: eloHistory } = useQuery({
+    queryKey: ['personaje', slug, 'elo-history', 30],
+    queryFn: () => endpoints.personajeEloHistory(slug, { dias: 30 }),
+    enabled: Boolean(personaje),
+    staleTime: 30 * 60_000,
+    retry: (count, err) =>
+      !(err instanceof ApiError && err.status === 404) && count < 1,
+  })
+  const codexHistorial = useMemo(
+    () =>
+      Array.isArray(eloHistory)
+        ? eloHistory.map((p) => ({ fecha: p.fecha, votos: p.votosAcumulados }))
+        : [],
+    [eloHistory],
+  )
+  const { data: matchups } = useQuery({
+    queryKey: ['personaje', slug, 'matchups'],
+    queryFn: () => endpoints.matchupsPersonaje(slug),
+    enabled: Boolean(personaje),
+    staleTime: 60 * 1000,
+    retry: (count, err) =>
+      !(err instanceof ApiError && err.status === 404) && count < 1,
+  })
+  // matchups es un DTO-objeto (MatchupResumenDto), NO un array: Array.isArray()
+  // siempre era false, así que el pliego 対 mostraba un "páginas en blanco"
+  // falso. Normalizamos a rivalesFrecuentes (rival, wins, losses) y gateamos
+  // por total (como HistorialCompetitivo) para no surfacing rivalidades de 1
+  // duelo.
+  const codexMatchups = useMemo(
+    () =>
+      (matchups?.totalEnfrentamientos ?? 0) >= 3
+        ? matchups?.rivalesFrecuentes ?? []
+        : [],
+    [matchups],
+  )
+  const { data: votosPeriodo } = useVotosPeriodo(personaje ? slug : null, {
+    dias: 7,
+  })
   const personalLocalStats = useMemo(
     () => getLocalVoteStats(localVotes),
     [localVotes],
@@ -349,36 +388,61 @@ function PersonajeDetailPage() {
           <ArrowLeft className="h-4 w-4" />
           Volver al catálogo
         </Link>
-        {/* 3: <article> con Microdata schema.org/Person para
-            crawlers que prefieren Microdata sobre JSON-LD. Coexiste con
-            el JsonLd de arriba sin contradecirse — Google da prioridad a
-            JSON-LD pero algunos scrapers parsean ambos. itemprop
-            en name (H1), description (p), image (img/meta). */}
-        <motion.article
+        {/* FighterCodex (pieza 124): la cabecera de la ficha como LIBRO ceremonial.
+            La cubierta (retrato a sangre) ES el destino del morph compartido
+            personaje-hero (el componente hace adopt/release en su propio
+            useLayoutEffect → por eso la página ya no lo adopta) y reorganiza el
+            cuerpo en PLIEGOS-tabs: Stats 戦, río de tinta 史 (/elo-history),
+            páginas enfrentadas 対 (/matchups), votos 炎 (votos-periodo). Carga
+            su Microdata schema.org/Person (name H1 + url) y los tres sellos de
+            estado (ELO acuñado · puesto global · % victorias). Las secciones
+            ricas preexistentes (carta 3D, galería, reacciones, placa ELO,
+            descripción, cita, historial competitivo, comentarios…) se conservan
+            ÍNTEGRAS debajo, crawlables y con sus mismos hooks/props. */}
+        <FighterCodex
+          personaje={personaje}
+          stats={stats}
+          rankGlobal={rankGlobal}
+          rankAnime={rankAnime}
+          totalAnime={totalAnime}
+          universoKanji={visualAnime?.identity?.kanji ?? visualAnime?.kanji}
+          numero={String(idx + 1).padStart(3, '0')}
+          historial={codexHistorial}
+          matchups={codexMatchups}
+          votosPeriodo={votosPeriodo}
+          onRetar={(rivalSlug) =>
+            navigate(
+              rivalSlug
+                ? `/duelos/${personaje.slug}-vs-${rivalSlug}`
+                : `/votar?personaje=${encodeURIComponent(personaje.slug)}`,
+            )
+          }
+        />
+        {/* Detalle y acciones de la ficha: layout preexistente conservado al
+            completo (carta 3D + galería + CTAs + reacciones + placa ELO + cita
+            + navegación prev/next). Ya NO declara un segundo schema.org/Person:
+            la única entidad Person es la del FighterCodex de arriba; aquí el
+            contenido sigue siendo texto crawlable y el JSON-LD (intacto) manda
+            como dato estructurado. El nombre/furigana dejó de duplicarse: lo
+            pinta el frontispicio del códice. */}
+        <motion.section
           key={slug}
-          itemScope
-          itemType="https://schema.org/Person"
-          className="grid grid-cols-1 gap-8 md:grid-cols-[minmax(0,1fr)_minmax(0,1.2fr)] md:items-start md:gap-12"
+          className="mt-8 grid grid-cols-1 gap-8 md:grid-cols-[minmax(0,1fr)_minmax(0,1.2fr)] md:items-start md:gap-12"
           variants={containerVariants}
           initial="hidden"
           animate="visible"
         >
-          <meta
-            itemProp="image"
-            content={`https://animeshowdown.dev${imagenPersonaje(slug)}`}
-          />
-          <meta itemProp="url" content={`https://animeshowdown.dev/personajes/${slug}`} />
           {/* Columna visual (izquierda en desktop): carta holo + galería +
               figura. A la derecha, la info encabezada por el avatar circular +
               nombre. items-start en el grid evita el espacio muerto que dejaba
               items-center; en móvil la identidad va antes (order-1). */}
-          {/* La columna del hero pinta SIN animación de entrada: es el destino
-              del morph compartido y además el candidato a LCP. Un fade de
-              framer encima del morph produciría un pop de opacidad al
-              terminar la transición; el resto de la ficha sí escalona. */}
+          {/* Carta interactiva (3D + dossier flip) y galería: se conservan
+              íntegras. El morph compartido personaje-hero ya NO lo adopta esta
+              columna — lo hace la cubierta del FighterCodex (.codex__hero) para
+              no duplicar el view-transition-name. Esta carta queda como visor
+              estático/3D on-demand del retrato. */}
           <div className="order-2 mx-auto flex w-full min-w-0 max-w-sm flex-col md:order-1 md:mx-0 md:max-w-md">
             <div
-              ref={heroMorphRef}
               className="relative mx-auto aspect-[2/3] max-h-[55vh] w-auto overflow-hidden rounded-2xl border border-border bg-surface md:mx-0 md:w-full md:max-h-none"
               style={{ filter: 'var(--personaje-hero-drop-shadow)' }}
             >
@@ -458,31 +522,10 @@ function PersonajeDetailPage() {
                 </span>
               )}
             </motion.div>
-            <motion.div
-              className="flex w-full min-w-0 flex-col gap-1.5"
-              variants={itemVariants}
-            >
-              {/* Identidad de expediente: el anime como anotación furigana
-                  (mono, oro) sobre el nombre, con hairline de papel debajo.
-                  El retrato circular murió: el retrato 2:3 con marco y sello
-                  ya lleva la identidad visual. Microdata intacta. */}
-              <p className="fdh-anime">
-                <span
-                  itemProp="affiliation"
-                  itemScope
-                  itemType="https://schema.org/TVSeries"
-                >
-                  <span itemProp="name">{personaje.anime}</span>
-                </span>
-              </p>
-              <h1
-                itemProp="name"
-                className="text-[clamp(1.75rem,4.5vw,3rem)] leading-tight tracking-tight"
-              >
-                {personaje.nombre}
-              </h1>
-              <div className="fdh-hairline mt-2 w-full" aria-hidden="true" />
-            </motion.div>
+            {/* La identidad (anime furigana + nombre H1 + hairline) y la
+                Microdata schema.org/Person viven ahora en el frontispicio del
+                FighterCodex de arriba; no se duplican aquí para no emitir un
+                segundo H1/entidad Person. Las acciones siguen intactas. */}
             <motion.div
               className="flex flex-wrap gap-2"
               variants={itemVariants}
@@ -568,7 +611,7 @@ function PersonajeDetailPage() {
                 <p className="text-[11px] font-semibold text-fg-muted">
                   Sobre el personaje
                 </p>
-                <p itemProp="description" className="mt-2 text-sm leading-relaxed text-fg">
+                <p className="mt-2 text-sm leading-relaxed text-fg">
                   {personaje.descripcion}
                 </p>
                 {jikan?.nicknames?.length > 0 && (
@@ -642,7 +685,7 @@ function PersonajeDetailPage() {
               </Link>
             </motion.div>
           </motion.div>
-        </motion.article>
+        </motion.section>
 
         {retoRecomendado && (
           <RetoRecomendado
