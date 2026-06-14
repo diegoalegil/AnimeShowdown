@@ -1,0 +1,359 @@
+/* byobu-gallery.css — CSS de feature de ByobuGallery.
+   Lo importa el componente (import './byobu-gallery.css'); los @keyframes viven
+   aquí (CSP por hash: cero estilos en runtime). Solo tokens globales de
+   index.css; alphas con color-mix. Sin blur, sin 3D real: solo transform y
+   opacity. ease-stamp no se usa en esta pieza. */
+
+.byobu-sr {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+/* ——— tira de miniaturas ——— */
+.byobu-strip {
+  display: flex;
+  gap: 0.625rem;
+  list-style: none;
+  margin: 0;
+  padding: 0.25rem 0.25rem 0.625rem;
+  overflow-x: auto;
+  scroll-snap-type: x proximity;
+  scrollbar-width: thin;
+  scrollbar-color: var(--color-border-gold-subtle) transparent;
+}
+.byobu-thumb-item {
+  flex: 0 0 auto;
+  scroll-snap-align: start;
+}
+.byobu-thumb {
+  display: block;
+  width: 7.25rem;
+  aspect-ratio: 2 / 3;
+  padding: 0;
+  border: 1px solid var(--color-border-gold-subtle);
+  border-radius: var(--radius-lg);
+  background: var(--color-surface);
+  overflow: hidden;
+  cursor: pointer;
+  transition:
+    transform 0.26s var(--ease-lift),
+    border-color 0.26s var(--ease-lift),
+    box-shadow 0.26s var(--ease-lift);
+}
+.byobu-thumb:hover {
+  transform: translateY(-3px);
+  border-color: var(--color-border-gold);
+  box-shadow: var(--shadow-elev-2);
+}
+.byobu-thumb:focus-visible {
+  outline: 2px solid var(--color-gold);
+  outline-offset: 2px;
+}
+.byobu-thumb img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+.byobu-strip__note {
+  margin: 0.25rem 0 0;
+  font-family: var(--font-mono);
+  font-size: var(--text-2xs);
+  color: var(--color-fg-muted);
+}
+
+/* esqueleto (cargando / invitado) — pulso solo de opacity, pausable */
+.byobu-skel {
+  cursor: default;
+  border-color: var(--color-border);
+  background: var(--color-surface-alt);
+  animation: byobu-breath 1.6s ease-in-out infinite alternate;
+}
+html.as-calm .byobu-skel,
+html.as-tab-hidden .byobu-skel,
+html.as-calm .byobu-leaf__veil,
+html.as-tab-hidden .byobu-leaf__veil {
+  animation: none;
+}
+
+/* ——— visor: overlay + despliegue ——— */
+.byobu-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 80;
+  background: color-mix(in srgb, var(--color-canvas) 88%, transparent);
+  animation: byobu-scrim-in 0.26s var(--ease-lift) both;
+}
+.byobu-overlay--closing {
+  animation: byobu-scrim-out 0.23s var(--ease-brush) both;
+}
+.byobu-unfold {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  padding: 1rem;
+  /* inset:0 ⇒ las coords del thumbnail (viewport) sirven de transform-origin */
+  transform-origin: var(--byobu-ox, 50%) var(--byobu-oy, 50%);
+}
+.byobu-overlay--opening .byobu-unfold {
+  animation: byobu-unfold-in 0.26s var(--ease-lift) both;
+}
+.byobu-overlay--closing .byobu-unfold {
+  animation: byobu-unfold-out 0.23s var(--ease-brush) both;
+}
+
+.byobu-panel {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.875rem;
+}
+
+/* lienzo 2:3 de tamaño fijo ⇒ el papel y la lámina ocupan el mismo marco */
+.byobu-stage {
+  position: relative;
+  width: min(86vw, calc(76vh * 2 / 3));
+  width: min(86vw, calc(76svh * 2 / 3));
+  aspect-ratio: 2 / 3;
+  touch-action: pan-y;
+}
+.byobu-leaf {
+  position: absolute;
+  inset: 0;
+  margin: 0;
+  overflow: hidden;
+  border: 1px solid var(--color-border-gold);
+  border-radius: var(--radius-lg);
+  background: var(--color-surface);
+  box-shadow: var(--shadow-elev-2);
+}
+.byobu-leaf img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+/* pliegues del biombo: dos hairlines doradas a 1/3 y 2/3 */
+.byobu-leaf::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background:
+    linear-gradient(
+      to right,
+      transparent calc(33.4% - 1px),
+      color-mix(in srgb, var(--color-gold) 12%, transparent) 33.4%,
+      transparent calc(33.4% + 1px)
+    ),
+    linear-gradient(
+      to right,
+      transparent calc(66.7% - 1px),
+      color-mix(in srgb, var(--color-gold) 12%, transparent) 66.7%,
+      transparent calc(66.7% + 1px)
+    );
+}
+.byobu-leaf__veil {
+  position: absolute;
+  inset: 0;
+  background: var(--color-surface-alt);
+  animation: byobu-breath 1.6s ease-in-out infinite alternate;
+}
+
+/* fases de la lámina (variantes con transform en el bloque no-preference) */
+.byobu-leaf--out-next {
+  transform-origin: left center;
+  animation: byobu-leaf-out-next 0.2s var(--ease-brush) both;
+}
+.byobu-leaf--out-prev {
+  transform-origin: right center;
+  animation: byobu-leaf-out-prev 0.2s var(--ease-brush) both;
+}
+.byobu-leaf--in-next {
+  transform-origin: right center;
+  animation: byobu-leaf-in-next 0.24s var(--ease-lift) both;
+}
+.byobu-leaf--in-prev {
+  transform-origin: left center;
+  animation: byobu-leaf-in-prev 0.24s var(--ease-lift) both;
+}
+
+/* ——— bisagras ——— */
+.byobu-hinge {
+  position: absolute;
+  top: 50%;
+  translate: 0 -50%;
+  width: 2.75rem;
+  height: 5.5rem;
+  display: grid;
+  place-items: center;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: var(--color-gold);
+  cursor: pointer;
+}
+.byobu-hinge--prev { left: 0.375rem; }
+.byobu-hinge--next { right: 0.375rem; }
+@media (min-width: 760px) {
+  .byobu-hinge--prev { left: -3.625rem; }
+  .byobu-hinge--next { right: -3.625rem; }
+}
+.byobu-hinge__leaf {
+  position: absolute;
+  inset: 0;
+  border: 1px solid var(--color-border-gold-subtle);
+  border-radius: var(--radius-lg);
+  background: color-mix(in srgb, var(--color-surface) 82%, transparent);
+  transition: transform 60ms var(--ease-brush), border-color 0.26s var(--ease-lift);
+}
+.byobu-hinge--prev .byobu-hinge__leaf { transform-origin: left center; }
+.byobu-hinge--next .byobu-hinge__leaf { transform-origin: right center; }
+.byobu-hinge:hover .byobu-hinge__leaf { border-color: var(--color-border-gold); }
+.byobu-hinge:active .byobu-hinge__leaf { transform: scaleX(0.55); }
+.byobu-hinge:focus-visible { outline: none; }
+.byobu-hinge:focus-visible .byobu-hinge__leaf {
+  outline: 2px solid var(--color-gold);
+  outline-offset: 2px;
+}
+.byobu-hinge__glyph { position: relative; }
+.byobu-hinge--off {
+  opacity: 0.3;
+  cursor: default;
+}
+.byobu-hinge--off:active .byobu-hinge__leaf { transform: none; }
+
+/* ——— cierre y contador ——— */
+.byobu-close {
+  position: absolute;
+  top: max(0.75rem, env(safe-area-inset-top));
+  right: 0.75rem;
+  width: 2.75rem;
+  height: 2.75rem;
+  display: grid;
+  place-items: center;
+  border: 1px solid var(--color-border-gold-subtle);
+  border-radius: var(--radius-pill);
+  background: color-mix(in srgb, var(--color-surface) 82%, transparent);
+  color: var(--color-fg-strong);
+  font-size: 1.25rem;
+  line-height: 1;
+  cursor: pointer;
+  transition: border-color 0.26s var(--ease-lift);
+}
+.byobu-close:hover { border-color: var(--color-border-gold); }
+.byobu-close:focus-visible {
+  outline: 2px solid var(--color-gold);
+  outline-offset: 2px;
+}
+.byobu-counter {
+  margin: 0;
+  font-family: var(--font-mono);
+  font-size: 0.875rem;
+  letter-spacing: 0.06em;
+  color: var(--color-gold);
+}
+
+/* ——— lámina rota: papel honesto ——— */
+.byobu-paper {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  padding: 1.25rem;
+  text-align: center;
+  background: color-mix(in srgb, var(--color-gold) 8%, var(--color-surface-alt));
+}
+.byobu-paper__kanji {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  font-family: var(--font-kanji-serif);
+  font-size: clamp(6rem, 30vmin, 11rem);
+  line-height: 1;
+  color: color-mix(in srgb, var(--color-fg-strong) 7%, transparent);
+  pointer-events: none;
+  user-select: none;
+}
+.byobu-paper__text {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: 0.375rem;
+}
+.byobu-paper__note {
+  margin: 0;
+  font-size: 0.9375rem;
+  color: var(--color-fg-strong);
+}
+.byobu-paper__sub {
+  margin: 0;
+  font-family: var(--font-mono);
+  font-size: var(--text-2xs);
+  color: var(--color-fg-muted);
+}
+.byobu-paper--mini .byobu-paper__kanji {
+  position: static;
+  font-size: 2.25rem;
+  color: color-mix(in srgb, var(--color-fg-strong) 22%, transparent);
+}
+
+/* ——— keyframes base: SOLO opacity (sirven de fallback reduced-motion) ——— */
+@keyframes byobu-scrim-in { from { opacity: 0; } }
+@keyframes byobu-scrim-out { to { opacity: 0; } }
+@keyframes byobu-unfold-in { from { opacity: 0; } }
+@keyframes byobu-unfold-out { to { opacity: 0; } }
+@keyframes byobu-leaf-out-next { to { opacity: 0; } }
+@keyframes byobu-leaf-out-prev { to { opacity: 0; } }
+@keyframes byobu-leaf-in-next { from { opacity: 0; } }
+@keyframes byobu-leaf-in-prev { from { opacity: 0; } }
+@keyframes byobu-breath {
+  from { opacity: 0.45; }
+  to { opacity: 0.8; }
+}
+
+/* ——— coreografía completa solo si el usuario acepta movimiento ——— */
+@media (prefers-reduced-motion: no-preference) {
+  @keyframes byobu-unfold-in {
+    from { opacity: 0; transform: scaleX(0.9); }
+  }
+  @keyframes byobu-unfold-out {
+    to { opacity: 0; transform: scaleX(0.9); }
+  }
+  @keyframes byobu-leaf-out-next {
+    to { opacity: 0; transform: scaleX(0.86) skewY(-8deg); }
+  }
+  @keyframes byobu-leaf-out-prev {
+    to { opacity: 0; transform: scaleX(0.86) skewY(8deg); }
+  }
+  @keyframes byobu-leaf-in-next {
+    from { opacity: 0; transform: scaleX(0.9) skewY(5deg); }
+  }
+  @keyframes byobu-leaf-in-prev {
+    from { opacity: 0; transform: scaleX(0.9) skewY(-5deg); }
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .byobu-thumb,
+  .byobu-hinge__leaf {
+    transition: none;
+  }
+  .byobu-skel,
+  .byobu-leaf__veil {
+    animation: none;
+    opacity: 0.6;
+  }
+}
