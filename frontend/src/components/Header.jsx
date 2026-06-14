@@ -148,7 +148,7 @@ function Header() {
           transform (header-standards.css), nunca animando height. El shell
           jamás lleva transform — rompería su position:sticky. */}
       <div className="as-header-bg border-b border-white/10 bg-bg/90 pointer-fine:bg-bg/52 pointer-fine:backdrop-blur-xl" />
-      <div className="as-header-row justify-between gap-3 sm:gap-5 sm:px-8">
+      <div className="as-header-row justify-between">
       <AppLink to="/" className="flex min-h-11 min-w-0 flex-1 items-center gap-2.5 min-[1120px]:flex-none">
         <img
           src="/logo.svg"
@@ -425,7 +425,7 @@ function MoreMenu({ moreLinks, t, play }) {
   return (
     <PaperDropdown
       isActive={isActive}
-      onOpenChange={(o) => o && play('playClick')}
+      onActivate={() => play('playClick')}
       buttonClassName={({ open, isActive: active }) =>
         `${navLinkBase} inline-flex items-center gap-1 font-medium ${
           active || open

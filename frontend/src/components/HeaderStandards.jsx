@@ -15,7 +15,12 @@
 // NotifBell (#21), botón ⌘K / OPEN_COMMAND_PALETTE_EVENT. Ver handoff-notas.md.
 
 import { useCallback, useEffect, useLayoutEffect, useRef, useState } from 'react'
-import { useReducedMotionPref } from '../hooks/useHeaderStandards'
+// Hook canónico del proyecto: une prefers-reduced-motion del SO con la calma
+// explícita (la linterna del dojo) y se suscribe a CALM_EVENT. Las animaciones
+// WAAPI de la gota se gobiernan SOLO por este booleano (el WAAPI inline gana al
+// CSS), así que usar el canónico es lo que respeta la linterna.
+import { useReducedMotionPref } from '../hooks/useReducedMotionPref'
+import { FOCUSABLE_SELECTOR } from '../lib/focusables'
 
 // Easings de la casa. WAAPI no resuelve var(--ease-*), así que los valores
 // van literales aquí; son los MISMOS cubic-bezier de index.css.
@@ -42,14 +47,13 @@ const EASE_STAMP = 'cubic-bezier(0.34, 1.56, 0.64, 1)' // overshoot de hanko
  *   containerRef: React.RefObject<HTMLElement>,
  *   activeKey: string | null,
  *   width?: number,
- *   forceReduced?: boolean,
  * }} props
  */
-export function NavInkRail({ containerRef, activeKey, width = 22, forceReduced = false }) {
+export function NavInkRail({ containerRef, activeKey, width = 22 }) {
   const dropRef = useRef(null)
   const posRef = useRef({ x: 0, visible: false })
   const frameRef = useRef(0)
-  const reduced = useReducedMotionPref(forceReduced)
+  const reduced = useReducedMotionPref()
   const reducedRef = useRef(reduced)
   useEffect(() => {
     reducedRef.current = reduced
@@ -180,6 +184,7 @@ export function PaperDropdown({
   buttonClassName,
   panelClassName = '',
   onOpenChange,
+  onActivate,
   children,
 }) {
   const [open, setOpen] = useState(false)
@@ -246,6 +251,8 @@ export function PaperDropdown({
     }
     pinnedRef.current = true
     setOpenNotify(true)
+    // Sonido SOLO en apertura intencional (click/teclado), no en hover.
+    onActivate?.()
   }
 
   const menuItems = () =>
@@ -256,7 +263,18 @@ export function PaperDropdown({
       e.preventDefault()
       pinnedRef.current = true
       setOpenNotify(true)
+      onActivate?.()
       requestAnimationFrame(() => menuItems()[0]?.focus())
+    } else if (e.key === 'ArrowUp') {
+      // Patrón APG menu-button: ArrowUp también abre, enfocando el ÚLTIMO item.
+      e.preventDefault()
+      pinnedRef.current = true
+      setOpenNotify(true)
+      onActivate?.()
+      requestAnimationFrame(() => {
+        const its = menuItems()
+        its[its.length - 1]?.focus()
+      })
     } else if (e.key === 'Escape' && open) {
       e.preventDefault()
       close(true)
@@ -323,7 +341,7 @@ export function PaperDropdown({
         type="button"
         onClick={onButtonClick}
         onKeyDown={onButtonKeyDown}
-        aria-haspopup="true"
+        aria-haspopup="menu"
         aria-expanded={open}
         className={buttonClassName ? buttonClassName({ open, isActive }) : undefined}
       >
@@ -376,12 +394,19 @@ export function NorenMobileMenu({
 
   useEffect(() => {
     if (!open) return undefined
+    // Mismo patrón que AccessibleDialog: selector canónico + filtro de disabled
+    // y tabindex=-1, para que un control deshabilitado (p.ej. Ruleta cargando)
+    // no rompa el atrapado de Tab si cayera como primer/último foco.
+    const getFocusables = () =>
+      panelRef.current
+        ? [...panelRef.current.querySelectorAll(FOCUSABLE_SELECTOR)].filter(
+            (el) => !el.hasAttribute('disabled') && el.tabIndex !== -1,
+          )
+        : []
     const prevOverflow = document.body.style.overflow
     document.body.style.overflow = 'hidden'
     const focusTimer = window.setTimeout(() => {
-      panelRef.current
-        ?.querySelector('a, button, [tabindex]:not([tabindex="-1"])')
-        ?.focus()
+      getFocusables()[0]?.focus()
     }, 80)
     const onKey = (e) => {
       if (e.key === 'Escape') {
@@ -390,10 +415,8 @@ export function NorenMobileMenu({
         toggleRef?.current?.focus()
         return
       }
-      if (e.key !== 'Tab' || !panelRef.current) return
-      const focusables = panelRef.current.querySelectorAll(
-        'a, button, [tabindex]:not([tabindex="-1"])',
-      )
+      if (e.key !== 'Tab') return
+      const focusables = getFocusables()
       if (focusables.length === 0) return
       const first = focusables[0]
       const last = focusables[focusables.length - 1]
@@ -450,6 +473,6 @@ export function NorenTablilla({ index = 0, className = '', children }) {
   )
 }
 
-// useReducedMotionPref y useCondensedHeader viven en
-// src/hooks/useHeaderStandards.js (la regla react-refresh/only-export-components
-// exige que este .jsx solo exporte componentes).
+// useCondensedHeader vive en src/hooks/useHeaderStandards.js (la regla
+// react-refresh/only-export-components exige que este .jsx solo exporte
+// componentes). El reduced-motion usa el hook canónico ../hooks/useReducedMotionPref.

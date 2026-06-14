@@ -1,25 +1,10 @@
-// Hooks de "Los estandartes del header". Viven en un .js aparte (no en
+// Hook de "Los estandartes del header". Vive en un .js aparte (no en
 // HeaderStandards.jsx) porque la regla react-refresh/only-export-components
-// del repo exige que un módulo .jsx solo exporte componentes; los hooks
-// (useReducedMotionPref, useCondensedHeader) van en src/hooks por convención.
+// del repo exige que un módulo .jsx solo exporte componentes. Para la
+// preferencia de reduced-motion se usa el hook CANÓNICO del proyecto
+// (../hooks/useReducedMotionPref), que ya une SO + calma explícita; aquí no se
+// duplica.
 import { useEffect, useState } from 'react'
-
-/** prefers-reduced-motion como estado reactivo (unión con calm mode a cargo
- *  del host: pásale `forceReduced` desde useCalmMode si quiere alinearlo). */
-export function useReducedMotionPref(forceReduced = false) {
-  const [reduced, setReduced] = useState(() =>
-    typeof window !== 'undefined' &&
-    !!window.matchMedia?.('(prefers-reduced-motion: reduce)')?.matches,
-  )
-  useEffect(() => {
-    const mq = window.matchMedia?.('(prefers-reduced-motion: reduce)')
-    if (!mq) return undefined
-    const onChange = () => setReduced(mq.matches)
-    mq.addEventListener?.('change', onChange)
-    return () => mq.removeEventListener?.('change', onChange)
-  }, [])
-  return reduced || forceReduced
-}
 
 /**
  * useCondensedHeader — condensación del header al bajar, re-expansión al subir.

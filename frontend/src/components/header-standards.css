@@ -184,6 +184,15 @@
   padding: 0 1.25rem;
   transition: transform 200ms var(--ease-lift);
 }
+/* sm+ (≥640px): el gap/padding de escritorio del header anterior (gap-5/px-8).
+   Vive aquí y no como utilidades en el className para no competir con la capa
+   base de .as-header-row (que las anulaba). */
+@media (min-width: 640px) {
+  .as-header-row {
+    gap: 1.25rem;
+    padding-inline: 2rem;
+  }
+}
 .as-header-shell[data-condensed] .as-header-row {
   transform: translateY(-0.5rem);
 }
