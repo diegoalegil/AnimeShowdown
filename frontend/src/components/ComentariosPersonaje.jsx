@@ -1,17 +1,20 @@
-import { useEffect, useMemo, useRef, useState } from 'react'
-import { Link } from 'react-router-dom'
+import { useCallback, useEffect, useMemo, useRef } from 'react'
 import { useInfiniteQuery, useMutation, useQueryClient } from '@tanstack/react-query'
-import { Flag, MessageSquare, Send, Trash2 } from 'lucide-react'
 import { toast } from 'sonner'
 import { useAuth } from '../contexts/AuthContext'
+import { useSound } from '../contexts/SoundContext'
 import { ApiError, endpoints } from '../lib/api'
+import VoiceWall from './voiceWall/VoiceWall.jsx'
 
 const PAGE_SIZE = 10
+// Límite REAL de la API de comentarios (mismo tope que usa el backend y que
+// ya aplicaba este componente). No es el 280 de muestra de la demo del muro.
+const MAX_LENGTH = 1000
 
 function ComentariosPersonaje({ slug, nombre }) {
   const { user } = useAuth()
+  const { play } = useSound()
   const qc = useQueryClient()
-  const [contenido, setContenido] = useState('')
   const sentinelRef = useRef(null)
 
   const comentariosQuery = useInfiniteQuery({
@@ -29,10 +32,29 @@ function ComentariosPersonaje({ slug, nombre }) {
     [comentariosQuery.data],
   )
 
+  // Lista PLANA del server -> voces del muro. Sin reacciones ni respuestas
+  // (el backend no las tiene): reactions y replies SIEMPRE vacíos. El
+  // timeLabel se formatea aquí (nunca Date.now() en render).
+  const voices = useMemo(
+    () =>
+      comentarios.map((c) => ({
+        id: c.id,
+        author: {
+          id: c.autor?.id ?? null,
+          name: c.autor?.username ?? 'Usuario',
+          avatarUrl: c.autor?.avatarUrl ?? undefined,
+        },
+        timeLabel: formatFecha(c.creadoEn),
+        text: c.contenido,
+        reactions: [],
+        replies: [],
+      })),
+    [comentarios],
+  )
+
   const crearComentario = useMutation({
     mutationFn: (texto) => endpoints.crearComentarioPersonaje(slug, texto),
     onSuccess: (comentario) => {
-      setContenido('')
       qc.invalidateQueries({ queryKey: ['comentarios', 'personaje', slug] })
       if (comentario.estado === 'PENDIENTE_REVISION') {
         toast.message('Comentario enviado a revisión')
@@ -60,19 +82,6 @@ function ComentariosPersonaje({ slug, nombre }) {
     },
   })
 
-  const eliminarComentario = useMutation({
-    mutationFn: endpoints.eliminarComentario,
-    onSuccess: () => {
-      qc.invalidateQueries({ queryKey: ['comentarios', 'personaje', slug] })
-      toast.success('Comentario eliminado')
-    },
-    onError: (err) => {
-      toast.error('No se pudo eliminar', {
-        description: describeApiError(err),
-      })
-    },
-  })
-
   useEffect(() => {
     const node = sentinelRef.current
     if (!node || !comentariosQuery.hasNextPage) return undefined
@@ -88,136 +97,80 @@ function ComentariosPersonaje({ slug, nombre }) {
     return () => observer.disconnect()
   }, [comentariosQuery])
 
-  const handleSubmit = (event) => {
-    event.preventDefault()
-    const texto = contenido.trim()
-    if (!user) {
-      toast.message('Inicia sesión para comentar')
-      return
-    }
-    if (texto.length < 2) {
-      toast.error('Escribe un comentario un poco más largo')
-      return
-    }
-    crearComentario.mutate(texto)
-  }
+  // Publicar: conserva el flujo de moderación (toast.message en
+  // PENDIENTE_REVISION, toast.success al publicar, toast.error al fallar) que
+  // ya vive en la mutation. mutateAsync resuelve con el comentario (=> el muro
+  // confirma la tira) o rechaza (=> el muro devuelve el texto INTACTO al
+  // pincel). parentId siempre null: no hay respuestas anidadas.
+  const handlePublish = useCallback(
+    (text) => {
+      const texto = text.trim()
+      if (texto.length < 2) {
+        toast.error('Escribe un comentario un poco más largo')
+        // Rechaza para que el pincel conserve el texto sin publicarse.
+        return Promise.reject(new Error('demasiado-corto'))
+      }
+      return crearComentario.mutateAsync(texto)
+    },
+    [crearComentario],
+  )
 
-  return (
-    <section className="mt-10 rounded-2xl border border-border bg-surface p-5">
-      <div className="mb-5 flex flex-wrap items-end justify-between gap-3">
-        <div>
-          <span className="inline-flex items-center gap-1.5 text-[11px] font-semibold text-gold">
-            <MessageSquare className="h-3.5 w-3.5" />
-            Comunidad
-          </span>
-          <h2 className="mt-1 text-xl font-bold text-fg-strong">
-            Comentarios sobre {nombre}
-          </h2>
-        </div>
-        {comentariosQuery.data?.pages?.[0]?.totalElements != null && (
-          <span className="rounded-full border border-border bg-bg px-3 py-1 text-[12px] text-fg-muted">
-            {comentariosQuery.data.pages[0].totalElements} visibles
-          </span>
-        )}
-      </div>
+  const handleReport = useCallback(
+    (voiceId) => reportarComentario.mutateAsync(voiceId),
+    [reportarComentario],
+  )
 
-      <form onSubmit={handleSubmit} className="mb-5 rounded-lg border border-border bg-bg p-3">
-        <textarea
-          value={contenido}
-          onChange={(event) => setContenido(event.target.value.slice(0, 1000))}
-          rows={3}
-          placeholder={user ? 'Suma tu lectura del personaje...' : 'Entra para comentar en esta ficha'}
-          disabled={!user || crearComentario.isPending}
-          className="min-h-24 w-full resize-y rounded-lg border border-border bg-surface px-3 py-2 text-sm text-fg-strong placeholder:text-fg-muted focus:outline-none focus:ring-2 focus:ring-accent/40 disabled:cursor-not-allowed disabled:opacity-60"
-        />
-        <div className="mt-2 flex flex-wrap items-center justify-between gap-2">
-          <span className="text-[11px] text-fg-muted">
-            {contenido.length}/1000
-          </span>
-          {user ? (
-            <button
-              type="submit"
-              disabled={crearComentario.isPending}
-              className="inline-flex items-center gap-2 rounded-lg bg-accent px-4 py-2 text-sm font-semibold text-white transition-colors hover:bg-accent-hover disabled:cursor-not-allowed disabled:opacity-60"
-            >
-              <Send className="h-4 w-4" />
-              {crearComentario.isPending ? 'Enviando...' : 'Publicar'}
-            </button>
-          ) : (
-            <Link
-              to="/login"
-              className="inline-flex items-center rounded-lg bg-accent px-4 py-2 text-sm font-semibold text-white transition-colors hover:bg-accent-hover"
-            >
-              Entrar
-            </Link>
-          )}
-        </div>
-      </form>
+  // Sonidos del muro vía useSound().play (respeta el mute global). Solo los
+  // que existen en lib/sounds.js: playStamp NO existe -> el "asentamiento" usa
+  // playSello (el golpe de sello real). playWhoosh/playClink/playClack reales.
+  const sounds = useMemo(
+    () => ({
+      playWhoosh: () => play('playWhoosh'),
+      playSello: () => play('playSello'),
+      playClink: () => play('playClink'),
+      playClack: () => play('playClack'),
+    }),
+    [play],
+  )
 
+  const currentUser = user
+    ? {
+        id: user.id,
+        name: user.username,
+        avatarUrl: user.avatarUrl ?? undefined,
+      }
+    : null
+
+  const footer = (
+    <>
+      <div ref={sentinelRef} className="h-3" aria-hidden="true" />
       {comentariosQuery.isLoading ? (
         <div className="flex justify-center py-8">
           <div className="h-7 w-7 animate-spin rounded-full border-2 border-accent border-t-transparent" />
         </div>
-      ) : comentarios.length === 0 ? (
-        <div className="rounded-lg border border-dashed border-border bg-bg/60 p-6 text-center text-sm text-fg-muted">
-          Todavía no hay comentarios visibles.
+      ) : null}
+      {comentariosQuery.isFetchingNextPage ? (
+        <div className="flex justify-center py-3">
+          <div className="h-5 w-5 animate-spin rounded-full border-2 border-accent border-t-transparent" />
         </div>
-      ) : (
-        <div className="grid gap-3">
-          {comentarios.map((comentario) => (
-            <article
-              key={comentario.id}
-              className="rounded-lg border border-border bg-bg p-4"
-            >
-              <div className="mb-2 flex flex-wrap items-center justify-between gap-2">
-                <div className="min-w-0">
-                  <p className="truncate text-sm font-semibold text-fg-strong">
-                    {comentario.autor?.username ?? 'Usuario'}
-                  </p>
-                  <p className="text-[11px] text-fg-muted">
-                    {formatFecha(comentario.creadoEn)}
-                  </p>
-                </div>
-                <div className="flex gap-1.5">
-                  {!comentario.mio && user && (
-                    <button
-                      type="button"
-                      onClick={() => reportarComentario.mutate(comentario.id)}
-                      disabled={reportarComentario.isPending}
-                      aria-label="Reportar comentario"
-                      title="Reportar comentario"
-                      className="inline-flex h-8 w-8 items-center justify-center rounded-lg border border-border text-fg-muted transition-colors hover:border-warning/60 hover:text-warning disabled:opacity-60"
-                    >
-                      <Flag className="h-4 w-4" />
-                    </button>
-                  )}
-                  {comentario.mio && (
-                    <button
-                      type="button"
-                      onClick={() => eliminarComentario.mutate(comentario.id)}
-                      disabled={eliminarComentario.isPending}
-                      aria-label="Eliminar comentario"
-                      title="Eliminar comentario"
-                      className="inline-flex h-8 w-8 items-center justify-center rounded-lg border border-border text-fg-muted transition-colors hover:border-danger/60 hover:text-danger disabled:opacity-60"
-                    >
-                      <Trash2 className="h-4 w-4" />
-                    </button>
-                  )}
-                </div>
-              </div>
-              <p className="whitespace-pre-wrap text-sm leading-relaxed text-fg">
-                {comentario.contenido}
-              </p>
-            </article>
-          ))}
-          <div ref={sentinelRef} className="h-3" />
-          {comentariosQuery.isFetchingNextPage && (
-            <div className="flex justify-center py-3">
-              <div className="h-5 w-5 animate-spin rounded-full border-2 border-accent border-t-transparent" />
-            </div>
-          )}
-        </div>
-      )}
+      ) : null}
+    </>
+  )
+
+  return (
+    <section className="mt-10 rounded-2xl border border-border bg-surface p-5">
+      <VoiceWall
+        voices={voices}
+        currentUser={currentUser}
+        maxLength={MAX_LENGTH}
+        dojoHref="/login"
+        onPublish={handlePublish}
+        onReport={handleReport}
+        sounds={sounds}
+        title={`Comentarios sobre ${nombre}`}
+        footer={footer}
+        pending={comentariosQuery.isLoading}
+      />
     </section>
   )
 }
