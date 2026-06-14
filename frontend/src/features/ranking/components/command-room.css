@@ -1,0 +1,141 @@
+/* command-room.css — CSS de feature de la Sala de Mando.
+ *
+ * Importado por el componente raíz: `import './command-room.css'` en
+ * ArenaCommandRoom.jsx. TODOS los @keyframes de la pieza viven aquí (CSP por
+ * hash: cero estilos inline en runtime, cero estilos generados). Colores SOLO
+ * vía tokens de index.css; alphas con color-mix(... transparent). Ni un literal
+ * de color en todo el archivo (tampoco en comentarios — el guard del CI los lee).
+ *
+ * ease-stamp NO es token global: se declara local aquí (overshoot del hanko). */
+.acr-root {
+  --ease-stamp: cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+/* ── Territorios: cross-fade de entrada 400ms, stagger 60ms (una vez) ─────── */
+@keyframes acr-territory-in {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+.acr-territory {
+  opacity: 1;                         /* reposo SIEMPRE visible */
+  animation: acr-territory-in 400ms var(--ease-lift) backwards;
+  animation-delay: var(--acr-stagger, 0ms);
+  will-change: opacity;
+}
+/* Tras la coreografía el padre marca data-entered: retiramos la animación y
+   queda el reposo visible (robusto si el timeline está throttled). */
+.acr-root[data-entered='true'] .acr-territory { animation: none; }
+
+/* Marca de agua kanji al 5% + recorte del parche. */
+.acr-kanji-watermark {
+  font-family: var(--font-kanji-serif);
+  color: var(--color-fg-strong);
+  opacity: 0.05;
+  pointer-events: none;
+  user-select: none;
+}
+
+/* ── Gota de tinta: scale 0.2→1 + asentamiento. Pool de 10 reutilizado. ───── */
+@keyframes acr-ink-bloom {
+  0%   { transform: translate(-50%, -50%) scale(0.2); opacity: 0; }
+  55%  { transform: translate(-50%, -50%) scale(1.12); opacity: var(--ink-o, 0.42); }
+  100% { transform: translate(-50%, -50%) scale(1); opacity: var(--ink-o, 0.42); }
+}
+.acr-ink {
+  position: absolute;
+  border-radius: var(--radius-pill);
+  transform: translate(-50%, -50%);
+  opacity: var(--ink-o, 0.42);        /* reposo = estado final (seco) */
+  mix-blend-mode: screen;             /* glow sin blur: compone limpio en WebKit */
+  pointer-events: none;
+  animation: acr-ink-bloom 500ms var(--ease-stamp);
+}
+.acr-ink[data-casa='carmesi'] {
+  background: radial-gradient(
+    circle at 38% 34%,
+    var(--color-accent-hover),
+    var(--color-accent) 60%,
+    transparent 72%
+  );
+}
+.acr-ink[data-casa='oro'] {
+  background: radial-gradient(
+    circle at 38% 34%,
+    var(--color-gold-bright),
+    var(--color-gold) 60%,
+    transparent 72%
+  );
+}
+.acr-ink[data-big='true'] { --ink-o: 0.6; }
+/* Marea acumulada del territorio: relleno inferior por transform (no height). */
+.acr-tide-fill {
+  transform-origin: bottom;
+  transform: scaleY(var(--acr-tide, 0.05));
+  transition: transform 650ms var(--ease-lift);
+}
+
+/* ── Regleta de mareas: barras scaleY origin-bottom 350ms stagger 30ms ────── */
+@keyframes acr-bar-rise {
+  from { transform: scaleY(0); }
+  to   { transform: scaleY(1); }
+}
+.acr-bar {
+  transform-origin: bottom;
+  transform: scaleY(1);               /* reposo visible */
+  animation: acr-bar-rise 350ms var(--ease-lift) backwards;
+  animation-delay: var(--acr-stagger, 0ms);
+}
+.acr-root[data-entered='true'] .acr-bar { animation: none; }
+
+/* Latido de la hora actual: cross-fade 2s de una capa pre-renderizada
+   (sin blur, sin filter): glow = opacity, pausable. */
+@keyframes acr-tide-pulse {
+  0%, 100% { opacity: 0.12; }
+  50%      { opacity: 0.72; }
+}
+.acr-bar-pulse {
+  position: absolute;
+  inset: 0;
+  border-radius: 2px 2px 0 0;
+  background: var(--color-gold-bright);
+  animation: acr-tide-pulse 2s ease-in-out infinite;
+}
+
+/* ── Libro de guardia: entrada por desliz 250ms ───────────────────────────── */
+@keyframes acr-guard-in {
+  from { transform: translateX(16px); opacity: 0; }
+  to   { transform: translateX(0); opacity: 1; }
+}
+.acr-guard-row {
+  opacity: 1;                         /* reposo visible */
+  animation: acr-guard-in 250ms var(--ease-lift);
+  will-change: transform, opacity;
+}
+
+/* ── Pausa global de loops decorativos ────────────────────────────────────── */
+/* Fuera de viewport (IntersectionObserver propio → data-inview="false"),
+   en modo calma y con la pestaña oculta: el latido se congela. */
+.acr-root[data-inview='false'] .acr-bar-pulse,
+html.as-calm .acr-bar-pulse,
+html.as-tab-hidden .acr-bar-pulse {
+  animation-play-state: paused;
+}
+
+/* ── prefers-reduced-motion: aparición seca, sin desliz, latido apagado ───── */
+@media (prefers-reduced-motion: reduce) {
+  .acr-territory,
+  .acr-bar,
+  .acr-guard-row {
+    animation: none;
+  }
+  .acr-ink {
+    animation: none;                  /* gota sin expansión: aparición seca */
+  }
+  .acr-bar-pulse {
+    animation: none;
+    opacity: 0.45;                    /* hora actual marcada, sin latir */
+  }
+  .acr-tide-fill {
+    transition: none;
+  }
+}

@@ -4,6 +4,7 @@ import {
   Trophy,
   Tv,
   Vote,
+  Waves,
 } from 'lucide-react'
 
 // "ELO" = ranking canónico (semilla por popularidad +15% femenino + ajuste por
@@ -13,6 +14,7 @@ import {
 export const RANKING_TABS = [
   { id: 'all', label: 'Histórico', icon: Vote },
   { id: 'mes', label: 'Este mes', icon: Calendar },
+  { id: 'arena', label: 'Sala de mando', icon: Waves },
   { id: 'elo', label: 'ELO', icon: Trophy },
   { id: 'categorias', label: 'Categorías', icon: Sparkles },
   { id: 'anime', label: 'Por anime', icon: Tv },

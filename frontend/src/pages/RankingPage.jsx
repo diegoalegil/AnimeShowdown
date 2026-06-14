@@ -1,4 +1,5 @@
 import { useDeferredValue, useEffect, useMemo, useRef, useState } from 'react'
+import { useQuery } from '@tanstack/react-query'
 import { Link, useSearchParams } from 'react-router-dom'
 import {
   AlertTriangle,
@@ -48,8 +49,10 @@ import EloExplainer from '../features/ranking/components/EloExplainer'
 import MoversStrip from '../features/ranking/components/MoversStrip'
 import RankingPodium from '../features/ranking/components/RankingPodium'
 import { ANIMES_KANJI } from '../data/animes-kanji'
-import { slugifyAnime } from '../lib/animes'
+import { getAnimesCatalogo, slugifyAnime } from '../lib/animes'
+import { endpoints } from '../lib/api'
 import { RankRowVotos } from '../features/ranking/components/RankingRows'
+import { ArenaCommandRoom } from '../features/ranking/components/ArenaCommandRoom'
 import FederationTable from '../features/ranking/components/FederationTable'
 import RankingTabs from '../features/ranking/components/RankingTabs'
 import RankingTechnicalTable from '../features/ranking/components/RankingTechnicalTable'
@@ -145,6 +148,34 @@ function RankingPage() {
       : 'elo',
   )
   const tab = tabExplicito ? queryTab : tabPorDefecto
+
+  // Sala de mando (pestaña 'arena'): el pulso en vivo de la arena como mapa de
+  // mareas de tinta. Solo poll cuando la pestaña está activa. Territorios = top
+  // animes por presencia en catálogo; gotas doradas = top-10 ELO; kanji por slug.
+  const { data: votosArena = [] } = useQuery({
+    queryKey: ['ranking', 'arena', 'votos-recientes', 20],
+    queryFn: () => endpoints.votosRecientes({ limit: 20 }),
+    enabled: tab === 'arena',
+    refetchInterval: tab === 'arena' ? 45000 : false,
+    staleTime: 30000,
+  })
+  const arenaCatalogo = useMemo(
+    () => getAnimesCatalogo(catalogoPersonajes),
+    [catalogoPersonajes],
+  )
+  const arenaTopSlugs = useMemo(
+    () => rankedElo.slice(0, 10).map((p) => p.slug),
+    [rankedElo],
+  )
+  const arenaKanjiMap = useMemo(() => {
+    const m = {}
+    for (const a of arenaCatalogo) {
+      const k = ANIMES_KANJI[a.anime]
+      if (k) m[a.slug] = k
+    }
+    return m
+  }, [arenaCatalogo])
+
   const consultadoA = useMemo(
     () =>
       new Date().toLocaleTimeString('es-ES', {
@@ -293,6 +324,14 @@ function RankingPage() {
           {tab === 'mes' && <ListaBackend periodo="mes" />}
           {tab === 'anime' && (
             <PorAnime key={`anime:${initialAnimeFilter}`} initialAnime={initialAnimeFilter} />
+          )}
+          {tab === 'arena' && (
+            <ArenaCommandRoom
+              votos={votosArena}
+              catalogo={arenaCatalogo}
+              topSlugs={arenaTopSlugs}
+              kanjiMap={arenaKanjiMap}
+            />
           )}
         </div>
 
