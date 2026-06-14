@@ -68,8 +68,8 @@ function BadgeUnlockListener() {
       )
     }
 
-    // 2) Toast 6s con el icono del badge. Click → logro concreto.
-    toast.success(lastMessage.titulo || '¡Logro desbloqueado!', {
+    // 2) Parte de logro (章, filo oro) 6s. Click → logro concreto.
+    toast.achievement(lastMessage.titulo || '¡Logro desbloqueado!', {
       description: lastMessage.mensaje,
       icon: <IconBadge className="h-5 w-5 text-gold" />,
       duration: 6000,
