@@ -1,0 +1,341 @@
+/* ════════════════════════════════════════════════════════════════════
+   PARTES DE COMBATE — DispatchToast (sustituye los toasts de sonner)
+   CSS de feature importado por DispatchToast.jsx (convención del repo;
+   CSP por hash: nada de <style> en runtime — todo vive aquí).
+
+   Requiere UNA adición en @theme de src/index.css:
+     --ease-stamp: cubic-bezier(0.34, 1.56, 0.64, 1);
+   (el "ease-stamp" de los sellos; aquí se referencia con fallback por si
+   el token aún no está promovido.)
+
+   Reglas de la casa respetadas:
+   - Solo se animan transform y opacity. Sin blur, sin filters, sin
+     feTurbulence. El sangrado de tinta es un radial pre-renderizado
+     que solo cross-fadea su opacity.
+   - El estado BASE de cada keyframe es el final (reduced-motion y
+     print salen gratis); fill-mode backwards, nunca forwards salvo
+     la mecha (que ES el estado).
+   - data-motion="on|off" lo pone el componente leyendo
+     prefers-reduced-motion (useReducedMotion) — una sola fuente CSS.
+   - Cero literales de color: todo via tokens var(--color-*) / color-mix.
+   ════════════════════════════════════════════════════════════════════ */
+
+/* ---- viewport y pila ------------------------------------------------ */
+.dt-viewport {
+  position: fixed;
+  top: calc(4.5rem + 8px);
+  right: 12px;
+  z-index: 60;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  width: min(380px, calc(100vw - 24px));
+  pointer-events: none;
+  font-family: var(--font-sans);
+}
+.dt-stack {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.dt-parte {
+  position: relative;
+  pointer-events: auto;
+  outline: none;
+}
+.dt-parte[data-leaving] { pointer-events: none; }
+.dt-parte:focus-visible .dt-strip {
+  outline: 2px solid var(--color-gold);
+  outline-offset: 2px;
+}
+
+/* Compactación de la pila: la tira nueva manda, las viejas retroceden.
+   Se aplica a .dt-card (capa entre el FLIP del <li> y el drag del strip)
+   para no pisar el transform inline del swipe. */
+.dt-card {
+  transform-origin: top right;
+  transition: transform 240ms var(--ease-lift), opacity 240ms var(--ease-lift);
+}
+.dt-parte[data-depth="1"] .dt-card,
+.dt-parte[data-depth="2"] .dt-card {
+  transform: scale(0.96);
+  opacity: 0.7;
+}
+/* Hover/focus: el lector manda — la tira se adelanta 2px. */
+.dt-parte[data-held="true"] .dt-card { transform: translateX(-2px); }
+.dt-parte[data-held="true"][data-depth="1"] .dt-card,
+.dt-parte[data-held="true"][data-depth="2"] .dt-card {
+  transform: translateX(-2px) scale(0.96);
+}
+/* Salida natural (ttl agotado o cierre manual): la tira se desprende. */
+.dt-parte[data-leaving="natural"] .dt-card {
+  opacity: 0;
+  transition: transform 250ms var(--ease-brush), opacity 250ms var(--ease-brush);
+}
+[data-motion="on"] .dt-parte[data-leaving="natural"] .dt-card {
+  transform: rotate(3deg) translateY(8px);
+}
+[data-motion="off"] .dt-parte[data-leaving="natural"] .dt-card {
+  transition-duration: 150ms;
+}
+
+/* ---- la tira de papel ----------------------------------------------- */
+.dt-strip {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-height: 56px;
+  padding: 8px 42px 8px 10px;
+  overflow: hidden;
+  background: var(--color-surface);
+  border: 1px solid color-mix(in srgb, var(--color-fg-strong) 7%, transparent);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-elev-1), var(--inset-shadow-hairline);
+  touch-action: pan-y;
+  will-change: transform;
+}
+[data-motion="on"] .dt-strip { animation: dt-enter 360ms var(--ease-lift) backwards; }
+[data-motion="off"] .dt-strip { animation: dt-fade-in 150ms ease-out backwards; }
+
+@keyframes dt-enter {
+  0%   { opacity: 0; transform: translateY(-12px) rotate(1.5deg); }
+  70%  { opacity: 1; transform: translateY(1px) rotate(-0.2deg); }
+  100% { opacity: 1; transform: translateY(0) rotate(0deg); }
+}
+@keyframes dt-fade-in { from { opacity: 0; } }
+
+/* ---- sello hanko por tipo ------------------------------------------- */
+.dt-seal {
+  position: relative;
+  z-index: 1;
+  display: grid;
+  flex: none;
+  place-items: center;
+  width: 38px;
+  height: 38px;
+  border-radius: 7px;
+  transform: rotate(-8deg);
+  font-family: var(--font-kanji-serif);
+  font-size: 22px;
+  font-weight: 700;
+  line-height: 1;
+}
+[data-motion="on"] .dt-seal {
+  animation: dt-stamp 250ms var(--ease-stamp, cubic-bezier(0.34, 1.56, 0.64, 1)) 80ms backwards;
+}
+/* Sangrado de tinta: radial PRE-pintado, solo opacity (regla Safari). */
+.dt-seal::after {
+  content: "";
+  position: absolute;
+  inset: -7px;
+  z-index: -1;
+  border-radius: inherit;
+  background: radial-gradient(closest-side, var(--dt-ink, var(--color-hanko)) 30%, transparent 72%);
+  opacity: 0.16;
+}
+[data-motion="on"] .dt-seal::after { animation: dt-bleed 300ms ease-out 150ms backwards; }
+
+@keyframes dt-stamp {
+  0%   { opacity: 0; transform: rotate(-15deg) scale(1.6); }
+  55%  { opacity: 1; transform: rotate(-6deg) scale(0.93); }
+  80%  { transform: rotate(-9.5deg) scale(1.05); }
+  100% { transform: rotate(-8deg) scale(1); }
+}
+@keyframes dt-bleed {
+  0%   { opacity: 0; transform: scale(0.6); }
+  60%  { opacity: 0.3; }
+  100% { opacity: 0.16; transform: scale(1); }
+}
+
+/* Tipos: 成 logrado · 否 rechazado · 報 parte · 章 logro (filo oro). */
+.dt-parte[data-type="success"] { --dt-ink: var(--color-hanko); --dt-fuse-color: var(--color-gold); }
+.dt-parte[data-type="success"] .dt-seal {
+  background: var(--color-hanko);
+  color: var(--color-fg-strong);
+}
+.dt-parte[data-type="error"] { --dt-ink: var(--color-accent); --dt-fuse-color: var(--color-accent-text); }
+.dt-parte[data-type="error"] .dt-seal {
+  background: color-mix(in srgb, var(--color-accent) 14%, transparent);
+  border: 2px solid var(--color-accent-text);
+  color: var(--color-accent-text);
+}
+.dt-parte[data-type="info"] { --dt-ink: var(--color-electric); --dt-fuse-color: var(--color-electric); }
+.dt-parte[data-type="info"] .dt-seal {
+  background: color-mix(in srgb, var(--color-electric) 8%, transparent);
+  border: 2px solid color-mix(in srgb, var(--color-electric) 60%, transparent);
+  color: var(--color-electric);
+}
+.dt-parte[data-type="achievement"] { --dt-ink: var(--color-gold); --dt-fuse-color: var(--color-gold-bright); }
+.dt-parte[data-type="achievement"] .dt-seal {
+  background: var(--color-gold);
+  color: var(--color-canvas);
+}
+.dt-parte[data-type="achievement"] .dt-strip { border-color: var(--color-border-gold); }
+/* Filo oro del parte de logro (lenguaje del corte de tinta, 3px). */
+.dt-parte[data-type="achievement"] .dt-strip::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: 0;
+  width: 3px;
+  background: linear-gradient(180deg, var(--color-gold-bright), var(--color-gold));
+}
+
+/* ---- cuerpo en UNA línea, cifras en mono ----------------------------- */
+.dt-line {
+  flex: 1;
+  min-width: 0;
+  margin: 0;
+  overflow: hidden;
+  font-size: 0.8125rem;
+  color: var(--color-fg);
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.dt-title { font-weight: 700; color: var(--color-fg-strong); }
+.dt-data {
+  margin-left: 0.5em;
+  font-family: var(--font-mono);
+  font-size: 0.75rem;
+  color: var(--color-gold-bright);
+}
+/* La descripción de error usa el fg neutro (contraste AA): el rojo de acento
+   queda solo para el sello y el título, no para el cuerpo de texto pequeño. */
+.dt-parte[data-type="error"] .dt-data { color: var(--color-fg); }
+
+/* ---- acción y cierre (hit targets ≥44px) ----------------------------- */
+.dt-action {
+  flex: none;
+  min-height: 44px;
+  padding: 0 6px;
+  border: 0;
+  background: none;
+  font: inherit;
+  font-size: 0.8125rem;
+  font-weight: 800;
+  color: var(--color-gold-bright);
+  text-decoration: underline;
+  text-decoration-color: var(--color-border-gold);
+  text-underline-offset: 4px;
+  cursor: pointer;
+  transition: transform 150ms var(--ease-lift);
+}
+.dt-action:hover { text-decoration-color: var(--color-gold-bright); transform: translateY(-1px); }
+.dt-action:focus-visible {
+  border-radius: 4px;
+  outline: 2px solid var(--color-gold);
+  outline-offset: 2px;
+}
+.dt-close {
+  position: absolute;
+  top: 50%;
+  right: 0;
+  z-index: 1;
+  display: grid;
+  place-items: center;
+  width: 44px;
+  height: 44px;
+  border: 0;
+  background: none;
+  color: var(--color-fg-muted);
+  font-size: 13px;
+  line-height: 1;
+  cursor: pointer;
+  transform: translateY(-50%);
+  transition: color 150ms ease;
+}
+.dt-close:hover { color: var(--color-fg-strong); }
+.dt-close:focus-visible {
+  border-radius: var(--radius-lg);
+  outline: 2px solid var(--color-gold);
+  outline-offset: -8px;
+}
+
+/* ---- marca de agua kanji al 5% ---------------------------------------- */
+.dt-watermark {
+  position: absolute;
+  top: 50%;
+  right: 32px;
+  font-family: var(--font-kanji-serif);
+  font-size: 58px;
+  line-height: 1;
+  color: var(--color-fg-strong);
+  opacity: 0.05;
+  pointer-events: none;
+  transform: translateY(-50%) rotate(4deg);
+  user-select: none;
+}
+
+/* ---- la mecha: hairline inferior que se consume ------------------------ */
+.dt-fuse {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  width: 100%;
+  height: 2px;
+  background: var(--dt-fuse-color, var(--color-gold));
+  transform-origin: left center;
+}
+/* Brasa en el extremo vivo (viaja con el scaleX del padre). */
+.dt-fuse::after {
+  content: "";
+  position: absolute;
+  top: -1px;
+  right: -1px;
+  width: 5px;
+  height: 4px;
+  border-radius: 2px;
+  background: var(--color-fg-strong);
+}
+/* La animación dura EXACTAMENTE el ttl (var(--dt-ttl) inline desde JSX);
+   arranca a +320ms, cuando la tira ya aterrizó. El timer JS de descarte
+   usa el mismo ttl + 320ms de guardia: mecha y timer mueren juntos. */
+[data-motion="on"] .dt-parte[data-fuse="live"] .dt-fuse {
+  animation: dt-burn var(--dt-ttl, 5000ms) linear 320ms forwards;
+}
+@keyframes dt-burn { to { transform: scaleX(0); } }
+/* Pausa en hover Y focus: el play-state cuelga del data-held que el
+   componente activa con pointer/focus (el timer JS se pausa a la vez).
+   OJO especificidad: la regla del shorthand de arriba es (0,4,0) y resetea
+   animation-play-state a running — esta debe igualarla o superarla. */
+[data-motion] .dt-parte[data-held="true"] .dt-fuse { animation-play-state: paused; }
+/* reduced-motion: mecha FIJA mostrando el tipo, sin animar. */
+[data-motion="off"] .dt-parte[data-fuse="live"] .dt-fuse { animation: none; }
+/* Persistente (ttl=0): mecha apagada — trazo discontinuo, sin brasa. */
+.dt-parte[data-fuse="off"] .dt-fuse {
+  background: repeating-linear-gradient(90deg, var(--dt-fuse-color, var(--color-gold)) 0 6px, transparent 6px 12px);
+  opacity: 0.3;
+}
+.dt-parte[data-fuse="off"] .dt-fuse::after { content: none; }
+
+/* ---- cola FIFO en espera ---------------------------------------------- */
+.dt-queue {
+  align-self: flex-end;
+  margin-top: 2px;
+  padding: 3px 10px;
+  border: 1px dashed var(--color-border);
+  border-radius: var(--radius-pill);
+  background: color-mix(in srgb, var(--color-canvas) 70%, transparent);
+  font-family: var(--font-mono);
+  font-size: 0.6875rem;
+  color: var(--color-fg-muted);
+  pointer-events: none;
+}
+
+/* ---- regiones aria-live (visualmente ocultas) -------------------------- */
+.dt-live {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  margin: -1px;
+  padding: 0;
+  overflow: hidden;
+  border: 0;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
+}

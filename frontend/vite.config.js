@@ -551,6 +551,15 @@ const pwaPlugin = VitePWA({
 })
 
 export default defineConfig({
+  // Alias drop-in: 'sonner' resuelve al toaster temático "Partes de combate"
+  // (DispatchToast). Mantiene los ~241 call-sites y el <Toaster> de App.jsx
+  // sin tocar (DispatchToast exporta `toast` + `Toaster`). El paquete sonner
+  // sigue en package.json pero queda inerte. vitest.config.js replica el alias.
+  resolve: {
+    alias: {
+      sonner: resolve(__dirname, 'src/components/DispatchToast.jsx'),
+    },
+  },
   plugins: [
     react(),
     tailwindcss(),

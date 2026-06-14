@@ -1,4 +1,8 @@
 import { defineConfig } from 'vitest/config'
+import { dirname, resolve } from 'node:path'
+import { fileURLToPath } from 'node:url'
+
+const __dirname = dirname(fileURLToPath(import.meta.url))
 
 // Configuración Vitest para tests unitarios y cobertura.
 //
@@ -22,6 +26,13 @@ export default defineConfig({
   // clásico y los tests de componente (.test.tsx) fallan con "React is not
   // defined" al renderizar componentes que no importan React explícitamente.
   esbuild: { jsx: 'automatic' },
+  // Espejo del alias de vite.config.js: 'sonner' resuelve a DispatchToast.
+  // Los tests con vi.mock('sonner') siguen interceptando por especificador.
+  resolve: {
+    alias: {
+      sonner: resolve(__dirname, 'src/components/DispatchToast.jsx'),
+    },
+  },
   test: {
     environment: 'happy-dom',
     setupFiles: ['./src/test/setup.ts'],

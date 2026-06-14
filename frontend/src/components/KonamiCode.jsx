@@ -52,7 +52,6 @@ function KonamiCode() {
           setActivo(true)
           toast('↑↑↓↓←→←→BA', {
             description: 'Modo arcade desbloqueado por 8 segundos.',
-            icon: '👾',
             duration: 4000,
           })
           // Auto-off tras 8s. antes timeout suelto
