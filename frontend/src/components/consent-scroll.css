@@ -1,0 +1,343 @@
+/* =================================================================
+   ConsentScroll — «El pergamino del consentimiento»
+   -----------------------------------------------------------------
+   ARCHIVO DE FEATURE: lo importa ConsentScroll.jsx (CSP por hash:
+   todos los @keyframes viven aquí, cero estilos en runtime).
+
+   Reglas que cumple este archivo:
+   · Solo tokens var(--…) y color-mix(…, transparent) — cero
+     literales de color, también en los comentarios (guard de CI).
+   · Animaciones SOLO de transform / opacity. Sin blur, sin
+     backdrop-blur, sin SVG filters, sin loops infinitos.
+   · ease-stamp NO es token global: se declara LOCAL aquí abajo.
+   ================================================================= */
+
+.cs-root {
+  /* overshoot de hanko — local a la pieza, no global */
+  --ease-stamp: cubic-bezier(0.34, 1.56, 0.64, 1);
+
+  /* papel: el blanco cálido de marca virado un punto hacia el oro */
+  --cs-paper: color-mix(in srgb, var(--color-fg-strong) 94%, var(--color-gold));
+  --cs-paper-edge: color-mix(in srgb, var(--cs-paper) 86%, var(--color-canvas));
+  --cs-ink: var(--color-bg);
+  --cs-link: var(--color-accent);
+  --cs-seal-sober: color-mix(in srgb, var(--color-bg) 52%, var(--color-fg-muted));
+  --cs-seal-hanko: var(--color-hanko);
+  --cs-stamp-glyph: var(--cs-paper);
+
+  position: fixed;
+  inset: auto 0 0 0;
+  z-index: 60;
+  transform-origin: 50% 100%;
+  font-family: var(--font-sans, ui-sans-serif, system-ui, sans-serif);
+  color: var(--cs-ink);
+}
+
+/* ---- variante opcional tone="noche" (papel oscuro) -------------- */
+.cs-root.cs-tone--noche {
+  --cs-paper: color-mix(in srgb, var(--color-surface) 92%, var(--color-gold));
+  --cs-paper-edge: color-mix(in srgb, var(--color-surface-alt) 88%, var(--color-gold));
+  --cs-ink: var(--color-fg);
+  --cs-link: var(--color-accent-text);
+  --cs-seal-sober: var(--color-fg-muted);
+  --cs-stamp-glyph: var(--color-fg-strong);
+}
+
+/* ---- fases (data-phase la pone el componente) ------------------- */
+.cs-root[data-phase="entering"] {
+  animation: cs-unroll 350ms var(--ease-lift) both;
+  will-change: transform;
+}
+.cs-root[data-phase="rolling"] {
+  animation: cs-rollup 350ms var(--ease-brush) both;
+  will-change: transform;
+  pointer-events: none;
+}
+.cs-root[data-phase="stamping"] {
+  /* decisión ya tomada y aplicada: no más input durante la cola visual */
+  pointer-events: none;
+}
+
+@keyframes cs-unroll {
+  from { transform: scaleY(0); }
+  to   { transform: scaleY(1); }
+}
+@keyframes cs-rollup {
+  to { transform: scaleY(0); }
+}
+
+/* ---- papel ------------------------------------------------------ */
+.cs-paper {
+  position: relative;
+  background:
+    linear-gradient(180deg, color-mix(in srgb, var(--color-canvas) 13%, transparent), transparent 0.875rem),
+    linear-gradient(0deg, color-mix(in srgb, var(--color-canvas) 20%, transparent), transparent 0.625rem),
+    linear-gradient(180deg, var(--cs-paper), var(--cs-paper-edge));
+  box-shadow: 0 -0.75rem 2rem -1rem color-mix(in srgb, var(--color-canvas) 72%, transparent);
+  overflow: hidden;
+}
+
+.cs-hairline {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 2px;
+  background: linear-gradient(90deg,
+    transparent,
+    var(--color-gold) 14%,
+    var(--color-gold-bright) 50%,
+    var(--color-gold) 86%,
+    transparent);
+}
+
+.cs-rolledge {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  height: 0.5rem;
+  background: linear-gradient(180deg, transparent, color-mix(in srgb, var(--color-canvas) 26%, transparent));
+  pointer-events: none;
+}
+
+/* marca de agua kanji canónica de la casa */
+.cs-watermark {
+  position: absolute;
+  right: 0.75rem;
+  bottom: -1.25rem;
+  font-family: var(--font-kanji-serif, serif);
+  font-size: 7.5rem;
+  line-height: 1;
+  color: var(--cs-ink);
+  opacity: 0.05;
+  pointer-events: none;
+  user-select: none;
+}
+
+/* ---- layout ------------------------------------------------------ */
+.cs-inner {
+  position: relative;
+  max-width: 70rem;
+  margin-inline: auto;
+  padding: 1.1rem 1.25rem calc(1.1rem + env(safe-area-inset-bottom, 0px));
+  display: grid;
+  gap: 0.9rem;
+}
+@media (min-width: 760px) {
+  .cs-inner {
+    grid-template-columns: minmax(0, 1fr) auto;
+    align-items: center;
+    column-gap: 2.25rem;
+    padding-block: 1.3rem;
+    padding-bottom: calc(1.3rem + env(safe-area-inset-bottom, 0px));
+  }
+}
+
+.cs-text {
+  display: grid;
+  gap: 0.1rem;
+  min-width: 0;
+}
+.cs-legal {
+  margin: 0;
+  font-size: 0.8125rem;
+  line-height: 1.55;
+  max-width: 64ch;
+  text-wrap: pretty;
+  color: var(--cs-ink);
+}
+@media (min-width: 760px) {
+  .cs-legal { font-size: 0.875rem; }
+}
+.cs-more {
+  display: inline-block;
+  justify-self: start;
+  padding-block: 0.55rem;
+  color: var(--cs-link);
+  font-weight: 600;
+  font-size: 0.8125rem;
+  text-decoration: underline;
+  text-underline-offset: 0.18em;
+}
+.cs-more:hover { color: var(--color-accent-hover); }
+.cs-more:focus-visible {
+  outline: 2px solid var(--color-gold);
+  outline-offset: 3px;
+  border-radius: var(--radius-lg);
+}
+
+/* ---- sellos ------------------------------------------------------
+   PARIDAD RGPD: ambos sellos comparten EXACTAMENTE las mismas
+   dimensiones, estructura y jerarquía; la única diferencia es la
+   tinta (--seal-ink). Rechazar es tan fácil como aceptar.
+   ------------------------------------------------------------------ */
+.cs-seals {
+  display: flex;
+  gap: 0.75rem;
+  align-items: stretch;
+}
+
+.cs-seal {
+  --seal-ink: var(--cs-seal-sober);
+  appearance: none;
+  -webkit-appearance: none;
+  flex: 1 1 0;
+  min-width: 0;
+  min-height: 44px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.55rem;
+  padding: 0.8rem 0.75rem 0.7rem;
+  background: color-mix(in srgb, var(--color-canvas) 4%, transparent);
+  border: 1.5px solid color-mix(in srgb, var(--seal-ink) 45%, transparent);
+  border-radius: var(--radius-xl);
+  color: var(--seal-ink);
+  font: inherit;
+  cursor: pointer;
+  transition:
+    transform 200ms var(--ease-lift),
+    border-color 200ms var(--ease-lift),
+    background-color 200ms var(--ease-lift);
+}
+@media (min-width: 760px) {
+  .cs-seal { flex: 0 0 auto; width: 10.5rem; }
+}
+.cs-seal--accept { --seal-ink: var(--cs-seal-hanko); }
+
+.cs-seal:hover {
+  transform: translateY(-2px);
+  border-color: color-mix(in srgb, var(--seal-ink) 85%, transparent);
+  background: color-mix(in srgb, var(--seal-ink) 7%, transparent);
+}
+.cs-seal:active { transform: translateY(0); }
+.cs-seal:focus-visible {
+  outline: 2px solid var(--color-gold);
+  outline-offset: 3px;
+}
+
+.cs-seal__label {
+  font-size: 0.8125rem;
+  font-weight: 600;
+  letter-spacing: 0.01em;
+  text-align: center;
+}
+
+/* cara circular del sello */
+.cs-seal__face {
+  position: relative;
+  width: 3.4rem;
+  height: 3.4rem;
+  border-radius: var(--radius-pill, 999px);
+  border: 2px solid currentColor;
+  display: grid;
+  place-items: center;
+}
+.cs-seal__kanji {
+  font-family: var(--font-kanji-serif, serif);
+  font-size: 1.7rem;
+  line-height: 1;
+  transform: translateY(-1px);
+}
+
+/* sangrado de tinta: capa PRE-RENDERIZADA (gradientes estáticos),
+   solo se anima su opacity — nada de blur() */
+.cs-seal__bleed {
+  position: absolute;
+  inset: -0.55rem;
+  border-radius: var(--radius-pill, 999px);
+  background:
+    radial-gradient(closest-side at 46% 54%, color-mix(in srgb, var(--seal-ink) 30%, transparent) 58%, color-mix(in srgb, var(--seal-ink) 12%, transparent) 74%, transparent 84%),
+    radial-gradient(closest-side at 62% 38%, color-mix(in srgb, var(--seal-ink) 16%, transparent) 48%, transparent 78%);
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 200ms ease-out;
+}
+
+/* el sello estampado (caída + overshoot) */
+.cs-seal__stamp {
+  position: absolute;
+  inset: -0.2rem;
+  border-radius: var(--radius-pill, 999px);
+  background: var(--seal-ink);
+  color: var(--cs-stamp-glyph);
+  display: grid;
+  place-items: center;
+  font-family: var(--font-kanji-serif, serif);
+  font-size: 1.85rem;
+  line-height: 1;
+  opacity: 0;
+  transform: scale(1.8) rotate(4deg);
+  pointer-events: none;
+  /* tinta irregular en el borde — sombra interior estática, no filter */
+  box-shadow: inset 0 0 0.45rem color-mix(in srgb, var(--cs-stamp-glyph) 18%, transparent);
+  transition: opacity 200ms ease-out;
+}
+
+.cs-seal.is-stamping .cs-seal__stamp {
+  animation: cs-stamp 300ms var(--ease-stamp) forwards;
+  will-change: transform, opacity;
+}
+.cs-seal.is-stamping .cs-seal__bleed {
+  animation: cs-fade-in 200ms ease-out 120ms forwards;
+}
+
+/* reapertura: decisión previa mostrada como sello YA puesto */
+.cs-seal.is-placed .cs-seal__stamp {
+  opacity: 1;
+  transform: scale(1) rotate(-4deg);
+}
+.cs-seal.is-placed .cs-seal__bleed { opacity: 1; }
+
+@keyframes cs-stamp {
+  0%   { opacity: 0; transform: scale(1.8) rotate(4deg); }
+  30%  { opacity: 1; }
+  100% { opacity: 1; transform: scale(1) rotate(-4deg); }
+}
+@keyframes cs-fade-in {
+  to { opacity: 1; }
+}
+
+/* ---- utilidades -------------------------------------------------- */
+.cs-sr {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+  border: 0;
+}
+
+/* ---- prefers-reduced-motion: sin desenrollado, fades simples ----- */
+@media (prefers-reduced-motion: reduce) {
+  .cs-root[data-phase="entering"] {
+    animation: cs-fade-in-soft 150ms ease-out both;
+  }
+  .cs-root[data-phase="rolling"] {
+    animation: cs-fade-out-soft 150ms ease-out both;
+  }
+  .cs-seal.is-stamping .cs-seal__stamp {
+    animation: cs-fade-in 120ms ease-out forwards;
+    transform: scale(1) rotate(-4deg);
+  }
+  .cs-seal.is-stamping .cs-seal__bleed {
+    animation: cs-fade-in 120ms ease-out forwards;
+  }
+  .cs-seal,
+  .cs-seal:hover,
+  .cs-seal:active {
+    transition: none;
+    transform: none;
+  }
+}
+@keyframes cs-fade-in-soft {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+@keyframes cs-fade-out-soft {
+  to { opacity: 0; }
+}
