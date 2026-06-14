@@ -1,4 +1,4 @@
-import { Brain, Eye, Grid3X3, Network, Sparkles, TrendingUp, Type } from 'lucide-react'
+import { Brain, Disc3, Eye, Grid3X3, Network, Sparkles, TrendingUp, Type } from 'lucide-react'
 import {
   ELO_DUEL_BEST_KEY,
   NEXO_ANIME_STORAGE_KEY,
@@ -147,6 +147,26 @@ export const GAMES = [
     cadencia: 'Endless · sin límite',
     bestKey: ELO_DUEL_BEST_KEY,
     rarity: 'R',
+    endless: true,
+  },
+  {
+    to: '/games/ruleta',
+    icon: Disc3,
+    color: 'amber',
+    kanji: '運',
+    identity: {
+      kanji: '運',
+      emblem: 'tambor del destino',
+      motifs: ['ruleta de festival', 'sello hanko', 'racha caliente'],
+      copy: 'Tambor vertical de festival que sortea un personaje al azar y lo asienta bajo el visor con sello de tinta.',
+      pattern: 'destiny-drum',
+      audioCue: 'whoosh de carrete y golpe de asiento con sello',
+    },
+    titulo: 'La ruleta del destino',
+    sub: 'Ruleta de personajes',
+    desc: 'Gira el tambor del festival y deja que el azar elija a tu campeón. Vota con él o abre su ficha. Gira seguido para calentar.',
+    cadencia: 'Endless · sin límite',
+    rarity: 'SR',
     endless: true,
   },
 ]

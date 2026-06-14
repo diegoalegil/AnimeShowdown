@@ -55,6 +55,7 @@ const routePreloaders = {
   nexoAnime: () => import('./pages/NexoAnimePage'),
   impostor: () => import('./pages/ImpostorPage'),
   eloDuel: () => import('./pages/HigherOrLowerPage'),
+  ruleta: () => import('./pages/RuletaPage'),
   perfil: () => import('./pages/PerfilPage'),
   logros: () => import('./pages/LogrosPage'),
   feed: () => import('./pages/FeedPage'),
@@ -80,6 +81,7 @@ const CompararPage = lazyRoute(() => import('./pages/CompararPage'))
 const RankingPage = lazyRoute(routePreloaders.ranking)
 const FantasyPage = lazyRoute(routePreloaders.fantasy)
 const HigherOrLowerPage = lazyRoute(routePreloaders.eloDuel)
+const RuletaPage = lazyRoute(routePreloaders.ruleta)
 const VotarPage = lazyRoute(routePreloaders.votar)
 const DueloLivePage = lazyRoute(() => import('./pages/DueloLivePage'))
 const LoginPage = lazyRoute(() => import('./pages/LoginPage'))
@@ -154,6 +156,7 @@ function routePreloaderFor(pathname) {
   if (pathname === '/games/nexo-anime') return routePreloaders.nexoAnime
   if (pathname === '/games/impostor-trial') return routePreloaders.impostor
   if (pathname === '/games/elo-duel') return routePreloaders.eloDuel
+  if (pathname === '/games/ruleta') return routePreloaders.ruleta
   if (pathname === '/higher-or-lower') return routePreloaders.eloDuel
   if (pathname === '/perfil') return routePreloaders.perfil
   if (pathname === '/feed') return routePreloaders.feed
@@ -491,6 +494,7 @@ function App() {
               <Route path="/games/nexo-anime" element={catalogAware(<NexoAnimePage />)} />
               <Route path="/games/impostor-trial" element={catalogAware(<ImpostorPage />)} />
               <Route path="/games/elo-duel" element={catalogAware(<HigherOrLowerPage />)} />
+              <Route path="/games/ruleta" element={catalogAware(<RuletaPage />)} />
               <Route
                 path="/games/guess-character"
                 element={<Navigate replace to="/games/shadow-guess" />}
