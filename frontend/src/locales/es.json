@@ -77,7 +77,10 @@
     "doubleOptIn": "Te mandamos un correo para confirmar la suscripción. Puedes darte de baja cuando quieras desde cualquier envío.",
     "errorRequired": "Introduce tu email",
     "errorInvalido": "Email no válido",
-    "errorEnvio": "No se pudo enviar. Inténtalo de nuevo en unos segundos."
+    "errorEnvio": "No se pudo enviar. Inténtalo de nuevo en unos segundos.",
+    "emailLabel": "Correo electrónico",
+    "reintentarRed": "Reintentar",
+    "liveSending": "Enviando…"
   },
   "hero": {
     "titulo": "El ranking definitivo del <gold>anime</gold> lo decides tú.",

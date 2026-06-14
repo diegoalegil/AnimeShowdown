@@ -77,7 +77,10 @@
     "doubleOptIn": "購読確認メールをお送りします。配信メールからいつでも解除できます。",
     "errorRequired": "メールアドレスを入力してください",
     "errorInvalido": "メールアドレスが正しくありません",
-    "errorEnvio": "送信できませんでした。少し時間をおいて再度お試しください。"
+    "errorEnvio": "送信できませんでした。少し時間をおいて再度お試しください。",
+    "emailLabel": "メールアドレス",
+    "reintentarRed": "再試行",
+    "liveSending": "送信中…"
   },
   "hero": {
     "titulo": "究極の<gold>アニメランキング</gold>を決めるのはあなた。",
