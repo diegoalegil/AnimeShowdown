@@ -1,6 +1,6 @@
-import { useEffect, useMemo, useRef, useState } from 'react'
+import { useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react'
 import { useLocation, useNavigate } from 'react-router-dom'
-import { Check, Lock, Sparkles, Trophy } from 'lucide-react'
+import { Check, Sparkles } from 'lucide-react'
 import { toast } from 'sonner'
 import { useAuth } from '../contexts/AuthContext'
 import {
@@ -9,23 +9,19 @@ import {
 } from '../hooks/usePredicciones'
 import { ApiError } from '../lib/api'
 import { useVotarEnfrentamiento } from '../lib/torneosQueries'
-import BracketReveal from './BracketReveal'
-import BracketPaths from './BracketPaths'
+import { useReducedMotionPref } from '../hooks/useReducedMotionPref'
 import PersonajeCutImg from './PersonajeCutImg'
 import KanjiStroke from './KanjiStroke'
+import RopeMatch from './RopeMatch'
 
 /**
- * Renderiza un bracket de eliminación directa con datos vivos del backend.
+ * Bracket — el árbol de cuerdas (RopeBracket reskin) con datos vivos del
+ * backend. Cada enfrentamiento es una placa de madera (RopeMatch) y las
+ * placas se unen con cuerdas SVG (hairline doble) que se tensan y entintan
+ * en oro cuando un resultado avanza.
  *
- * 1 + §17.1 — antes el componente recibía `slugs` (array plano
- * de participantes) y computaba el ganador local por ELO, lo que producía
- * dos bugs:
- *   1. Los torneos 'proximo' mostraban estructura completa hasta la final
- *      como si las rondas hubieran ocurrido — el render no respetaba el
- *      estado real del torneo.
- *   2. Los ganadores eran inventados, no reflejaban los votos reales.
- *
- * Ahora el componente solo lee los DTOs que llegan del backend:
+ * El componente SOLO lee los DTOs que llegan del backend — NUNCA inventa
+ * ganadores. El render progresivo emerge naturalmente del shape de los datos:
  *
  *   props.enfrentamientos: EnfrentamientoDto[] ya ordenados por
  *     (ronda asc, id asc). Cada uno con `personaje1`/`personaje2`
@@ -33,8 +29,18 @@ import KanjiStroke from './KanjiStroke'
  *     null hasta que la ronda se cierre.
  *   props.ganadorSlug: slug del campeón si el torneo está FINISHED.
  *   props.totalRondas: para etiquetar columnas (Octavos / Cuartos / etc.).
- *   props.estado: SCHEDULED / IN_PROGRESS / FINISHED (informativo —
- *     el render progresivo emerge naturalmente del shape de los datos).
+ *   props.estado: SCHEDULED / IN_PROGRESS / FINISHED (informativo).
+ *   props.torneoId / props.torneoSlug: para predicciones y voto.
+ *
+ * Avance en vivo: el update llega por el topic STOMP del bracket y refresca
+ * los DTOs; este componente detecta los matches que pasan de sin-ganador →
+ * con-ganador comparando contra un ref (reveladosEnVivo). Solo ESOS
+ * coreografían; el histórico pinta estado final sin teatro retroactivo.
+ *
+ * Un avance JAMÁS re-dibuja el árbol: el SVG de cuerdas es UNO, sus paths son
+ * estáticos (geometría medida, coalescada con rAF+backstop) y al avanzar solo
+ * cambian clases / stroke-dashoffset. RopeMatch va memo() y las rondas no
+ * afectadas conservan identidad.
  */
 
 const TITULOS = {
@@ -44,9 +50,8 @@ const TITULOS = {
   1: ['Final'],
 }
 
-// Kanji decorativo por ronda. 一回戦 (primera ronda),
-// 二回戦, 準決勝 (semifinal), 決勝 (final). El sufijo encaja según el
-// número de rondas — la última siempre es 決勝.
+// Kanji decorativo por ronda. 一回戦 (primera ronda), 二回戦,
+// 準決勝 (semifinal), 決勝 (final). La última siempre es 決勝.
 const KANJI_RONDA = {
   4: ['一回戦', '二回戦', '準決勝', '決勝'],
   3: ['一回戦', '準決勝', '決勝'],
@@ -54,11 +59,17 @@ const KANJI_RONDA = {
   1: ['決勝'],
 }
 
+const CEREMONIA_LS = 'animeshowdown.ropeCeremonia'
+
+/* cuerda: cúbica con seno (sag). reposo 9px · tensa 2.5px · suelta 26px */
+function ropeD(ax, ay, bx, by, sag) {
+  const mx = (bx - ax) * 0.42
+  return `M ${ax} ${ay} C ${ax + mx} ${ay + sag}, ${bx - mx} ${by + sag}, ${bx} ${by}`
+}
+
 function Bracket({ enfrentamientos, ganadorSlug, totalRondas, torneoId, torneoSlug, estado }) {
-  // Cargamos las predicciones del usuario para este torneo
-  // (skip si no hay user o no hay torneoId). El hook ya respeta esos
-  // gates internamente. Se indexa por enfrentamientoId para que cada
-  // BracketMatch reciba solo su predicción.
+  // Predicciones del usuario para este torneo (skip si no hay user/torneoId;
+  // el hook respeta esos gates internamente). Indexadas por enfrentamientoId.
   const { data: misPredicciones } = useMisPredicciones(torneoId)
   const prediccionesPorEnf = useMemo(() => {
     const map = new Map()
@@ -68,15 +79,32 @@ function Bracket({ enfrentamientos, ganadorSlug, totalRondas, torneoId, torneoSl
     return map
   }, [misPredicciones])
 
-  // Cruces que se resuelven EN VIVO (el update llega por el topic STOMP del
-  // bracket y refresca los DTOs): solo ESOS se animan con BracketReveal.
-  // El histórico ya resuelto al montar se pinta estático — sin teatro
-  // retroactivo cada vez que alguien abre el torneo.
+  const gridRef = useRef(null)
+  const scrollRef = useRef(null)
+  const reduced = useReducedMotionPref()
+
+  // Cruces que se resuelven EN VIVO: el update llega por el topic STOMP del
+  // bracket y refresca los DTOs; solo ESOS coreografían. El histórico ya
+  // resuelto al montar se pinta estático — sin teatro retroactivo.
   const resueltosPreviosRef = useRef(null)
   const [reveladosEnVivo, setReveladosEnVivo] = useState(() => new Set())
-  // Grid interior del bracket: ancla de la capa de caminos (BracketPaths
-  // mide las cards relativas a él, así el scroll-x cancela por construcción).
-  const gridRef = useRef(null)
+  const [cuelgues, setCuelgues] = useState(() => new Set())
+  const [anuncio, setAnuncio] = useState('')
+
+  // agrupación por ronda + metadatos de posición visual (0-based).
+  const { rondas, posPorId } = useMemo(() => {
+    const porRonda = new Map()
+    for (const enf of enfrentamientos ?? []) {
+      if (!porRonda.has(enf.ronda)) porRonda.set(enf.ronda, [])
+      porRonda.get(enf.ronda).push(enf)
+    }
+    const keys = [...porRonda.keys()].sort((a, b) => a - b)
+    const rondasArr = keys.map((k) => porRonda.get(k))
+    const pos = new Map()
+    rondasArr.forEach((r, ri) => r.forEach((m, mi) => pos.set(m.id, { ronda: ri, idx: mi })))
+    return { rondas: rondasArr, posPorId: pos }
+  }, [enfrentamientos])
+
   useEffect(() => {
     const actuales = new Set(
       (enfrentamientos ?? []).filter((e) => e.ganador).map((e) => e.id),
@@ -88,73 +116,123 @@ function Bracket({ enfrentamientos, ganadorSlug, totalRondas, torneoId, torneoSl
     const previos = resueltosPreviosRef.current
     const nuevos = [...actuales].filter((id) => !previos.has(id))
     resueltosPreviosRef.current = actuales
-    if (nuevos.length > 0) {
-      setReveladosEnVivo((prev) => {
-        const next = new Set(prev)
-        for (const id of nuevos) next.add(id)
-        return next
-      })
-    }
-  }, [enfrentamientos])
+    if (nuevos.length === 0) return
+    setReveladosEnVivo((prev) => {
+      const next = new Set(prev)
+      for (const id of nuevos) next.add(id)
+      return next
+    })
+    // cuelgues: el ganador aparece en la placa destino — anclamos por
+    // posición visual destino "ronda:idx:lado".
+    setCuelgues((prev) => {
+      const next = new Set(prev)
+      for (const id of nuevos) {
+        const meta = posPorId.get(id)
+        if (meta && meta.ronda < rondas.length - 1) {
+          next.add(`${meta.ronda + 1}:${Math.floor(meta.idx / 2)}:${meta.idx % 2}`)
+        }
+      }
+      return next
+    })
+    const frases = nuevos
+      .map((id) => (enfrentamientos ?? []).find((e) => e.id === id))
+      .filter((e) => e?.ganador)
+      .map((e) => `${e.ganador.nombre} gana y avanza`)
+    if (frases.length) setAnuncio(frases.join('. '))
+  }, [enfrentamientos]) // eslint-disable-line react-hooks/exhaustive-deps
 
-  if (!enfrentamientos || enfrentamientos.length === 0) {
-    return null
-  }
-
-  // Agrupa los matches por ronda. enfrentamientos ya viene ordenado por
-  // (ronda, id) del backend, así que la inserción mantiene el orden visual.
-  const porRonda = new Map()
-  for (const enf of enfrentamientos) {
-    const r = enf.ronda
-    if (!porRonda.has(r)) porRonda.set(r, [])
-    porRonda.get(r).push(enf)
-  }
-  const rondas = [...porRonda.keys()].sort((a, b) => a - b)
   const titulos = TITULOS[totalRondas] || []
   const kanjis = KANJI_RONDA[totalRondas] || []
+  const ultimo = rondas[rondas.length - 1]?.[0]
+  // Campeón resuelto con dos fuentes (alineado con TorneoQueryService):
+  // ganadorSlug del DTO, y el ganador del match de la última ronda.
+  const campeon = useMemo(() => {
+    if (ultimo?.ganador) return ultimo.ganador
+    if (!ganadorSlug) return null
+    for (const e of enfrentamientos ?? []) {
+      if (e.personaje1?.slug === ganadorSlug) return e.personaje1
+      if (e.personaje2?.slug === ganadorSlug) return e.personaje2
+      if (e.ganador?.slug === ganadorSlug) return e.ganador
+    }
+    return null
+  }, [enfrentamientos, ganadorSlug, ultimo])
 
-  // Barra de progreso del torneo. Cuenta matches resueltos
-  // (con ganador) sobre el total. Útil de un vistazo para "X de Y matches".
+  // entrada: IO por columna → stagger de placas + dibujado por ronda.
+  const [dibujadas, setDibujadas] = useState({})
+  const ordenDibujoRef = useRef(0)
+  useEffect(() => {
+    const grid = gridRef.current
+    if (!grid) return undefined
+    const cols = [...grid.querySelectorAll('[data-rope-col]')]
+    const io = new IntersectionObserver((entries) => {
+      const nuevas = []
+      for (const en of entries) {
+        if (!en.isIntersecting) continue
+        en.target.classList.add('rb-col--in')
+        const r = Number(en.target.getAttribute('data-rope-col'))
+        if (!Number.isNaN(r)) nuevas.push(r)
+        io.unobserve(en.target)
+      }
+      if (nuevas.length) {
+        setDibujadas((prev) => {
+          const next = { ...prev }
+          for (const r of nuevas.sort((a, b) => a - b)) {
+            if (next[r] == null) {
+              next[r] = 200 + ordenDibujoRef.current * 150
+              ordenDibujoRef.current += 1
+            }
+          }
+          return next
+        })
+      }
+    }, { threshold: 0.15 })
+    cols.forEach((c) => io.observe(c))
+    return () => io.disconnect()
+  }, [rondas.length])
+
+  // ceremonia del campeón: UNA vez por torneo+campeón (localStorage). Los
+  // setState viven dentro de timers (incl. el caso "instant" con delay 0)
+  // para no disparar setState síncrono en el cuerpo del effect (React 19).
+  const [corona, setCorona] = useState(null) // { edges: string[], sealed }
+  useEffect(() => {
+    if (!campeon || rondas.length === 0) return undefined
+    const key = `${CEREMONIA_LS}.${torneoId}:${campeon.slug}`
+    const edges = []
+    rondas.forEach((ronda, r) => ronda.forEach((m, i) => {
+      if (m.ganador && m.ganador.slug === campeon.slug) edges.push(`${r}:${i}`)
+    }))
+    let hecha = false
+    try { hecha = localStorage.getItem(key) === '1' } catch { /* private mode */ }
+    if (hecha || reduced) {
+      const t0 = setTimeout(() => setCorona({ edges, sealed: true, instant: true }), 0)
+      return () => clearTimeout(t0)
+    }
+    try { localStorage.setItem(key, '1') } catch { /* private mode */ }
+    const t1 = setTimeout(() => setCorona({ edges, sealed: false }), 1100)
+    const t2 = setTimeout(() => setCorona({ edges, sealed: true }), 1100 + edges.length * 80 + 380)
+    const t3 = setTimeout(() => setAnuncio(`${campeon.nombre} es el campeón del torneo`), 0)
+    return () => { clearTimeout(t1); clearTimeout(t2); clearTimeout(t3) }
+  }, [campeon?.slug, torneoId, rondas.length, reduced]) // eslint-disable-line react-hooks/exhaustive-deps
+
+  if (!enfrentamientos || enfrentamientos.length === 0) return null
+  const ult = rondas.length - 1
+
+  // Barra de progreso del torneo: matches resueltos sobre el total.
   const totalMatches = enfrentamientos.length
   const matchesResueltos = enfrentamientos.filter((e) => e.ganador).length
-  const rondaActual =
-    rondas.find((r) =>
-      porRonda.get(r).some((m) => m.personaje1 && m.personaje2 && !m.ganador),
-    ) ?? rondas[rondas.length - 1]
-  const rondaActualIdx = rondas.indexOf(rondaActual)
-
-  // Campeón resuelto con dos fuentes (alineado con TorneoQueryService):
-  //   - ganadorSlug del DTO (campo Torneo.ganadorPersonaje).
-  //   - ganador del match de la última ronda en el array.
-  const ultimoMatch = porRonda.get(rondas[rondas.length - 1])?.[0]
-  const campeon =
-    findPersonajePorSlug(enfrentamientos, ganadorSlug) ??
-    ultimoMatch?.ganador ??
-    null
-
-  // Meta para la capa de caminos: posiciones VISUALES 0-based (columna y
-  // orden de arriba abajo), las mismas con las que se itera porRonda.
-  const matchesMeta = rondas.flatMap((r, col) =>
-    porRonda.get(r).map((enf, idx) => ({
-      id: enf.id,
-      ronda: col,
-      idx,
-      resuelto: Boolean(enf.ganador),
-    })),
-  )
+  const rondaActualIdx = (() => {
+    const i = rondas.findIndex((r) =>
+      r.some((m) => m.personaje1 && m.personaje2 && !m.ganador),
+    )
+    return i === -1 ? rondas.length - 1 : i
+  })()
 
   return (
     <div>
-      {/* Barra de progreso superior con "X de Y matches"
-          y ronda actual. Solo se muestra si hay matches resueltos o el
-          torneo no es FINISHED (en ese caso, mostraría 100% redundante
-          con la card de campeón). */}
       {totalMatches > 0 && matchesResueltos < totalMatches && (
         <div className="mb-5 rounded-lg border border-border bg-surface p-3">
           <div className="mb-1.5 flex items-baseline justify-between gap-2 text-[11px]">
-            <span className="font-semibold text-fg-muted">
-              Progreso
-            </span>
+            <span className="font-semibold text-fg-muted">Progreso</span>
             <span className="font-mono tabular-nums text-fg-muted">
               <strong className="text-fg-strong">{matchesResueltos}</strong> /{' '}
               {totalMatches} matches · ronda{' '}
@@ -166,198 +244,323 @@ function Bracket({ enfrentamientos, ganadorSlug, totalRondas, torneoId, torneoSl
           <div className="relative h-1.5 overflow-hidden rounded-full bg-bg">
             <div
               className="h-full rounded-full bg-gradient-to-r from-accent via-gold to-electric transition-all duration-700"
-              style={{
-                width: `${(matchesResueltos / totalMatches) * 100}%`,
-              }}
+              style={{ width: `${(matchesResueltos / totalMatches) * 100}%` }}
             />
           </div>
         </div>
       )}
-      <div className="mb-2 flex justify-end sm:hidden">
-        <span className="rounded-full border border-border bg-surface/80 px-3 py-1 text-[10px] font-semibold text-fg-muted">
-          Desliza el bracket
-        </span>
-      </div>
+      <RopeBreadcrumb titulos={titulos} kanjis={kanjis} scrollRef={scrollRef} />
       <div
-        className="scrollbar-hide scroll-x-affordance scroll-x-fade -mx-5 overflow-x-auto px-5 pb-2 sm:-mx-8 sm:px-8"
-        aria-label="Bracket desplazable horizontalmente"
+        ref={scrollRef}
+        className="rb-scroll scrollbar-hide -mx-5 px-5 sm:-mx-8 sm:px-8"
+        aria-label="Árbol del torneo, desplazable por rondas"
       >
-        <div
-          ref={gridRef}
-          className="relative flex min-w-max snap-x snap-mandatory items-stretch gap-3 scroll-smooth"
-        >
-          {/* Capa de caminos como PRIMER hijo: las cards son opacas y pintan
-              encima; los conectores viven en los gaps entre columnas. */}
-          <BracketPaths
+        <div ref={gridRef} className="rb-grid">
+          <RopesLayer
             gridRef={gridRef}
-            matches={matchesMeta}
-            revealedIds={reveladosEnVivo}
-            hayCampeon={Boolean(campeon)}
+            rondas={rondas}
+            reveladosEnVivo={reveladosEnVivo}
+            corona={corona}
+            dibujadas={dibujadas}
           />
-          {rondas.map((ronda, i) => (
-            <div
-              key={ronda}
-              className="flex min-w-[16rem] snap-start flex-col justify-around gap-3 sm:min-w-[180px]"
-            >
-              <div className="flex flex-col items-center gap-0.5">
-                <h3 className="text-[11px] font-semibold text-fg-muted">
-                  {titulos[i] || `Ronda ${ronda}`}
+          {rondas.map((ronda, r) => (
+            <div key={r} data-rope-col={r} className="rb-col">
+              <div className="rb-col-head">
+                <h3 className={`text-[11px] font-semibold ${r === ult ? 'text-gold' : 'text-fg-muted'}`}>
+                  {titulos[r] || `Ronda ${r + 1}`}
                 </h3>
-                {kanjis[i] && (
-                  <span
-                    aria-hidden="true"
-                    lang="ja"
-                    className="inline-flex items-center gap-0.5 text-gold/70"
-                  >
-                    <KanjiStroke
-                      kanji={kanjis[i]}
-                      size="0.95em"
-                      strokeMs={380}
-                      gapMs={70}
-                      strokeWidth={6}
-                    />
+                {kanjis[r] && (
+                  <span aria-hidden="true" lang="ja" className="text-gold/70">
+                    <KanjiStroke kanji={kanjis[r]} size="0.95em" strokeMs={380} gapMs={70} strokeWidth={6} />
                   </span>
                 )}
               </div>
-              <div className="flex flex-1 flex-col justify-around gap-3">
-                {porRonda.get(ronda).map((match, idx) => (
-                  <BracketMatch
-                    key={match.id}
-                    match={match}
-                    torneoId={torneoId}
-                    torneoSlug={torneoSlug}
-                    estado={estado}
-                    prediccion={prediccionesPorEnf.get(match.id)}
-                    revelar={reveladosEnVivo.has(match.id)}
-                    posicion={`${i}:${idx}`}
-                  />
-                ))}
+              <div className="rb-col-body">
+                {ronda.map((m, i) => {
+                  const extras = (
+                    <MatchExtras
+                      match={m}
+                      torneoId={torneoId}
+                      torneoSlug={torneoSlug}
+                      estado={estado}
+                      prediccion={prediccionesPorEnf.get(m.id)}
+                    />
+                  )
+                  const placa = (
+                    <RopeMatch
+                      match={m}
+                      esFinal={r === ult}
+                      titulo={titulos[r] || `Ronda ${r + 1}`}
+                      revelarEnVivo={reveladosEnVivo.has(m.id)}
+                      cuelga1={cuelgues.has(`${r}:${i}:0`)}
+                      cuelga2={cuelgues.has(`${r}:${i}:1`)}
+                      posicion={`${r}:${i}`}
+                      extras={extras}
+                    />
+                  )
+                  if (r !== ult) {
+                    return <div key={m.id} style={{ '--rb-in-delay': `${i * 40}ms` }}>{placa}</div>
+                  }
+                  // la final lleva dosel propio.
+                  return (
+                    <div key={m.id} className={`rb-bloque-final ${campeon ? 'rb-bloque-final--coronado' : ''}`}>
+                      <div className="rb-dosel">
+                        <span className="rb-dosel-kanji" lang="ja" aria-hidden="true">決勝</span>
+                        {corona?.sealed && (
+                          <span className={`rb-sello ${corona.instant ? 'rb-sello--instant' : ''}`} lang="ja" aria-hidden="true">王</span>
+                        )}
+                      </div>
+                      <div className="rb-dosel-cuerdas" aria-hidden="true"><i /><i /></div>
+                      {placa}
+                    </div>
+                  )
+                })}
               </div>
             </div>
           ))}
-          <div className="flex min-w-[16rem] snap-start flex-col items-stretch justify-around sm:min-w-[180px]">
-            <div className="flex flex-col items-center gap-0.5">
-              <h3 className="text-[11px] font-semibold text-gold">
-                Campeón
-              </h3>
-              <span
-                aria-hidden="true"
-                lang="ja"
-                className="inline-flex items-center gap-0.5 text-gold/80"
-              >
-                <KanjiStroke
-                  kanji="王者"
-                  size="0.95em"
-                  strokeMs={420}
-                  gapMs={80}
-                  strokeWidth={6}
-                />
+          <div data-rope-col={rondas.length} className="rb-col rb-col--campeon">
+            <div className="rb-col-head">
+              <h3 className="text-[11px] font-semibold text-gold">Campeón</h3>
+              <span aria-hidden="true" lang="ja" className="text-gold/80">
+                <KanjiStroke kanji="王者" size="0.95em" strokeMs={420} gapMs={80} strokeWidth={6} />
               </span>
             </div>
-            {campeon ? (
-              <ChampionSlot personaje={campeon} />
-            ) : (
-              <ChampionPlaceholder />
-            )}
+            <div className="rb-col-body">
+              {campeon ? (
+                <div
+                  data-rope-champion
+                  role="group"
+                  aria-label={`Campeón del torneo: ${campeon.nombre}`}
+                  className={`rb-campeon ${reveladosEnVivo.has(ultimo?.id) ? 'rb-cuelga' : ''}`}
+                  style={{ '--rb-cuelga-delay': '650ms' }}
+                >
+                  <PersonajeCutImg slug={campeon.slug} alt={campeon.nombre} className="aspect-[2/3] w-full" />
+                  <div className="rb-campeon-meta">
+                    <b className="text-fg-strong">{campeon.nombre}</b>
+                    <span className="text-fg-muted">{campeon.anime}</span>
+                  </div>
+                </div>
+              ) : (
+                <div data-rope-champion className="rb-campeon-hueco">
+                  <span className="rb-campeon-hueco-kanji" lang="ja" aria-hidden="true">王</span>
+                  <p className="text-[11px] font-semibold text-fg-muted">Por decidir</p>
+                  <p className="text-[10px] text-fg-muted">El torneo aún no ha terminado</p>
+                </div>
+              )}
+            </div>
           </div>
         </div>
       </div>
+      <div className="sr-only" aria-live="polite" role="status">{anuncio}</div>
     </div>
   )
 }
 
-/**
- * Busca un personaje (PersonajeMiniDto) por slug entre todos los matches
- * — fallback para el campeón cuando solo nos pasan ganadorSlug y no la
- * entidad completa.
- */
-function findPersonajePorSlug(enfrentamientos, slug) {
-  if (!slug) return null
-  for (const e of enfrentamientos) {
-    if (e.personaje1?.slug === slug) return e.personaje1
-    if (e.personaje2?.slug === slug) return e.personaje2
-    if (e.ganador?.slug === slug) return e.ganador
-  }
-  return null
-}
+/* ── capa de cuerdas: UN SVG, paths estáticos, solo clases/dash mutan ── */
+function RopesLayer({ gridRef, rondas, reveladosEnVivo, corona, dibujadas }) {
+  const [geo, setGeo] = useState(null)
+  const sigRef = useRef('')
+  const svgRef = useRef(null)
 
-function BracketMatch({ match, torneoId, torneoSlug, estado, prediccion, revelar = false, posicion }) {
-  const ambosPersonajes = match.personaje1 && match.personaje2
+  /* medición coalescada rAF+backstop, relativa al grid (el scroll-x
+     cancela por construcción) — mismo patrón que BracketPaths.jsx */
+  useLayoutEffect(() => {
+    const grid = svgRef.current?.parentElement ?? gridRef.current
+    if (!grid) return undefined
+    let raf = 0
+    let timer = 0
+    const measure = () => {
+      const g = grid.getBoundingClientRect()
+      const map = {}
+      grid.querySelectorAll('[data-rope-match],[data-rope-champion]').forEach((el) => {
+        const key = el.getAttribute('data-rope-match') ?? 'champ'
+        const r = el.getBoundingClientRect()
+        map[key] = { x: r.left - g.left, y: r.top - g.top, w: r.width, h: r.height }
+      })
+      const sig = JSON.stringify(map)
+      if (sig !== sigRef.current) { sigRef.current = sig; setGeo(map) }
+    }
+    const schedule = () => {
+      if (raf) cancelAnimationFrame(raf)
+      if (timer) clearTimeout(timer)
+      const run = () => {
+        cancelAnimationFrame(raf); clearTimeout(timer); raf = 0; timer = 0
+        measure()
+      }
+      raf = requestAnimationFrame(run)
+      timer = setTimeout(run, 80)
+    }
+    const ro = new ResizeObserver(schedule)
+    ro.observe(grid)
+    window.addEventListener('resize', schedule)
+    schedule()
+    return () => {
+      ro.disconnect()
+      window.removeEventListener('resize', schedule)
+      cancelAnimationFrame(raf)
+      clearTimeout(timer)
+    }
+  }, [gridRef, rondas.length])
 
-  // Match vacío (slot de ronda futura sin resolver): placeholder difuminado.
-  // Sigue el patrón ya existente del ChampionPlaceholder (border-dashed +
-  // Lock + texto) para coherencia visual. El data-bracket-match va TAMBIÉN
-  // aquí: el esqueleto de caminos existe desde el primer render.
-  if (!ambosPersonajes) {
-    return (
-      <div
-        data-bracket-match={posicion}
-        className="flex min-h-16 items-center justify-center gap-2 rounded-lg border border-dashed border-border bg-surface-alt/30 px-3 py-3 opacity-60"
-      >
-        <Lock className="h-3 w-3 text-fg-muted" aria-hidden="true" />
-        <span className="text-[11px] font-medium text-fg-muted">
-          Por decidir
-        </span>
-      </div>
-    )
-  }
-
-  const ganadorId = match.ganador?.id
-  const resuelto = Boolean(ganadorId)
-  const abiertoParaVotar = estado === 'IN_PROGRESS' && !resuelto
-
-  const slot1 = (
-    <BracketSlot
-      personaje={match.personaje1}
-      winner={ganadorId === match.personaje1.id}
-      posicionSlot={posicion ? `${posicion}:0` : undefined}
-    />
-  )
-  const slot2 = (
-    <BracketSlot
-      personaje={match.personaje2}
-      winner={ganadorId === match.personaje2.id}
-      posicionSlot={posicion ? `${posicion}:1` : undefined}
-    />
-  )
-  // Revelado en vivo: el cruce acaba de resolverse delante del usuario.
-  // Los wrappers montan en "idle" y animan a "resolved" en este mismo
-  // render (línea→pulse→atenuado, 800ms). El estado final del perdedor
-  // (0.45 + desaturado) persiste mientras el match siga montado.
-  const conReveal = revelar && resuelto
-  const Envoltura1 = conReveal
-    ? ganadorId === match.personaje1.id
-      ? BracketReveal.Winner
-      : BracketReveal.Loser
-    : null
-  const Envoltura2 = conReveal
-    ? ganadorId === match.personaje2.id
-      ? BracketReveal.Winner
-      : BracketReveal.Loser
-    : null
+  const edges = useMemo(() => {
+    if (!geo) return []
+    const last = rondas.length - 1
+    const out = []
+    rondas.forEach((ronda, r) => ronda.forEach((m, i) => {
+      const a = geo[`${r}:${i}`]
+      if (!a) return
+      let bx; let by; let dest = null; let side = 0
+      if (r === last) {
+        const c = geo.champ
+        if (!c) return
+        bx = c.x
+        by = c.y + Math.min(c.h * 0.2, 46)
+      } else {
+        const b = geo[`${r + 1}:${Math.floor(i / 2)}`]
+        if (!b) return
+        side = i % 2
+        bx = b.x
+        by = b.y + b.h * (side === 0 ? 0.32 : 0.68)
+        dest = rondas[r + 1][Math.floor(i / 2)]
+      }
+      const ax = a.x + a.w
+      const ay = a.y + a.h / 2
+      const suelta = !m.personaje1 && !m.personaje2
+      const ganada = Boolean(m.ganador)
+      const viva = reveladosEnVivo.has(m.id)
+      const idxCorona = corona ? corona.edges.indexOf(`${r}:${i}`) : -1
+      /* perdida: el destino ya se resolvió y el lado que alimenta esta
+         cuerda no es su ganador → laca apagada */
+      const ladoQueAlimenta = side === 0 ? dest?.personaje1 : dest?.personaje2
+      const perdida = Boolean(dest?.ganador) && idxCorona === -1
+        && ladoQueAlimenta?.id !== dest.ganador.id
+      out.push({
+        key: `${r}:${i}`,
+        ronda: r,
+        suelta,
+        ganada,
+        viva,
+        perdida,
+        coronaIdx: idxCorona,
+        reposo: ropeD(ax, ay, bx, by, 9),
+        tensa: ropeD(ax, ay, bx, by, 2.5),
+        floja: ropeD(ax, ay, bx, by, 26),
+        nudo: { x: bx, y: by },
+      })
+    }))
+    return out
+  }, [geo, rondas, reveladosEnVivo, corona])
 
   return (
-    <div data-bracket-match={posicion} className="rounded-xl border border-border bg-surface p-2">
-      {conReveal ? (
-        <BracketReveal resolved>
-          <Envoltura1 className="rounded-lg">{slot1}</Envoltura1>
-          <div className="my-1 h-px bg-border" />
-          <Envoltura2 className="rounded-lg">{slot2}</Envoltura2>
-        </BracketReveal>
-      ) : (
-        <>
-          {slot1}
-          <div className="my-1 h-px bg-border" />
-          {slot2}
-        </>
-      )}
-      {abiertoParaVotar && (
-        <VotoRow match={match} torneoSlug={torneoSlug} />
-      )}
-      {/* 4: picker de predicciones. Solo aparece si el match
-          está abierto Y tenemos torneoId (i.e. user logueado, el hook
-          padre cargó misPredicciones). Si resuelto, mostramos badge con
-          el resultado de la predicción. */}
+    <svg ref={svgRef} className="rb-ropes" aria-hidden="true">
+      {edges.map((e) => {
+        const cls = [
+          'rb-edge',
+          dibujadas[e.ronda] != null ? 'rb-edge--dibujada' : '',
+          e.suelta ? 'rb-edge--suelta' : '',
+          e.ganada ? 'rb-edge--ganada' : '',
+          e.viva ? 'rb-edge--viva' : '',
+          e.perdida ? 'rb-edge--perdida' : '',
+          e.coronaIdx >= 0 && corona ? 'rb-edge--corona' : '',
+          corona?.instant ? 'rb-edge--instant' : '',
+        ].join(' ')
+        const style = {
+          '--rb-dib-delay': `${dibujadas[e.ronda] ?? 0}ms`,
+          '--rb-corona-delay': e.coronaIdx >= 0 ? `${e.coronaIdx * 80}ms` : '0ms',
+        }
+        if (e.suelta) {
+          return (
+            <g key={e.key} className={cls} style={style}>
+              <path className="rb-rope-out rb-dib" d={e.floja} pathLength="1" />
+              <path className="rb-rope-in rb-dib" d={e.floja} pathLength="1" />
+            </g>
+          )
+        }
+        return (
+          <g key={e.key} className={cls} style={style}>
+            <g className="rb-par-reposo">
+              <path className="rb-rope-out rb-dib" d={e.reposo} pathLength="1" />
+              <path className="rb-rope-in rb-dib" d={e.reposo} pathLength="1" />
+            </g>
+            <g className="rb-par-tensa">
+              <path className="rb-rope-out rb-dib" d={e.tensa} pathLength="1" />
+              <path className="rb-rope-in rb-dib" d={e.tensa} pathLength="1" />
+            </g>
+            <path className="rb-rope-ink" d={e.tensa} pathLength="1" />
+            {e.coronaIdx >= 0 && <path className="rb-rope-champ" d={e.tensa} pathLength="1" />}
+            <circle
+              className={`rb-nudo ${e.ganada ? 'rb-nudo--oro' : ''} ${e.coronaIdx >= 0 && corona ? 'rb-nudo--brillo' : ''}`}
+              cx={e.nudo.x}
+              cy={e.nudo.y}
+              r="3"
+            />
+          </g>
+        )
+      })}
+    </svg>
+  )
+}
+
+/* ── breadcrumb de rondas (móvil): sticky arriba, targets ≥44px ──────── */
+function RopeBreadcrumb({ titulos, kanjis, scrollRef }) {
+  const [activa, setActiva] = useState(0)
+  useEffect(() => {
+    const sc = scrollRef.current
+    if (!sc) return undefined
+    let raf = 0
+    const onScroll = () => {
+      if (raf) return
+      raf = requestAnimationFrame(() => {
+        raf = 0
+        const cols = [...sc.querySelectorAll('[data-rope-col]')]
+        let act = 0
+        cols.forEach((c, i) => { if (c.offsetLeft <= sc.scrollLeft + sc.clientWidth * 0.35) act = i })
+        setActiva(act)
+      })
+    }
+    sc.addEventListener('scroll', onScroll, { passive: true })
+    onScroll()
+    return () => { sc.removeEventListener('scroll', onScroll); cancelAnimationFrame(raf) }
+  }, [scrollRef])
+  const irA = (idx) => {
+    const sc = scrollRef.current
+    if (!sc) return
+    const col = sc.querySelectorAll('[data-rope-col]')[idx]
+    if (col) sc.scrollTo({ left: Math.max(0, col.offsetLeft - 16), behavior: 'smooth' })
+  }
+  const crumbs = [...titulos, 'Campeón']
+  return (
+    <nav className="rb-crumbs sm:hidden" aria-label="Rondas del torneo">
+      {crumbs.map((c, idx) => (
+        <button
+          key={c}
+          type="button"
+          aria-current={activa === idx ? 'true' : undefined}
+          className={`rb-crumb ${activa === idx ? 'rb-crumb--act' : ''}`}
+          onClick={() => irA(idx)}
+        >
+          {c}
+          <span className="rb-crumb-kanji" lang="ja" aria-hidden="true">{idx < kanjis.length ? kanjis[idx] : '王者'}</span>
+        </button>
+      ))}
+    </nav>
+  )
+}
+
+/**
+ * Controles bajo la placa: voto (IN_PROGRESS + abierto) y predicción.
+ * Conserva EXACTA la integración de Bracket.jsx — solo lee DTOs, no inventa.
+ */
+function MatchExtras({ match, torneoId, torneoSlug, estado, prediccion }) {
+  const ambosPersonajes = match.personaje1 && match.personaje2
+  if (!ambosPersonajes) return null
+
+  const resuelto = Boolean(match.ganador?.id)
+  const abiertoParaVotar = estado === 'IN_PROGRESS' && !resuelto
+
+  return (
+    <div className="rb-extras">
+      {abiertoParaVotar && <VotoRow match={match} torneoSlug={torneoSlug} />}
       {torneoId && (
         <PrediccionRow
           match={match}
@@ -476,11 +679,10 @@ function VotoButton({ personaje, active, disabled, onClick }) {
 }
 
 /**
- * Footer del BracketMatch con la predicción.
+ * Footer del match con la predicción.
  *
  * - Match abierto + sin predicción → botón "🔮 Predice".
- *   Click expande dos botones (los 2 personajes); click en uno → registra.
- * - Match abierto + con predicción → "Predijiste: <nombre>" + opción cambiar.
+ * - Match abierto + con predicción → "Predigo: <nombre>" + opción cambiar.
  * - Match resuelto + con predicción → badge verde/rojo según acertaste.
  * - Match resuelto + sin predicción → no se pinta nada.
  */
@@ -506,8 +708,7 @@ function PrediccionRow({ match, prediccion, resuelto, torneoId }) {
     )
   }
 
-  // No mostrar el picker a invitados — el botón redirigiría a login y
-  // probablemente solo distrae en el grid del bracket.
+  // No mostrar el picker a invitados — el botón redirigiría a login.
   if (!user) return null
 
   const onPick = (personajeId) => {
@@ -556,7 +757,7 @@ function PrediccionRow({ match, prediccion, resuelto, torneoId }) {
     )
   }
 
-  // Predicción ya hecha (sin resolver). Mostrar resumen + opción cambiar.
+  // Predicción ya hecha (sin resolver). Resumen + opción cambiar.
   return (
     <div className="mt-1.5 flex items-center gap-1.5 rounded-lg bg-accent-soft px-2 py-1">
       <Check className="h-3 w-3 shrink-0 text-gold" />
@@ -590,69 +791,6 @@ function PickButton({ personaje, onClick, disabled }) {
       />
       <span className="truncate">{personaje.nombre}</span>
     </button>
-  )
-}
-
-function BracketSlot({ personaje, winner, posicionSlot }) {
-  return (
-    <div
-      data-bracket-slot={posicionSlot}
-      className={`flex items-center gap-2.5 rounded-lg px-2 py-1.5 ${
-        winner ? 'bg-accent-soft' : ''
-      }`}
-    >
-      <PersonajeCutImg
-        slug={personaje.slug}
-        alt={personaje.nombre}
-        loading="lazy"
-        className="h-9 w-9 shrink-0 rounded-lg border border-white/10"
-      />
-      <span
-        className={`min-w-0 flex-1 truncate text-[13px] font-medium ${
-          winner ? 'text-fg-strong' : 'text-fg-muted'
-        }`}
-      >
-        {personaje.nombre}
-      </span>
-      {winner && (
-        <Trophy className="h-3 w-3 shrink-0 text-gold" aria-hidden="true" />
-      )}
-    </div>
-  )
-}
-
-function ChampionSlot({ personaje }) {
-  return (
-    <div
-      data-bracket-champion
-      className="mt-3 flex flex-col items-center gap-2 rounded-xl border-2 border-accent/40 bg-accent-soft p-3"
-      style={{ boxShadow: 'var(--shadow-aura)' }}
-    >
-      <PersonajeCutImg
-        slug={personaje.slug}
-        alt={personaje.nombre}
-        className="aspect-[4/5] w-full max-w-[130px] rounded-lg border border-white/10"
-      />
-      <div className="text-center">
-        <p className="text-sm font-bold text-fg-strong">{personaje.nombre}</p>
-        <p className="text-[11px] text-fg-muted">{personaje.anime}</p>
-      </div>
-    </div>
-  )
-}
-
-function ChampionPlaceholder() {
-  return (
-    <div
-      data-bracket-champion
-      className="mt-3 flex aspect-[2/3] max-w-[130px] flex-col items-center justify-center gap-2 self-center rounded-xl border-2 border-dashed border-border bg-surface-alt/40 p-3 text-center"
-    >
-      <Lock className="h-5 w-5 text-fg-muted" />
-      <p className="text-[11px] font-semibold text-fg-muted">
-        Por decidir
-      </p>
-      <p className="text-[10px] text-fg-muted">El torneo aún no ha terminado</p>
-    </div>
   )
 }
 

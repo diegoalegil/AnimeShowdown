@@ -2554,3 +2554,321 @@ html.as-calm .animate-ping {
   0%, 100% { filter: drop-shadow(0 0 12px rgb(214 43 43 / 0.5)); }
   50% { filter: drop-shadow(0 0 22px rgb(214 43 43 / 0.85)); }
 }
+
+/* ════════════════════════════════════════════════════════════════════
+   ROPE BRACKET — el árbol de cuerdas del detalle de torneo (Bracket.jsx).
+   Cada enfrentamiento es una placa de madera (RopeMatch) unida por cuerdas
+   SVG (hairline doble) que se tensan y entintan en oro al avanzar.
+
+   Solo anima transform / opacity / stroke-dashoffset. Cero blur, cero SVG
+   filters, cero loops infinitos. CERO literales de color: todo tokens del
+   repo (var / color-mix). CSP por hash: nada de <style> runtime.
+   ════════════════════════════════════════════════════════════════════ */
+
+/* ── keyframes ─────────────────────────────────────────────────────── */
+
+/* entrada de placa: translateY 8px → 0, 300ms ease-lift, stagger 40ms */
+@keyframes rb-placa-in {
+  from { opacity: 0; transform: translateY(8px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+/* el clasificado SE CUELGA en su placa destino (overshoot de hanko) */
+@keyframes rb-cuelga {
+  from { opacity: 0; transform: translateY(-12px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+/* sello 王 del dosel: caída + overshoot (ease-stamp) */
+@keyframes rb-sello {
+  0%   { opacity: 0; transform: translateY(-52px) scale(1.65) rotate(-20deg); }
+  60%  { opacity: 1; }
+  100% { opacity: 1; transform: translateY(0) scale(1) rotate(-6deg); }
+}
+/* sangrado de tinta tras el estampado */
+@keyframes rb-sello-sangra {
+  from { opacity: 0; transform: scale(0.6); }
+  to   { opacity: 1; transform: scale(1); }
+}
+
+/* ── layout / scroll ───────────────────────────────────────────────── */
+.rb-scroll {
+  overflow-x: auto;
+  overflow-y: hidden;
+  scroll-snap-type: x mandatory;
+  -webkit-overflow-scrolling: touch;
+}
+.rb-grid {
+  position: relative;
+  display: flex;
+  align-items: stretch;
+  gap: 2.75rem;
+  min-width: max-content;
+  padding: 0.375rem 0.25rem 1.125rem;
+}
+.rb-col {
+  display: flex;
+  flex-direction: column;
+  width: 15.5rem;
+  scroll-snap-align: start;
+}
+.rb-col--campeon { width: 11.875rem; }
+.rb-col-head {
+  display: flex; flex-direction: column; align-items: center; gap: 0.125rem;
+  padding-bottom: 0.875rem;
+}
+.rb-col-body {
+  flex: 1; display: flex; flex-direction: column;
+  justify-content: space-around; gap: 0.875rem;
+}
+.rb-celda { display: flex; flex-direction: column; }
+.rb-extras { position: relative; z-index: 1; }
+/* 39.9375rem = 639px = el px justo bajo el sm (640px) de Tailwind: las columnas
+   pasan a ancho completo EXACTAMENTE cuando se muestra el breadcrumb de rondas
+   (.rb-crumbs sm:hidden). Antes (47.9rem/766px) había una franja 640–766px con
+   scroll-por-ronda pero sin la navegación de rondas. */
+@media (max-width: 39.9375rem) {
+  .rb-col { width: calc(100vw - 4rem); }
+}
+
+/* ── placa de madera: superficie + veta sutil + bisel hairline ─────── */
+.rb-placa {
+  position: relative;
+  min-height: 5.25rem; /* ≥44px de target en toda la placa */
+  border-radius: var(--radius-lg);
+  border: 1px solid var(--color-border);
+  background:
+    repeating-linear-gradient(90deg, transparent 0 9px, color-mix(in oklab, var(--color-fg-strong) 1.6%, transparent) 9px 10px),
+    linear-gradient(180deg, var(--color-surface-alt), var(--color-surface) 55%, var(--color-bg));
+  box-shadow:
+    inset 0 1px 0 color-mix(in oklab, var(--color-fg-strong) 5%, transparent),
+    inset 0 -1px 0 color-mix(in oklab, var(--color-canvas) 50%, transparent),
+    var(--shadow-elev-1);
+  display: grid;
+  grid-template-columns: 3.375rem 1fr 3.375rem;
+  overflow: hidden;
+}
+.rb-placa--final { border-color: var(--color-border-gold-subtle); }
+.rb-placa--sorteo { opacity: 0.82; }
+
+/* entrada en stagger: la columna recibe .rb-col--in vía IO (una vez) */
+.rb-col--in .rb-placa,
+.rb-col--in .rb-dosel,
+.rb-col--in .rb-campeon,
+.rb-col--in .rb-campeon-hueco {
+  animation: rb-placa-in 300ms var(--ease-lift) both;
+  animation-delay: var(--rb-in-delay, 0ms);
+}
+
+/* lados: retrato 2:3 recortado + velo de legibilidad hacia el centro */
+.rb-lado { position: relative; display: flex; }
+.rb-lado-img { width: 100%; height: 100%; object-fit: cover; object-position: top; }
+.rb-velo {
+  position: absolute; inset: 0; pointer-events: none;
+  background: linear-gradient(90deg, transparent 30%, color-mix(in oklab, var(--color-bg) 85%, transparent));
+}
+.rb-lado--der .rb-velo { background: linear-gradient(270deg, transparent 30%, color-mix(in oklab, var(--color-bg) 85%, transparent)); }
+.rb-lado--pierde { opacity: 0.42; }
+.rb-lado--pierde::after {
+  content: ""; position: absolute; inset: 0; pointer-events: none;
+  background: color-mix(in oklab, var(--color-canvas) 45%, transparent);
+}
+.rb-cuelga {
+  animation: rb-cuelga 350ms var(--ease-stamp) both;
+  animation-delay: var(--rb-cuelga-delay, 0ms);
+}
+
+.rb-lado-vacio {
+  display: flex; align-items: center; justify-content: center;
+  background:
+    repeating-linear-gradient(45deg, transparent 0 6px, color-mix(in oklab, var(--color-fg-muted) 5%, transparent) 6px 7px),
+    color-mix(in oklab, var(--color-bg) 50%, transparent);
+  border-right: 1px dashed color-mix(in oklab, var(--color-border) 70%, transparent);
+  font-size: 0.9375rem;
+}
+.rb-lado-vacio--der { border-right: 0; border-left: 1px dashed color-mix(in oklab, var(--color-border) 70%, transparent); }
+
+/* centro: nombres + marcador odómetro */
+.rb-placa-centro {
+  display: grid; grid-template-rows: 1fr auto 1fr;
+  align-items: center; justify-items: center;
+  padding: 0.4375rem 0.5rem; min-width: 0;
+}
+.rb-nombre {
+  max-width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+  font-size: 0.75rem; font-weight: 600; color: var(--color-fg-muted);
+  justify-self: start;
+}
+.rb-nombre--n2 { justify-self: end; }
+.rb-nombre--gana { color: var(--color-fg-strong); }
+.rb-nombre--gana::after {
+  content: "勝"; font-family: var(--font-kanji-serif);
+  font-size: 0.625rem; color: var(--color-gold); margin-left: 0.3125rem;
+}
+.rb-nombre--pierde { opacity: 0.55; }
+.rb-marcador {
+  font-size: 0.9375rem; font-weight: 700; color: var(--color-fg-strong);
+  letter-spacing: 0.04em; display: flex; align-items: baseline; gap: 0.4375rem;
+  font-variant-numeric: tabular-nums;
+}
+.rb-sep { color: color-mix(in oklab, var(--color-fg-muted) 45%, transparent); font-weight: 400; }
+.rb-sep-label { font-size: 0.5625rem; color: var(--color-fg-muted); font-weight: 500; }
+.rb-marcador--abierto { color: var(--color-fg-muted); font-size: 0.8125rem; }
+.rb-marcador--tbd { color: var(--color-fg-muted); opacity: 0.6; font-size: 0.8125rem; }
+
+/* ── dosel de la final ─────────────────────────────────────────────── */
+.rb-bloque-final { display: flex; flex-direction: column; }
+.rb-dosel {
+  position: relative; height: 2.5rem; border-radius: var(--radius-lg);
+  border: 1px solid var(--color-border-gold-subtle);
+  background:
+    repeating-linear-gradient(90deg, transparent 0 9px, color-mix(in oklab, var(--color-fg-strong) 2%, transparent) 9px 10px),
+    linear-gradient(180deg, var(--color-surface-alt), var(--color-surface));
+  box-shadow: inset 0 1px 0 color-mix(in oklab, var(--color-fg-strong) 6%, transparent), var(--shadow-elev-1);
+  display: flex; align-items: center; justify-content: center;
+}
+.rb-dosel::before, .rb-dosel::after {
+  content: ""; position: absolute; left: 0.375rem; right: 0.375rem; height: 1px;
+  background: color-mix(in oklab, var(--color-gold) 35%, transparent);
+}
+.rb-dosel::before { top: 0.25rem; }
+.rb-dosel::after { bottom: 0.25rem; }
+.rb-dosel-kanji {
+  font-family: var(--font-kanji-serif); font-size: 0.875rem;
+  color: color-mix(in oklab, var(--color-gold) 85%, transparent); letter-spacing: 0.35em; margin-left: 0.35em;
+}
+.rb-dosel-cuerdas { height: 1.375rem; display: flex; justify-content: space-between; padding: 0 2.25rem; }
+.rb-dosel-cuerdas i {
+  width: 3px;
+  border-left: 1px solid color-mix(in oklab, var(--color-fg-muted) 30%, transparent);
+  border-right: 1px solid color-mix(in oklab, var(--color-fg-muted) 30%, transparent);
+}
+.rb-bloque-final--coronado .rb-dosel-cuerdas i { border-color: color-mix(in oklab, var(--color-gold) 70%, transparent); }
+
+/* sello 王 estampado en el dosel */
+.rb-sello {
+  position: absolute; right: 0.625rem; top: 50%;
+  width: 1.625rem; height: 1.625rem; margin-top: -0.8125rem;
+  border: 2px solid var(--color-hanko); border-radius: calc(var(--radius-lg) / 2);
+  display: flex; align-items: center; justify-content: center;
+  font-family: var(--font-kanji-serif); font-size: 0.9375rem; font-weight: 700;
+  color: var(--color-hanko); transform: rotate(-6deg);
+  animation: rb-sello 420ms var(--ease-stamp) both;
+}
+.rb-sello::after {
+  content: ""; position: absolute; inset: -0.3125rem; border-radius: var(--radius-lg);
+  background: radial-gradient(circle, color-mix(in oklab, var(--color-hanko) 28%, transparent), transparent 70%);
+  animation: rb-sello-sangra 500ms ease-out 220ms both;
+}
+.rb-sello--instant, .rb-sello--instant::after { animation: none; opacity: 1; }
+
+/* ── campeón ───────────────────────────────────────────────────────── */
+.rb-campeon {
+  align-self: center; width: 9.875rem; border-radius: var(--radius-xl);
+  overflow: hidden; border: 1px solid var(--color-border-gold);
+  background: linear-gradient(180deg, var(--color-surface-alt), var(--color-bg));
+  box-shadow: var(--shadow-aura), var(--shadow-elev-1);
+  --aura-color: var(--color-gold-aura-soft);
+}
+.rb-campeon-meta { padding: 0.5625rem 0.625rem 0.6875rem; text-align: center; display: grid; gap: 0.125rem; }
+.rb-campeon-meta b { font-size: 0.8125rem; }
+.rb-campeon-meta span { font-size: 0.625rem; }
+.rb-campeon-hueco {
+  align-self: center; width: 9.875rem; aspect-ratio: 2 / 2.6;
+  border: 1px dashed var(--color-border); border-radius: var(--radius-xl);
+  display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 0.375rem;
+  background: color-mix(in oklab, var(--color-surface) 40%, transparent); text-align: center;
+}
+.rb-campeon-hueco-kanji {
+  font-family: var(--font-kanji-serif); font-size: 1.375rem;
+  color: var(--color-gold); opacity: 0.45;
+}
+
+/* ── cuerdas: UN SVG por árbol, paths estáticos ────────────────────── */
+.rb-ropes {
+  position: absolute; inset: 0; width: 100%; height: 100%;
+  pointer-events: none; overflow: visible;
+}
+.rb-ropes path { fill: none; }
+/* hairline doble: trazo 3px + núcleo del lienzo 1.4px */
+.rb-rope-out { stroke: color-mix(in oklab, var(--color-fg-muted) 34%, transparent); stroke-width: 3; }
+.rb-rope-in  { stroke: var(--color-canvas); stroke-width: 1.4; }
+.rb-edge--suelta .rb-rope-out { stroke: color-mix(in oklab, var(--color-fg-muted) 20%, transparent); }
+/* perdedor: laca apagada */
+.rb-edge--perdida .rb-rope-out { stroke: color-mix(in oklab, var(--color-accent) 30%, transparent); }
+.rb-edge--perdida { opacity: 0.6; }
+
+/* tensado al resolverse: cross-fade de capas pre-renderizadas (reposo↔tensa) */
+.rb-par-reposo, .rb-par-tensa { transition: opacity 250ms ease; }
+.rb-par-reposo { opacity: 1; }
+.rb-par-tensa  { opacity: 0; }
+.rb-edge--ganada .rb-par-reposo { opacity: 0; }
+.rb-edge--ganada .rb-par-tensa  { opacity: 1; }
+
+/* dibujado de entrada: UNA vez, 500ms ease-brush, 150ms entre rondas */
+.rb-edge .rb-dib { stroke-dasharray: 1; stroke-dashoffset: 1; }
+.rb-edge--dibujada .rb-dib {
+  stroke-dashoffset: 0;
+  transition: stroke-dashoffset 500ms var(--ease-brush);
+  transition-delay: var(--rb-dib-delay, 0ms);
+}
+
+/* tinta de oro del ganador hacia la siguiente ronda */
+.rb-rope-ink { stroke: var(--color-gold); stroke-width: 2.4; stroke-linecap: round; }
+.rb-edge .rb-rope-ink { stroke-dasharray: 1; stroke-dashoffset: 1; opacity: 0; }
+.rb-edge--ganada .rb-rope-ink { stroke-dashoffset: 0; opacity: 1; }
+.rb-edge--ganada.rb-edge--viva .rb-rope-ink {
+  transition:
+    stroke-dashoffset 600ms var(--ease-brush) 250ms,
+    opacity 80ms linear 250ms;
+}
+
+/* camino del campeón: re-entintado en cascada, 80ms por tramo */
+.rb-rope-champ { stroke: var(--color-gold-bright); stroke-width: 2.8; stroke-linecap: round; }
+.rb-edge .rb-rope-champ { stroke-dasharray: 1; stroke-dashoffset: 1; opacity: 0; }
+.rb-edge--corona .rb-rope-champ {
+  stroke-dashoffset: 0; opacity: 1;
+  transition:
+    stroke-dashoffset 260ms var(--ease-brush) var(--rb-corona-delay, 0ms),
+    opacity 60ms linear var(--rb-corona-delay, 0ms);
+}
+.rb-edge--instant .rb-rope-champ { transition: none; }
+
+/* nudos en los anclajes */
+.rb-nudo { fill: var(--color-surface); stroke: color-mix(in oklab, var(--color-fg-muted) 40%, transparent); stroke-width: 1.2; }
+.rb-nudo--oro { fill: var(--color-gold); stroke: var(--color-gold); transition: fill 200ms ease 650ms, stroke 200ms ease 650ms; }
+.rb-nudo--brillo { fill: var(--color-gold-bright); stroke: var(--color-gold-bright); }
+
+/* ── breadcrumb de rondas (móvil) ──────────────────────────────────── */
+.rb-crumbs {
+  position: sticky; top: 0; z-index: 30;
+  display: flex; gap: 0.375rem; padding: 0.5rem 0;
+  background: linear-gradient(180deg, var(--color-canvas) 70%, transparent);
+}
+.rb-crumb {
+  min-height: 44px; flex: 1; border-radius: var(--radius-lg);
+  border: 1px solid transparent; background: none;
+  color: var(--color-fg-muted); font-size: 0.6875rem; font-weight: 600;
+  display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 0.125rem;
+  cursor: pointer;
+}
+.rb-crumb-kanji { font-family: var(--font-kanji-serif); font-size: 0.625rem; color: var(--color-gold); opacity: 0.6; }
+.rb-crumb--act {
+  border-color: var(--color-border-gold-subtle);
+  background: var(--color-gold-soft); color: var(--color-gold-bright);
+}
+
+/* ── reduced-motion: cuerdas ya entintadas, avance por cross-fade ──── */
+@media (prefers-reduced-motion: reduce) {
+  .rb-col--in .rb-placa, .rb-col--in .rb-dosel,
+  .rb-col--in .rb-campeon, .rb-col--in .rb-campeon-hueco,
+  .rb-cuelga, .rb-sello, .rb-sello::after {
+    animation-duration: 1ms !important;
+    animation-delay: 0ms !important;
+  }
+  .rb-edge .rb-dib, .rb-edge .rb-rope-ink, .rb-edge .rb-rope-champ {
+    transition: opacity 200ms linear !important;
+    stroke-dashoffset: 0 !important;
+  }
+  .rb-edge .rb-dib { opacity: 1; }
+}
