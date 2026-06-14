@@ -24,6 +24,22 @@ export const RITO_ACUNACION_VT = 'rito-acunacion'
 // siempre); nunca dejamos la página congelada al ritmo del chunk.
 const SETTLE_WATCHDOG_MS = 1500
 
+// Tipo de la transición de ruta por defecto («el intermedio»): un corte de
+// tinta vertical sobre el grupo root. index.css lo lee vía
+// :root:active-view-transition-type(intermedio); solo se marca en las
+// navegaciones SIN morph propio (las que llevan morph dejan mandar a su grupo
+// nombrado). Cero estado/refs/setState: seguro con React 19 + React Compiler.
+const INTERMEDIO_TYPE = 'intermedio'
+
+// ¿Soporta el UA la firma con `types`? (Chrome 125+, Safari 18.2+). Se detecta
+// por el selector real, no por user-agent. Sin soporte caemos a la firma
+// callback y la navegación usa la animación base del root (lift-fade de
+// index.css): degradación limpia, nunca rota.
+const SUPPORTS_VT_TYPES =
+  typeof CSS !== 'undefined' &&
+  typeof CSS.supports === 'function' &&
+  CSS.supports('selector(:active-view-transition-type(x))')
+
 let settlePending = null
 let watchdogId = 0
 let settleAdopt = null
@@ -85,14 +101,21 @@ export function startNavigationViewTransition(navigateFn) {
   // diferida del settle lo consulta para no crear un grupo sin origen.
   personajeHeroMorph.snapshotCapture()
   animeSceneMorph.snapshotCapture()
-  const transition = document.startViewTransition(
-    () =>
-      new Promise((resolve) => {
-        settlePending = resolve
-        navigateFn()
-        watchdogId = window.setTimeout(settleNavigationViewTransition, SETTLE_WATCHDOG_MS)
-      }),
-  )
+  // Un morph en vuelo (su nombre viajaba en la captura del estado viejo) NO
+  // recibe el intermedio: manda su grupo nombrado y el root se queda con su
+  // lift-fade base. El RESTO de navegaciones se marcan `intermedio`.
+  const morphEnVuelo =
+    personajeHeroMorph.heldAtCapture() || animeSceneMorph.heldAtCapture()
+  const update = () =>
+    new Promise((resolve) => {
+      settlePending = resolve
+      navigateFn()
+      watchdogId = window.setTimeout(settleNavigationViewTransition, SETTLE_WATCHDOG_MS)
+    })
+  const transition =
+    SUPPORTS_VT_TYPES && !morphEnVuelo
+      ? document.startViewTransition({ update, types: [INTERMEDIO_TYPE] })
+      : document.startViewTransition(update)
   // Una transición saltada (timeout del UA, nombres duplicados, otra nav)
   // rechaza estas promesas; sin catch acabarían como errores de consola.
   transition.ready.catch(() => {})
