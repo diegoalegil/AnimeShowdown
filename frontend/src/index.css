@@ -2839,6 +2839,116 @@ html.as-calm .animate-ping {
 .rb-nudo--oro { fill: var(--color-gold); stroke: var(--color-gold); transition: fill 200ms ease 650ms, stroke 200ms ease 650ms; }
 .rb-nudo--brillo { fill: var(--color-gold-bright); stroke: var(--color-gold-bright); }
 
+/* ── porra del usuario (WagerRopes): capa aditiva sobre las cuerdas ───
+   oficiales, dentro del mismo <svg>. Solo tokens del sistema; alphas vía
+   color-mix. Sin blur ni filtros (WebKit). Todas las animaciones one-shot
+   (`both`): nada que enganchar a html.as-calm / html.as-tab-hidden. */
+.wr-layer { pointer-events: none; }
+
+/* cuerda propia: cian apagado, paralela a la oficial */
+.wr-rope-own {
+  fill: none;
+  stroke: color-mix(in srgb, var(--color-electric) 55%, transparent);
+  stroke-width: 2;
+  stroke-linecap: round;
+  stroke-dasharray: 100;
+  stroke-dashoffset: 0;
+}
+
+/* tendido: del elegido a la placa siguiente (dashoffset 100 a 0) */
+.wr-rope-own--draw { animation: wr-rope-draw 400ms var(--ease-brush) both; }
+
+/* acierto resuelto antes de montar (recarga): ya dorada, sin coreografía */
+.wr-rope-own--gold { stroke: var(--color-gold); }
+
+/* acierto en vivo: la propia se apaga mientras la soldadura dorada aparece */
+.wr-rope-own--welding { animation: wr-weld-out 300ms linear both; }
+.wr-rope-weld {
+  fill: none;
+  stroke: var(--color-gold-bright);
+  stroke-width: 2.2;
+  stroke-linecap: round;
+  animation: wr-weld-in 300ms linear both;
+}
+.wr-knot-pulse {
+  fill: var(--color-gold-bright);
+  transform-box: fill-box;
+  transform-origin: center;
+  animation: wr-knot-pulse 420ms var(--ease-lift) both;
+}
+
+/* fallo: la cuerda se retira un paso en el nudo y quedan 3 hilos colgando */
+.wr-rope-own--fraying { animation: wr-fray-retract 250ms var(--ease-brush) both; }
+.wr-rope-own--frayed-static { stroke-dashoffset: 9; opacity: 0.5; }
+
+.wr-thread {
+  fill: none;
+  stroke: color-mix(in srgb, var(--color-electric) 45%, transparent);
+  stroke-width: 1.5;
+  stroke-linecap: round;
+  transform-origin: 0 0;
+}
+.wr-thread--1 { animation: wr-fray-a 250ms var(--ease-brush) both; }
+.wr-thread--2 { animation: wr-fray-b 250ms var(--ease-brush) both; }
+.wr-thread--3 { animation: wr-fray-c 250ms var(--ease-brush) both; }
+.wr-thread--instant.wr-thread--1 { animation: none; transform: rotate(8deg); opacity: 0.75; }
+.wr-thread--instant.wr-thread--2 { animation: none; transform: rotate(36deg); opacity: 0.65; }
+.wr-thread--instant.wr-thread--3 { animation: none; transform: rotate(64deg); opacity: 0.55; }
+
+@keyframes wr-rope-draw {
+  from { stroke-dashoffset: 100; }
+  to   { stroke-dashoffset: 0; }
+}
+@keyframes wr-weld-in {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+@keyframes wr-weld-out {
+  from { opacity: 1; }
+  to   { opacity: 0; }
+}
+@keyframes wr-knot-pulse {
+  from { opacity: 0.9; transform: scale(0.4); }
+  to   { opacity: 0;   transform: scale(2); }
+}
+@keyframes wr-fray-retract {
+  from { stroke-dashoffset: 0; opacity: 0.8; }
+  to   { stroke-dashoffset: 9; opacity: 0.5; }
+}
+@keyframes wr-fray-a {
+  from { transform: rotate(-64deg); opacity: 0; }
+  to   { transform: rotate(8deg);   opacity: 0.75; }
+}
+@keyframes wr-fray-b {
+  from { transform: rotate(-64deg); opacity: 0; }
+  to   { transform: rotate(36deg);  opacity: 0.65; }
+}
+@keyframes wr-fray-c {
+  from { transform: rotate(-64deg); opacity: 0; }
+  to   { transform: rotate(64deg);  opacity: 0.55; }
+}
+
+/* reduced-motion: estado final directo; el deshilachado queda en solo opacidad */
+@media (prefers-reduced-motion: reduce) {
+  .wr-rope-own--draw,
+  .wr-rope-own--welding,
+  .wr-rope-weld,
+  .wr-knot-pulse,
+  .wr-rope-own--fraying,
+  .wr-thread--1,
+  .wr-thread--2,
+  .wr-thread--3 {
+    animation: none;
+  }
+  .wr-rope-own--welding { opacity: 0; }
+  .wr-rope-weld { opacity: 1; }
+  .wr-knot-pulse { opacity: 0; }
+  .wr-rope-own--fraying { stroke-dashoffset: 9; opacity: 0.5; }
+  .wr-thread--1 { transform: rotate(8deg);  opacity: 0.75; }
+  .wr-thread--2 { transform: rotate(36deg); opacity: 0.65; }
+  .wr-thread--3 { transform: rotate(64deg); opacity: 0.55; }
+}
+
 /* ── breadcrumb de rondas (móvil) ──────────────────────────────────── */
 .rb-crumbs {
   position: sticky; top: 0; z-index: 30;
