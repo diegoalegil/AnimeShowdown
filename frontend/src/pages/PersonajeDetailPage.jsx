@@ -37,6 +37,7 @@ import CardFlip from '../components/CardFlip'
 import PersonajeCardBack from '../components/PersonajeCardBack'
 import PersonajeCardHolo from '../components/PersonajeCardHolo'
 import ExhibitStand from '../components/ExhibitStand'
+import ByobuGallery from '../components/ByobuGallery'
 import PersonajeImg from '../components/PersonajeImg'
 import {
   MarcoExpediente,
@@ -48,6 +49,7 @@ import SeguirPersonajeButton from '../components/SeguirPersonajeButton'
 import ShareButtons from '../components/ShareButtons'
 import ComentariosPersonaje from '../components/ComentariosPersonaje'
 import { usePersonajesSimilares } from '../hooks/usePersonajesSimilares'
+import { useImagenesPersonaje } from '../hooks/useImagenesPersonaje'
 import NotFoundPage from './NotFoundPage'
 import { VisualPageShell } from '../components/VisualSystem'
 import { hexToRgbChannels } from '../lib/color'
@@ -152,6 +154,13 @@ function PersonajeDetailPage() {
     setJikan(undefined)
     setCita(undefined)
   }
+
+  // Galería de láminas oficiales (Jikan/MAL): el hook y el backend ya existían
+  // sin consumir. Lista de URLs (string[]); ByobuGallery espera { url } por
+  // lámina, así que se adapta la forma. No toca `imagenActiva` ni el hero: es
+  // una sección aditiva con su propio visor.
+  const { data: imagenesGaleria, isLoading: galeriaLoading } =
+    useImagenesPersonaje(slug)
 
   useEffect(() => {
     if (!personaje) return
@@ -394,6 +403,14 @@ function PersonajeDetailPage() {
                 anime={personaje.anime}
               />
             </div>
+            {/* Galería de láminas oficiales (Jikan/MAL) como biombo de
+                miniaturas con visor a pantalla. Aditiva: se autocolapsa si el
+                personaje no tiene láminas extra; no toca el hero. */}
+            <ByobuGallery
+              images={(imagenesGaleria ?? []).map((url) => ({ url }))}
+              title={personaje.nombre}
+              status={galeriaLoading ? 'loading' : 'ready'}
+            />
           </div>
           <motion.div
             className="order-1 flex flex-col items-start gap-5 md:order-2"
