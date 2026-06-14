@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react'
+import { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useReducedMotion } from 'framer-motion'
 import { toast } from 'sonner'
@@ -74,7 +74,6 @@ function ReactionsBar({ targetType, targetId, className = '' }) {
   // del glifo y el delay de cambio. Es solo visual; la verdad (activo /
   // conteo) la manda el hook. Sin gesto al montar (cero ceremonia).
   const [gesture, setGesture] = useState(null)
-  const seqRef = useRef(0)
 
   // El gesto caduca tras la coreografía (setState dentro de setTimeout: legal
   // en React 19 + Compiler — no es setState síncrono en cuerpo de effect).
@@ -103,7 +102,6 @@ function ReactionsBar({ targetType, targetId, className = '' }) {
     play(next ? 'playVote' : 'playClack')
     // El pop se ancla al tipo clicado (open). Al cerrar no hay glifo que
     // animar, así que descartamos el gesto.
-    seqRef.current += 1
     setGesture(next ? { tipo: next, from: prev } : null)
 
     mutation.mutate(tipo, {
@@ -128,7 +126,7 @@ function ReactionsBar({ targetType, targetId, className = '' }) {
   const hintInvitado = user ? null : 'Inicia sesión para añadir tu reacción'
 
   return (
-    <div className={`fanr ${className}`.trim()} data-reduced-motion={prefersReducedMotion ? 'true' : undefined}>
+    <div className={`fanr ${className}`.trim()}>
       <div className="fanr__row" role="group" aria-label="Reacciones del público">
         {entradas.map((r) => {
           const active = mia === r.tipo
