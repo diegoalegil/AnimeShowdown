@@ -1,0 +1,144 @@
+/* ════════════════════════════════════════════════════════════════════════
+   LA LLAVE PERDIDA — recuperar contraseña con calma
+   CSS de FEATURE: lo importa KeyLantern.jsx (import './key-lantern.css').
+   Prefijo: as-kl-*. Token-only (cero literales de color, ni en comentarios).
+   Movimiento continuo: SOLO opacity (respiración del halo, pausable).
+   Cambios de color: transiciones one-shot (mismo patrón que transition-colors
+   del resto del repo). Cero blur, cero SVG filters, keyframes aquí por la
+   CSP por hash.
+   ════════════════════════════════════════════════════════════════════════ */
+
+/* ── KeyLantern — linterna + cerradura (compartido por /forgot y /reset) ── */
+
+.as-kl {
+  position: relative;
+  display: inline-flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.as-kl__lantern { position: relative; }
+
+/* Capa de luz B — halo exterior. Pre-renderizada, solo opacity. */
+.as-kl__halo {
+  position: absolute;
+  inset: -10% -24%;
+  border-radius: 50%;
+  background: radial-gradient(closest-side, var(--color-gold-soft), transparent 72%);
+  opacity: 0;
+  transition: opacity 400ms var(--ease-brush) 80ms;
+  pointer-events: none;
+  will-change: opacity;
+}
+
+/* Esqueleto de la linterna: un solo color de trazo vía currentColor. */
+.as-kl__svg {
+  display: block;
+  color: var(--color-border);
+  transition: color 400ms var(--ease-brush);
+}
+
+/* Capa de luz A — papel encendido (gradiente interior). Solo opacity. */
+.as-kl__light {
+  opacity: 0;
+  transition: opacity 400ms var(--ease-brush);
+  will-change: opacity;
+}
+
+/* Kanji 灯 (luz): tinta sobre papel apagado, silueta sobre papel encendido. */
+.as-kl__kanji {
+  font-family: var(--font-kanji-serif);
+  font-size: 38px;
+  fill: var(--color-fg-muted);
+  opacity: 0.5;
+  transition: fill 400ms var(--ease-brush), opacity 400ms var(--ease-brush);
+}
+
+/* Cerradura + llave colgante */
+.as-kl__lock { margin-top: -4px; }
+
+.as-kl__ring {
+  stroke: var(--color-border);
+  opacity: 0.55;
+  transition: stroke 400ms var(--ease-brush);
+}
+
+.as-kl__key {
+  stroke: var(--color-fg-muted);
+  transition: stroke 400ms var(--ease-brush), transform 450ms var(--ease-lift);
+  /* user units del viewBox 64×64 → pivote = centro de la cerradura.
+     (transform-box por defecto en SVG = view-box; px = unidades de usuario) */
+  transform-origin: 32px 32px;
+  will-change: transform;
+}
+
+/* ── Estado: linterna prendida ──────────────────────────────────────────── */
+.as-kl[data-lit] .as-kl__svg { color: var(--color-gold); }
+.as-kl[data-lit] .as-kl__light { opacity: 1; }
+.as-kl[data-lit] .as-kl__halo {
+  opacity: 1;
+  animation: as-kl-breath 5600ms ease-in-out 1400ms infinite;
+}
+.as-kl[data-lit] .as-kl__kanji { fill: var(--color-canvas); opacity: 0.82; }
+.as-kl[data-lit] .as-kl__key { stroke: var(--color-gold-bright); }
+.as-kl[data-lit] .as-kl__ring { stroke: var(--color-border-gold-subtle); }
+
+/* ── Estado: la llave gira UNA vez (450ms ease-lift) ────────────────────── */
+.as-kl[data-key-turned] .as-kl__key { transform: rotate(90deg); }
+
+/* ── Estado: llave caducada — parpadea UNA vez y se apaga ───────────────
+   dip ~110ms · recuperación ~200ms · apagado final 200ms ≈ 380ms total. */
+.as-kl[data-expired] .as-kl__light,
+.as-kl[data-expired] .as-kl__halo {
+  animation: as-kl-blink-out 380ms var(--ease-brush) both;
+  transition: none;
+}
+.as-kl[data-expired] .as-kl__svg {
+  color: var(--color-border);
+  transition: color 200ms var(--ease-brush) 180ms;
+}
+.as-kl[data-expired] .as-kl__kanji {
+  fill: var(--color-fg-muted);
+  opacity: 0.5;
+  transition: fill 200ms var(--ease-brush) 180ms, opacity 200ms var(--ease-brush) 180ms;
+}
+.as-kl[data-expired] .as-kl__key {
+  stroke: var(--color-fg-muted);
+  transition: stroke 200ms var(--ease-brush) 180ms;
+}
+.as-kl[data-expired] .as-kl__ring { stroke: var(--color-border); }
+
+/* Respiración del halo: pausada en modo calma, pestaña oculta o fuera de
+   viewport (el componente pone data-paused vía visibilitychange + IO). */
+html.as-calm .as-kl__halo,
+.as-kl[data-paused] .as-kl__halo {
+  animation-play-state: paused !important;
+}
+
+@keyframes as-kl-breath {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.72; }
+}
+
+@keyframes as-kl-blink-out {
+  0% { opacity: 1; }
+  29% { opacity: 0.22; }
+  53% { opacity: 0.9; }
+  100% { opacity: 0; }
+}
+
+/* ── reduced-motion: estados finales directos, cero coreografía ─────────── */
+@media (prefers-reduced-motion: reduce) {
+  .as-kl__svg,
+  .as-kl__light,
+  .as-kl__halo,
+  .as-kl__kanji,
+  .as-kl__key,
+  .as-kl__ring {
+    transition: none !important;
+    animation: none !important;
+  }
+  /* caducada = directamente apagada */
+  .as-kl[data-expired] .as-kl__light,
+  .as-kl[data-expired] .as-kl__halo { opacity: 0; }
+}

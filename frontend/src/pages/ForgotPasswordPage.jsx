@@ -5,6 +5,7 @@ import { motion } from 'framer-motion'
 import { toast } from 'sonner'
 import { ArrowRight, Mail } from 'lucide-react'
 import FlowSeal from '../components/FlowSeal'
+import KeyLantern from '../components/KeyLantern'
 import { useSeo } from '../hooks/useSeo'
 import { endpoints, ApiError } from '../lib/api'
 import { VisualPageShell } from '../components/VisualSystem'
@@ -58,6 +59,12 @@ function ForgotPasswordPage() {
         animate="visible"
         variants={containerVariants}
       >
+        {/* Emblema KeyLantern: prende cuando el código se ha enviado.
+            100% decorativo (aria-hidden); el estado se anuncia por el
+            aria-live de más abajo. */}
+        <div className="mb-4 flex justify-center">
+          <KeyLantern state={enviado ? 'lit' : 'unlit'} />
+        </div>
         <div className="mb-6 flex flex-col items-start gap-2">
           <span className="inline-flex rounded-full border border-border bg-surface px-3.5 py-1.5 text-[12px] font-semibold text-fg-muted">
             Recuperar acceso
