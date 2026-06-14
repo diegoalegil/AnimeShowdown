@@ -1,0 +1,347 @@
+/* ============================================================
+   MangaStoryboard (/como-funciona) — lo importa ComoFuncionaPage.jsx
+   (import './manga-storyboard.css'). El bundler lo emite con hash,
+   así que no hay <style> en runtime (CSP por hash feliz).
+   Estado base = estado FINAL en todo (reduced-motion y no-JS
+   salen gratis); .manga-anim (la pone JS solo si hay motion)
+   activa los estados de espera. Solo transform/opacity.
+   ============================================================ */
+
+/* Entintado de viñeta: opacity + scale 0.98→1 (300ms ease-lift). */
+@keyframes as-koma-ink {
+  from {
+    opacity: 0;
+    transform: scale(0.98);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+/* Speedlines: nacen, viven ~200ms y MUEREN. One-shot (both, 1 iteración):
+   el estado final del keyframe es opacity 0 — jamás loop. */
+@keyframes as-koma-speed {
+  0% { opacity: 0; }
+  10% { opacity: 1; }
+  56% { opacity: 1; }
+  100% { opacity: 0; }
+}
+
+/* Estampado hanko: caída + overshoot lo pone el bezier (0.34,1.56,0.64,1),
+   que sobrepasa el valor final e imprime el "golpe" del sello. */
+@keyframes as-koma-stamp {
+  from {
+    opacity: 0;
+    transform: translateY(-16px) rotate(-12deg) scale(1.6);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) rotate(-4deg) scale(1);
+  }
+}
+
+/* Sangrado del sello: halo radial pre-renderizado que cruza en opacity
+   (cero blur(): el glow-por-filtro es el causante del jank de Safari). */
+@keyframes as-stamp-bleed {
+  0% {
+    opacity: 0;
+    transform: scale(0.7);
+  }
+  35% { opacity: 0.5; }
+  100% {
+    opacity: 0;
+    transform: scale(1.3);
+  }
+}
+
+/* El bocadillo respira UNA vez al aparecer (1 iteración, both). */
+@keyframes as-bubble-once {
+  0% {
+    opacity: 0;
+    transform: scale(0.94);
+  }
+  30% {
+    opacity: 1;
+    transform: scale(1);
+  }
+  62% { transform: scale(1.045); }
+  100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+/* ---------- Layout: página de manga. Mobile-first apilada a sangre;
+   ≥768px página 2-2-1 con filas FIJAS (la reserva exacta = CLS 0). */
+.manga-stage {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+.manga-koma {
+  position: relative;
+  height: 280px;
+}
+.manga-koma:first-child { height: 320px; }
+/* nth-child(5), NO :last-child: el último hijo de .manga-stage es .manga-arrows,
+   así que :last-child no casaba con la viñeta 5 (caía a 280px y recortaba su
+   contenido: h2 + párrafo + 4 CTAs + bocadillo). Altura holgada para el koma
+   más cargado en móvil. En ≥768px el grid la resetea a auto (.manga-koma). */
+.manga-koma:nth-child(5) { height: 500px; }
+.manga-arrows { display: none; }
+
+@media (min-width: 768px) {
+  .manga-stage {
+    display: grid;
+    grid-template-columns: repeat(12, 1fr);
+    grid-template-rows: 340px 320px 340px;
+    gap: 18px;
+  }
+  .manga-koma,
+  .manga-koma:first-child,
+  .manga-koma:nth-child(5) { height: auto; }
+  .manga-koma:nth-child(1) { grid-column: 1 / 8; grid-row: 1; }
+  .manga-koma:nth-child(2) { grid-column: 8 / 13; grid-row: 1; }
+  .manga-koma:nth-child(3) { grid-column: 1 / 6; grid-row: 2; }
+  .manga-koma:nth-child(4) { grid-column: 6 / 13; grid-row: 2; }
+  .manga-koma:nth-child(5) { grid-column: 1 / 13; grid-row: 3; }
+
+  .manga-arrows {
+    display: block;
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    z-index: 6;
+  }
+  /* Posiciones para el ancho canónico de 1040px; en fluido siguen cayendo
+     en los canales porque escalan con % aproximado de columna. */
+  .manga-arrow { position: absolute; }
+  .manga-arrow-1 { left: 55.5%; top: 64px; width: 64px; height: 28px; }
+  .manga-arrow-2 { left: 45%; top: 330px; width: 150px; height: 58px; }
+  .manga-arrow-3 { left: 38.5%; top: 486px; width: 64px; height: 28px; }
+  .manga-arrow-4 { left: 63.5%; top: 652px; width: 150px; height: 56px; }
+}
+
+/* ---------- Capas de viñeta. */
+.koma-frame {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  overflow: visible;
+  pointer-events: none;
+  z-index: 3;
+}
+.koma-watermark {
+  position: absolute;
+  right: 3%;
+  bottom: -5%;
+  z-index: 1;
+  font-family: var(--font-kanji-serif);
+  font-size: 130px;
+  line-height: 1;
+  color: var(--color-gold);
+  opacity: 0.05;
+  pointer-events: none;
+}
+.koma-caption {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 3;
+  padding: 38px 18px 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 7px;
+  /* Scrim de legibilidad SOLO donde hay texto encima (tinte canvas). */
+  background: linear-gradient(
+    180deg,
+    color-mix(in srgb, var(--color-canvas) 0%, transparent),
+    color-mix(in srgb, var(--color-canvas) 90%, transparent) 58%
+  );
+}
+.koma-hairline {
+  width: 26px;
+  height: 2px;
+  background: var(--color-gold);
+  opacity: 0.85;
+}
+.koma-linea {
+  margin: 0;
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: 21px;
+  line-height: 1.25;
+  text-shadow: var(--text-shadow-scrim);
+  text-wrap: pretty;
+}
+.koma-eyebrow {
+  margin: 0;
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: 12px;
+  letter-spacing: 0.6px;
+  text-transform: uppercase;
+  color: var(--color-gold);
+  text-shadow: var(--text-shadow-scrim);
+}
+.koma-text {
+  margin: 0;
+  max-width: 46ch;
+  font-size: 13px;
+  line-height: 1.55;
+  color: var(--color-fg-strong);
+  opacity: 0.92;
+  text-shadow: var(--text-shadow-scrim);
+  text-wrap: pretty;
+}
+.manga-koma:first-child .koma-linea { font-size: 22px; }
+
+/* ---------- Coreografía (estados de espera solo bajo .manga-anim). */
+.manga-anim .manga-koma:not(.is-run):not(.is-lcp) { opacity: 0; }
+
+.koma-ink { transform-origin: 50% 55%; }
+.manga-koma.is-run .koma-ink {
+  animation: as-koma-ink 300ms var(--ease-lift) both;
+}
+
+.koma-speed {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  width: 150px;
+  height: 100px;
+  opacity: 0;
+  pointer-events: none;
+  z-index: 4;
+}
+.koma-speed-left {
+  right: auto;
+  left: 8px;
+  transform: scaleX(-1);
+}
+.manga-koma.is-run .koma-speed {
+  animation: as-koma-speed 460ms linear 60ms both;
+}
+
+.koma-stamp {
+  position: absolute;
+  top: 12px;
+  left: 14px;
+  width: 46px;
+  height: 46px;
+  z-index: 5;
+}
+.manga-koma.is-run .koma-stamp {
+  animation: as-koma-stamp 300ms cubic-bezier(0.34, 1.56, 0.64, 1) 400ms both;
+}
+.koma-hanko {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  border: 2px solid color-mix(in srgb, var(--color-hanko) 85%, transparent);
+  border-radius: var(--radius-lg);
+  background: color-mix(in srgb, var(--color-hanko) 14%, transparent);
+  box-shadow: var(--inset-shadow-hairline), inset 0 -2px 6px color-mix(in srgb, var(--color-canvas) 45%, transparent);
+  color: var(--color-accent-text);
+  font-family: var(--font-kanji-serif);
+  font-size: 25px;
+}
+.koma-bleed {
+  position: absolute;
+  inset: -12px;
+  border-radius: 14px;
+  opacity: 0;
+  pointer-events: none;
+  background: radial-gradient(closest-side, color-mix(in srgb, var(--color-hanko) 55%, transparent), transparent 72%);
+}
+.manga-koma.is-run .koma-bleed {
+  animation: as-stamp-bleed 520ms ease-out 430ms both;
+}
+
+/* ---------- Beat final: panel de cierre + bocadillo de grito. */
+.koma-scrim-side {
+  z-index: 2;
+  background: linear-gradient(
+    90deg,
+    color-mix(in srgb, var(--color-canvas) 0%, transparent) 30%,
+    color-mix(in srgb, var(--color-canvas) 88%, transparent) 62%
+  );
+  pointer-events: none;
+}
+.koma-panel-final {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  right: 0;
+  z-index: 3;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: flex-start;
+  gap: 13px;
+  padding: 24px;
+  width: 74%;
+}
+@media (min-width: 768px) {
+  .koma-panel-final { width: 52%; }
+}
+.koma-panel-final .koma-linea { font-size: 23px; }
+.koma-cta-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.koma-bubble {
+  display: block;
+  position: relative;
+  /* min(): en móvil estrecho el panel es 74% del koma; 232px fijos desbordaban
+     y .koma-clip (overflow:hidden) recortaba el CTA primario. */
+  width: min(232px, 100%);
+  height: 138px;
+  margin-top: 6px;
+  text-decoration: none;
+}
+.manga-anim .manga-koma:not(.is-run) .koma-bubble { opacity: 0; }
+.manga-koma.is-run .koma-bubble {
+  animation: as-bubble-once 900ms var(--ease-lift) 850ms both;
+}
+.koma-bubble-tilt {
+  position: absolute;
+  inset: 0;
+  display: block;
+  transform: rotate(-2deg);
+  transition: transform 180ms var(--ease-lift);
+}
+.koma-bubble:hover .koma-bubble-tilt,
+.koma-bubble:focus-visible .koma-bubble-tilt {
+  transform: rotate(-1deg) scale(1.02);
+}
+.koma-bubble-text {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  font-family: var(--font-display);
+  font-size: 25px;
+  letter-spacing: 0.5px;
+  color: var(--color-canvas);
+}
+
+/* ---------- reduced-motion: página pintada, sin entintado ni speedlines. */
+@media (prefers-reduced-motion: reduce) {
+  .manga-anim .manga-koma { opacity: 1; }
+  .manga-koma .koma-ink,
+  .manga-koma .koma-stamp,
+  .manga-koma .koma-bubble {
+    animation: none !important;
+    opacity: 1 !important;
+  }
+  .koma-speed,
+  .koma-bleed { display: none; }
+}
