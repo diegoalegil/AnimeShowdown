@@ -1,14 +1,21 @@
+import { useEffect, useRef, useState } from 'react'
 import { useForm } from 'react-hook-form'
 import { Link, useNavigate, useSearchParams } from 'react-router-dom'
-import { motion } from 'framer-motion'
+import { motion, useReducedMotion } from 'framer-motion'
 import { toast } from 'sonner'
 import { KeyRound } from 'lucide-react'
 import { useSeo } from '../hooks/useSeo'
 import { endpoints, ApiError } from '../lib/api'
+import { useSound } from '../contexts/SoundContext'
 import PasswordStrengthMeter from '../components/PasswordStrengthMeter'
 import PasswordInput from '../components/PasswordInput'
+import KeyLantern from '../components/KeyLantern'
 import { VisualPageShell } from '../components/VisualSystem'
 import { BRAND_VISUALS } from '../data/visual-assets'
+
+// Ventana antes de navegar a /login: 650ms = el giro de llave (450ms, ver
+// key-lantern.css) + ~200ms de margen para que se asiente.
+const KEY_TURN_REVEAL_MS = 650
 
 const containerVariants = {
   hidden: { opacity: 0, y: 20 },
@@ -23,6 +30,20 @@ function ResetPasswordPage() {
   useSeo({ title: 'Nueva contraseña', noindex: true })
   const navigate = useNavigate()
   const [searchParams] = useSearchParams()
+  const { play } = useSound()
+  const prefersReducedMotion = useReducedMotion()
+  // Éxito local: prende la linterna y gira la llave una vez antes del redirect.
+  const [confirmado, setConfirmado] = useState(false)
+  const redirectTimer = useRef(null)
+  // Cancela el redirect diferido si el usuario navega antes (back / "Solicitar
+  // otro"): si no, el setTimeout dispararía navigate('/login') sobre el
+  // componente desmontado, secuestrando la navegación que el usuario eligió.
+  useEffect(
+    () => () => {
+      if (redirectTimer.current) window.clearTimeout(redirectTimer.current)
+    },
+    [],
+  )
   const {
     register,
     handleSubmit,
@@ -47,7 +68,15 @@ function ResetPasswordPage() {
       toast.success('Contraseña actualizada', {
         description: 'Inicia sesión con tu nueva contraseña.',
       })
-      navigate('/login')
+      // Ceremonia de cierre: la llave gira en la cerradura con su click
+      // metálico (el sonido lo dispara la página, no el componente).
+      setConfirmado(true)
+      play('playClick')
+      if (prefersReducedMotion) {
+        navigate('/login')
+      } else {
+        redirectTimer.current = window.setTimeout(() => navigate('/login'), KEY_TURN_REVEAL_MS)
+      }
     } catch (err) {
       const msg =
         err instanceof ApiError
@@ -70,6 +99,12 @@ function ResetPasswordPage() {
         animate="visible"
         variants={containerVariants}
       >
+        {/* Emblema KeyLantern: al confirmar el reset la linterna prende y la
+            llave gira en la cerradura. 100% decorativo (aria-hidden); el
+            éxito/fallo lo anuncian el toast y el role="alert" de root. */}
+        <div className="mb-4 flex justify-center">
+          <KeyLantern state={confirmado ? 'lit' : 'unlit'} keyTurned={confirmado} />
+        </div>
         <div className="mb-6 flex flex-col items-start gap-2">
           <span className="inline-flex rounded-full border border-border bg-surface px-3.5 py-1.5 text-[12px] font-semibold text-fg-muted">
             Recuperar acceso
@@ -222,11 +257,11 @@ function ResetPasswordPage() {
           )}
           <button
             type="submit"
-            disabled={isSubmitting}
+            disabled={isSubmitting || confirmado}
             className="mt-2 inline-flex items-center justify-center gap-2 rounded-lg bg-accent px-5 py-3 text-sm font-semibold text-white transition-colors hover:bg-accent-hover disabled:cursor-not-allowed disabled:opacity-60"
           >
             <KeyRound className="h-4 w-4" />
-            {isSubmitting ? 'Cambiando…' : 'Cambiar contraseña'}
+            {isSubmitting || confirmado ? 'Cambiando…' : 'Cambiar contraseña'}
           </button>
         </form>
         <p className="mt-4 text-center text-[13px] text-fg-muted">
