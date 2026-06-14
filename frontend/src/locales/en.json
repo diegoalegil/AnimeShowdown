@@ -77,7 +77,10 @@
     "doubleOptIn": "We'll send you a confirmation email. You can unsubscribe any time from any newsletter footer.",
     "errorRequired": "Enter your email",
     "errorInvalido": "Invalid email",
-    "errorEnvio": "Couldn't send. Try again in a few seconds."
+    "errorEnvio": "Couldn't send. Try again in a few seconds.",
+    "emailLabel": "Email address",
+    "reintentarRed": "Retry",
+    "liveSending": "Sending…"
   },
   "hero": {
     "titulo": "The ultimate <gold>anime ranking</gold> is decided by you.",
