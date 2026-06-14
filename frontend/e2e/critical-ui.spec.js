@@ -206,6 +206,10 @@ test('la navegacion movil no tapa el contenido final al hacer scroll al fondo', 
   // medición hasta que el hueco es real.
   const medirClearance = () =>
     page.evaluate(() => {
+      // Re-scrollea al fondo en CADA medición: el contenido lazy / las fuentes
+      // pueden crecer la página tras el scroll inicial, dejándonos a media
+      // altura y midiendo un solapamiento que ya no es el estado final.
+      window.scrollTo(0, document.documentElement.scrollHeight)
       const navRect = document
         .querySelector('nav[aria-label="Navegación móvil principal"]')
         ?.getBoundingClientRect()
@@ -220,5 +224,5 @@ test('la navegacion movil no tapa el contenido final al hacer scroll al fondo', 
       return navRect ? Math.round(navRect.top - lastLinkBottom) : -1
     })
 
-  await expect.poll(medirClearance, { timeout: 5000 }).toBeGreaterThanOrEqual(12)
+  await expect.poll(medirClearance, { timeout: 10000 }).toBeGreaterThanOrEqual(12)
 })
