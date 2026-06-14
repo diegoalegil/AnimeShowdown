@@ -125,7 +125,7 @@ test.describe('keyboard navigation', () => {
 
     await page.keyboard.press('Shift+Tab')
     const isFocusInsidePanel = () =>
-      page.evaluate(() => document.querySelector('#mobile-nav-panel')?.contains(document.activeElement))
+      page.evaluate(() => document.querySelector('#mobile-nav-noren')?.contains(document.activeElement))
     await expect.poll(isFocusInsidePanel).toBe(true)
 
     await page.keyboard.press('Escape')
