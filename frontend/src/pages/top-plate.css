@@ -1,0 +1,407 @@
+/* ============================================================
+   top-plate.css — «La lámina coleccionable» de /top/*
+   Archivo de FEATURE: lo importa TopPlate.jsx (import './top-plate.css').
+   Solo tokens de index.css + color-mix sobre tokens. Cero estilos runtime.
+   Cero JS en estas rutas: toda la coreografía vive aquí.
+   ease-stamp NO se usa en esta pieza (coreografía mínima a propósito).
+   Sin loops infinitos: no hace falta enganchar as-calm / as-tab-hidden.
+   ============================================================ */
+
+.top-plate {
+  --plate-aura: var(--color-gold); /* la variante de clan lo sobreescribe inline */
+  max-width: 56rem;
+  margin-inline: auto;
+  padding-block: clamp(1rem, 4vw, 2.5rem) 4rem;
+  padding-inline: clamp(0.75rem, 3vw, 1.5rem);
+  color: var(--color-fg);
+  font-family: var(--font-sans);
+}
+
+/* ── Utilidades ─────────────────────────────────────────────── */
+.tp-sr {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  margin: -1px;
+  padding: 0;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
+
+/* ── Cabecera editorial ─────────────────────────────────────── */
+.tp-header {
+  position: relative;
+  overflow: hidden;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-card);
+  background: var(--color-surface);
+  margin-bottom: clamp(1.25rem, 3vw, 2rem);
+}
+.tp-header__art {
+  position: absolute;
+  inset: 0;
+}
+.tp-header__art img,
+.tp-header__art > * {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+/* Variante SIN arte: cabecera tejida con kanji al 5% */
+.tp-header__weave {
+  position: absolute;
+  inset: -12% -6%;
+  font-family: var(--font-kanji-serif);
+  font-size: 3rem;
+  line-height: 1.75;
+  letter-spacing: 0.4em;
+  color: var(--color-fg-strong);
+  opacity: 0.05;
+  overflow: hidden;
+  word-break: break-all;
+  user-select: none;
+  pointer-events: none;
+}
+.tp-header__scrim {
+  position: absolute;
+  inset: 0;
+  background:
+    linear-gradient(
+      to right,
+      color-mix(in srgb, var(--color-canvas) 90%, transparent),
+      color-mix(in srgb, var(--color-canvas) 62%, transparent) 55%,
+      color-mix(in srgb, var(--color-canvas) 28%, transparent)
+    ),
+    linear-gradient(
+      to top,
+      color-mix(in srgb, var(--color-canvas) 80%, transparent),
+      transparent 65%
+    );
+}
+/* Tinte de identidad (oro por defecto; clan vía --plate-aura) */
+.tp-header__aura {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background: linear-gradient(
+    115deg,
+    transparent 55%,
+    color-mix(in srgb, var(--plate-aura) 16%, transparent)
+  );
+}
+/* Hairline dorada al pie de la cabecera (estática: el brief manda peso pluma) */
+.tp-header__rule {
+  position: absolute;
+  inset-inline: 0;
+  bottom: 0;
+  height: 1px;
+  opacity: 0.75;
+  background: linear-gradient(
+    to right,
+    var(--color-gold),
+    color-mix(in srgb, var(--color-gold) 0%, transparent)
+  );
+}
+.tp-header__body {
+  position: relative;
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 1.5rem;
+  padding: clamp(1.25rem, 4vw, 2.25rem);
+  min-height: clamp(10.5rem, 24vw, 15rem);
+}
+.tp-kicker {
+  display: flex;
+  align-items: baseline;
+  gap: 0.55rem;
+  margin: 0 0 0.65rem;
+  font-family: var(--font-mono);
+  font-size: var(--text-2xs);
+  color: var(--color-gold-bright);
+}
+.tp-kicker__kanji {
+  font-family: var(--font-kanji-serif);
+  font-size: 0.9rem;
+  color: var(--color-gold);
+}
+.tp-title {
+  margin: 0;
+  font-size: clamp(1.55rem, 4.2vw, 2.45rem);
+  line-height: 1.12;
+  font-weight: 700;
+  color: var(--color-fg-strong);
+  text-wrap: balance;
+}
+.tp-sub {
+  margin: 0.65rem 0 0;
+  max-width: 48ch;
+  color: var(--color-fg-muted);
+  font-size: clamp(0.9rem, 1.6vw, 1rem);
+  line-height: 1.5;
+  text-wrap: pretty;
+}
+.tp-kanji {
+  flex: none;
+  display: grid;
+  justify-items: center;
+  gap: 0.4rem;
+}
+.tp-kanji__glyph {
+  font-family: var(--font-kanji-serif);
+  font-size: clamp(3.1rem, 8vw, 4.8rem);
+  line-height: 1;
+  color: color-mix(in srgb, var(--plate-aura) 30%, var(--color-fg-strong));
+}
+.tp-kanji__sense {
+  font-family: var(--font-mono);
+  font-size: var(--text-2xs);
+  color: var(--color-fg-muted);
+}
+
+/* ── La tabla: ol REAL, numerales explícitos ────────────────── */
+.tp-list-wrap {
+  position: relative;
+}
+.tp-watermark {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  font-family: var(--font-kanji-serif);
+  font-size: clamp(12rem, 40vw, 22rem);
+  line-height: 1;
+  color: var(--color-fg-strong);
+  opacity: 0.05;
+  pointer-events: none;
+  user-select: none;
+}
+.tp-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  position: relative;
+  display: grid;
+  gap: 0.6rem;
+}
+.tp-card {
+  display: grid;
+  grid-template-columns: 3rem 3.5rem minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 1rem;
+  padding: 0.6rem 1rem 0.6rem 0.6rem;
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-xl);
+  text-decoration: none;
+  color: inherit;
+  transition:
+    transform 0.3s var(--ease-lift),
+    border-color 0.3s var(--ease-lift),
+    box-shadow 0.3s var(--ease-lift);
+}
+@media (hover: hover) {
+  .tp-card:hover {
+    transform: translateY(-2px); /* lift 2px — y NADA más */
+    border-color: var(--color-border-gold-subtle);
+    box-shadow: var(--shadow-elev-2);
+  }
+  .tp-card.is-1:hover {
+    box-shadow: var(--shadow-aura-sm), var(--shadow-elev-2);
+  }
+}
+.tp-card:focus-visible {
+  outline: 2px solid var(--color-gold);
+  outline-offset: 2px;
+}
+.tp-card.is-podium {
+  background: var(--color-surface-alt);
+}
+.tp-card.is-1 {
+  --aura-color: var(--plate-aura);
+  border-color: var(--color-border-gold);
+  box-shadow: var(--shadow-aura-sm);
+}
+
+.tp-rank {
+  display: grid;
+  justify-items: center;
+  align-content: center;
+  gap: 0.2rem;
+}
+.tp-rank__kanji {
+  font-family: var(--font-kanji-serif);
+  font-size: 1.9rem;
+  line-height: 1;
+}
+.is-1 .tp-rank__kanji { color: var(--color-medal-gold); }
+.is-2 .tp-rank__kanji { color: var(--color-medal-silver); }
+.is-3 .tp-rank__kanji { color: var(--color-medal-bronze); }
+.tp-rank__num {
+  font-family: var(--font-mono);
+  font-size: 1rem;
+  font-variant-numeric: tabular-nums;
+  color: var(--color-fg-muted);
+}
+/* Empate: insignia visible, regla anotada bajo la lista */
+.tp-rank__tie {
+  font-family: var(--font-mono);
+  font-size: var(--text-2xs);
+  line-height: 1;
+  color: var(--color-gold-bright);
+  border: 1px solid var(--color-border-gold-subtle);
+  border-radius: var(--radius-pill);
+  padding: 0.1rem 0.4rem;
+}
+
+.tp-portrait {
+  width: 3.5rem;
+  aspect-ratio: 2 / 3;
+  border-radius: var(--radius-lg);
+  overflow: hidden;
+  border: 1px solid var(--color-border);
+  background: var(--color-surface-alt);
+}
+.tp-portrait img,
+.tp-portrait > * {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+.tp-id {
+  display: grid;
+  gap: 0.2rem;
+  min-width: 0;
+}
+.tp-name {
+  font-size: 1.02rem;
+  font-weight: 600;
+  color: var(--color-fg-strong);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.tp-universe {
+  font-size: 0.82rem;
+  color: var(--color-fg-muted);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* ELO acuñado: placa con hairline de oro sutil */
+.tp-elo {
+  display: grid;
+  justify-items: end;
+  gap: 0.1rem;
+  padding: 0.4rem 0.75rem;
+  border: 1px solid var(--color-border-gold-subtle);
+  border-radius: var(--radius-lg);
+  background: color-mix(in srgb, var(--color-gold) 6%, transparent);
+}
+.tp-elo__label {
+  font-family: var(--font-mono);
+  font-size: var(--text-2xs);
+  color: var(--color-fg-muted);
+}
+.tp-elo__value {
+  font-family: var(--font-mono);
+  font-size: 1.18rem;
+  line-height: 1.1;
+  font-variant-numeric: tabular-nums;
+  color: var(--color-elo-number);
+}
+
+.tp-tie-note {
+  display: flex;
+  align-items: baseline;
+  gap: 0.5rem;
+  margin: 0.8rem 0 0;
+  font-family: var(--font-mono);
+  font-size: var(--text-2xs);
+  color: var(--color-fg-muted);
+}
+.tp-tie-note__glyph {
+  color: var(--color-gold-bright);
+  border: 1px solid var(--color-border-gold-subtle);
+  border-radius: var(--radius-pill);
+  padding: 0.05rem 0.4rem;
+}
+
+/* ── Bloque editorial SEO: el texto actual entra aquí ÍNTEGRO ── */
+.tp-editorial {
+  margin-top: clamp(2rem, 5vw, 3rem);
+  border-top: 1px solid var(--color-border);
+  padding-top: clamp(1.25rem, 3vw, 2rem);
+  max-width: 65ch;
+}
+.tp-editorial h2 {
+  font-size: 1.25rem;
+  color: var(--color-fg-strong);
+  margin: 1.6rem 0 0.6rem;
+}
+.tp-editorial h2:first-child {
+  margin-top: 0;
+}
+.tp-editorial p {
+  margin: 0 0 1em;
+  line-height: 1.68;
+  color: var(--color-fg);
+  text-wrap: pretty;
+}
+.tp-editorial a {
+  color: var(--color-gold-bright);
+  text-underline-offset: 2px;
+}
+
+/* ── Coreografía: mínima a propósito ────────────────────────── */
+/* Estado final = estilo base; la animación parte DESDE oculto y
+   rellena hacia atrás (backwards). Print / reduced-motion / SSR
+   muestran siempre contenido. */
+@media (prefers-reduced-motion: no-preference) {
+  .tp-card.is-podium {
+    animation: tp-podium-rise 0.55s var(--ease-lift) backwards;
+  }
+  .tp-card[data-stagger="2"] { animation-delay: 60ms; }
+  .tp-card[data-stagger="3"] { animation-delay: 120ms; }
+}
+@keyframes tp-podium-rise {
+  from {
+    opacity: 0;
+    transform: translateY(14px);
+  }
+}
+
+/* ── 390px: tarjetas compactas, cero desbordes ──────────────── */
+@media (max-width: 480px) {
+  .tp-card {
+    grid-template-columns: 2.1rem 2.75rem minmax(0, 1fr) auto;
+    gap: 0.6rem;
+    padding: 0.5rem 0.6rem 0.5rem 0.45rem;
+  }
+  .tp-rank__kanji { font-size: 1.45rem; }
+  .tp-rank__num { font-size: 0.85rem; }
+  .tp-portrait { width: 2.75rem; }
+  .tp-name { font-size: 0.95rem; }
+  .tp-universe { font-size: 0.75rem; }
+  .tp-elo { padding: 0.3rem 0.5rem; }
+  .tp-elo__value { font-size: 1rem; }
+  .tp-header__body {
+    flex-direction: column;
+    align-items: flex-start;
+    justify-content: flex-end;
+    gap: 0.75rem;
+    min-height: 9.5rem;
+  }
+  .tp-kanji {
+    position: absolute;
+    top: 1rem;
+    right: 1rem;
+  }
+  .tp-kanji__glyph { font-size: 2.6rem; }
+  .tp-kanji__sense { display: none; }
+}
