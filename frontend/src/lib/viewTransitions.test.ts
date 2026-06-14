@@ -23,6 +23,13 @@ type TransitionFake = {
   updateCallbackDone: Promise<void>
 }
 
+// La firma real de document.startViewTransition acepta DOS formas: un callback
+// suelto o un objeto { update, types } (Chrome 125+ / Safari 18.2+). El #115
+// usa la forma objeto con types: ['intermedio'] en las navegaciones sin morph.
+type VTArg =
+  | (() => Promise<void>)
+  | { update: () => Promise<void>; types?: string[] }
+
 // Cast laxo a propósito: el lib.dom ya tipa startViewTransition con la firma
 // real del navegador y aquí se instala/borra un fake mínimo por test.
 const doc = document as unknown as {
@@ -35,7 +42,11 @@ function instalarStartViewTransition() {
     finished: Promise.resolve(),
     updateCallbackDone: Promise.resolve(),
   }
-  const startViewTransition = vi.fn((cb: () => Promise<void>) => {
+  const startViewTransition = vi.fn((arg: VTArg) => {
+    // Soporta ambas firmas: callback suelto o { update, types }. Así el fake
+    // cubre el camino del intermedio (forma objeto) y el de fallback/morph
+    // (forma callback) sin romper las aserciones existentes.
+    const cb = typeof arg === 'function' ? arg : arg.update
     transition.updateCallbackDone = cb()
     return transition
   })
@@ -134,6 +145,36 @@ describe('startNavigationViewTransition', () => {
 
     vi.advanceTimersByTime(1500)
     await startViewTransition.mock.results[0].value.updateCallbackDone
+  })
+
+  it('la navegación por defecto (sin morph) pide el tipo intermedio cuando el UA lo soporta', () => {
+    const { startViewTransition } = instalarStartViewTransition()
+    startNavigationViewTransition(vi.fn())
+
+    const arg = startViewTransition.mock.calls[0][0]
+    if (typeof arg === 'object' && arg !== null) {
+      // UA con soporte de `types` (Chrome 125+ / Safari 18.2+): se marca el corte.
+      expect(arg.types).toEqual(['intermedio'])
+      expect(typeof arg.update).toBe('function')
+    } else {
+      // UA sin soporte: forma callback, la navegación usa la animación base. OK.
+      expect(typeof arg).toBe('function')
+    }
+  })
+
+  it('con un morph en vuelo NO pide el intermedio (manda su grupo nombrado)', () => {
+    const { startViewTransition } = instalarStartViewTransition()
+    const cover = crearElemento('div')
+    animeSceneMorph.adopt(cover)
+
+    startNavigationViewTransition(vi.fn())
+
+    // Con un nombre viajando en la captura vieja se usa SIEMPRE la forma
+    // callback (sin types), aunque el UA soporte `types`: el root cede a su
+    // grupo nombrado y se queda con el lift-fade base.
+    expect(typeof startViewTransition.mock.calls[0][0]).toBe('function')
+    settleNavigationViewTransition()
+    animeSceneMorph.release(cover)
   })
 })
 
