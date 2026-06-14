@@ -1,6 +1,6 @@
 import { isValidElement } from 'react'
 import { Link } from 'react-router-dom'
-import { ArrowRight } from 'lucide-react'
+import { AlertTriangle, ArrowRight } from 'lucide-react'
 import EditorialCover from './EditorialCover'
 import { BRAND_VISUALS } from '../data/visual-assets'
 import './empty-scene.css'
@@ -112,7 +112,7 @@ function EmptyState({
   className = '',
   scene = false,
   visual = BRAND_VISUALS.empty,
-  escena = 'plaza',
+  escena,
 }) {
   const body = children ?? description
   const hasCustomBody = children !== undefined && children !== null
@@ -160,20 +160,20 @@ function EmptyState({
     )
   }
 
-  const sceneKey = SCENES[escena] ? escena : 'plaza'
+  // La escena kanji ES el grafismo del vacío (migración al kit): sustituye al
+  // badge de icono, que ya no se pinta en este modo. La escena se elige por la
+  // prop `escena`; si no se pasa, se deriva del contexto: un icono de error
+  // (AlertTriangle) → 'seal' (乱, role=alert); el resto → 'plaza' (祭).
+  const sceneKey =
+    escena && SCENES[escena] ? escena : Icon === AlertTriangle ? 'seal' : 'plaza'
   const Scene = SCENES[sceneKey]
   const isError = sceneKey === 'seal'
 
   return (
     <div
-      className={`es-root as-panel flex min-h-72 flex-col items-center justify-center gap-4 rounded-2xl border-dashed p-8 text-center es-s-${sceneKey} ${className}`.trim()}
+      className={`es-root as-panel flex min-h-72 flex-col items-center justify-center gap-4 rounded-2xl border-dashed p-8 text-center sm:p-12 es-s-${sceneKey} ${className}`.trim()}
       role={isError ? 'alert' : 'status'}
     >
-      {Icon && (
-        <span className="flex h-14 w-14 items-center justify-center rounded-2xl border border-gold/35 bg-gold-soft text-gold">
-          <Icon className="h-6 w-6" aria-hidden="true" />
-        </span>
-      )}
       <div className="es-stage" aria-hidden="true">
         <span className="es-glyph">{SCENE_GLYPH[sceneKey]}</span>
         <Scene />

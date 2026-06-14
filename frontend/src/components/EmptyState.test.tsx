@@ -1,6 +1,7 @@
 import { afterEach, describe, expect, it } from 'vitest'
 import { cleanup, render } from '@testing-library/react'
 import { MemoryRouter } from 'react-router-dom'
+import { AlertTriangle } from 'lucide-react'
 
 import EmptyState from './EmptyState'
 
@@ -58,6 +59,17 @@ describe('EmptyState', () => {
     expect(getByText('乱', { selector: '.es-glyph' })).toBeInTheDocument()
   })
 
+  it('deriva la escena de error (seal, role alert) de un icono AlertTriangle', () => {
+    const { getByRole } = render(
+      <MemoryRouter>
+        <EmptyState icon={AlertTriangle} title="No pudimos cargar" />
+      </MemoryRouter>,
+    )
+
+    const root = getByRole('alert')
+    expect(root).toHaveClass('es-s-seal')
+  })
+
   it('cae a plaza ante una escena desconocida', () => {
     const { getByRole } = render(
       <MemoryRouter>
@@ -80,5 +92,7 @@ describe('EmptyState', () => {
     expect(container.querySelector('.es-root')).toBeNull()
     expect(container.querySelector('.es-glyph')).toBeNull()
     expect(queryByText('祭')).toBeNull()
+    // …pero el título sí se sigue renderizando.
+    expect(queryByText('Portada editorial')).not.toBeNull()
   })
 })
