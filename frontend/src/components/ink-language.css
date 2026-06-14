@@ -1,0 +1,267 @@
+/* ==========================================================================
+   InkLanguage — toggle de idioma del header como sellos hanko (ES · EN · 日)
+   Archivo de FEATURE: lo importa LanguageToggle.jsx (import './ink-language.css').
+   Tokens globales de index.css; --ease-stamp también existe allí (mismo valor),
+   se redefine local para que la feature sea autónoma si se reubica.
+   Reglas duras: solo transform/opacity en animaciones · cero filter/blur ·
+   cero estilos en runtime (todos los keyframes viven en este archivo) ·
+   cero loops infinitos (todo se dispara por cambio de clase).
+   Tinta parametrizable: la pieza lee var(--inklang-tinta, var(--color-hanko)),
+   un ancestro puede sobrescribir --inklang-tinta sin tocar tokens globales.
+   ========================================================================== */
+
+.inklang {
+  --ease-stamp: cubic-bezier(0.34, 1.56, 0.64, 1); /* overshoot de hanko (local) */
+  --inklang-size: 1.75rem;                          /* lado visual del sello */
+  --inklang-hit: 2.75rem;                           /* hit area: 44px */
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+}
+
+/* ---- botón: hit >=44px aunque el sello sea menor ------------------------ */
+.inklang-btn {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-inline-size: var(--inklang-hit);
+  min-block-size: var(--inklang-hit);
+  margin: 0;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+}
+.inklang-btn:focus-visible {
+  outline: 2px solid var(--color-gold);
+  outline-offset: -2px;
+  border-radius: var(--radius-lg);
+}
+
+/* ---- el sello ------------------------------------------------------------ */
+.inklang-face {
+  position: relative;
+  display: grid;
+  place-items: center;
+  inline-size: var(--inklang-size);
+  block-size: var(--inklang-size);
+  border-radius: 0.25rem;
+  border: 1px solid var(--color-border-gold-subtle);
+  color: var(--color-fg-muted);
+  font: 700 var(--text-2xs) / 1 var(--font-mono);
+  letter-spacing: 0.02em;
+  transition:
+    color 150ms var(--ease-brush),
+    border-color 150ms var(--ease-brush),
+    transform 150ms var(--ease-brush);
+}
+.inklang-face[data-lang="ja"] {
+  font-family: var(--font-kanji-serif);
+  font-size: 0.9375rem;
+  font-weight: 600;
+}
+.inklang-btn:hover .inklang-face {
+  border-color: var(--color-border-gold);
+  color: var(--color-fg);
+}
+.inklang-face.is-active {
+  border-color: transparent;
+  color: var(--color-fg-strong);
+  transform: rotate(-2deg);
+}
+
+.inklang-glyph {
+  position: relative;
+  z-index: 1;
+}
+
+/* ---- capa de tinta ------------------------------------------------------- */
+.inklang-ink {
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  background: var(--inklang-tinta, var(--color-hanko));
+  opacity: 0;
+  /* el sello saliente pierde la tinta: 150ms */
+  transition: opacity 150ms var(--ease-brush);
+  pointer-events: none;
+}
+.inklang-face.is-active .inklang-ink {
+  opacity: 1;
+}
+
+/* sangrado: aro estático que solo anima opacity/transform (WebKit-safe) */
+.inklang-ink::after {
+  content: "";
+  position: absolute;
+  inset: -0.1875rem;
+  border-radius: 0.375rem;
+  border: 0.1875rem solid color-mix(in srgb, var(--inklang-tinta, var(--color-hanko)) 32%, transparent);
+  opacity: 0;
+  pointer-events: none;
+}
+
+/* ---- coreografía del cambio ----------------------------------------------
+   Solo con .is-stamped (existe únicamente TRAS un cambio de value):
+   cero ceremonia al montar. */
+.inklang-face.is-active.is-stamped {
+  animation: inklang-recoil 220ms var(--ease-stamp);
+}
+.inklang-face.is-active.is-stamped .inklang-ink {
+  animation: inklang-stamp 220ms var(--ease-stamp);
+}
+.inklang-face.is-active.is-stamped .inklang-ink::after {
+  animation: inklang-bleed 300ms var(--ease-brush) 100ms forwards;
+}
+
+@keyframes inklang-stamp {
+  from { opacity: 0; transform: scale(1.55) rotate(5deg); }
+  to   { opacity: 1; transform: scale(1) rotate(0deg); }
+}
+@keyframes inklang-recoil {
+  0%   { transform: scale(1) rotate(0deg); }
+  55%  { transform: scale(0.92) rotate(-2.5deg); }
+  100% { transform: scale(1) rotate(-2deg); }
+}
+@keyframes inklang-bleed {
+  from { opacity: 0.55; transform: scale(0.94); }
+  to   { opacity: 0;    transform: scale(1.12); }
+}
+
+/* ---- popover de papel (variant="popover") -------------------------------- */
+.inklang-trigger {
+  gap: 0.3125rem;
+  padding-inline: 0.25rem;
+}
+.inklang-caret {
+  inline-size: 0;
+  block-size: 0;
+  border-inline: 0.25rem solid transparent;
+  border-block-start: 0.3125rem solid var(--color-fg-muted);
+  transition: transform 150ms var(--ease-lift);
+}
+.inklang-trigger:hover .inklang-caret {
+  border-block-start-color: var(--color-fg);
+}
+.inklang-trigger[aria-expanded="true"] .inklang-caret {
+  transform: scaleY(-1);
+}
+
+.inklang-paper {
+  position: absolute;
+  inset-block-start: calc(100% + 0.375rem);
+  inset-inline-end: 0;
+  z-index: 30;
+  min-inline-size: 10.5rem;
+  padding: 0.375rem;
+  border-radius: var(--radius-lg);
+  background: var(--color-fg-strong);
+  border: 1px solid var(--color-border-gold);
+  box-shadow: var(--shadow-elev-2);
+  overflow: hidden;
+  transform-origin: top right;
+  animation: inklang-paper-in 140ms var(--ease-lift);
+}
+@keyframes inklang-paper-in {
+  from { opacity: 0; transform: translateY(-0.25rem) scale(0.97); }
+}
+/* marca de agua kanji (印, canónico) */
+.inklang-paper::before {
+  content: "印";
+  position: absolute;
+  inset-block-end: -0.75rem;
+  inset-inline-end: -0.25rem;
+  font: 400 3.5rem / 1 var(--font-kanji-serif);
+  color: color-mix(in srgb, var(--color-canvas) 7%, transparent);
+  pointer-events: none;
+}
+
+.inklang-item {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 0.625rem;
+  inline-size: 100%;
+  min-block-size: 2.75rem;
+  margin: 0;
+  padding: 0 0.625rem;
+  border: 0;
+  border-radius: 0.375rem;
+  background: transparent;
+  cursor: pointer;
+  font: 500 0.875rem / 1.2 var(--font-sans);
+  color: var(--color-bg);
+  text-align: start;
+}
+.inklang-item:hover {
+  background: color-mix(in srgb, var(--color-canvas) 7%, transparent);
+}
+.inklang-item:focus-visible {
+  outline: 2px solid var(--color-accent);
+  outline-offset: -2px;
+}
+.inklang-item[lang="ja"] .inklang-item-name {
+  font-family: var(--font-jp);
+}
+
+.inklang-mini {
+  flex: none;
+  display: grid;
+  place-items: center;
+  inline-size: 1.5rem;
+  block-size: 1.5rem;
+  border-radius: 0.1875rem;
+  border: 1px solid color-mix(in srgb, var(--color-canvas) 30%, transparent);
+  color: color-mix(in srgb, var(--color-canvas) 65%, transparent);
+  font: 700 0.625rem / 1 var(--font-mono);
+  transition: background-color 150ms var(--ease-brush), color 150ms var(--ease-brush);
+}
+.inklang-item[lang="ja"] .inklang-mini {
+  font-family: var(--font-kanji-serif);
+  font-size: 0.8125rem;
+  font-weight: 600;
+}
+.inklang-mini.is-active {
+  background: var(--inklang-tinta, var(--color-hanko));
+  border-color: transparent;
+  color: var(--color-fg-strong);
+  transform: rotate(-2deg);
+}
+
+/* ---- live region + nombres accesibles (ocultos) -------------------------- */
+.inklang-sr,
+.inklang-live {
+  position: absolute;
+  inline-size: 1px;
+  block-size: 1px;
+  margin: -1px;
+  padding: 0;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+  border: 0;
+}
+
+/* ---- prefers-reduced-motion: el cambio es solo por color ----------------- */
+@media (prefers-reduced-motion: reduce) {
+  .inklang-face.is-active.is-stamped,
+  .inklang-face.is-active.is-stamped .inklang-ink,
+  .inklang-face.is-active.is-stamped .inklang-ink::after,
+  .inklang-paper {
+    animation: none;
+  }
+  .inklang-face {
+    transition-property: color, border-color;
+  }
+  .inklang-face.is-active {
+    transform: none;
+  }
+  .inklang-caret {
+    transition: none;
+  }
+  .inklang-mini.is-active {
+    transform: none;
+  }
+}

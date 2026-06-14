@@ -1,33 +1,51 @@
-import { useEffect, useRef, useState } from 'react'
+import { useEffect, useId, useRef, useState } from 'react'
 import { useTranslation } from 'react-i18next'
-import { Check, Languages } from 'lucide-react'
+import { useSound } from '../contexts/SoundContext'
+import './ink-language.css'
 
+/**
+ * Idiomas como sellos hanko. `glyph` = sello compacto (ES / EN / 日), `label` =
+ * autónimo (NO se traduce), `announce` = anuncio del live region en su idioma.
+ * El glifo 日 (U+65E5) ya está en el subset de --font-kanji-serif → sin tofu.
+ */
 const IDIOMAS = [
-  { code: 'es', label: 'Español', short: 'ES' },
-  { code: 'en', label: 'English', short: 'EN' },
-  { code: 'ja', label: '日本語', short: 'JA' },
+  { code: 'es', glyph: 'ES', label: 'Español', announce: 'idioma: español' },
+  { code: 'en', glyph: 'EN', label: 'English', announce: 'language: English' },
+  { code: 'ja', glyph: '日', label: '日本語', announce: '言語：日本語' },
 ]
 
 /**
- * Toggle de idioma en Header.
+ * Toggle de idioma en Header — reskin "InkLanguage" (sellos hanko).
  *
- * <p>Pequeño botón con el código del idioma actual (ES / EN). Click abre
- * dropdown con la lista; al elegir, {@code i18n.changeLanguage} dispara
- * el cambio. La preferencia se persiste en {@code localStorage.i18nextLng}
- * vía LanguageDetector — la próxima visita carga directamente el idioma
- * elegido.
+ * <p>El trigger muestra el sello del idioma activo (ES / EN / 日) con un caret;
+ * al pulsarlo se abre un popover de papel con los tres nombres completos. Al
+ * elegir, {@code i18n.changeLanguage} dispara el cambio y el nuevo sello se
+ * estampa con un golpe de hanko + sonido (respeta el mute global). La
+ * preferencia se persiste en {@code localStorage.i18nextLng} vía
+ * LanguageDetector — la próxima visita carga directamente el idioma elegido.
  *
  * <p>El idioma efectivo puede no estar entre los exactos (ej. 'es-ES' o
- * 'en-US' detectados del navegador). Por eso se calcula con startsWith
- * para mostrar el chip correcto sin caer a ES como default visual.
+ * 'en-US' detectados del navegador). Por eso se calcula con slice(0, 2) para
+ * mostrar el sello correcto sin caer a ES como default visual.
+ *
+ * <p>A11y (sin regresión respecto al dropdown previo): trigger con
+ * aria-label / aria-expanded / aria-haspopup; popover role="menu" con
+ * menuitemradio + aria-checked; teclado completo en trigger
+ * (ArrowUp/Down/Enter/Space abren y enfocan) y en el menú
+ * (ArrowUp/Down circular, Home/End, Escape cierra y devuelve foco al trigger,
+ * Tab cierra, Enter/Space elige); foco al ítem activo al abrir y al trigger al
+ * cerrar; click-outside (mousedown) cierra.
  */
 function LanguageToggle() {
   const { i18n, t } = useTranslation()
+  const { play } = useSound()
   const [open, setOpen] = useState(false)
   const wrapperRef = useRef(null)
   const triggerRef = useRef(null)
+  const paperRef = useRef(null)
   const itemRefs = useRef([])
   const pendingFocusIndexRef = useRef(null)
+  const menuId = useId()
 
   const codigoActivo = (i18n.resolvedLanguage || i18n.language || 'es')
       .toLowerCase()
@@ -35,6 +53,32 @@ function LanguageToggle() {
   const activo =
       IDIOMAS.find((l) => l.code === codigoActivo) ?? IDIOMAS[0]
   const activoIndex = Math.max(0, IDIOMAS.findIndex((l) => l.code === activo.code))
+
+  // Cambio de idioma activo → evento de estampado (sonido + animación del
+  // sello). Patrón canónico React 19 + Compiler: ajuste DURANTE el render con
+  // guard, sin setState síncrono dentro de un effect.
+  const [prevCodigo, setPrevCodigo] = useState(codigoActivo)
+  const [stampEvent, setStampEvent] = useState(null)
+  if (prevCodigo !== codigoActivo) {
+    setPrevCodigo(codigoActivo)
+    setStampEvent({ lang: codigoActivo, seq: stampEvent ? stampEvent.seq + 1 : 1 })
+  }
+
+  // Espejo de `play` en ref para no re-suscribir el effect del estampado en
+  // cada render (play es estable, pero el espejo mantiene el contrato del
+  // patrón y deja el effect dependiendo solo de stampEvent).
+  const playRef = useRef(play)
+  useEffect(() => {
+    playRef.current = play
+  })
+
+  // Sonido del estampado: SIEMPRE desde un effect, una vez por cambio de
+  // idioma (también si el cambio viene de fuera). Cero ceremonia al montar:
+  // stampEvent es null hasta el primer cambio real.
+  useEffect(() => {
+    if (!stampEvent) return
+    playRef.current('playSello')
+  }, [stampEvent])
 
   useEffect(() => {
     if (!open) return
@@ -62,7 +106,7 @@ function LanguageToggle() {
   }, [activoIndex, open])
 
   const elegir = (code) => {
-    i18n.changeLanguage(code)
+    if (code !== codigoActivo) i18n.changeLanguage(code)
     setOpen(false)
   }
 
@@ -124,34 +168,47 @@ function LanguageToggle() {
     }
   }
 
+  const announced = stampEvent
+    ? (IDIOMAS.find((l) => l.code === stampEvent.lang) || activo).announce
+    : ''
+
   return (
-    <div ref={wrapperRef} className="relative">
+    <div ref={wrapperRef} className="inklang inklang--popover">
       <button
         ref={triggerRef}
         type="button"
-        onClick={() => setOpen((v) => !v)}
+        className="inklang-btn inklang-trigger"
         aria-label={t('header.elegirIdioma')}
-        aria-expanded={open}
         aria-haspopup="menu"
+        aria-expanded={open}
+        aria-controls={open ? menuId : undefined}
+        onClick={() => setOpen((v) => !v)}
         onKeyDown={onTriggerKeyDown}
-        className="inline-flex min-h-11 items-center gap-1 rounded-lg px-3 text-fg-muted transition-colors hover:bg-surface-alt hover:text-fg-strong"
       >
-        <Languages className="h-4 w-4" />
-        <span className="text-[11px] font-bold tabular-nums">
-          {activo.short}
+        <span
+          key={stampEvent ? stampEvent.seq : 0}
+          className={`inklang-face is-active${stampEvent ? ' is-stamped' : ''}`}
+          data-lang={activo.code}
+          aria-hidden="true"
+        >
+          <span className="inklang-ink"></span>
+          <span className="inklang-glyph">{activo.glyph}</span>
         </span>
+        <span className="inklang-caret" aria-hidden="true"></span>
       </button>
 
       {open && (
         <div
+          ref={paperRef}
+          id={menuId}
           role="menu"
-          className="absolute right-0 top-10 z-50 w-40 origin-top-right rounded-xl border border-border bg-surface py-1 opacity-100 shadow-2xl transition-[opacity,transform] duration-150 ease-out"
+          aria-label={t('header.elegirIdioma')}
+          className="inklang-paper"
         >
           {/*
-            a11y: role='menuitem' no anunciaba estado
-            de selección al lector de pantalla — solo el icono Check
-            visual revelaba el idioma activo. menuitemradio + aria-checked
-            hace que SR diga "Español, seleccionado" sin depender del icono.
+            a11y: role='menuitemradio' + aria-checked anuncia el estado de
+            selección al lector de pantalla ("Español, seleccionado") sin
+            depender de ningún icono visual.
           */}
           {IDIOMAS.map((l, index) => {
             const elegido = l.code === activo.code
@@ -165,26 +222,32 @@ function LanguageToggle() {
                 role="menuitemradio"
                 aria-checked={elegido}
                 tabIndex={-1}
+                lang={l.code}
                 onClick={() => elegir(l.code)}
                 onKeyDown={(e) => onItemKeyDown(e, index, l.code)}
-                className={`flex min-h-11 w-full items-center gap-2 px-3 py-2 text-left text-[13px] transition-colors hover:bg-bg ${
-                  elegido
-                    ? 'font-semibold text-fg-strong'
-                    : 'text-fg-muted'
-                }`}
+                className="inklang-item"
               >
-                <span className="inline-flex w-7 font-mono text-[11px] font-bold">
-                  {l.short}
+                <span
+                  className={elegido ? 'inklang-mini is-active' : 'inklang-mini'}
+                  aria-hidden="true"
+                >
+                  {l.glyph}
                 </span>
-                <span lang={l.code === 'ja' ? 'ja' : undefined} className="flex-1">
-                  {l.label}
-                </span>
-                {elegido && <Check className="h-3.5 w-3.5 text-gold" aria-hidden="true" />}
+                <span className="inklang-item-name">{l.label}</span>
               </button>
             )
           })}
         </div>
       )}
+
+      <span
+        className="inklang-live"
+        role="status"
+        aria-live="polite"
+        lang={stampEvent ? stampEvent.lang : activo.code}
+      >
+        {announced}
+      </span>
     </div>
   )
 }
