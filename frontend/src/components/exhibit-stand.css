@@ -1,0 +1,365 @@
+/* =========================================================================
+   exhibit-stand.css  ·  #113 La peana del 3D
+   Escenario alrededor del visor Personaje3D on-demand.
+   Archivo de feature (lo importa ExhibitStand.jsx). NO va a index.css.
+   CSP por hash: cero estilos en runtime; los @keyframes viven aquí.
+
+   Reglas respetadas:
+   · Solo tokens var(--color-*); alphas con color-mix(in srgb, var() N%, transparent).
+   · Cero blur()/backdrop-blur/SVG-filter vivos: glow = capas estaticas y
+     gradientes; sombras = box-shadow/gradient (cero filter:blur).
+   · Anima SOLO transform/opacity. Ningun nodo lleva preserve-3d.
+   · Sin loops infinitos: la rotacion la maneja el usuario (no hay nada que
+     pausar con html.as-calm / html.as-tab-hidden).
+   ========================================================================= */
+
+/* --- El recinto: panel crudo a pantalla (lo monta AccessibleDialog) ------ */
+.exhibit-stand {
+  position: relative;
+  width: min(92vw, 680px);
+  aspect-ratio: 4 / 5;
+  max-height: min(86vh, 840px);
+  overflow: hidden;
+  border-radius: var(--radius-card);
+  border: 1px solid var(--color-border-gold-subtle);
+  background: var(--color-canvas);
+  box-shadow: var(--shadow-elev-2);
+  isolation: isolate;
+  /* Apertura: el escenario monta primero con un fade de 200ms. */
+  animation: exhibit-stage-in 200ms var(--ease-lift) both;
+}
+
+/* --- El tatami en penumbra + UN foco (gradiente radial estatico) --------- */
+.exhibit-stand__floor {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  background:
+    /* el unico foco: cae desde arriba sobre la peana */
+    radial-gradient(
+      ellipse 62% 50% at 50% 26%,
+      color-mix(in srgb, var(--color-gold) 9%, transparent),
+      transparent 60%
+    ),
+    /* el suelo recede hacia el negro al fondo */
+    linear-gradient(
+      180deg,
+      transparent 46%,
+      color-mix(in srgb, var(--color-canvas) 88%, var(--color-bg)) 100%
+    ),
+    var(--color-canvas);
+}
+/* Grano del tatami: hairlines horizontales tenues, solo cerca del suelo
+   (mask de desvanecido). Estatico, sin coste de pintura en cada frame. */
+.exhibit-stand__floor::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: repeating-linear-gradient(
+    0deg,
+    color-mix(in srgb, var(--color-fg) 4%, transparent) 0 1px,
+    transparent 1px 8px
+  );
+  -webkit-mask-image: linear-gradient(180deg, transparent 54%, black 100%);
+  mask-image: linear-gradient(180deg, transparent 54%, black 100%);
+  opacity: 0.6;
+  pointer-events: none;
+}
+
+/* Marca de agua kanji 形 (forma) al 5% — firma de marca, estatica. */
+.exhibit-stand__watermark {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  display: grid;
+  place-items: center;
+  font-family: var(--font-kanji-serif);
+  font-size: clamp(180px, 46vw, 360px);
+  line-height: 1;
+  color: color-mix(in srgb, var(--color-fg) 5%, transparent);
+  pointer-events: none;
+  user-select: none;
+  transform: translateY(-6%);
+}
+
+/* --- Pila vertical: la figura arriba, la peana abajo --------------------- */
+.exhibit-stand__viewport {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-end;
+  padding: clamp(18px, 5%, 40px);
+  padding-bottom: clamp(72px, 13%, 104px); /* hueco para las tablillas */
+}
+
+/* --- El slot del modelo: aqui monta el <canvas> 3D / antesala / fallback - */
+.exhibit-stand__model {
+  position: relative;
+  flex: 1 1 auto;
+  width: 100%;
+  min-height: 0;
+  display: grid;
+  place-items: end center;
+  margin-bottom: -8px; /* los pies del modelo besan el disco de la peana */
+}
+/* El nodo real del visor / imagen ocupa el slot a ratio 2:3, anclado al pie.
+   Asentamiento: la figura aterriza sobre la peana (translateY 8px -> 0) al
+   MONTAR — es decir, justo cuando el chunk 3D resuelve y Suspense la inserta
+   (o cuando el fallback de imagen ocupa su lugar). Cero estado en JS. */
+.exhibit-stand__figure {
+  position: relative;
+  height: 100%;
+  max-height: 100%;
+  aspect-ratio: 2 / 3;
+  max-width: 100%;
+  display: grid;
+  place-items: center end;
+  animation: exhibit-settle 300ms var(--ease-lift) both;
+}
+.exhibit-stand__figure > * {
+  max-width: 100%;
+  max-height: 100%;
+}
+.exhibit-stand__figure img,
+.exhibit-stand__figure canvas {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  object-position: bottom center;
+  /* sombra proyectada de la figura, pooled sobre el disco.
+     drop-shadow() compone sin re-rasterizar como blur(); usa el token figure. */
+  filter: drop-shadow(var(--drop-shadow-figure));
+}
+
+/* --- La antesala (#96 coherente): kanji 形 trazandose -------------------- */
+.exhibit-stand__antesala {
+  position: absolute;
+  inset: 0;
+  z-index: 2;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 18px;
+  color: var(--color-gold);
+  text-align: center;
+}
+.exhibit-stand__antesala-kanji {
+  font-size: clamp(72px, 18vw, 104px);
+  line-height: 1;
+  /* leve halo de oro PRE-renderizado (gradiente, no blur) tras el trazo */
+  filter: none;
+}
+.exhibit-stand__antesala-label {
+  font-family: var(--font-mono);
+  font-size: var(--text-2xs);
+  letter-spacing: 0.06em;
+  color: var(--color-fg-muted);
+}
+.exhibit-stand__antesala-label::after {
+  /* puntos suspensivos animados solo en opacity (cero coste de layout) */
+  content: '';
+}
+
+/* --- La peana de exposicion: tarima circular, nombre grabado ------------- */
+.exhibit-stand__pedestal {
+  position: relative;
+  z-index: 1;
+  width: min(74%, 420px);
+  height: 106px;
+  flex: 0 0 auto;
+}
+/* Pool de contacto en el tatami (radial, sin blur) */
+.exhibit-stand__pedestal-shadow {
+  position: absolute;
+  left: -6%;
+  right: -6%;
+  bottom: 2px;
+  height: 40px;
+  border-radius: 50%;
+  background: radial-gradient(
+    ellipse at 50% 50%,
+    color-mix(in srgb, var(--color-canvas) 92%, black) 0%,
+    transparent 70%
+  );
+}
+/* Pared cilindrica frontal con el nombre grabado */
+.exhibit-stand__pedestal-side {
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 20px;
+  height: 84px;
+  border-radius: 0 0 50% 50% / 0 0 100% 100%;
+  background: linear-gradient(
+    180deg,
+    var(--color-surface-alt) 0%,
+    var(--color-surface) 42%,
+    color-mix(in srgb, var(--color-canvas) 80%, var(--color-surface)) 100%
+  );
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  padding-bottom: 30px;
+  overflow: hidden;
+}
+/* Disco superior (la laca donde se posa la figura) + filo de oro = el rim */
+.exhibit-stand__pedestal-top {
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 0;
+  height: 42px;
+  border-radius: 50%;
+  border: 1px solid var(--color-border-gold);
+  background: radial-gradient(
+    ellipse 70% 120% at 50% 12%,
+    color-mix(in srgb, var(--color-surface-alt) 88%, var(--color-gold)) 0%,
+    var(--color-surface) 48%,
+    color-mix(in srgb, var(--color-canvas) 70%, var(--color-surface)) 100%
+  );
+  box-shadow:
+    inset 0 1px 0 color-mix(in srgb, var(--color-gold-bright) 30%, transparent),
+    inset 0 -10px 18px -10px color-mix(in srgb, var(--color-canvas) 90%, black);
+}
+/* El nombre GRABADO en la pared (debossed: glifo en sombra + filo inferior) */
+.exhibit-stand__engrave {
+  font-family: var(--font-mono);
+  font-size: clamp(0.66rem, 2.4vw, 0.82rem);
+  font-weight: 600;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  white-space: nowrap;
+  max-width: 92%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  color: color-mix(in srgb, var(--color-gold) 52%, var(--color-canvas));
+  text-shadow: 0 1px 0 color-mix(in srgb, var(--color-gold-bright) 22%, transparent);
+}
+
+/* --- Tablillas flotantes (rotar / cerrar): discretas, laca + oro --------- */
+.exhibit-stand__controls {
+  position: absolute;
+  z-index: 3;
+  left: 50%;
+  bottom: clamp(16px, 4%, 28px);
+  transform: translateX(-50%);
+  display: flex;
+  gap: 10px;
+  transition: opacity 200ms var(--ease-lift);
+}
+.exhibit-stand__close {
+  position: absolute;
+  z-index: 3;
+  top: 14px;
+  right: 14px;
+  transition: opacity 200ms var(--ease-lift);
+}
+/* Mientras el usuario rota, las tablillas se atenuan y vuelven al soltar. */
+.exhibit-stand.is-rotating .exhibit-stand__controls,
+.exhibit-stand.is-rotating .exhibit-stand__close {
+  opacity: 0.25;
+}
+
+.exhibit-stand__tablilla {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+  min-width: 44px;
+  min-height: 44px;
+  padding: 0 14px;
+  border-radius: var(--radius-lg);
+  border: 1px solid var(--color-border-gold-subtle);
+  background: color-mix(in srgb, var(--color-surface) 86%, transparent);
+  color: var(--color-fg-strong);
+  box-shadow: var(--shadow-elev-2);
+  cursor: pointer;
+  transition:
+    transform 180ms var(--ease-lift),
+    border-color 180ms ease,
+    color 180ms ease;
+}
+.exhibit-stand__tablilla:hover {
+  transform: translateY(-1px);
+  border-color: var(--color-border-gold);
+  color: var(--color-gold);
+}
+.exhibit-stand__tablilla:active {
+  transform: translateY(0);
+}
+.exhibit-stand__tablilla svg {
+  width: 18px;
+  height: 18px;
+}
+.exhibit-stand__tablilla-label {
+  font-family: var(--font-mono);
+  font-size: var(--text-2xs);
+  letter-spacing: 0.04em;
+}
+
+/* --- Error WebGL: imagen estatica en la peana + aviso honesto integrado -- */
+.exhibit-stand__notice {
+  position: absolute;
+  z-index: 3;
+  left: 50%;
+  bottom: clamp(70px, 14%, 104px);
+  transform: translateX(-50%);
+  max-width: min(86%, 380px);
+  display: flex;
+  align-items: flex-start;
+  gap: 9px;
+  padding: 10px 14px;
+  border-radius: var(--radius-lg);
+  border: 1px solid var(--color-border-gold-subtle);
+  background: color-mix(in srgb, var(--color-surface) 90%, transparent);
+  color: var(--color-fg);
+  font-size: 0.8125rem;
+  line-height: 1.35;
+  box-shadow: var(--shadow-elev-2);
+  animation: exhibit-stage-in 240ms var(--ease-lift) both;
+}
+.exhibit-stand__notice-dot {
+  flex: 0 0 auto;
+  width: 8px;
+  height: 8px;
+  margin-top: 5px;
+  border-radius: var(--radius-pill);
+  background: var(--color-warning);
+}
+
+/* =========================================================================
+   Keyframes — SOLO transform/opacity
+   ========================================================================= */
+@keyframes exhibit-stage-in {
+  from {
+    opacity: 0;
+    transform: scale(0.985);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+@keyframes exhibit-settle {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* reduced-motion: asentamiento directo, sin fades de escenario. */
+@media (prefers-reduced-motion: reduce) {
+  .exhibit-stand,
+  .exhibit-stand__figure,
+  .exhibit-stand__notice {
+    animation: none !important;
+  }
+}
