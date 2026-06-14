@@ -1,21 +1,25 @@
-import { lazy, Suspense } from 'react'
+import { lazy, Suspense, useSyncExternalStore } from 'react'
+import { subscribe, getSnapshot } from './dispatch-toast-store'
 
 /**
  * Partes de combate — DispatchToast (destino del alias de Vite `sonner`).
  *
  * Sustituye al <Toaster /> de sonner manteniendo la firma de las llamadas
- * existentes: toast.success/error/info(título, { description, duration,
+ * existentes: toast.success/error/info/message(título, { description, duration,
  * action }) + el nuevo toast.achievement (sello 章, filo oro). Tira de papel
  * con sello hanko por tipo (成/否/報/章), cuerpo en UNA línea (description en
  * font-mono) y ttl visible como mecha. Pila máxima 3 + cola FIFO.
  *
- * Arquitectura en tres piezas (clave para el presupuesto de bundle):
+ * Arquitectura en piezas (clave para el presupuesto de bundle Y la a11y):
  *  - dispatch-toast-store.js  → store + `toast` (JS puro, sin React/framer):
  *    lo importan los 65 call-sites, así que NO debe arrastrar framer.
- *  - DispatchToasterView.jsx  → viewport real (framer + drag + JSX), lazy.
- *  - este fichero             → re-exporta `toast`/`__timerCount` y monta el
- *    viewport con React.lazy. Así framer-motion no entra en el chunk eager
- *    `app-runtime` (regresión de ~32KB gzip evitada).
+ *  - DispatchLiveRegions (aquí) → las dos regiones aria-live, EAGER y
+ *    persistentes desde el primer render (un lector de pantalla debe poder
+ *    registrarlas antes de cualquier toast; no pueden vivir en la vista lazy).
+ *    No importa framer: se queda en el chunk eager sin coste real.
+ *  - DispatchToasterView.jsx  → viewport visual (framer + drag + JSX), lazy.
+ *  - este fichero             → re-exporta `toast`/`__timerCount`, monta las
+ *    regiones eager y el viewport con React.lazy (framer fuera del eager).
  *
  * Requiere en @theme: --ease-stamp: cubic-bezier(0.34, 1.56, 0.64, 1);
  */
@@ -28,20 +32,46 @@ import { lazy, Suspense } from 'react'
 // eslint-disable-next-line react-refresh/only-export-components
 export { toast, __timerCount } from './dispatch-toast-store'
 
-/* ════════════════════════════════════════════════════════════════════
-   Wrapper del viewport — lazy, para mantener framer fuera del path eager.
-   El viewport real (framer + drag + JSX) vive en DispatchToasterView.jsx;
-   aquí solo un wrapper con React.lazy. El toaster se monta una vez en
-   App.jsx (drop-in del <Toaster /> de sonner, dentro de SoundProvider); las
-   props (maxVisible/sound/className) pasan tal cual a la vista. El resto de
-   props heredadas de sonner (position/theme/toastOptions...) las ignora la
-   vista (solo desestructura las suyas) — el sello manda.
-   ════════════════════════════════════════════════════════════════════ */
+// El zero-width space alterna el contenido para forzar el re-anuncio cuando el
+// texto se repite; cada región usa SU PROPIO seq para no mutar a la otra.
+const pad = (txt, seq) => (seq % 2 === 1 ? txt + String.fromCharCode(0x200B) : txt)
+
+/**
+ * Las dos regiones aria-live, persistentes (EAGER). Suscritas al store por
+ * useSyncExternalStore; sr-only (utilidad de Tailwind, no depende del CSS de
+ * la vista lazy). polite: success/info/achievement; assertive: SOLO errores.
+ * El aria-label "Notificaciones de AnimeShowdown" preserva el de sonner.
+ */
+function DispatchLiveRegions() {
+  const { announce } = useSyncExternalStore(subscribe, getSnapshot)
+  return (
+    <>
+      <div
+        className="sr-only"
+        aria-live="polite"
+        aria-label="Notificaciones de AnimeShowdown"
+      >
+        {pad(announce.polite, announce.politeSeq)}
+      </div>
+      <div
+        className="sr-only"
+        aria-live="assertive"
+        aria-label="Alertas de AnimeShowdown"
+      >
+        {pad(announce.assertive, announce.assertiveSeq)}
+      </div>
+    </>
+  )
+}
 
 const DispatchToasterView = lazy(() => import('./DispatchToasterView'))
 
 /**
- * Viewport de los Partes de combate (carga diferida del módulo con framer).
+ * Viewport de los Partes de combate. Las regiones aria-live van EAGER; solo el
+ * stack visual (con framer) se difiere. Se monta una vez en App.jsx (drop-in
+ * del <Toaster /> de sonner, dentro de SoundProvider); las props
+ * (maxVisible/sound/className) pasan a la vista. El resto de props heredadas de
+ * sonner (position/theme/toastOptions...) las ignora la vista — el sello manda.
  *
  * @param {object} props
  * @param {number} [props.maxVisible=3] Pila máxima simultánea; el resto espera en cola FIFO.
@@ -50,9 +80,12 @@ const DispatchToasterView = lazy(() => import('./DispatchToasterView'))
  */
 export function DispatchToaster(props) {
   return (
-    <Suspense fallback={null}>
-      <DispatchToasterView {...props} />
-    </Suspense>
+    <>
+      <DispatchLiveRegions />
+      <Suspense fallback={null}>
+        <DispatchToasterView {...props} />
+      </Suspense>
+    </>
   )
 }
 

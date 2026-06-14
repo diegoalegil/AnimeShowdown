@@ -171,18 +171,11 @@ export default function DispatchToasterView({ maxVisible: maxProp = 3, sound = t
   }, [sound, play])
 
   const shown = state.active.slice().reverse() // la más nueva arriba
-  const ann = state.announce
-  const pad = (txt, seq) => (seq % 2 === 1 ? `${txt}\u200B` : txt)
 
   return (
     <section className={`dt-viewport ${className}`} data-motion={reduced ? 'off' : 'on'} aria-label="Partes del cuartel">
-      {/* polite para 成/報/章; assertive SOLO errores (否). */}
-      <div className="dt-live" aria-live="polite">
-        {pad(ann.polite, ann.politeSeq)}
-      </div>
-      <div className="dt-live" aria-live="assertive">
-        {pad(ann.assertive, ann.assertiveSeq)}
-      </div>
+      {/* Las regiones aria-live viven EAGER en DispatchToast.jsx (persistentes
+          desde el primer render, no en esta vista lazy) — ver a11y.spec. */}
       <ol className="dt-stack">
         {shown.map((t, i) => (
           <ParteToast key={t.id} t={t} depth={Math.min(i, 2)} motionOff={Boolean(reduced)} />
