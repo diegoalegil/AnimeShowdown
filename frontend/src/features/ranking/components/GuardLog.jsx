@@ -28,6 +28,7 @@ export function GuardLog({ votos, now, dormida = false }) {
   const [announce, setAnnounce] = useState('');
   const lastAnnounceRef = useRef(0);
   const lastHeadRef = useRef('');
+  const primedRef = useRef(false);
 
   useEffect(() => {
     const head = entries[0];
@@ -38,6 +39,14 @@ export function GuardLog({ votos, now, dormida = false }) {
         : `v-${head.fecha}-${head.voto.ganador.slug}`;
     if (headKey === lastHeadRef.current) return undefined;
     lastHeadRef.current = headKey;
+    // El primer head (montaje o re-entrada a la pestaña) es la foto inicial: se
+    // registra como baseline SILENCIOSA y no se anuncia, para que el lector de
+    // pantalla no lea contenido estático al entrar. Solo cambios posteriores
+    // reales se anuncian (con la coalescencia de 8s).
+    if (!primedRef.current) {
+      primedRef.current = true;
+      return undefined;
+    }
 
     const wait = Math.max(0, 8000 - (Date.now() - lastAnnounceRef.current));
     const t = setTimeout(() => {
@@ -45,7 +54,9 @@ export function GuardLog({ votos, now, dormida = false }) {
       setAnnounce(
         head.tipo === 'agregado'
           ? `${head.n} votos llegaron a la arena.`
-          : `${head.voto.username ?? 'Alguien'} votó a ${head.voto.ganador.nombre} contra ${head.voto.rival?.nombre ?? 'su rival'}.`,
+          : head.voto.empate
+            ? `${head.voto.username ?? 'Alguien'} no decidió entre ${head.voto.ganador.nombre} y ${head.voto.rival?.nombre ?? 'su rival'}.`
+            : `${head.voto.username ?? 'Alguien'} votó a ${head.voto.ganador.nombre} contra ${head.voto.rival?.nombre ?? 'su rival'}.`,
       );
     }, wait);
     return () => clearTimeout(t);
@@ -144,14 +155,17 @@ function GuardSeat({ voto, now }) {
       </span>
       <div className="min-w-0 flex-1">
         <div className="text-[12.5px] leading-snug text-fg">
-          <strong className="font-bold text-fg-strong">{voto.username ?? 'Alguien'}</strong> votó a{' '}
+          <strong className="font-bold text-fg-strong">{voto.username ?? 'Alguien'}</strong>{' '}
+          {voto.empate ? 'no decidió entre' : 'votó a'}{' '}
           <Link
             to={`/personajes/${voto.ganador.slug}`}
             className="font-bold text-fg-strong no-underline hover:underline"
           >
             {voto.ganador.nombre}
           </Link>{' '}
-          <span className="text-fg-muted">contra {voto.rival?.nombre ?? 'su rival'}</span>
+          <span className="text-fg-muted">
+            {voto.empate ? 'y' : 'contra'} {voto.rival?.nombre ?? 'su rival'}
+          </span>
         </div>
         <p className="mt-0.5 font-mono text-[10px] text-fg-muted">{fechaRelativa(voto.fecha, now)}</p>
       </div>

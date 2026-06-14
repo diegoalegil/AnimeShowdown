@@ -23,8 +23,13 @@
   will-change: opacity;
 }
 /* Tras la coreografía el padre marca data-entered: retiramos la animación y
-   queda el reposo visible (robusto si el timeline está throttled). */
-.acr-root[data-entered='true'] .acr-territory { animation: none; }
+   liberamos la capa de compositor (will-change permanente mantendría las capas
+   vivas para siempre). Queda el reposo visible (robusto si el timeline está
+   throttled). */
+.acr-root[data-entered='true'] .acr-territory {
+  animation: none;
+  will-change: auto;
+}
 
 /* Marca de agua kanji al 5% + recorte del parche. */
 .acr-kanji-watermark {
@@ -109,7 +114,8 @@
 .acr-guard-row {
   opacity: 1;                         /* reposo visible */
   animation: acr-guard-in 250ms var(--ease-lift);
-  will-change: transform, opacity;
+  /* sin will-change: la entrada es un one-shot barato de 250ms sobre ≤8 filas;
+     un will-change permanente solo dejaría capas de compositor sin liberar. */
 }
 
 /* ── Pausa global de loops decorativos ────────────────────────────────────── */

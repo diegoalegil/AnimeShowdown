@@ -29,12 +29,12 @@ function poolVacio() {
 }
 
 /**
- * Sobrescribe un slot del pool (round-robin) con una gota nueva. `slotRef` se
- * muta SOLO dentro de timers/handlers, nunca en render.
+ * Sobrescribe un slot del pool (round-robin) con una gota nueva. Función PURA:
+ * recibe `slot` y `born` ya resueltos por el handler del timer (donde mutar
+ * refs es legal), así el updater de setDrops no muta nada y es idempotente bajo
+ * la doble invocación de StrictMode / React Compiler.
  */
-function estampar(prev, slotRef, bornRef, { terr, casa, big }) {
-  const slot = slotRef.current;
-  slotRef.current = (slot + 1) % POOL;
+function estampar(prev, slot, born, { terr, casa, big }) {
   const next = prev.slice();
   next[slot] = {
     slot,
@@ -44,7 +44,7 @@ function estampar(prev, slotRef, bornRef, { terr, casa, big }) {
     x: JITTER_X[slot],
     y: JITTER_Y[slot],
     size: big ? 130 : 54 + (slot % 3) * 10,
-    born: ++bornRef.current,
+    born,
   };
   return next;
 }
@@ -81,9 +81,14 @@ function estampar(prev, slotRef, bornRef, { terr, casa, big }) {
 export function ArenaCommandRoom({ votos = [], catalogo = [], topSlugs = [], kanjiMap = {}, className = '' }) {
   const { muted } = useSound?.() ?? { muted: false };
 
+  // Sanea el feed en la frontera: un item sin ganador (legacy/borde del backend,
+  // que tipa ganador como nullable) es ruido que reventaría claveVoto y los
+  // territorios. Se descarta una sola vez aquí y alimenta a todos los consumidores.
+  const votosSanos = useMemo(() => votos.filter((v) => v?.ganador?.slug), [votos]);
+
   const { territorios, confin } = useMemo(
-    () => construirTerritorios(votos, catalogo, { maxTerritorios: 8, topSlugs }),
-    [votos, catalogo, topSlugs],
+    () => construirTerritorios(votosSanos, catalogo, { maxTerritorios: 8, topSlugs }),
+    [votosSanos, catalogo, topSlugs],
   );
   const topSet = useMemo(() => new Set(topSlugs), [topSlugs]);
   const indexAnime = useMemo(() => {
@@ -105,16 +110,25 @@ export function ArenaCommandRoom({ votos = [], catalogo = [], topSlugs = [], kan
   const slotRef = useRef(0);
   const bornRef = useRef(0);
   const clackRef = useRef(0);
+  // Espejo de muted/tabHidden: los timers de la coreografía capturan sonarClack
+  // por closure, así que leen estas refs para respetar el estado ACTUAL al
+  // disparar (no el del poll en que se programaron).
+  const mutedRef = useRef(muted);
+  const tabHiddenRef = useRef(tabHidden);
+  useEffect(() => {
+    mutedRef.current = muted;
+    tabHiddenRef.current = tabHidden;
+  }, [muted, tabHidden]);
 
   // ── diff de feed con guard DURANTE el render (patrón a) ───────────────────
-  const votosKey = useMemo(() => votos.map(claveVoto).join('·'), [votos]);
+  const votosKey = useMemo(() => votosSanos.map(claveVoto).join('·'), [votosSanos]);
   const [prevKey, setPrevKey] = useState('');
   const [prevVotos, setPrevVotos] = useState([]);
   const [pending, setPending] = useState({ id: 0, votes: [] });
   if (votosKey !== prevKey) {
-    const nuevos = votosNuevos(prevVotos, votos);
+    const nuevos = votosNuevos(prevVotos, votosSanos);
     setPrevKey(votosKey);
-    setPrevVotos(votos);
+    setPrevVotos(votosSanos);
     // El primer feed (montaje) NO dispara gotas: es la foto inicial, no actividad.
     if (prevKey !== '' && nuevos.length) {
       setPending((p) => ({ id: p.id + 1, votes: nuevos }));
@@ -123,7 +137,7 @@ export function ArenaCommandRoom({ votos = [], catalogo = [], topSlugs = [], kan
 
   // ── sonido coalescido (máx 1 clack / 3s), respeta mute y pestaña ──────────
   const sonarClack = (timeMs) => {
-    if (muted || tabHidden) return;
+    if (mutedRef.current || tabHiddenRef.current) return;
     if (timeMs - clackRef.current < 3000) return;
     clackRef.current = timeMs;
     playClack?.();
@@ -134,7 +148,10 @@ export function ArenaCommandRoom({ votos = [], catalogo = [], topSlugs = [], kan
   useEffect(() => {
     if (pending.id === procesadoRef.current || !pending.votes.length) return undefined;
     procesadoRef.current = pending.id;
-    const lote = pending.votes;
+    // Un empate no es victoria de nadie: no estampa gota (sí cuenta como
+    // actividad en la regleta y el libro de guardia, que reciben votosSanos).
+    const lote = pending.votes.filter((v) => !v.empate);
+    if (!lote.length) return undefined;
     const burst = lote.length >= 4;
     const timers = [];
 
@@ -153,10 +170,14 @@ export function ArenaCommandRoom({ votos = [], catalogo = [], topSlugs = [], kan
           modal = ti;
         }
       });
+      if (best < 0) return undefined; // ráfaga 100% del confín: no estampa en el grid
       const oro = lote.some((v) => topSet.has(v.ganador.slug));
       timers.push(
         setTimeout(() => {
-          setDrops((d) => estampar(d, slotRef, bornRef, { terr: modal, casa: oro ? 'oro' : 'carmesi', big: true }));
+          const slot = slotRef.current;
+          slotRef.current = (slot + 1) % POOL;
+          const born = ++bornRef.current;
+          setDrops((d) => estampar(d, slot, born, { terr: modal, casa: oro ? 'oro' : 'carmesi', big: true }));
           sonarClack(performance.now());
         }, 0),
       );
@@ -166,7 +187,10 @@ export function ArenaCommandRoom({ votos = [], catalogo = [], topSlugs = [], kan
         if (ti == null) return; // confín: cuenta pero no estampa en el grid principal
         timers.push(
           setTimeout(() => {
-            setDrops((d) => estampar(d, slotRef, bornRef, { terr: ti, casa: colorGota(v, topSet), big: false }));
+            const slot = slotRef.current;
+            slotRef.current = (slot + 1) % POOL;
+            const born = ++bornRef.current;
+            setDrops((d) => estampar(d, slot, born, { terr: ti, casa: colorGota(v, topSet), big: false }));
             sonarClack(performance.now());
           }, i * 120),
         );
@@ -210,7 +234,7 @@ export function ArenaCommandRoom({ votos = [], catalogo = [], topSlugs = [], kan
     };
   }, []);
 
-  const dormida = votos.length === 0;
+  const dormida = votosSanos.length === 0;
   const maxTotal = Math.max(1, ...territorios.map((t) => t.total));
   const dropsByTerr = useMemo(() => {
     const g = new Map();
@@ -270,11 +294,11 @@ export function ArenaCommandRoom({ votos = [], catalogo = [], topSlugs = [], kan
 
           <Confin confin={confin} />
 
-          <TideRuler votos={votos} now={now} />
+          <TideRuler votos={votosSanos} now={now} />
         </div>
 
         {/* Columna libro de guardia */}
-        <GuardLog votos={votos} now={now} dormida={dormida} />
+        <GuardLog votos={votosSanos} now={now} dormida={dormida} />
       </div>
     </section>
   );
@@ -346,6 +370,11 @@ function Territory({ t, index, kanji, ratio, drops }) {
       <div className="relative flex h-full flex-col justify-end gap-px">
         <span className="text-balance text-[13.5px] font-bold leading-tight text-fg-strong">{t.anime}</span>
         <span className="font-mono text-[10px] text-fg-muted">votos en la marea</span>
+        {/* El estado "oro" hoy es solo cromático (borde/tinte dorados); damos una
+            alternativa textual para lectores de pantalla y daltonismo. */}
+        {oro && (
+          <span className="sr-only">Territorio destacado: contiene a un luchador del top 10.</span>
+        )}
       </div>
       <div
         className="absolute right-2.5 top-2.5 font-mono text-[19px] font-semibold"

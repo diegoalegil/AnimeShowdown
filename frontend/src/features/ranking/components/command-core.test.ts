@@ -89,4 +89,37 @@ describe('command-core', () => {
     expect(out.empty).toBe(true)
     expect(out.buckets).toHaveLength(0)
   })
+
+  it('construirMareaHoraria con now=0 y feed real NO lanza (remount con caché)', () => {
+    // Regresión: en el primer render tras un remount con caché, el reloj aún es
+    // 0 mientras react-query entrega votos. Antes petaba en buckets[0].start.
+    const votos = [
+      voto('a', 'One Piece', '2026-06-14T10:00:00Z'),
+      voto('b', 'Naruto', '2026-06-14T10:05:00Z'),
+    ]
+    expect(() => construirMareaHoraria(votos, { now: 0 })).not.toThrow()
+    const out = construirMareaHoraria(votos, { now: 0 })
+    expect(out.empty).toBe(false)
+    expect(out.buckets.length).toBeGreaterThan(0)
+  })
+
+  it('construirTerritorios NO cuenta un empate como victoria de personaje1', () => {
+    const votos = [
+      voto('luffy', 'One Piece', 'x'),
+      { ...voto('zoro', 'One Piece', 'y'), empate: true }, // empate: no suma
+    ]
+    const { territorios } = construirTerritorios(votos, catalogo, { maxTerritorios: 3 })
+    const onePiece = territorios.find((t) => t.anime === 'One Piece')
+    expect(onePiece?.total).toBe(1) // solo el voto decidido
+  })
+
+  it('construirTerritorios ignora items sin ganador (ruido legacy)', () => {
+    const votos = [
+      voto('luffy', 'One Piece', 'x'),
+      { ganador: null, rival: { nombre: 'r' }, username: null, fecha: 'z' },
+    ]
+    expect(() => construirTerritorios(votos, catalogo, {})).not.toThrow()
+    const { territorios } = construirTerritorios(votos, catalogo, {})
+    expect(territorios.find((t) => t.anime === 'One Piece')?.total).toBe(1)
+  })
 })

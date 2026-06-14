@@ -13,11 +13,13 @@
  * @property {string} anime  Nombre del anime (clave de territorio).
  */
 /**
- * @typedef {Object} Voto  Forma EXACTA de /api/votos/recientes (limit 20).
- * @property {VotoGanador} ganador
- * @property {{ nombre: string }} rival
+ * @typedef {Object} Voto  Forma EXACTA de /api/votos/recientes (VotoFeedItem).
+ * @property {VotoGanador|null} ganador  null en items legacy/borde (se filtran).
+ * @property {{ nombre: string }|null} rival  null en votos sueltos sin enfrentamiento.
  * @property {string|null} username  null = voto anónimo.
  * @property {string} fecha  ISO-8601.
+ * @property {boolean} [empate]  true = empate (el backend lo entrega con
+ *   ganador=personaje1); NO es victoria, no estampa gota ni cuenta en el tally.
  */
 /**
  * @typedef {Object} AnimeCatalogo
@@ -65,14 +67,19 @@ export function construirTerritorios(votos, catalogo, opts = {}) {
   const mainAnimes = new Set(main.map((a) => a.anime));
   const topSet = new Set(topSlugs);
 
+  // Solo votos DECIDIDOS cuentan como marea: un empate no es victoria de nadie
+  // (el backend lo entrega con ganador=personaje1 + empate=true), y un item sin
+  // ganador es ruido legacy. Filtramos ambos antes de tallyar.
+  const decididos = (votos ?? []).filter((v) => v && v.ganador && !v.empate);
+
   const tally = new Map();
-  for (const v of votos ?? []) {
+  for (const v of decididos) {
     tally.set(v.ganador.anime, (tally.get(v.ganador.anime) ?? 0) + 1);
   }
 
   const territorios = main.map((a) => {
     const total = tally.get(a.anime) ?? 0;
-    const huboOro = (votos ?? []).some(
+    const huboOro = decididos.some(
       (v) => v.ganador.anime === a.anime && topSet.has(v.ganador.slug),
     );
     return {
@@ -84,7 +91,7 @@ export function construirTerritorios(votos, catalogo, opts = {}) {
     };
   });
 
-  const confinVotos = (votos ?? []).filter((v) => !mainAnimes.has(v.ganador.anime));
+  const confinVotos = decididos.filter((v) => !mainAnimes.has(v.ganador.anime));
   return {
     territorios,
     confin: {
@@ -119,15 +126,23 @@ export function construirMareaHoraria(votos, ctx) {
     return { buckets: [], windowLabel: 'sin actividad', empty: true, sub: false, max: 0 };
   }
   const earliest = Math.min(...times);
+  const latest = Math.max(...times);
   const span = now - earliest;
   const sub = span <= HORA_MS;
   const bucketMs = sub ? DIEZ_MIN_MS : HORA_MS;
 
   const startB = Math.floor(earliest / bucketMs);
-  const endB = Math.floor(now / bucketMs);
+  // `now` puede llegar a 0 en el primer render tras un remount con caché (el
+  // reloj se siembra en un effect post-commit). Incluir SIEMPRE el último voto
+  // real evita un rango vacío y muestra la actividad ya presente.
+  const endB = Math.floor(Math.max(now, latest) / bucketMs);
   let buckets = [];
   for (let b = startB; b <= endB; b++) buckets.push({ start: b * bucketMs, count: 0 });
   if (buckets.length > 12) buckets = buckets.slice(-12);
+  // Defensa en profundidad: nunca leemos buckets[0] sobre un array vacío.
+  if (!buckets.length) {
+    return { buckets: [], windowLabel: 'sin actividad', empty: true, sub, max: 0 };
+  }
 
   const minStart = buckets[0].start;
   for (const t of times) {
