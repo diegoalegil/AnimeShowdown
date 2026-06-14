@@ -1,4 +1,4 @@
-import { lazy, Suspense, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react'
+import { lazy, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react'
 import { useParams, Link, Navigate } from 'react-router-dom'
 import { motion } from 'framer-motion'
 import {
@@ -36,13 +36,13 @@ import PersonajeCard from '../components/PersonajeCard'
 import CardFlip from '../components/CardFlip'
 import PersonajeCardBack from '../components/PersonajeCardBack'
 import PersonajeCardHolo from '../components/PersonajeCardHolo'
+import ExhibitStand from '../components/ExhibitStand'
 import PersonajeImg from '../components/PersonajeImg'
 import {
   MarcoExpediente,
   PlacaElo,
   PinceladaWinRate,
 } from '../features/personajes/fighter-dossier'
-import ErrorBoundary from '../components/ErrorBoundary'
 import ReactionsBar from '../components/ReactionsBar'
 import SeguirPersonajeButton from '../components/SeguirPersonajeButton'
 import ShareButtons from '../components/ShareButtons'
@@ -79,11 +79,6 @@ function canCreateWebGLContext() {
   } catch {
     return false
   }
-}
-
-function isExpectedPersonaje3DRenderError(error) {
-  const message = String(error?.message || error || '')
-  return /error creating webgl context|could not create webgl context|webglrenderer/i.test(message)
 }
 
 // El contenedor solo orquesta el stagger; el fade por bloque vive en
@@ -949,81 +944,59 @@ function PersonajeStaticOr3D({ imagenUrl, fallbackUrl, slug, nombre, dossier }) 
     setShow3D(true)
   }
 
-  if (!show3D) {
-    return (
-      <div className="relative h-full w-full">
-        {/* Holo (frente): la imagen del personaje con efecto TCG (tilt 3D +
-            specular + rainbow). Dorso: PersonajeCardBack con el radar de
-            stats. CardFlip lleva el blindaje Safari (preserve-3d +
-            -webkit-backface-visibility en ambas caras). */}
-        <CardFlip
-          flipped={showStats}
-          front={<PersonajeCardHolo src={imagenUrl} alt={nombre} fallbackSrc={fallbackUrl} />}
-          back={dossier ? <PersonajeCardBack {...dossier} /> : null}
-        />
-        {dossier && (
-          <button
-            type="button"
-            onClick={() => setShowStats((v) => !v)}
-            aria-pressed={showStats}
-            aria-label={showStats ? `Volver a la carta de ${nombre}` : `Ver stats de ${nombre}`}
-            className="absolute bottom-3 left-3 z-10 inline-flex min-h-11 items-center rounded-full border border-gold/45 bg-surface/85 px-4 font-mono text-xs font-semibold text-gold backdrop-blur transition-colors hover:bg-gold/10"
-          >
-            {showStats ? 'Ver carta' : 'Stats'}
-          </button>
-        )}
-        {!showStats && (
-          <button
-            type="button"
-            onClick={handleOpen3D}
-            aria-label={`Abrir vista 3D rotable de ${nombre}`}
-            title="Vista 3D rotable del personaje"
-            className="group absolute bottom-3 right-3 z-10 inline-flex min-h-11 items-center rounded-full border border-border bg-surface/85 px-4 text-xs font-semibold text-fg-strong backdrop-blur transition-colors hover:border-accent hover:text-gold"
-          >
-            <span className="pointer-events-none absolute bottom-full right-0 mb-2 hidden w-48 rounded-lg border border-border bg-bg/95 px-3 py-2 text-left text-[12px] leading-snug text-fg-muted shadow-2xl group-hover:block group-focus-visible:block">
-              Vista 360° rotable. Se carga solo al abrirla.
-            </span>
-            Ver en 3D
-          </button>
-        )}
-      </div>
-    )
-  }
-  // Modo 3D activo: incluimos el chunk lazy del modelo + toggle para volver
-  // a la imagen estática sin recargar la página.
-  // Fallback 2D compartido: se muestra mientras carga el chunk 3D (Suspense) y
-  // TAMBIÉN si la textura WebGL falla (ErrorBoundary) — p. ej. si el CDN de
-  // imágenes no envía CORS. Antes, una textura caída lanzaba en useLoader y, al
-  // no haber boundary local, subía a la ErrorBoundary global y tumbaba TODA la
-  // ficha ("La batalla se ha interrumpido"). Ahora degrada a la imagen estática.
-  const imagen2dFallback = (
-    <PersonajeImg
-      slug={slug}
-      src={fallbackUrl || imagenUrl}
-      alt={nombre}
-      loading="eager"
-      sizes="(min-width: 1024px) 520px, 90vw"
-      maxSourceWidth={1024}
-      className="h-full w-full object-cover"
-    />
-  )
   return (
     <div className="relative h-full w-full">
-      <ErrorBoundary
-        fallback={imagen2dFallback}
-        shouldReportError={(error) => !isExpectedPersonaje3DRenderError(error)}
-      >
-        <Suspense fallback={imagen2dFallback}>
+      {/* Holo (frente): la imagen del personaje con efecto TCG (tilt 3D +
+          specular + rainbow). Dorso: PersonajeCardBack con el radar de
+          stats. CardFlip lleva el blindaje Safari (preserve-3d +
+          -webkit-backface-visibility en ambas caras). */}
+      <CardFlip
+        flipped={showStats}
+        front={<PersonajeCardHolo src={imagenUrl} alt={nombre} fallbackSrc={fallbackUrl} />}
+        back={dossier ? <PersonajeCardBack {...dossier} /> : null}
+      />
+      {dossier && (
+        <button
+          type="button"
+          onClick={() => setShowStats((v) => !v)}
+          aria-pressed={showStats}
+          aria-label={showStats ? `Volver a la carta de ${nombre}` : `Ver stats de ${nombre}`}
+          className="absolute bottom-3 left-3 z-10 inline-flex min-h-11 items-center rounded-full border border-gold/45 bg-surface/85 px-4 font-mono text-xs font-semibold text-gold backdrop-blur transition-colors hover:bg-gold/10"
+        >
+          {showStats ? 'Ver carta' : 'Stats'}
+        </button>
+      )}
+      {!showStats && (
+        <button
+          type="button"
+          onClick={handleOpen3D}
+          aria-label={`Abrir vista 3D rotable de ${nombre}`}
+          title="Vista 3D rotable del personaje"
+          className="group absolute bottom-3 right-3 z-10 inline-flex min-h-11 items-center rounded-full border border-border bg-surface/85 px-4 text-xs font-semibold text-fg-strong backdrop-blur transition-colors hover:border-accent hover:text-gold"
+        >
+          <span className="pointer-events-none absolute bottom-full right-0 mb-2 hidden w-48 rounded-lg border border-border bg-bg/95 px-3 py-2 text-left text-[12px] leading-snug text-fg-muted shadow-2xl group-hover:block group-focus-visible:block">
+            Vista 360° rotable. Se carga solo al abrirla.
+          </span>
+          Ver en 3D
+        </button>
+      )}
+      {/* La peana 3D (canvas pieza 113): ExhibitStand monta como MODAL sobre la
+          carta. Personaje3D entra como children y el wrapper lleva su propio
+          Suspense (antesala 形) + ErrorBoundary que degrada a la imagen
+          estática si la textura/WebGL falla. El chunk lazy sigue cargándose
+          solo al abrir (la política on-demand no cambia: el guard
+          canCreateWebGLContext() de handleOpen3D se mantiene). */}
+      {show3D && (
+        <ExhibitStand
+          open={show3D}
+          onClose={() => setShow3D(false)}
+          nombre={nombre}
+          slug={slug}
+          fallbackUrl={fallbackUrl || imagenUrl}
+        >
           <Personaje3D slug={slug} />
-        </Suspense>
-      </ErrorBoundary>
-      <button
-        type="button"
-        onClick={() => setShow3D(false)}
-        className="absolute bottom-3 right-3 z-10 inline-flex min-h-11 items-center rounded-full border border-accent/60 bg-bg/85 px-4 text-xs font-semibold text-gold backdrop-blur transition-colors hover:border-accent hover:bg-accent/15"
-      >
-        Volver a imagen
-      </button>
+        </ExhibitStand>
+      )}
     </div>
   )
 }
