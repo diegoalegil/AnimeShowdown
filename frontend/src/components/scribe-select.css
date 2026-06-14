@@ -1,0 +1,152 @@
+/* ==========================================================================
+   scribe-select.css — PIEL de escriba para BrandSelect (selects de filtro).
+   El componente lo importa: import './scribe-select.css'. NO va a index.css.
+   Solo tokens var(--color-*) y color-mix(in srgb, var(--token) N%, transparent):
+   CERO literales de color (lo verifica check-color-literals.mjs).
+   CSP por hash: cero <style> en runtime — todos los keyframes viven aquí.
+   Solo anima transform/opacity/color (60fps, sin layout). Cero blur: el panel
+   es PAPEL opaco (regla de la pieza), nunca backdrop-filter.
+
+   Namespace bs- (brand-select) propio: NO toca el .scribe-field del kit de
+   formularios (scribe/scribe-kit.css), que tiene well de 24px y label flotante.
+   Estos son selects de FILTRO sin label visible (solo aria-label): el trigger
+   se mantiene compacto (min-h-11) y la estética escriba va en bordes/papel/tinta,
+   no en una label nueva. La estructura cmdk de BrandSelect (Command/Input/List/
+   Item/Empty) y su a11y se preservan intactas; aquí solo se viste.
+   ========================================================================== */
+
+.bs-scribe {
+  /* ease-stamp local (overshoot de hanko) — espejo del token global, declarado
+     local para que la pieza sea autocontenida igual que postal-form.css. */
+  --bs-ease-stamp: cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+/* ---- Trigger: campo de escriba. Hereda .as-control de index.css (borde +
+   superficie + foco oro); aquí solo se añade la gota de tinta al margen y un
+   matiz de hairline inferior para el aire de "renglón". ---- */
+.bs-scribe-trigger {
+  position: relative;
+}
+
+/* Gota de tinta al margen izquierdo del trigger: marca de escriba discreta,
+   se entinta en oro con el panel abierto. Solo color/opacity. */
+.bs-scribe-trigger::before {
+  content: "";
+  position: absolute;
+  left: 0.5rem;
+  top: 50%;
+  width: 5px;
+  height: 5px;
+  margin-top: -2.5px;
+  border-radius: 50%;
+  background: color-mix(in srgb, var(--color-gold) 38%, transparent);
+  opacity: 0.55;
+  transition: opacity 180ms var(--ease-lift), background-color 180ms ease;
+  pointer-events: none;
+}
+.bs-scribe[data-open="true"] .bs-scribe-trigger::before {
+  opacity: 1;
+  background: var(--color-gold);
+}
+.bs-scribe-trigger:disabled::before {
+  opacity: 0.25;
+}
+/* La gota desplaza el texto del trigger lo justo para no pisarla. */
+.bs-scribe-trigger > span:first-child {
+  padding-left: 0.875rem;
+}
+
+/* ---- Panel de papel: opaco (cero blur), hairlines inset entre filas (no
+   mueven el layout, evitan el half-pixel del border). Overshoot de hanko en
+   la apertura: scribe-panel-in con ease-stamp. ---- */
+.bs-scribe-panel {
+  background: var(--color-bg);
+  border: 1px solid var(--color-border-gold-subtle);
+  border-radius: var(--radius-xl);
+  box-shadow:
+    var(--shadow-elev-2),
+    inset 0 1px 0 color-mix(in srgb, var(--color-fg-strong) 5%, transparent);
+  transform-origin: top left;
+  animation: bs-scribe-panel-in 180ms var(--bs-ease-stamp) both;
+}
+@keyframes bs-scribe-panel-in {
+  from {
+    opacity: 0;
+    transform: translateY(-4px) scale(0.985);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+/* Caja de búsqueda (cmdk Input) cuando es visible: papel con hairline inferior. */
+.bs-scribe-search {
+  border-bottom: 1px solid color-mix(in srgb, var(--color-fg-strong) 6%, transparent);
+}
+.bs-scribe-input {
+  background: color-mix(in srgb, var(--color-surface) 70%, transparent);
+  caret-color: var(--color-gold);
+}
+
+/* ---- Opciones: cada fila es un renglón con su gota de tinta a la izquierda
+   en la activa. La gota usa el overshoot de hanko al entrar. ---- */
+.bs-scribe-option {
+  position: relative;
+  color: var(--color-fg);
+}
+/* Hairline inset entre opciones (no border-top: evita saltos de 1px). */
+.bs-scribe-option + .bs-scribe-option {
+  box-shadow: inset 0 1px 0 color-mix(in srgb, var(--color-fg-strong) 6%, transparent);
+}
+/* Activa (aria-selected de cmdk = opción enfocada por teclado/hover): velo
+   oro tenue + gota de tinta de hanko al margen. */
+.bs-scribe-option[aria-selected="true"] {
+  background: color-mix(in srgb, var(--color-gold) 7%, transparent);
+  color: var(--color-fg-strong);
+}
+.bs-scribe-option[aria-selected="true"]::before {
+  content: "";
+  position: absolute;
+  left: 0.5rem;
+  top: 50%;
+  width: 6px;
+  height: 6px;
+  margin-top: -3px;
+  border-radius: 50%;
+  background: var(--color-hanko);
+  animation: bs-scribe-drop-in 220ms var(--bs-ease-stamp) both;
+}
+@keyframes bs-scribe-drop-in {
+  from {
+    opacity: 0;
+    scale: 1.8;
+  }
+  to {
+    opacity: 1;
+    scale: 1;
+  }
+}
+
+/* ---- reduced-motion: la apertura/overshoot se reducen a fade plano y la
+   gota aparece sin rebote. Cero animación de layout. ---- */
+@media (prefers-reduced-motion: reduce) {
+  .bs-scribe-trigger::before {
+    transition: none;
+  }
+  .bs-scribe-panel {
+    animation-name: bs-scribe-fade;
+    animation-timing-function: ease;
+  }
+  .bs-scribe-option[aria-selected="true"]::before {
+    animation: none;
+  }
+}
+@keyframes bs-scribe-fade {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
