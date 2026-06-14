@@ -7,7 +7,7 @@ import { useSound } from '../contexts/SoundContext'
 import './exhibit-stand.css'
 
 /* -------------------------------------------------------------------------
- * #113 · La peana del 3D — escenario del visor Personaje3D on-demand.
+ * Canvas pieza 113 · La peana del 3D — escenario del visor Personaje3D on-demand.
  *
  * ExhibitStand es el WRAPPER del visor: NO toca el <canvas> 3D ni su carga
  * lazy (sigue siendo el chunk de 877KB que importa el caller). Esta pieza
