@@ -1,4 +1,4 @@
-import { useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react'
+import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react'
 import { useLocation, useNavigate } from 'react-router-dom'
 import { Check, Sparkles } from 'lucide-react'
 import { toast } from 'sonner'
@@ -13,6 +13,7 @@ import { useReducedMotionPref } from '../hooks/useReducedMotionPref'
 import PersonajeCutImg from './PersonajeCutImg'
 import KanjiStroke from './KanjiStroke'
 import RopeMatch from './RopeMatch'
+import { WagerRopes } from './WagerRopes'
 
 /**
  * Bracket — el árbol de cuerdas (RopeBracket reskin) con datos vivos del
@@ -262,6 +263,8 @@ function Bracket({ enfrentamientos, ganadorSlug, totalRondas, torneoId, torneoSl
             reveladosEnVivo={reveladosEnVivo}
             corona={corona}
             dibujadas={dibujadas}
+            prediccionesPorEnf={prediccionesPorEnf}
+            onPorraResuelta={setAnuncio}
           />
           {rondas.map((ronda, r) => (
             <div key={r} data-rope-col={r} className="rb-col">
@@ -357,7 +360,7 @@ function Bracket({ enfrentamientos, ganadorSlug, totalRondas, torneoId, torneoSl
 }
 
 /* ── capa de cuerdas: UN SVG, paths estáticos, solo clases/dash mutan ── */
-function RopesLayer({ gridRef, rondas, reveladosEnVivo, corona, dibujadas }) {
+function RopesLayer({ gridRef, rondas, reveladosEnVivo, corona, dibujadas, prediccionesPorEnf, onPorraResuelta }) {
   const [geo, setGeo] = useState(null)
   const sigRef = useRef('')
   const svgRef = useRef(null)
@@ -451,6 +454,72 @@ function RopesLayer({ gridRef, rondas, reveladosEnVivo, corona, dibujadas }) {
     return out
   }, [geo, rondas, reveladosEnVivo, corona])
 
+  /* ── porra (WagerRopes): adaptador desde el MISMO `geo`/`edges` ──────────
+     No re-mide ni duplica el <svg>: traduce la geometría ya calculada al
+     contrato de WagerRopes. Para cada match con predicción tomamos el ancla
+     de SALIDA de su placa (la misma de la cuerda oficial) como origen y el
+     destino de su edge como llegada. `anchors` se indexa por el slug del
+     personaje predicho para que WagerRopes lo resuelva sin cambios. */
+  const last = rondas.length - 1
+  const edgePorKey = useMemo(() => {
+    const map = new Map()
+    for (const e of edges) map.set(e.key, e)
+    return map
+  }, [edges])
+
+  const { porraLayout, porraPredicciones, porraResultados } = useMemo(() => {
+    const layout = {}
+    const preds = {}
+    const results = {}
+    if (!geo || !prediccionesPorEnf || prediccionesPorEnf.size === 0) {
+      return { porraLayout: layout, porraPredicciones: preds, porraResultados: results }
+    }
+    rondas.forEach((ronda, r) =>
+      ronda.forEach((m, i) => {
+        const pred = prediccionesPorEnf.get(m.id)
+        if (!pred) return // sin predicción → no pinta (criterio 5)
+        // slug del personaje predicho: del DTO del match (la predicción trae id).
+        const elegido =
+          m.personaje1?.id === pred.personajePredichoId
+            ? m.personaje1
+            : m.personaje2?.id === pred.personajePredichoId
+              ? m.personaje2
+              : null
+        if (!elegido?.slug) return // dato ausente → no pinta (criterio 5)
+        const a = geo[`${r}:${i}`]
+        if (!a) return // ancla ausente → no pinta (criterio 5)
+        // destino: el mismo que usa la cuerda oficial de este edge.
+        let to = null
+        if (r === last) {
+          const c = geo.champ
+          if (c) to = { x: c.x, y: c.y + Math.min(c.h * 0.2, 46) }
+        } else {
+          const e = edgePorKey.get(`${r}:${i}`)
+          if (e) to = { x: e.nudo.x, y: e.nudo.y }
+        }
+        if (!to) return // sin destino → no pinta (criterio 5)
+        const id = String(m.id)
+        layout[id] = {
+          anchors: { [elegido.slug]: { x: a.x + a.w, y: a.y + a.h / 2 } },
+          to,
+        }
+        preds[id] = elegido.slug
+        // resultado oficial SOLO si el cruce ya tiene ganador (dato backend).
+        if (m.ganador?.slug) results[id] = m.ganador.slug
+      }),
+    )
+    return { porraLayout: layout, porraPredicciones: preds, porraResultados: results }
+  }, [geo, rondas, prediccionesPorEnf, edgePorKey, last])
+
+  const tienePorra = Object.keys(porraPredicciones).length > 0
+
+  const announce = useCallback(
+    (matchId, outcome, mensaje) => {
+      if (onPorraResuelta) onPorraResuelta(mensaje)
+    },
+    [onPorraResuelta],
+  )
+
   return (
     <svg ref={svgRef} className="rb-ropes" aria-hidden="true">
       {edges.map((e) => {
@@ -497,6 +566,17 @@ function RopesLayer({ gridRef, rondas, reveladosEnVivo, corona, dibujadas }) {
           </g>
         )
       })}
+      {/* porra del usuario: capa ADITIVA dentro de ESTE mismo <svg>, sobre las
+          cuerdas oficiales. Reutiliza la geometría ya medida (geo/edges); no
+          re-mide ni crea otro svg. Solo se monta si hay predicciones. */}
+      {tienePorra && (
+        <WagerRopes
+          layout={porraLayout}
+          predictions={porraPredicciones}
+          results={porraResultados}
+          onResolve={announce}
+        />
+      )}
     </svg>
   )
 }
