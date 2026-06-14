@@ -29,9 +29,9 @@ import {
   rankingItemListSchema,
 } from '../lib/schema'
 import JsonLd from '../components/JsonLd'
-import PersonajeImg from '../components/PersonajeImg'
 import EmptyState from '../components/EmptyState'
 import { CinematicHero, VisualPageShell } from '../components/VisualSystem'
+import TopPlate from './TopPlate'
 import { BRAND_VISUALS } from '../data/visual-assets'
 import { shareOrCopy } from '../lib/share'
 import { recordDailyRankingView, recordDailyShare } from '../lib/dailyProgress'
@@ -71,7 +71,21 @@ function EditorialRankingPage() {
         : [],
     [catalogoPersonajes, page, eloCanonico],
   )
-  const top3 = rows.slice(0, 3)
+  // Filas de la lámina: MISMOS datos y MISMO orden que la tabla previa
+  // (rows ya viene ordenado por ELO desc). Top 100, como la tabla original.
+  const entradasTopPlate = useMemo(
+    () =>
+      rows.slice(0, 100).map((personaje, index) => ({
+        rank: index + 1,
+        slug: personaje.slug,
+        nombre: personaje.nombre,
+        universo: personaje.anime,
+        elo: personaje.elo,
+        colorDominante: personaje.imagenColorDominante,
+        href: `/personajes/${personaje.slug}`,
+      })),
+    [rows],
+  )
   const category = page?.source.kind === 'category'
     ? CATEGORIAS.find((item) => item.id === page.source.id)
     : null
@@ -241,23 +255,6 @@ function EditorialRankingPage() {
           </div>
         </CinematicHero>
 
-        <section className="mt-6 rounded-2xl border border-border bg-surface p-5 sm:p-6">
-          <p className="text-[11px] font-black text-gold">
-            Qué contiene esta página
-          </p>
-          <div className="mt-3 grid gap-4 lg:grid-cols-[minmax(0,1fr)_18rem] lg:items-start">
-            <p className="text-sm leading-7 text-fg-muted">
-              {page.intro} La lista se construye con personajes reales del
-              catálogo, etiquetas curadas y su ELO. Para evitar contenido
-              fino, cada landing existe solo si responde a una intención clara.
-            </p>
-            <div className="rounded-2xl border border-border bg-bg/45 p-4 text-[13px] leading-6 text-fg-muted">
-              No es canon oficial. Es una vista de producto para descubrir,
-              votar, comparar y compartir rankings dentro de AnimeShowdown.
-            </div>
-          </div>
-        </section>
-
         {isLoading && rows.length === 0 ? (
           <div className="flex items-center justify-center py-10">
             <div className="h-8 w-8 animate-spin rounded-full border-2 border-accent border-t-transparent" />
@@ -273,18 +270,38 @@ function EditorialRankingPage() {
             página vacía.
           </EmptyState>
         ) : (
-          <>
-            {top3.length === 3 && <EditorialPodium top3={top3} />}
-            <section className="mt-8">
-              <div className="mb-4 flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between">
-                <div>
-                  <p className="text-[11px] font-black text-gold">
-                    Tabla completa
-                  </p>
-                  <h2 className="mt-1 text-2xl font-black text-fg-strong">
-                    Top {Math.min(rows.length, 100)} · {page.title}
-                  </h2>
+          <TopPlate
+            titulo={`Top ${Math.min(rows.length, 100)} · ${page.title}`}
+            tituloTag="h2"
+            kicker={`${page.eyebrow} · ${rows.length} personajes`}
+            kanji="王"
+            kanjiSentido="rey"
+            entradas={entradasTopPlate}
+          >
+            {/* Bloque editorial SEO ÍNTEGRO: «qué contiene» + cross-links,
+                literal y crawlable, bajo la tabla. */}
+            <section className="rounded-2xl border border-border bg-surface p-5 sm:p-6">
+              <p className="text-[11px] font-black text-gold">
+                Qué contiene esta página
+              </p>
+              <div className="mt-3 grid gap-4 lg:grid-cols-[minmax(0,1fr)_18rem] lg:items-start">
+                <p className="text-sm leading-7 text-fg-muted">
+                  {page.intro} La lista se construye con personajes reales del
+                  catálogo, etiquetas curadas y su ELO. Para evitar contenido
+                  fino, cada landing existe solo si responde a una intención clara.
+                </p>
+                <div className="rounded-2xl border border-border bg-bg/45 p-4 text-[13px] leading-6 text-fg-muted">
+                  No es canon oficial. Es una vista de producto para descubrir,
+                  votar, comparar y compartir rankings dentro de AnimeShowdown.
                 </div>
+              </div>
+            </section>
+
+            <section className="mt-6 rounded-2xl border border-border bg-surface p-5 sm:p-6">
+              <div className="mb-4 flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between">
+                <p className="text-[11px] font-black text-gold">
+                  Más rankings para explorar
+                </p>
                 <Link
                   to="/ranking"
                   className="inline-flex items-center gap-1.5 rounded-lg border border-border bg-surface px-3 py-2 text-[12px] font-bold text-fg-strong transition-colors hover:border-gold/45 hover:text-gold"
@@ -293,142 +310,27 @@ function EditorialRankingPage() {
                   Ranking completo
                 </Link>
               </div>
-              <ol className="flex flex-col gap-2">
-                {rows.slice(0, 100).map((personaje, index) => (
-                  <EditorialRankingRow
-                    key={personaje.slug}
-                    rank={index + 1}
-                    personaje={personaje}
-                  />
+              <div className="mt-4 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+                {EDITORIAL_RANKING_PAGES.filter((item) => item.slug !== page.slug).map((item) => (
+                  <Link
+                    key={item.slug}
+                    to={`/rankings/${item.slug}`}
+                    className="rounded-2xl border border-border bg-bg/45 p-4 transition-colors hover:border-gold/45 hover:text-gold"
+                  >
+                    <p className="line-clamp-2 text-sm font-black text-fg-strong">
+                      {item.title}
+                    </p>
+                    <p className="mt-2 line-clamp-2 text-[12px] leading-5 text-fg-muted">
+                      {item.intent}
+                    </p>
+                  </Link>
                 ))}
-              </ol>
+              </div>
             </section>
-          </>
+          </TopPlate>
         )}
-
-        <section className="mt-10 rounded-2xl border border-border bg-surface p-5 sm:p-6">
-          <p className="text-[11px] font-black text-gold">
-            Más rankings para explorar
-          </p>
-          <div className="mt-4 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
-            {EDITORIAL_RANKING_PAGES.filter((item) => item.slug !== page.slug).map((item) => (
-              <Link
-                key={item.slug}
-                to={`/rankings/${item.slug}`}
-                className="rounded-2xl border border-border bg-bg/45 p-4 transition-colors hover:border-gold/45 hover:text-gold"
-              >
-                <p className="line-clamp-2 text-sm font-black text-fg-strong">
-                  {item.title}
-                </p>
-                <p className="mt-2 line-clamp-2 text-[12px] leading-5 text-fg-muted">
-                  {item.intent}
-                </p>
-              </Link>
-            ))}
-          </div>
-        </section>
       </div>
     </VisualPageShell>
-  )
-}
-
-function EditorialPodium({ top3 }) {
-  return (
-    <section className="mt-8 grid grid-cols-2 gap-3 sm:grid-cols-3 sm:gap-5">
-      {top3.map((personaje, index) => (
-        <PodiumCard
-          key={personaje.slug}
-          personaje={personaje}
-          rank={index + 1}
-          featured={index === 0}
-          className={index === 0 ? 'col-span-2 sm:order-2 sm:col-span-1' : index === 1 ? 'sm:order-1' : 'sm:order-3'}
-        />
-      ))}
-    </section>
-  )
-}
-
-function PodiumCard({ personaje, rank, featured = false, className = '' }) {
-  const tone =
-    rank === 1
-      ? 'border-medal-gold/65 bg-medal-gold/10 text-medal-gold'
-      : rank === 2
-        ? 'border-zinc-300/45 bg-zinc-400/10 text-zinc-200'
-        : 'border-medal-bronze/45 bg-medal-bronze/10 text-medal-bronze'
-  return (
-    <Link
-      to={`/personajes/${personaje.slug}`}
-      className={`group rounded-2xl border-2 p-3 transition-all hover:-translate-y-1 ${tone} ${className}`}
-    >
-      <span className="inline-flex rounded-full border border-current/35 px-2.5 py-0.5 font-mono text-[11px] font-black">
-        #{rank}
-      </span>
-      <div className={`mt-3 overflow-hidden rounded-xl border border-current/25 bg-bg ${featured ? 'aspect-[16/11]' : 'aspect-[2/3]'}`}>
-        <PersonajeImg
-          slug={personaje.slug}
-          src={personaje.imagenUrl}
-          nombre={personaje.nombre}
-          colorDominante={personaje.imagenColorDominante}
-          alt={personaje.nombre}
-          sizes={featured ? '(min-width: 768px) 280px, 90vw' : '(min-width: 768px) 180px, 44vw'}
-          fit="contain"
-          position="center"
-          className="h-full w-full object-cover object-top transition-transform duration-300 group-hover:scale-105"
-          loading="eager"
-        />
-      </div>
-      <h2 className="mt-3 line-clamp-1 text-lg font-black text-fg-strong group-hover:text-gold">
-        {personaje.nombre}
-      </h2>
-      <p className="line-clamp-1 text-[12px] text-fg-muted">{personaje.anime}</p>
-      <p className="mt-1 font-mono text-sm font-black">
-        {personaje.elo} <span className="text-[10px]">ELO</span>
-      </p>
-    </Link>
-  )
-}
-
-function EditorialRankingRow({ rank, personaje }) {
-  return (
-    <li className="group flex items-center gap-3 rounded-xl border border-border bg-surface px-3 py-3 transition-all hover:-translate-x-1 hover:border-accent/40 hover:bg-surface-alt sm:px-5">
-      <Link
-        to={`/personajes/${personaje.slug}`}
-        className="flex min-w-0 flex-1 items-center gap-3 sm:gap-5"
-      >
-        <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-bg font-mono text-sm font-black text-gold">
-          {rank}
-        </span>
-        <PersonajeImg
-          slug={personaje.slug}
-          src={personaje.imagenUrl}
-          nombre={personaje.nombre}
-          colorDominante={personaje.imagenColorDominante}
-          alt={personaje.nombre}
-          className="h-14 w-10 shrink-0 rounded-lg object-cover object-top"
-          loading="lazy"
-        />
-        <div className="min-w-0 flex-1">
-          <p className="truncate text-sm font-black text-fg-strong group-hover:text-gold">
-            {personaje.nombre}
-          </p>
-          <p className="truncate text-[12px] text-fg-muted">{personaje.anime}</p>
-        </div>
-        <div className="text-right">
-          <p className="font-mono text-base font-black text-gold">{personaje.elo}</p>
-          <p className="text-[10px] text-fg-muted">
-            ELO
-          </p>
-        </div>
-      </Link>
-      <Link
-        to={`/votar?personaje=${encodeURIComponent(personaje.slug)}`}
-        aria-label={`Retar a ${personaje.nombre} en un duelo`}
-        className="inline-flex h-11 shrink-0 items-center justify-center gap-1.5 rounded-lg border border-accent/40 bg-accent-soft px-3 text-[12px] font-black text-gold transition-colors hover:bg-accent/20"
-      >
-        <Swords className="h-3.5 w-3.5" />
-        <span className="hidden sm:inline">Retar</span>
-      </Link>
-    </li>
   )
 }
 
