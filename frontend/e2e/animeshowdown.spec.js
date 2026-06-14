@@ -45,6 +45,11 @@ async function registerThroughUi(page, suffix = Date.now()) {
   await page.getByLabel('Email').fill(email)
   await page.getByLabel('Contraseña', { exact: true }).fill(password)
   await page.getByLabel('Confirma la contraseña').fill(password)
+  // El rito de registro (RegisterRite) exige sellar el juramento (consentimiento
+  // explícito de términos/privacidad) antes de alistarse. El <input> del
+  // checkbox está visualmente oculto (sr-only), así que clicamos su <label>
+  // asociado (htmlFor="juramento"), que togglea el checkbox de forma nativa.
+  await page.locator('label[for="juramento"]').click()
   await page.getByRole('button', { name: 'Crear cuenta' }).click()
   await page.waitForURL('**/')
   // El shell puede arrancar en ES/EN/JA según el detector de idioma del
