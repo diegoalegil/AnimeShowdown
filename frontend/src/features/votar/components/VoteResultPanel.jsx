@@ -26,7 +26,6 @@ function VoteResultPanel({
   personalVoteImpact,
   onShareVote,
   onShareResultImage,
-  generandoCard = false,
 }) {
   const vertical = useSyncExternalStore(subscribeNarrow, readNarrow)
   const conVeredicto =
@@ -92,16 +91,16 @@ function VoteResultPanel({
           Reta a un amigo
         </button>
         {/* Card 1080×1080 del duelo pintada en canvas (duel-share-card).
-            Solo con rival conocido: sin él no hay cara derecha que pintar. */}
+            Solo con rival conocido: sin él no hay cara derecha que pintar.
+            Abre la hoja de impresión (PressSheet), que pinta y comparte. */}
         {onShareResultImage && losingPersonaje && (
           <button
             type="button"
             onClick={onShareResultImage}
-            disabled={generandoCard}
-            className="inline-flex items-center gap-1.5 rounded-lg border border-gold/35 bg-gold-soft px-4 py-2 text-[13px] font-black text-fg-strong transition-colors hover:border-gold/55 hover:text-gold disabled:cursor-wait disabled:opacity-60"
+            className="inline-flex items-center gap-1.5 rounded-lg border border-gold/35 bg-gold-soft px-4 py-2 text-[13px] font-black text-fg-strong transition-colors hover:border-gold/55 hover:text-gold"
           >
             <ImageDown className="h-3.5 w-3.5" />
-            {generandoCard ? 'Generando…' : 'Card del duelo'}
+            Card del duelo
           </button>
         )}
         <Link
