@@ -340,6 +340,7 @@ function CartasPage() {
       ) : paginaQ.isError ? (
         <EmptyState
           icon={Sparkles}
+          escena="seal"
           title="No pudimos cargar tu colección"
           description="Recarga la página en unos segundos."
         />
