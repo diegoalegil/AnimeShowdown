@@ -7,7 +7,6 @@ import {
   ChevronLeft,
   ChevronRight,
   Flame,
-  Quote,
   Share2,
   Sparkles,
   Scale,
@@ -38,6 +37,7 @@ import PersonajeCardBack from '../components/PersonajeCardBack'
 import PersonajeCardHolo from '../components/PersonajeCardHolo'
 import ExhibitStand from '../components/ExhibitStand'
 import ByobuGallery from '../components/ByobuGallery'
+import QuoteScroll from '../components/QuoteScroll'
 import PersonajeImg from '../components/PersonajeImg'
 import {
   MarcoExpediente,
@@ -50,6 +50,7 @@ import ShareButtons from '../components/ShareButtons'
 import ComentariosPersonaje from '../components/ComentariosPersonaje'
 import { usePersonajesSimilares } from '../hooks/usePersonajesSimilares'
 import { useImagenesPersonaje } from '../hooks/useImagenesPersonaje'
+import { useSound } from '../contexts/SoundContext'
 import NotFoundPage from './NotFoundPage'
 import { VisualPageShell } from '../components/VisualSystem'
 import { hexToRgbChannels } from '../lib/color'
@@ -161,6 +162,8 @@ function PersonajeDetailPage() {
   // una sección aditiva con su propio visor.
   const { data: imagenesGaleria, isLoading: galeriaLoading } =
     useImagenesPersonaje(slug)
+  // Sonido del kakejiku de la cita (respeta el mute global vía SoundContext).
+  const { play } = useSound()
 
   useEffect(() => {
     if (!personaje) return
@@ -578,37 +581,20 @@ function PersonajeDetailPage() {
                 )}
               </motion.div>
             )}
-            {/* Reserva mientras la cita está en vuelo: el blockquote
-                aparecía de golpe a mitad de ficha y empujaba todo lo de
-                debajo (CLS). Si no hay cita, el hueco se colapsa una vez. */}
-            {cita === undefined && (
-              <span
-                aria-hidden="true"
-                className="block min-h-[6.5rem] w-full animate-pulse rounded-lg border border-border bg-surface motion-reduce:animate-none"
-              />
-            )}
-            {cita && (
-              <motion.blockquote
-                className="relative w-full rounded-lg border border-accent/30 bg-accent-soft p-4 pl-10"
-                variants={itemVariants}
-              >
-                <Quote className="absolute left-3 top-3 h-5 w-5 text-gold" />
-                <p className="text-sm italic leading-relaxed text-fg-strong">
-                  {cita.content}
-                </p>
-                {(cita.character || cita.anime) && (
-                  <cite className="mt-2 block text-[12px] not-italic text-fg-muted">
-                    — {cita.character}
-                    {cita.anime && (
-                      <>
-                        {' · '}
-                        <span>{cita.anime}</span>
-                      </>
-                    )}
-                  </cite>
-                )}
-              </motion.blockquote>
-            )}
+            {/* La cita (animechan) colgada como kakejiku: pergamino vertical
+                con varillas y sello, que se desenrolla al entrar al viewport.
+                Reserva su altura desde el primer render (sin CLS) y se
+                autocolapsa si no hay cita. status: undefined = en vuelo
+                (esqueleto), objeto/null = resuelto (QuoteScroll no monta nada
+                sin contenido). */}
+            <QuoteScroll
+              status={cita === undefined ? 'loading' : 'ready'}
+              quote={cita ?? null}
+              onCue={(cue) => {
+                if (cue === 'unroll') play('playWhoosh')
+                else if (cue === 'stamp') play('playSello')
+              }}
+            />
             <motion.p
               className="text-[12px] leading-relaxed text-fg-muted"
               variants={itemVariants}
