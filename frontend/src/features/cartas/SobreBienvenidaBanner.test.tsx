@@ -2,6 +2,7 @@ import { cleanup, fireEvent, render, screen, waitFor } from '@testing-library/re
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 
 import { ApiError } from '../../lib/api'
+import { SOBRE_ABIERTO_EVENT } from '../../lib/app-events'
 
 // Refs mutables disponibles dentro de las factories hoisted de vi.mock.
 const h = vi.hoisted(() => ({
@@ -85,5 +86,23 @@ describe('SobreBienvenidaBanner', () => {
 
     await waitFor(() => expect(h.toast.error).toHaveBeenCalledTimes(1))
     expect(h.refetch).not.toHaveBeenCalled()
+  })
+
+  it('camino feliz: reclama el sobre, monta el reveal (PackOpening) y emite SOBRE_ABIERTO_EVENT', async () => {
+    localStorage.setItem('as_welcome_pack_prompted:1', '1') // suprime el intro
+    h.mutateAsync.mockResolvedValueOnce({ cartas: [{ id: 1, poseida: true }] })
+    const onEvento = vi.fn()
+    window.addEventListener(SOBRE_ABIERTO_EVENT, onEvento)
+    try {
+      render(<SobreBienvenidaBanner />)
+      fireEvent.click(screen.getByRole('button', { name: /Ábrelo gratis/i }))
+
+      expect(await screen.findByTestId('pack-opening')).toBeInTheDocument()
+      expect(h.mutateAsync).toHaveBeenCalledTimes(1)
+      expect(onEvento).toHaveBeenCalledTimes(1)
+      expect(h.toast.error).not.toHaveBeenCalled()
+    } finally {
+      window.removeEventListener(SOBRE_ABIERTO_EVENT, onEvento)
+    }
   })
 })

@@ -1,6 +1,38 @@
-import { useCallback, useEffect, useRef } from 'react'
+import { useCallback, useEffect, useRef, useState } from 'react'
 import { createPortal } from 'react-dom'
 import { FOCUSABLE_SELECTOR } from '../lib/focusables'
+import './shoji-dialog.css'
+
+/* Registro module-level de dialogos abiertos, por orden de apertura (NOTAS
+   shoji §3). El superior lleva el scrim mas oscuro; los de debajo se atenuan.
+   El cierre es LIFO porque el foco vive en el superior. El registro se limpia
+   en el cleanup del efecto, asi una navegacion brusca no deja entradas zombi.
+   El z-order lo da el orden DOM de los portals a document.body. */
+const shojiStack = []
+function notifyShojiStack() {
+  shojiStack.forEach((entry, i) => {
+    entry.update({
+      dimmed: i < shojiStack.length - 1,
+      stacked: i > 0,
+    })
+  })
+}
+
+/** Coordenadas de entorno (puras — seguras bajo StrictMode/SSR). */
+function isSheetViewport() {
+  return (
+    typeof window !== 'undefined' &&
+    typeof window.matchMedia === 'function' &&
+    window.matchMedia('(max-width: 639px)').matches
+  )
+}
+function prefersReducedMotion() {
+  return (
+    typeof window !== 'undefined' &&
+    typeof window.matchMedia === 'function' &&
+    window.matchMedia('(prefers-reduced-motion: reduce)').matches
+  )
+}
 
 /**
  * Diálogo modal accesible reutilizable.
@@ -33,6 +65,19 @@ import { FOCUSABLE_SELECTOR } from '../lib/focusables'
  *       que lectores no naveguen contenido bajo el modal</li>
  * </ul>
  *
+ * <p>PIEL "puertas shōji" (horneada, aditiva, sin cambiar la API): el
+ * backdrop pinta un scrim plano 75% sin blur; el panel se envuelve en un
+ * marco kumiko y, al abrir, dos hojas decorativas que lo cubrían se retiran
+ * (280ms) revelando los children ya colocados. Al cerrar las hojas vuelven
+ * (200ms) y el diálogo se desmonta (~300ms total). Las hojas y el marco son
+ * decorativos (aria-hidden, fuera del focus-trap, pointer-events:none). El
+ * CONTRATO a11y es independiente de la coreografía: cuando open pasa a false
+ * la limpieza a11y (restore de foco, quitar inert/aria-hidden de #root,
+ * restaurar scroll) corre de inmediato — el fondo es usable al instante — y
+ * solo el DESMONTE VISUAL se difiere durante la fase de cierre, con el panel
+ * aria-hidden y sin capturar eventos. prefers-reduced-motion ⇒ fade plano,
+ * sin hojas y con desmonte casi inmediato.
+ *
  * <p>Uso:
  * <pre>
  *   const [open, setOpen] = useState(false)
@@ -64,32 +109,121 @@ function AccessibleDialog({
   panelClassName = '',
   // align controla cómo se posiciona el panel dentro del backdrop:
   //   'center'  — clásico modal centrado vertical+horizontal (default)
-  //   'bottom'  — bottom-sheet móvil, panel ancho fondo
-  //   'top'     — sheet desde arriba (raro pero válido p.ej. notificación)
+  //   'bottom'  — bottom-sheet móvil, panel ancho fondo (coreografía vertical)
+  //   'top'     — panel anclado arriba (coreografía de hojas, no sheet vertical)
   align = 'center',
 }) {
   const dialogRef = useRef(null)
   const triggerRef = useRef(null)
+  const restoreTimerRef = useRef(null) // restore de foco diferido (cancelable en reapertura)
+  const entryRef = useRef(null) // entrada de este diálogo en shojiStack (LIFO de Escape)
+
+  // Máquina de fases del DESMONTE VISUAL, independiente del contrato a11y:
+  //   open=true               → phase 'open', diálogo activo (a11y vivo).
+  //   open=false (estaba open) → phase 'closing', a11y YA limpio (corre con
+  //                              open), las hojas vuelven y el panel queda
+  //                              inerte; tras closeMs → 'closed' (desmonta).
+  // Los efectos a11y siguen colgando del PROP open (no de phase), así su
+  // cleanup dispara en cuanto open pasa a false: el fondo es usable al
+  // instante y nunca queda un diálogo zombi atrapando foco o anunciándose.
+  const [phase, setPhase] = useState(open ? 'open' : 'closed')
+  const [stackState, setStackState] = useState({ dimmed: false, stacked: false })
+  const [sheet, setSheet] = useState(isSheetViewport)
+  const [reducedMotion, setReducedMotion] = useState(prefersReducedMotion)
+
+  // align='bottom' fuerza sheet aunque el viewport sea ancho (lo pide el
+  // consumidor); en center/top el sheet solo aplica en móvil.
+  const isSheet = align === 'bottom' || (sheet && align === 'center')
+  const closeMs = reducedMotion ? 0 : isSheet ? 240 : 300
+  // closeMs congelado en ref (escrito en effect, no en render): el timer de
+  // cierre usa el deadline del MOMENTO de entrar en 'closing'; un cambio de
+  // viewport/reduced-motion a mitad de cierre no debe reiniciarlo.
+  const closeMsRef = useRef(closeMs)
+  useEffect(() => {
+    closeMsRef.current = closeMs
+  }, [closeMs])
+
+  // Ajuste-en-render con guard (React 19 / Compiler): sincroniza la fase con
+  // el prop open SIN setState en cuerpo de efecto. Abrir (o reabrir en mitad
+  // del cierre) es inmediato; cerrar entra en 'closing'. El timer que cierra
+  // del todo vive en su propio efecto. El guard evita el bucle de render.
+  if (open && phase !== 'open') {
+    setPhase('open')
+  } else if (!open && phase === 'open') {
+    setPhase('closing')
+  }
+
+  // Fase de cierre → desmonte tras la coreografía. setState SOLO en el
+  // callback del timer (nunca síncrono en cuerpo de efecto). Si closeMs es 0
+  // (reduced-motion) el desmonte es prácticamente inmediato.
+  useEffect(() => {
+    if (phase !== 'closing') return undefined
+    // Lee closeMsRef (no closeMs en deps): el deadline se fija al iniciar el
+    // cierre y no se reinicia si el viewport oscila durante la coreografía.
+    const t = setTimeout(() => setPhase('closed'), closeMsRef.current)
+    return () => clearTimeout(t)
+  }, [phase])
+
+  // Viewport (sheet) + reduced-motion, con listener. setState SOLO en
+  // callbacks del listener (no en cuerpo de efecto).
+  useEffect(() => {
+    if (typeof window === 'undefined' || typeof window.matchMedia !== 'function') {
+      return undefined
+    }
+    const mqs = window.matchMedia('(max-width: 639px)')
+    const mqr = window.matchMedia('(prefers-reduced-motion: reduce)')
+    const onS = () => setSheet(mqs.matches)
+    const onR = () => setReducedMotion(mqr.matches)
+    mqs.addEventListener('change', onS)
+    mqr.addEventListener('change', onR)
+    return () => {
+      mqs.removeEventListener('change', onS)
+      mqr.removeEventListener('change', onR)
+    }
+  }, [])
+
+  // ============ CONTRATO A11Y — todo colgado del PROP open ============
+  // (limpieza inmediata al pasar open a false; phase NO interviene aquí)
 
   // Guardar el elemento focusable que tenía el foco antes de abrir el modal.
   // Al cerrar, devolvemos el foco ahí — esencial para flujos de teclado
   // (Tab desde un botón, abre modal, cierras, vuelves al botón).
   useEffect(() => {
     if (!open) return undefined
+    // Cancela un restore pendiente de un cierre anterior (reapertura rápida o
+    // re-setup de StrictMode): si no, su macrotask robaría el foco del diálogo
+    // que se acaba de reabrir, sacándolo al fondo (que además está inert).
+    if (restoreTimerRef.current !== null) {
+      clearTimeout(restoreTimerRef.current)
+      restoreTimerRef.current = null
+    }
     triggerRef.current = document.activeElement instanceof HTMLElement ? document.activeElement : null
+    const panelNode = dialogRef.current // capturado en setup (estable hasta el cierre)
     return () => {
       const trigger = triggerRef.current
-      if (trigger && typeof trigger.focus === 'function') {
-        // setTimeout para que React termine de unmounting el modal antes de
-        // mover el foco — sin esto algunas combinaciones Tab/Enter saltan.
-        setTimeout(() => trigger.focus(), 0)
-      }
+      if (!trigger || typeof trigger.focus !== 'function') return
+      // Diferido a un macrotask: el restore debe correr DESPUÉS de que los demás
+      // cleanups [open] hayan quitado el inert de #root (el trigger vive en
+      // #root; con #root aún inert, trigger.focus() sería bloqueado). Guard "el
+      // foco sigue siendo nuestro": restauramos solo si quedó suelto (body/null)
+      // o aún dentro del panel que se cierra; si otra vista ya tomó el foco
+      // (navegación de ruta) NO lo robamos. Cancelable en reapertura.
+      restoreTimerRef.current = setTimeout(() => {
+        restoreTimerRef.current = null
+        const active = document.activeElement
+        const ours =
+          active === null ||
+          active === document.body ||
+          (panelNode instanceof HTMLElement && panelNode.contains(active))
+        if (ours) trigger.focus()
+      }, 0)
     }
   }, [open])
 
   // Lock del scroll del body mientras open. Usamos overflow:hidden — más
   // robusto que position:fixed con top negativo (que rompe scroll position
-  // restore al cerrar). Guardamos el overflow previo para restaurarlo.
+  // restore al cerrar). Guardamos el overflow previo para restaurarlo (cada
+  // instancia salva/restaura el suyo → stack LIFO sin fugas).
   useEffect(() => {
     if (!open) return undefined
     const previousOverflow = document.body.style.overflow
@@ -113,19 +247,33 @@ function AccessibleDialog({
   // (cierre LIFO restaura el estado correcto en cada nivel).
   useEffect(() => {
     if (!open || typeof document === 'undefined') return undefined
-    const appRoot = document.getElementById('root')
-    if (!appRoot) return undefined
-    const previaInert = appRoot.inert
-    const previaAriaHidden = appRoot.getAttribute('aria-hidden')
-    appRoot.inert = true
-    appRoot.setAttribute('aria-hidden', 'true')
+    // Inertizamos el fondo: #root (la app) Y los backdrops de OTROS diálogos
+    // shōji (apilados): como cada portal es hermano de #root, inertizar solo
+    // #root dejaría el diálogo inferior enfocable y el trap del superior se
+    // fugaría hacia él. Se excluye el propio backdrop de este diálogo. NO se
+    // tocan otros portales (toasts) — solo app + diálogos. Save/restore por
+    // nodo ⇒ el cierre LIFO devuelve cada nivel a su estado previo correcto.
+    const self = dialogRef.current?.parentElement // backdrop de este portal
+    const targets = [
+      document.getElementById('root'),
+      ...document.querySelectorAll('.as-shoji'),
+    ].filter((el) => el instanceof HTMLElement && el !== self)
+    if (targets.length === 0) return undefined
+    const saved = targets.map((el) => ({
+      el,
+      inert: el.inert,
+      ariaHidden: el.getAttribute('aria-hidden'),
+    }))
+    targets.forEach((el) => {
+      el.inert = true
+      el.setAttribute('aria-hidden', 'true')
+    })
     return () => {
-      appRoot.inert = previaInert
-      if (previaAriaHidden === null) {
-        appRoot.removeAttribute('aria-hidden')
-      } else {
-        appRoot.setAttribute('aria-hidden', previaAriaHidden)
-      }
+      saved.forEach(({ el, inert, ariaHidden }) => {
+        el.inert = inert
+        if (ariaHidden === null) el.removeAttribute('aria-hidden')
+        else el.setAttribute('aria-hidden', ariaHidden)
+      })
     }
   }, [open])
 
@@ -149,8 +297,13 @@ function AccessibleDialog({
     (e) => {
       if (!open || !dialogRef.current) return
       if (e.key === 'Escape' && closeOnEscape) {
+        // LIFO: solo el diálogo SUPERIOR (último del stack) responde a Escape.
+        // stopPropagation no basta (los listeners hermanos cuelgan del MISMO
+        // document) → stopImmediatePropagation corta también a los de debajo.
+        const top = shojiStack[shojiStack.length - 1]
+        if (top && entryRef.current && top !== entryRef.current) return
         e.preventDefault()
-        e.stopPropagation()
+        e.stopImmediatePropagation()
         onClose?.()
         return
       }
@@ -182,7 +335,27 @@ function AccessibleDialog({
     return () => document.removeEventListener('keydown', onKeyDown)
   }, [open, onKeyDown])
 
-  if (!open || typeof document === 'undefined') return null
+  // Registro en el stack global de la piel shōji. Cuelga de `mounted` (la
+  // ventana en que existe DOM): el scrim del superior se oscurece y los de
+  // debajo se atenúan; el registro se limpia en el cleanup (sin zombis).
+  const mounted = phase !== 'closed'
+  useEffect(() => {
+    if (!mounted) return undefined
+    const entry = { update: setStackState }
+    entryRef.current = entry // identidad de este diálogo para el LIFO de Escape
+    shojiStack.push(entry)
+    notifyShojiStack()
+    return () => {
+      const i = shojiStack.indexOf(entry)
+      if (i !== -1) shojiStack.splice(i, 1)
+      entryRef.current = null
+      notifyShojiStack()
+    }
+  }, [mounted])
+
+  if (!mounted || typeof document === 'undefined') return null
+
+  const closing = phase === 'closing'
 
   // Alineación del backdrop. center = centrado. bottom = sheet pegado abajo.
   const alignClass =
@@ -201,14 +374,27 @@ function AccessibleDialog({
         ? 'w-full max-w-none rounded-2xl rounded-t-none border-x-0 border-t-0'
         : 'w-full max-w-md rounded-2xl'
 
+  // Clases de la piel shōji en el backdrop (decorativas + estado del stack).
+  const shojiBackdropClass = [
+    'as-shoji',
+    reducedMotion && 'as-shoji--rm',
+    isSheet && 'as-shoji--sheet',
+    closing && 'as-shoji--closing',
+    stackState.dimmed && 'as-shoji--dimmed',
+    stackState.stacked && 'as-shoji--stacked',
+  ]
+    .filter(Boolean)
+    .join(' ')
+
   return createPortal(
     <div
       // Backdrop. role=presentation y onClick controlado para closeOnBackdrop.
+      // Durante el cierre no debe cerrar de nuevo (el panel ya es inerte).
       role="presentation"
       onClick={(e) => {
-        if (closeOnBackdrop && e.target === e.currentTarget) onClose?.()
+        if (!closing && closeOnBackdrop && e.target === e.currentTarget) onClose?.()
       }}
-      className={`fixed inset-0 z-[100] flex bg-black/70 backdrop-blur-sm ${alignClass} ${className}`}
+      className={`fixed inset-0 z-[100] flex ${alignClass} ${shojiBackdropClass} ${className}`}
     >
       <div
         ref={dialogRef}
@@ -216,10 +402,29 @@ function AccessibleDialog({
         aria-modal="true"
         aria-labelledby={titleId}
         aria-label={titleId ? undefined : label}
+        // Durante el cierre el diálogo ya no atrapa foco ni se anuncia (el
+        // contrato a11y ya se limpió al pasar open=false): lo marcamos
+        // aria-hidden y sin capturar eventos para que sea puro adorno mientras
+        // las hojas vuelven, antes del desmonte.
+        aria-hidden={closing ? 'true' : undefined}
         tabIndex={-1}
-        className={`relative max-h-[90vh] max-h-[calc(100dvh_-_env(safe-area-inset-top))] overflow-y-auto border border-border bg-surface p-6 shadow-2xl focus:outline-none ${defaultPanelByAlign} ${panelClassName}`}
+        className={`as-shoji-shell relative border border-border bg-surface p-6 shadow-2xl focus:outline-none ${defaultPanelByAlign} ${panelClassName} ${closing ? 'pointer-events-none' : ''}`}
       >
-        {children}
+        {/* El SCROLL vive en un wrapper interno (no en el shell): así el shell
+            es el bloque contenedor NO scrolleable al que se anclan las hojas
+            (absolute inset:0), que de otro modo se desplazarían con el contenido
+            en paneles altos. El padding queda en el shell (controlable por el
+            panelClassName del consumidor: un p-0 lo sigue anulando). Children
+            del consumidor SIN envolver su superficie. Las hojas shōji son capa
+            decorativa (aria-hidden, fuera del focus-trap, pointer-events:none
+            una vez retiradas) que cubre el panel y se retira al abrir. */}
+        <div className="max-h-[90vh] max-h-[calc(100dvh_-_env(safe-area-inset-top))] overflow-y-auto">
+          {children}
+        </div>
+        <div className="as-shoji-leaves" aria-hidden="true">
+          <div className="as-shoji-leaf as-shoji-leaf--l"><i className="as-shoji-edge"></i></div>
+          <div className="as-shoji-leaf as-shoji-leaf--r"><i className="as-shoji-edge"></i></div>
+        </div>
       </div>
     </div>,
     document.body,

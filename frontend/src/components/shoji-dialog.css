@@ -1,0 +1,183 @@
+/* =========================================================================
+   PUERTAS SHOJI — piel del sistema de modales (horneada en AccessibleDialog)
+   ----------------------------------------------------------------------------
+   La coreografia de puertas shoji se aplica a TODOS los modales: el primitivo
+   AccessibleDialog pinta un scrim plano y, sobre el panel, dos hojas que lo
+   cubrian y se retiran al abrir, revelando el contenido ya colocado detras.
+
+   La piel es ADITIVA y NO toca la superficie del panel: el borde, el fondo,
+   la sombra, el padding, el max-width y el radio del panel los siguen poniendo
+   las clases del consumidor (className/panelClassName) EXACTAMENTE como hoy.
+   Aqui solo se aportan: scrim sin blur, las dos hojas y el marco hairline
+   sutil que las clava al canto del panel.
+
+   Contrato de capas (de atras a delante):
+     .as-shoji            backdrop de AccessibleDialog (clase base).
+     .as-shoji::before    scrim plano (opacidad 75%, SIN backdrop-blur).
+     .as-shoji-shell      panel real (sus estilos los pone el consumidor); solo
+                          le anadimos contexto de apilado para clavar las hojas.
+     .as-shoji-leaves     las dos hojas que cubren el panel y se retiran.
+
+   Timings:
+     apertura  scrim 200ms ease  |  hojas 280ms var(--ease-lift), delay 60ms
+     cierre    hojas 200ms var(--ease-brush)  |  scrim 160ms ease, delay 120ms
+     movil     sheet sube 320ms var(--ease-lift); baja 240ms var(--ease-brush)
+
+   Reglas de la casa: solo transform/opacity, cero blur, cero filtros SVG,
+   keyframes "from-only" (el estado base ES el final, asi reduced-motion sale
+   gratis), tokens/color-mix en vez de literales de color.
+   ========================================================================= */
+
+.as-shoji {
+  /* Knobs del sistema (un unico punto de verdad). */
+  --as-shoji-open: 280ms;
+  --as-shoji-close: 200ms;
+  --as-shoji-scrim-in: 200ms;
+  --as-shoji-sheet-open: 320ms;
+  --as-shoji-sheet-close: 240ms;
+  /* Filo del marco: hairline neutra con un toque de oro sutil por defecto. */
+  --as-shoji-edge: color-mix(in srgb, var(--color-fg-strong) 28%, transparent);
+  --as-shoji-edge-strong: color-mix(in srgb, var(--color-gold) 60%, transparent);
+
+  /* Neutraliza el visual del backdrop heredado de AccessibleDialog
+     (bg-black/70 + backdrop-blur-sm): el scrim shoji es el ::before, plano. */
+  background: transparent !important;
+  -webkit-backdrop-filter: none !important;
+  backdrop-filter: none !important;
+}
+
+/* ---- Scrim: opacidad plana, 75%. Un paso mas oscuro si hay stack. ---- */
+@keyframes as-shoji-fade { from { opacity: 0; } }
+@keyframes as-shoji-fade-out { to { opacity: 0; } }
+
+.as-shoji::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: color-mix(in srgb, var(--color-canvas) 75%, transparent);
+  animation: as-shoji-fade var(--as-shoji-scrim-in) ease both;
+}
+.as-shoji--stacked::before {
+  background: color-mix(in srgb, var(--color-canvas) 85%, transparent);
+}
+.as-shoji--closing::before {
+  animation: as-shoji-fade-out 160ms ease 120ms both;
+}
+
+/* ---- Shell (el panel real del consumidor): solo le damos contexto de
+   apilado y clipping horizontal para que las hojas no sangren ni provoquen
+   scroll lateral. NO tocamos borde/fondo/sombra/padding/radio/max-width:
+   esos siguen siendo del consumidor (cero regresion de estilos). ---- */
+.as-shoji-shell {
+  position: relative;
+  isolation: isolate;
+  overflow-x: hidden;
+}
+
+/* Hairline superior con el filo del marco (firma sutil de la piel). */
+.as-shoji-shell::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 1rem;
+  right: 1rem;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, var(--as-shoji-edge), transparent);
+  pointer-events: none;
+  z-index: 1;
+}
+
+/* Dialogo de debajo en un stack: se atenua y cede protagonismo. */
+.as-shoji--dimmed .as-shoji-shell {
+  opacity: 0.55;
+  transform: scale(0.985);
+  transition: opacity 200ms var(--ease-lift), transform 200ms var(--ease-lift);
+}
+
+/* ---- Las hojas: reticula kumiko de hairlines + papel translucido. Cubren
+   el panel y, al abrir, se retiran. Estado BASE = retiradas (translateX
+   +-102%); la apertura anima DESDE el centro (from translateX(0)), asi
+   reduced-motion las ve ya abiertas y el contenido nunca queda tapado. ---- */
+@keyframes as-shoji-leaf-open-l { from { transform: translateX(0); } }
+@keyframes as-shoji-leaf-open-r { from { transform: translateX(0); } }
+@keyframes as-shoji-leaf-shut { to { transform: translateX(0); } }
+
+.as-shoji-leaves {
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  overflow: hidden;
+  pointer-events: none;
+  z-index: 2;
+}
+.as-shoji-leaf {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  width: 50.6%;
+  background:
+    repeating-linear-gradient(0deg, color-mix(in srgb, var(--color-gold) 9%, transparent) 0 1px, transparent 1px 54px),
+    repeating-linear-gradient(90deg, color-mix(in srgb, var(--color-gold) 9%, transparent) 0 1px, transparent 1px 42px),
+    linear-gradient(180deg, color-mix(in srgb, var(--color-surface) 94%, transparent), color-mix(in srgb, var(--color-canvas) 96%, transparent));
+  border-top: 3px solid color-mix(in srgb, var(--color-canvas) 90%, transparent);
+  border-bottom: 3px solid color-mix(in srgb, var(--color-canvas) 90%, transparent);
+}
+.as-shoji-leaf--l {
+  left: 0;
+  transform: translateX(-102%);
+  animation: as-shoji-leaf-open-l var(--as-shoji-open) var(--ease-lift) 60ms both;
+}
+.as-shoji-leaf--r {
+  right: 0;
+  transform: translateX(102%);
+  animation: as-shoji-leaf-open-r var(--as-shoji-open) var(--ease-lift) 60ms both;
+}
+.as-shoji--closing .as-shoji-leaf--l,
+.as-shoji--closing .as-shoji-leaf--r {
+  animation: as-shoji-leaf-shut var(--as-shoji-close) var(--ease-brush) both;
+}
+
+/* Filo dorado de 3px en el canto que abre (lenguaje del corte). */
+.as-shoji-edge {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  width: 3px;
+  background: linear-gradient(180deg, transparent 4%, var(--as-shoji-edge-strong), transparent 96%);
+}
+.as-shoji-leaf--l .as-shoji-edge { right: 0; }
+.as-shoji-leaf--r .as-shoji-edge { left: 0; }
+
+/* ---- Modo sheet (movil): el panel sube desde abajo; las hojas no aplican
+   (no encajan en una hoja a sangre ancho completo). ---- */
+@keyframes as-shoji-sheet-up { from { transform: translateY(102%); } }
+@keyframes as-shoji-sheet-down { to { transform: translateY(102%); } }
+
+.as-shoji--sheet .as-shoji-shell {
+  animation: as-shoji-sheet-up var(--as-shoji-sheet-open) var(--ease-lift) both;
+}
+.as-shoji--sheet .as-shoji-leaves { display: none; }
+.as-shoji--sheet.as-shoji--closing .as-shoji-shell {
+  animation: as-shoji-sheet-down var(--as-shoji-sheet-close) var(--ease-brush) both;
+}
+
+/* ---- reduced-motion: fade plano, sin deslizamientos. El estado base de las
+   hojas ya es "retiradas", asi que basta con anular sus animaciones (el
+   contenido se ve directo). ----
+   Nota: .as-shoji--rm duplica el bloque para poder FORZARLO desde los tests;
+   en produccion basta la media query. */
+@media (prefers-reduced-motion: reduce) {
+  .as-shoji { animation: as-shoji-fade 150ms ease both; }
+  .as-shoji::before { animation: none; }
+  .as-shoji-leaf--l, .as-shoji-leaf--r { animation: none !important; }
+  .as-shoji--sheet .as-shoji-shell { animation: none !important; }
+  .as-shoji--closing { animation: as-shoji-fade-out 150ms ease both; }
+  .as-shoji--closing::before { animation: none; }
+  .as-shoji--dimmed .as-shoji-shell { transition: none; transform: none; }
+}
+.as-shoji--rm { animation: as-shoji-fade 150ms ease both; }
+.as-shoji--rm::before { animation: none; }
+.as-shoji--rm .as-shoji-leaf--l, .as-shoji--rm .as-shoji-leaf--r { animation: none !important; }
+.as-shoji--rm.as-shoji--sheet .as-shoji-shell { animation: none !important; }
+.as-shoji--rm.as-shoji--closing { animation: as-shoji-fade-out 150ms ease both; }
+.as-shoji--rm.as-shoji--closing::before { animation: none; }
