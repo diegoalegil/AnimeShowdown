@@ -1,0 +1,252 @@
+/* ============================================================
+   empty-scene.css — Kit de vacíos con alma (pieza #z79)
+   El ARTE de las 4 escenas kanji del EmptyState global como
+   clases. Lo importa EmptyState.jsx (CSS de feature por
+   componente, convención del repo).
+
+   Solo tokens de index.css (var(--color-*) / var(--radius-*) /
+   var(--font-*) / var(--ease-*)) + color-mix. Sin literales de
+   color de ningún tipo, ni siquiera en comentarios (el guard de
+   CI los caza por substring). Alphas vía
+   color-mix(in srgb, var(--token) N%, transparent).
+
+   El gesto de entrada es one-shot 350ms, solo transform/opacity,
+   sin loops, y se omite con prefers-reduced-motion (puro CSS).
+   ============================================================ */
+
+.es-root {
+  --es-ease-stamp: cubic-bezier(0.34, 1.56, 0.64, 1); /* hanko, no es token global */
+  --es-stone: color-mix(in srgb, var(--color-fg-muted) 55%, transparent);
+  container: es / inline-size;
+}
+
+.es-stage {
+  position: relative;
+  width: 9rem;
+  height: 8.5rem;
+  display: grid;
+  place-items: center;
+}
+.es-kanji {
+  font-family: var(--font-kanji-serif, serif);
+  line-height: 1;
+}
+/* Glifo compacto: oculto salvo en el modo condensado del contenedor. */
+.es-glyph {
+  display: none;
+  font-family: var(--font-kanji-serif, serif);
+  line-height: 1;
+}
+
+/* CAJÓN · búsqueda sin resultados */
+.es-drawer {
+  width: 7.5rem;
+  display: grid;
+  gap: 2px;
+  animation: es-breathe 0.35s var(--ease-lift) both;
+}
+.es-drawer-void {
+  height: 3.75rem;
+  display: grid;
+  place-items: center;
+  background: var(--color-canvas);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg) var(--radius-lg) 2px 2px;
+}
+.es-drawer-void .es-kanji {
+  font-size: 1.875rem;
+  color: var(--color-gold);
+  opacity: 0.85;
+}
+.es-drawer-front {
+  height: 2.5rem;
+  position: relative;
+  background: var(--color-surface-alt);
+  border: 1px solid var(--color-border);
+  border-top-color: var(--color-border-gold-subtle);
+  border-radius: 2px 2px var(--radius-lg) var(--radius-lg);
+}
+.es-drawer-front::after {
+  content: "";
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  translate: -50% -50%;
+  width: 1.625rem;
+  height: 4px;
+  border-radius: var(--radius-pill, 99rem);
+  background: color-mix(in srgb, var(--color-gold) 55%, transparent);
+}
+@keyframes es-breathe {
+  0% { transform: translateY(0); }
+  45% { transform: translateY(-6px); }
+  100% { transform: translateY(0); }
+}
+
+/* PLAZA · sin contenido aún */
+.es-plaza {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  display: grid;
+  place-items: center;
+}
+.es-plaza::after {
+  content: "";
+  position: absolute;
+  bottom: 0.25rem;
+  left: 16%;
+  right: 16%;
+  height: 1px;
+  background: var(--color-border);
+}
+.es-lantern {
+  position: relative;
+  width: 3.5rem;
+  height: 4.5rem;
+  display: grid;
+  place-items: center;
+  background:
+    repeating-linear-gradient(
+      to bottom,
+      color-mix(in srgb, var(--color-gold) 13%, transparent) 0 1px,
+      transparent 1px 11px
+    ),
+    var(--color-surface);
+  border: 1px solid var(--color-border-gold-subtle);
+  border-radius: 1.5rem;
+}
+.es-lantern::before {
+  content: "";
+  position: absolute;
+  bottom: 100%;
+  left: 50%;
+  translate: -50%;
+  width: 1px;
+  height: 1.25rem;
+  background: var(--color-border-gold-subtle);
+}
+.es-lantern .es-kanji {
+  font-size: 1.625rem;
+  color: var(--color-fg-muted);
+}
+/* glow = capa pre-renderizada, anima SOLO opacity (cero blur) */
+.es-lantern-glow {
+  position: absolute;
+  inset: -1.5rem;
+  border-radius: 50%;
+  pointer-events: none;
+  background: radial-gradient(
+    closest-side,
+    color-mix(in srgb, var(--color-gold-bright) 32%, transparent),
+    transparent 72%
+  );
+  opacity: 0.12;
+  animation: es-flicker 0.35s linear both;
+}
+@keyframes es-flicker {
+  0% { opacity: 0; }
+  25% { opacity: 0.55; }
+  42% { opacity: 0.08; }
+  62% { opacity: 0.38; }
+  100% { opacity: 0.12; }
+}
+
+/* SELLO ROTO · error recuperable (clip-path estático, no se anima) */
+.es-seal {
+  position: relative;
+  width: 5.75rem;
+  height: 5.75rem;
+  animation: es-stamp 0.35s var(--es-ease-stamp) both;
+}
+.es-seal-half {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  border: 3px solid var(--color-hanko);
+  border-radius: 50%;
+  color: var(--color-hanko);
+}
+.es-seal-a {
+  clip-path: polygon(0 0, 57% 0, 41% 100%, 0 100%);
+}
+.es-seal-b {
+  clip-path: polygon(63% 0, 100% 0, 100% 100%, 47% 100%);
+  transform: translate(4px, 3px) rotate(3deg);
+}
+.es-seal-half .es-kanji {
+  font-size: 2.625rem;
+  font-weight: 700;
+}
+@keyframes es-stamp {
+  0% { transform: scale(1.2) translateY(-8px); opacity: 0.35; }
+  100% { transform: scale(1) translateY(0); opacity: 1; }
+}
+
+/* SENDA · página intermedia vacía */
+.es-path {
+  display: grid;
+  justify-items: center;
+  padding-top: 0.5rem;
+}
+.es-path-mark {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  font-size: 5.5rem;
+  color: var(--color-fg-strong);
+  opacity: 0.05;
+  pointer-events: none;
+}
+.es-chevron {
+  width: 1.375rem;
+  height: 1.375rem;
+  rotate: 45deg;
+  border-right: 2px solid var(--es-stone);
+  border-bottom: 2px solid var(--es-stone);
+  margin-top: -0.375rem;
+  animation: es-paint 0.15s var(--ease-brush) both;
+}
+.es-chevron:nth-child(3) {
+  animation-delay: 0.1s;
+}
+.es-chevron:nth-child(4) {
+  animation-delay: 0.2s;
+  border-color: var(--color-gold);
+}
+@keyframes es-paint {
+  from { opacity: 0; transform: translateY(-8px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+/* COMPACTO · automático bajo 480px de contenedor */
+@container es (max-width: 479px) {
+  .es-stage {
+    width: 2.75rem;
+    height: 2.75rem;
+  }
+  .es-scene {
+    display: none;
+  }
+  .es-glyph {
+    display: block;
+    font-size: 2rem;
+    color: var(--color-gold);
+    opacity: 0.9;
+  }
+  .es-s-seal .es-glyph {
+    color: var(--color-hanko);
+  }
+}
+
+/* reduced motion: gesto inicial omitido */
+@media (prefers-reduced-motion: reduce) {
+  .es-drawer,
+  .es-lantern-glow,
+  .es-seal,
+  .es-chevron {
+    animation: none;
+  }
+}

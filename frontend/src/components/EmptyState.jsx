@@ -3,6 +3,65 @@ import { Link } from 'react-router-dom'
 import { ArrowRight } from 'lucide-react'
 import EditorialCover from './EditorialCover'
 import { BRAND_VISUALS } from '../data/visual-assets'
+import './empty-scene.css'
+
+/* Glifo canónico por escena (variante compacta del vacío bajo 480px). */
+const SCENE_GLYPH = {
+  drawer: '空', // vacío — búsqueda sin resultados
+  plaza: '祭', // festival/plaza — sin contenido aún
+  seal: '乱', // desorden — error recuperable
+  path: '界', // frontera/mundo — página intermedia vacía
+}
+
+/* Escenas a nivel de módulo (React Compiler: jamás componentes anidados). */
+
+function DrawerScene() {
+  return (
+    <div className="es-scene es-drawer">
+      <div className="es-drawer-void">
+        <span className="es-kanji">空</span>
+      </div>
+      <div className="es-drawer-front" />
+    </div>
+  )
+}
+
+function PlazaScene() {
+  return (
+    <div className="es-scene es-plaza">
+      <div className="es-lantern">
+        <span className="es-lantern-glow" />
+        <span className="es-kanji">祭</span>
+      </div>
+    </div>
+  )
+}
+
+function SealScene() {
+  return (
+    <div className="es-scene es-seal">
+      <div className="es-seal-half es-seal-a">
+        <span className="es-kanji">乱</span>
+      </div>
+      <div className="es-seal-half es-seal-b">
+        <span className="es-kanji">乱</span>
+      </div>
+    </div>
+  )
+}
+
+function PathScene() {
+  return (
+    <div className="es-scene es-path">
+      <span className="es-kanji es-path-mark">界</span>
+      <span className="es-chevron" />
+      <span className="es-chevron" />
+      <span className="es-chevron" />
+    </div>
+  )
+}
+
+const SCENES = { drawer: DrawerScene, plaza: PlazaScene, seal: SealScene, path: PathScene }
 
 function isStructuredAction(action) {
   return (
@@ -53,6 +112,7 @@ function EmptyState({
   className = '',
   scene = false,
   visual = BRAND_VISUALS.empty,
+  escena = 'plaza',
 }) {
   const body = children ?? description
   const hasCustomBody = children !== undefined && children !== null
@@ -100,21 +160,27 @@ function EmptyState({
     )
   }
 
+  const sceneKey = SCENES[escena] ? escena : 'plaza'
+  const Scene = SCENES[sceneKey]
+  const isError = sceneKey === 'seal'
+
   return (
     <div
-      className={`as-panel flex min-h-72 flex-col items-center justify-center gap-4 rounded-2xl border-dashed p-8 text-center sm:p-12 ${className}`}
-      role="status"
+      className={`es-root as-panel flex min-h-72 flex-col items-center justify-center gap-4 rounded-2xl border-dashed p-8 text-center es-s-${sceneKey} ${className}`.trim()}
+      role={isError ? 'alert' : 'status'}
     >
       {Icon && (
         <span className="flex h-14 w-14 items-center justify-center rounded-2xl border border-gold/35 bg-gold-soft text-gold">
           <Icon className="h-6 w-6" aria-hidden="true" />
         </span>
       )}
+      <div className="es-stage" aria-hidden="true">
+        <span className="es-glyph">{SCENE_GLYPH[sceneKey]}</span>
+        <Scene />
+      </div>
       <div className="flex max-w-xl flex-col gap-2">
         {title && (
-          <h2 className="text-2xl font-black tracking-tight text-fg-strong">
-            {title}
-          </h2>
+          <h2 className="text-2xl font-black tracking-tight text-fg-strong">{title}</h2>
         )}
         {body &&
           (hasCustomBody ? (
