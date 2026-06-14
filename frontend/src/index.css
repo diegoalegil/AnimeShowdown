@@ -872,6 +872,65 @@
   animation: as-vt-page-in 260ms var(--ease-lift) both;
 }
 
+/* El intermedio — corte de tinta de la navegación por defecto. Solo toca el
+   grupo `root` y SOLO cuando la transición se marcó con el tipo `intermedio`
+   (lo hace lib/viewTransitions.js en las navegaciones SIN morph propio). La
+   pseudo-clase en :root sube la especificidad y gana a la regla base de
+   ::view-transition-*(root) de arriba sin !important. Las rutas con morph
+   (personaje-hero · anime-scene · rito-acunacion) NO reciben el tipo: sus
+   reglas de abajo siguen mandando, intactas. Todo composited: opacity + clip. */
+@keyframes as-int-old {
+  to {
+    opacity: 0;
+  }
+}
+
+@keyframes as-int-new {
+  from {
+    clip-path: inset(0 100% 0 0);
+  }
+  to {
+    clip-path: inset(0 0 0 0);
+  }
+}
+
+/* old: la saliente se apaga en seco (120ms, lineal): un parpadeo, no una
+   cortina — no se mueve ni escala. */
+:root:active-view-transition-type(intermedio)::view-transition-old(root) {
+  animation: as-int-old 120ms linear both;
+}
+
+/* new: la entrante se descubre con un wipe vertical izquierda → derecha
+   (inset retira el recorte del lado derecho). El filo dorado de 3px persigue
+   el borde del corte: drop-shadow actúa sobre el alfa YA recortado por
+   clip-path (box-shadow/outline los recortaría el clip), con 0 de blur ⇒
+   línea nítida, una sola pasada de 180ms sobre un único pseudo del root —
+   no es el patrón blur/backdrop por-frame que atasca WebKit. Si en Safari
+   real apareciera jank, basta con quitar este filter (el corte se sigue
+   leyendo por el contraste old→new). */
+:root:active-view-transition-type(intermedio)::view-transition-new(root) {
+  animation: as-int-new 180ms var(--ease-brush) both;
+  filter: drop-shadow(3px 0 0 var(--color-gold-bright));
+}
+
+/* El grupo del root no cambia de caja (misma página completa): su tween de
+   tamaño es identidad. Lo fijamos a la duración del wipe para que el
+   contenedor no sobreviva al corte como un ghost. */
+:root:active-view-transition-type(intermedio)::view-transition-group(root) {
+  animation-duration: 180ms;
+}
+
+/* reduced-motion: el guard global del final ya anula la animación de TODOS los
+   pseudos de VT; aquí solo retiramos el filter/clip-path estáticos del
+   intermedio. Además supportsViewTransitions() devuelve false con
+   reduced-motion, así que el tipo ni se marca: doble blindaje. */
+@media (prefers-reduced-motion: reduce) {
+  :root:active-view-transition-type(intermedio)::view-transition-new(root) {
+    filter: none !important;
+    clip-path: none !important;
+  }
+}
+
 /* Morph compartido carta → hero del detalle de personaje. El nombre lo
    gestiona lib/viewTransitions.js (solo un elemento por captura). Mismo
    timing en grupo, par e imágenes para que el cross-fade acompañe al

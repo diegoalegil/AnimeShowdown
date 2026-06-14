@@ -19,8 +19,14 @@ type TransitionFake = {
   updateCallbackDone: Promise<void>
 }
 
+// startViewTransition real acepta callback suelto o { update, types } (la forma
+// objeto la usan las navegaciones del intermedio). El fake extrae el update de
+// cualquiera de las dos.
+type VTArg = (() => Promise<void>) | { update: () => Promise<void>; types?: string[] }
+const vtUpdate = (arg: VTArg) => (typeof arg === 'function' ? arg : arg.update)
+
 const doc = document as unknown as {
-  startViewTransition?: (cb: () => Promise<void>) => TransitionFake
+  startViewTransition?: (arg: VTArg) => TransitionFake
 }
 
 function instalarStartViewTransition() {
@@ -29,8 +35,8 @@ function instalarStartViewTransition() {
     finished: Promise.resolve(),
     updateCallbackDone: Promise.resolve(),
   }
-  const startViewTransition = vi.fn((cb: () => Promise<void>) => {
-    transition.updateCallbackDone = cb()
+  const startViewTransition = vi.fn((arg: VTArg) => {
+    transition.updateCallbackDone = vtUpdate(arg)()
     return transition
   })
   doc.startViewTransition = startViewTransition

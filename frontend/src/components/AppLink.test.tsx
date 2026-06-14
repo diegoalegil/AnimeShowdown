@@ -10,8 +10,13 @@ import {
   settleNavigationViewTransition,
 } from '../lib/viewTransitions'
 
+// startViewTransition real acepta callback suelto o { update, types } (la forma
+// objeto la usan las navegaciones del intermedio). Los fakes extraen el update.
+type VTArg = (() => Promise<void>) | { update: () => Promise<void>; types?: string[] }
+const vtUpdate = (arg: VTArg) => (typeof arg === 'function' ? arg : arg.update)
+
 const doc = document as unknown as {
-  startViewTransition?: (cb: () => Promise<void>) => {
+  startViewTransition?: (arg: VTArg) => {
     ready: Promise<void>
     finished: Promise<void>
   }
@@ -46,8 +51,8 @@ describe('AppLink', () => {
   })
 
   it('con soporte envuelve la navegación en startViewTransition', () => {
-    const startViewTransition = vi.fn((cb: () => Promise<void>) => {
-      cb()
+    const startViewTransition = vi.fn((arg: VTArg) => {
+      vtUpdate(arg)()
       return { ready: Promise.resolve(), finished: Promise.resolve() }
     })
     doc.startViewTransition = startViewTransition
@@ -74,9 +79,9 @@ describe('AppLink', () => {
 
   it('ejecuta el onClick del consumidor antes de transicionar', () => {
     const llamadas: string[] = []
-    doc.startViewTransition = vi.fn((cb: () => Promise<void>) => {
+    doc.startViewTransition = vi.fn((arg: VTArg) => {
       llamadas.push('transition')
-      cb()
+      vtUpdate(arg)()
       return { ready: Promise.resolve(), finished: Promise.resolve() }
     })
 
@@ -92,9 +97,9 @@ describe('AppLink', () => {
 
   it('invoca onViewTransitionStart tras los guards, justo antes de transicionar', () => {
     const llamadas: string[] = []
-    doc.startViewTransition = vi.fn((cb: () => Promise<void>) => {
+    doc.startViewTransition = vi.fn((arg: VTArg) => {
       llamadas.push('transition')
-      cb()
+      vtUpdate(arg)()
       return { ready: Promise.resolve(), finished: Promise.resolve() }
     })
 
