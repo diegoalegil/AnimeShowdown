@@ -1,0 +1,395 @@
+/* ==========================================================================
+   sealed-document.css — CSS de feature de SealedDocument (pieza 105:
+   legales como documento de archivo sellado).
+   Lo importa SealedDocument.jsx (import './sealed-document.css').
+   Solo tokens var(--*) y color-mix: cero colores literales (también en
+   comentarios). Los @keyframes de la pieza viven aquí: CSP por hash,
+   nada de estilos inyectados en runtime.
+   ========================================================================== */
+
+.sd-root {
+  /* ease-stamp (overshoot de hanko) NO es token global: local de la pieza */
+  --sd-ease-stamp: cubic-bezier(0.34, 1.56, 0.64, 1);
+  /* hueco bajo cabeceras pegajosas al navegar por ancla; re-tuneable */
+  --sd-scroll-margin: 5.5rem;
+  /* gutter horizontal compartido entre shell y barra pegajosa */
+  --sd-pad: clamp(1rem, 4cqi, 2.5rem);
+  position: relative;
+  /* clip (no hidden): recorta la marca de agua SIN crear scroll container,
+     así los sticky del índice siguen vivos */
+  overflow: clip;
+  container-type: inline-size;
+  container-name: sd;
+  background: var(--color-canvas);
+  color: var(--color-fg);
+  font-family: var(--font-sans);
+}
+
+/* navegación por anclas suave, scoped a las páginas legales */
+html:has(.sd-root) { scroll-behavior: smooth; }
+
+/* ===== marca de agua kanji al 5% ===== */
+.sd-watermark {
+  position: absolute;
+  top: 7rem;
+  right: 2cqi;
+  z-index: 0;
+  font-family: var(--font-kanji-serif);
+  font-size: clamp(12rem, 36cqi, 22rem);
+  line-height: 1;
+  color: color-mix(in srgb, var(--color-gold) 5%, transparent);
+  pointer-events: none;
+  user-select: none;
+}
+
+.sd-shell {
+  position: relative;
+  z-index: 1;
+  max-width: 72rem;
+  margin-inline: auto;
+  padding: 0 var(--sd-pad) 5rem;
+}
+
+/* ===== layout: bloque en estrecho, grid con índice lateral en ancho ===== */
+.sd-layout { display: block; }
+
+/* criterio: medida máxima de lectura 70ch */
+.sd-main { max-width: 70ch; }
+
+/* ===== cabecera de expediente ===== */
+.sd-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 1.5rem;
+  padding: clamp(1.5rem, 4cqi, 2.75rem) 0 1.75rem;
+  border-bottom: 1px solid var(--color-border-gold-subtle);
+  margin-bottom: 2.75rem;
+}
+.sd-header-meta {
+  display: flex;
+  flex-direction: column;
+  gap: 0.625rem;
+  min-width: 0;
+}
+.sd-eyebrow {
+  margin: 0;
+  font-family: var(--font-mono);
+  font-size: var(--text-2xs);
+  color: var(--color-gold);
+}
+.sd-title {
+  margin: 0;
+  font-size: clamp(1.625rem, 5cqi, 2.375rem);
+  line-height: 1.12;
+  font-weight: 650;
+  color: var(--color-fg-strong);
+  text-wrap: balance;
+}
+.sd-revision {
+  margin: 0;
+  font-family: var(--font-mono);
+  font-size: 0.8125rem;
+  color: var(--color-fg-muted);
+}
+
+/* ===== sello hanko de esquina ===== */
+.sd-seal {
+  position: relative;
+  flex: none;
+  width: 4.25rem;
+  aspect-ratio: 1;
+}
+.sd-seal-face,
+.sd-seal-bleed {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  font-family: var(--font-kanji-serif);
+  font-size: 2.125rem;
+  line-height: 1;
+  border-radius: 0.375rem;
+}
+.sd-seal-face {
+  color: var(--color-hanko);
+  border: 2px solid color-mix(in srgb, var(--color-hanko) 75%, transparent);
+  transform: rotate(-5deg);
+  animation: sd-stamp-drop 250ms var(--sd-ease-stamp) both;
+}
+/* sangrado de tinta: capa pre-renderizada que entra por cross-fade de
+   opacity — nada de blur ni SVG filters (compositing seguro en WebKit) */
+.sd-seal-bleed {
+  color: color-mix(in srgb, var(--color-hanko) 38%, transparent);
+  border: 2px solid color-mix(in srgb, var(--color-hanko) 22%, transparent);
+  transform: rotate(-5deg) scale(1.08);
+  opacity: 0;
+  animation: sd-stamp-bleed 220ms ease-out 180ms both;
+}
+@keyframes sd-stamp-drop {
+  from { transform: rotate(-2deg) scale(1.45); opacity: 0; }
+  55%  { opacity: 1; }
+  to   { transform: rotate(-5deg) scale(1); opacity: 1; }
+}
+@keyframes sd-stamp-bleed {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+
+/* ===== índice ===== */
+/* estrecho: barra pegajosa arriba con selector de sección, a sangre del gutter */
+.sd-toc {
+  position: sticky;
+  top: 0;
+  z-index: 5;
+  background: var(--color-canvas);
+  margin-inline: calc(-1 * var(--sd-pad));
+  padding-inline: var(--sd-pad);
+}
+.sd-select-bar {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.625rem 0;
+  border-bottom: 1px solid var(--color-border);
+}
+.sd-select-label {
+  font-family: var(--font-mono);
+  font-size: var(--text-2xs);
+  color: var(--color-fg-muted);
+}
+.sd-select-wrap {
+  position: relative;
+  flex: 1;
+  min-width: 0;
+}
+.sd-select-wrap::after {
+  content: "";
+  position: absolute;
+  right: 1rem;
+  top: 50%;
+  width: 0.4375rem;
+  height: 0.4375rem;
+  border-right: 1px solid var(--color-gold);
+  border-bottom: 1px solid var(--color-gold);
+  transform: translateY(-70%) rotate(45deg);
+  pointer-events: none;
+}
+.sd-select {
+  appearance: none;
+  -webkit-appearance: none;
+  width: 100%;
+  min-height: 44px; /* hit target */
+  background: var(--color-surface);
+  color: var(--color-fg-strong);
+  border: 1px solid var(--color-border-gold-subtle);
+  border-radius: var(--radius-lg);
+  font: inherit;
+  font-size: 0.9375rem;
+  padding: 0 2.75rem 0 0.875rem;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  overflow: hidden;
+}
+.sd-select:focus-visible {
+  outline: 2px solid var(--color-gold);
+  outline-offset: 2px;
+}
+
+/* panel lateral: solo en ancho */
+.sd-toc-panel { display: none; }
+
+@container sd (min-width: 64rem) {
+  .sd-layout {
+    display: grid;
+    grid-template-columns: 14rem minmax(0, 1fr);
+    column-gap: clamp(2.5rem, 6cqi, 5rem);
+    align-items: start;
+  }
+  .sd-toc {
+    position: sticky;
+    top: 1.5rem;
+    z-index: 1;
+    background: none;
+    margin-inline: 0;
+    padding-inline: 0;
+  }
+  .sd-select-bar { display: none; }
+  .sd-toc-panel {
+    display: block;
+    padding-top: clamp(1.5rem, 4cqi, 2.75rem);
+  }
+}
+
+.sd-toc-heading {
+  margin: 0 0 0.875rem;
+  padding-left: 1rem;
+  font-family: var(--font-mono);
+  font-size: var(--text-2xs);
+  color: var(--color-fg-muted);
+}
+.sd-toc-listwrap { position: relative; }
+/* raíl del índice */
+.sd-toc-listwrap::before {
+  content: "";
+  position: absolute;
+  inset: 0 auto 0 0;
+  width: 1px;
+  background: var(--color-border);
+}
+/* la hairline dorada que marca la sección activa (transform/opacity only) */
+.sd-toc-marker {
+  position: absolute;
+  left: 0;
+  top: 0;
+  z-index: 1;
+  width: 2px;
+  height: 20px; /* sync con MARKER_HEIGHT_PX en SealedDocument.jsx */
+  background: var(--color-gold);
+  opacity: 0;
+  transform: translateY(0);
+  transition: transform 150ms var(--ease-brush), opacity 150ms linear;
+}
+.sd-toc-list {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.sd-toc-link {
+  display: flex;
+  align-items: center;
+  gap: 0.625rem;
+  min-height: 44px; /* hit target */
+  padding: 0.25rem 0.5rem 0.25rem 1rem;
+  color: var(--color-fg-muted);
+  font-size: 0.875rem;
+  line-height: 1.35;
+  text-decoration: none;
+  border-radius: var(--radius-lg);
+}
+.sd-toc-link:hover { color: var(--color-fg-strong); }
+.sd-toc-link:focus-visible {
+  outline: 2px solid var(--color-gold);
+  outline-offset: -2px;
+}
+.sd-toc-link[aria-current="true"] { color: var(--color-fg-strong); }
+.sd-toc-num {
+  flex: none;
+  font-family: var(--font-mono);
+  font-size: var(--text-2xs);
+  color: color-mix(in srgb, var(--color-gold) 65%, transparent);
+}
+.sd-toc-link[aria-current="true"] .sd-toc-num { color: var(--color-gold); }
+
+/* ===== cuerpo del documento ===== */
+.sd-section {
+  margin: 0 0 3rem;
+  scroll-margin-top: var(--sd-scroll-margin);
+}
+.sd-h2 {
+  display: flex;
+  align-items: baseline;
+  gap: 0.875rem;
+  margin: 0 0 1rem;
+  font-size: 1.3125rem;
+  font-weight: 650;
+  line-height: 1.3;
+  color: var(--color-fg-strong);
+}
+.sd-h2-num {
+  flex: none;
+  font-family: var(--font-mono);
+  font-weight: 400;
+  font-size: 0.875rem;
+  color: var(--color-gold);
+}
+.sd-section-body {
+  font-size: 1rem;
+  line-height: 1.75; /* interlineado generoso */
+}
+.sd-section-body p {
+  margin: 0 0 1.1em;
+  text-wrap: pretty;
+}
+.sd-section-body p:last-child { margin-bottom: 0; }
+.sd-section-body ul,
+.sd-section-body ol {
+  margin: 0 0 1.1em;
+  padding-left: 1.375rem;
+}
+.sd-section-body li { margin-bottom: 0.4em; }
+.sd-section-body li::marker { color: var(--color-gold); }
+.sd-section-body strong {
+  color: var(--color-fg-strong);
+  font-weight: 600;
+}
+.sd-section-body a {
+  color: var(--color-gold-bright);
+  text-decoration: underline;
+  text-underline-offset: 0.15em;
+  text-decoration-color: color-mix(in srgb, var(--color-gold) 45%, transparent);
+}
+.sd-section-body a:hover { text-decoration-color: var(--color-gold-bright); }
+.sd-section-body a:focus-visible {
+  outline: 2px solid var(--color-gold);
+  outline-offset: 2px;
+  border-radius: 2px;
+}
+
+/* cierre de documento */
+.sd-end {
+  display: flex;
+  align-items: center;
+  gap: 1.25rem;
+  margin-top: 4rem;
+}
+.sd-end::before,
+.sd-end::after {
+  content: "";
+  height: 1px;
+  flex: 1;
+  background: var(--color-border-gold-subtle);
+}
+.sd-end-glyph {
+  font-family: var(--font-kanji-serif);
+  font-size: 1.125rem;
+  color: color-mix(in srgb, var(--color-gold) 60%, transparent);
+}
+
+/* ===== reduced motion: la hairline salta directa, el sello asienta sin caída ===== */
+@media (prefers-reduced-motion: reduce) {
+  html:has(.sd-root) { scroll-behavior: auto; }
+  .sd-seal-face,
+  .sd-seal-bleed { animation: none; }
+  .sd-seal-bleed { opacity: 1; }
+  .sd-toc-marker { transition: opacity 150ms linear; }
+}
+
+/* ===== print: sin decoración, tinta sobre papel =====
+   (colores con keywords CSS, nunca hex/rgb/hsl: el guard del CI los veta) */
+@media print {
+  .sd-toc,
+  .sd-watermark,
+  .sd-seal,
+  .sd-end { display: none; }
+  .sd-layout { display: block; } /* evita la columna fantasma del grid */
+  .sd-root,
+  .sd-shell { overflow: visible; }
+  .sd-root {
+    background: white;
+    color: black;
+    font-size: 12pt;
+  }
+  .sd-title,
+  .sd-h2,
+  .sd-eyebrow,
+  .sd-revision,
+  .sd-h2-num,
+  .sd-section-body,
+  .sd-section-body strong,
+  .sd-section-body a { color: black; }
+  .sd-section-body li::marker { color: black; }
+  .sd-header { border-bottom-color: black; }
+  .sd-h2 { break-after: avoid; }
+  .sd-section-body p { orphans: 3; widows: 3; }
+}
