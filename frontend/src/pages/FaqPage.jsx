@@ -1,21 +1,11 @@
-import { useDeferredValue, useMemo, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import { Link } from 'react-router-dom'
-import { motion } from 'framer-motion'
-import { ChevronDown, ExternalLink, HelpCircle, Search } from 'lucide-react'
+import { ExternalLink } from 'lucide-react'
 import { useSeo } from '../hooks/useSeo'
 import { breadcrumbsSchema, faqPageSchema } from '../lib/schema'
 import JsonLd from '../components/JsonLd'
-import EmptyState from '../components/EmptyState'
 import { LEGAL_CONTACT_EMAIL, LEGAL_CONTACT_MAILTO } from '../data/legal'
-
-const containerVariants = {
-  hidden: { opacity: 0, y: 16 },
-  visible: {
-    opacity: 1,
-    y: 0,
-    transition: { duration: 0.5, ease: 'easeOut' },
-  },
-}
+import './master-faq.css'
 
 /**
  * Lista de preguntas frecuentes.
@@ -90,14 +80,155 @@ const FAQ = [
   },
 ]
 
-const CATEGORIAS = ['Todas', ...new Set(FAQ.map((item) => item.categoria))]
+// Numerales canónicos 一…十 (ya en el subset de la fuente kanji — sin font dance).
+const KANJI_NUMERALS = ['一', '二', '三', '四', '五', '六', '七', '八', '九', '十']
 
-function normalizarFaq(value) {
+function slugify(value) {
   return value
-    .toLowerCase()
     .normalize('NFD')
-    .replace(/\p{Diacritic}/gu, '')
+    .replace(/[̀-ͯ]/g, '')
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, '-')
+    .replace(/^-+|-+$/g, '')
 }
+
+/**
+ * Deriva las categorías del canvas («pestañas de cuaderno») a partir del
+ * array {@code FAQ} sin tocarlo. El JSON-LD sigue recibiendo {@code FAQ} tal
+ * cual (mismas preguntas/respuestas, mismo orden) — esto es solo presentación.
+ * Cada entrada conserva su texto byte a byte ({@code q}=pregunta, {@code a}=respuesta).
+ * El {@code id} es un slug estable y único en toda la FAQ (deep-link `#faq-<id>`).
+ */
+function buildCategories(items) {
+  const byCat = new Map()
+  items.forEach((item, index) => {
+    if (!byCat.has(item.categoria)) byCat.set(item.categoria, [])
+    byCat.get(item.categoria).push({
+      id: `${slugify(item.categoria)}-${slugify(item.pregunta) || index}`,
+      q: item.pregunta,
+      a: item.respuesta,
+    })
+  })
+  return [...byCat.entries()].map(([label, entries], i) => ({
+    id: slugify(label),
+    label,
+    kanji: KANJI_NUMERALS[i] ?? String(i + 1),
+    entries,
+  }))
+}
+
+const CATEGORIES = buildCategories(FAQ)
+
+const OVERLAP_OPEN_DELAY_MS = 120 // cierre 200ms − solape 80ms
+const MIN_QUERY_LEN = 2
+const SCROLL_OFFSET_PX = 88
+const HASH_PREFIX = 'faq-'
+
+/* ---------------- búsqueda: normalización con mapa de índices ---------------- */
+
+/** Pliega un string para comparar: sin acentos, minúsculas. */
+function foldText(s) {
+  return s.normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase()
+}
+
+/** Texto plegado + mapa índice-plegado → índice-original (para resaltar sin mutar). */
+function buildIndex(text) {
+  let norm = ''
+  const map = []
+  for (let i = 0; i < text.length; i += 1) {
+    const folded = foldText(text[i])
+    for (let j = 0; j < folded.length; j += 1) {
+      norm += folded[j]
+      map.push(i)
+    }
+  }
+  return { norm, map }
+}
+
+function hasMatch(text, foldedQuery) {
+  return buildIndex(text).norm.indexOf(foldedQuery) !== -1
+}
+
+/** Rangos [inicio, fin) sobre el texto ORIGINAL. */
+function findRanges(text, foldedQuery) {
+  const { norm, map } = buildIndex(text)
+  const ranges = []
+  let from = 0
+  for (;;) {
+    const at = norm.indexOf(foldedQuery, from)
+    if (at === -1) break
+    ranges.push([map[at], map[at + foldedQuery.length - 1] + 1])
+    from = at + foldedQuery.length
+  }
+  return ranges
+}
+
+/* ---------------- subcomponentes (nivel de módulo) ---------------- */
+
+/**
+ * Resalta coincidencias envolviéndolas en <mark> durante el render;
+ * el string original se conserva intacto (el texto que ve Google == el del JSON-LD).
+ */
+function Highlight({ text, foldedQuery }) {
+  if (!foldedQuery) return text
+  const ranges = findRanges(text, foldedQuery)
+  if (ranges.length === 0) return text
+  const parts = []
+  let cursor = 0
+  ranges.forEach(([start, end], i) => {
+    if (start > cursor) parts.push(text.slice(cursor, start))
+    parts.push(
+      <mark className="mf-mark" key={i}>
+        {text.slice(start, end)}
+      </mark>,
+    )
+    cursor = end
+  })
+  if (cursor < text.length) parts.push(text.slice(cursor))
+  return parts
+}
+
+/**
+ * Pergamino plegado: botón-pregunta (aria-expanded/aria-controls) + respuesta
+ * en region (aria-labelledby). El estado visual viene de [data-open]; la
+ * respuesta SIEMPRE está en el DOM (texto crawlable) aunque esté plegada.
+ */
+function FaqItem({ entry, isOpen, foldedQuery, onToggle }) {
+  const btnId = `${HASH_PREFIX}${entry.id}-q`
+  const panelId = `${HASH_PREFIX}${entry.id}-a`
+  return (
+    <li className="mf-item" id={`${HASH_PREFIX}${entry.id}`} data-open={isOpen ? 'true' : undefined}>
+      <h3 className="mf-q">
+        <button
+          type="button"
+          id={btnId}
+          className="mf-q-btn"
+          aria-expanded={isOpen}
+          aria-controls={panelId}
+          onClick={onToggle}
+        >
+          <Highlight text={entry.q} foldedQuery={foldedQuery} />
+        </button>
+      </h3>
+      <span className="mf-corner" aria-hidden="true" />
+      <span className="mf-chevron" aria-hidden="true" />
+      <div className="mf-panel" id={panelId} role="region" aria-labelledby={btnId}>
+        <div className="mf-panel-inner">
+          <div className="mf-a">
+            <span className="mf-cut" aria-hidden="true" />
+            {entry.a.split('\n\n').map((para, i) => (
+              <p key={i}>
+                <Highlight text={para} foldedQuery={foldedQuery} />
+              </p>
+            ))}
+          </div>
+        </div>
+      </div>
+    </li>
+  )
+}
+
+/* ---------------- página /faq ---------------- */
 
 function FaqPage() {
   useSeo({
@@ -106,25 +237,135 @@ function FaqPage() {
       'Cómo funciona el ranking ELO de AnimeShowdown, cómo crear torneos, cómo se hacen las predicciones y todo lo que necesitas saber.',
   })
 
-  const [abiertaPregunta, setAbiertaPregunta] = useState(FAQ[0]?.pregunta ?? null)
-  const [categoria, setCategoria] = useState('Todas')
-  const [filtro, setFiltro] = useState('')
-  const deferredFiltro = useDeferredValue(filtro)
-  const visibles = useMemo(() => {
-    const q = normalizarFaq(deferredFiltro.trim())
-    return FAQ.filter((item) => {
-      if (categoria !== 'Todas' && item.categoria !== categoria) return false
-      if (!q) return true
-      return normalizarFaq(`${item.pregunta} ${item.respuesta} ${item.categoria}`).includes(q)
-    })
-  }, [categoria, deferredFiltro])
+  const [activeCat, setActiveCat] = useState(() => (CATEGORIES[0] ? CATEGORIES[0].id : null))
+  const [openByCat, setOpenByCat] = useState({})
+  const [query, setQuery] = useState('')
+  const [searchOverrides, setSearchOverrides] = useState({})
+  const overlapTimerRef = useRef(null)
 
-  const preguntaAbiertaVisible = visibles.some((item) => item.pregunta === abiertaPregunta)
-    ? abiertaPregunta
-    : visibles[0]?.pregunta ?? null
+  const trimmed = query.trim()
+  const foldedQuery = foldText(trimmed)
+  const searching = foldedQuery.length >= MIN_QUERY_LEN
+
+  /* resultados de búsqueda: derivado puro del render */
+  const results = useMemo(() => {
+    if (!searching) return null
+    return CATEGORIES.map((cat) => ({
+      cat,
+      hits: cat.entries
+        .map((entry) => {
+          const inQ = hasMatch(entry.q, foldedQuery)
+          const inA = hasMatch(entry.a, foldedQuery)
+          return inQ || inA ? { entry, inA } : null
+        })
+        .filter(Boolean),
+    })).filter((group) => group.hits.length > 0)
+  }, [searching, foldedQuery])
+  const totalHits = results ? results.reduce((n, g) => n + g.hits.length, 0) : 0
+
+  const writeHash = (entryId) => {
+    if (typeof window === 'undefined') return
+    if (entryId) {
+      window.history.replaceState(null, '', `#${HASH_PREFIX}${entryId}`)
+    } else {
+      window.history.replaceState(null, '', window.location.pathname + window.location.search)
+    }
+  }
+
+  const clearOverlapTimer = () => {
+    if (overlapTimerRef.current !== null) {
+      window.clearTimeout(overlapTimerRef.current)
+      overlapTimerRef.current = null
+    }
+  }
+
+  const toggleEntry = (catId, entry, currentlyOpen) => {
+    if (searching) {
+      /* en modo búsqueda el override manda sobre el auto-open */
+      setSearchOverrides((m) => ({ ...m, [entry.id]: !currentlyOpen }))
+      return
+    }
+    clearOverlapTimer()
+    const open = openByCat[catId] || null
+    if (open === entry.id) {
+      setOpenByCat((m) => ({ ...m, [catId]: null }))
+      writeHash(null)
+      return
+    }
+    if (open === null) {
+      setOpenByCat((m) => ({ ...m, [catId]: entry.id }))
+      writeHash(entry.id)
+      return
+    }
+    /* acordeón real: la anterior pliega primero; solape de 80ms */
+    setOpenByCat((m) => ({ ...m, [catId]: null }))
+    overlapTimerRef.current = window.setTimeout(() => {
+      overlapTimerRef.current = null
+      setOpenByCat((m) => ({ ...m, [catId]: entry.id }))
+    }, OVERLAP_OPEN_DELAY_MS)
+    writeHash(entry.id)
+  }
+
+  const selectCat = (catId) => {
+    if (catId === activeCat) return
+    clearOverlapTimer()
+    setActiveCat(catId)
+  }
+
+  const onTablistKeyDown = (event) => {
+    const ids = CATEGORIES.map((c) => c.id)
+    const idx = ids.indexOf(activeCat)
+    let next = null
+    if (event.key === 'ArrowRight' || event.key === 'ArrowDown') next = ids[(idx + 1) % ids.length]
+    else if (event.key === 'ArrowLeft' || event.key === 'ArrowUp')
+      next = ids[(idx - 1 + ids.length) % ids.length]
+    else if (event.key === 'Home') next = ids[0]
+    else if (event.key === 'End') next = ids[ids.length - 1]
+    if (next === null) return
+    event.preventDefault()
+    selectCat(next)
+    const btn = document.getElementById(`mf-tab-${next}`)
+    if (btn) btn.focus()
+  }
+
+  const onQueryChange = (event) => {
+    setQuery(event.target.value)
+    setSearchOverrides({})
+  }
+
+  /* limpieza del timer de solape al desmontar */
+  useEffect(() => clearOverlapTimer, [])
+
+  /* deep-link: al aterrizar (rAF) y en cada hashchange — setState solo en callbacks */
+  useEffect(() => {
+    const applyHash = () => {
+      const raw = decodeURIComponent(window.location.hash.replace(/^#/, ''))
+      if (!raw || raw.indexOf(HASH_PREFIX) !== 0) return
+      const id = raw.slice(HASH_PREFIX.length)
+      const cat = CATEGORIES.find((c) => c.entries.some((e) => e.id === id))
+      if (!cat) return
+      setQuery('')
+      setSearchOverrides({})
+      setActiveCat(cat.id)
+      setOpenByCat((m) => (m[cat.id] === id ? m : { ...m, [cat.id]: id }))
+      window.setTimeout(() => {
+        const el = document.getElementById(HASH_PREFIX + id)
+        if (!el) return
+        const top = el.getBoundingClientRect().top + window.scrollY - SCROLL_OFFSET_PX
+        const reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches
+        window.scrollTo({ top: Math.max(0, top), behavior: reduce ? 'auto' : 'smooth' })
+      }, 90)
+    }
+    const raf = window.requestAnimationFrame(applyHash)
+    window.addEventListener('hashchange', applyHash)
+    return () => {
+      window.cancelAnimationFrame(raf)
+      window.removeEventListener('hashchange', applyHash)
+    }
+  }, [])
 
   return (
-    <section className="px-5 py-12 sm:px-8 sm:py-16">
+    <section className="master-faq" data-screen-label="/faq — Las preguntas al maestro">
       <JsonLd id="faq" schema={faqPageSchema(FAQ)} />
       <JsonLd
         id="breadcrumbs"
@@ -133,166 +374,180 @@ function FaqPage() {
           { label: 'FAQ', path: '/faq' },
         ])}
       />
-      <div className="mx-auto max-w-3xl">
-        <motion.header
-          className="mb-10 flex flex-col items-start gap-3"
-          initial="hidden"
-          animate="visible"
-          variants={containerVariants}
-        >
-          <span className="inline-flex items-center gap-1.5 rounded-full border border-border bg-surface px-3.5 py-1.5 text-[12px] font-semibold text-fg-muted">
-            <HelpCircle className="h-3 w-3" />
-            FAQ
-          </span>
-          <h1 className="font-display text-[clamp(2rem,5vw,3rem)] leading-tight tracking-tight">
-            Preguntas frecuentes
-          </h1>
-          <p className="max-w-2xl text-fg-muted">
-            Todo lo que necesitas saber sobre AnimeShowdown sin tener que
-            escribirnos. Si tu pregunta no está aquí, puedes mandarnos un
-            correo a {LEGAL_CONTACT_EMAIL}.
-          </p>
-        </motion.header>
 
-        <div className="mb-6 flex flex-col gap-3 rounded-xl border border-border bg-surface p-3">
-          <label className="flex min-h-11 items-center gap-2 rounded-lg border border-border bg-bg px-3">
-            <Search className="h-4 w-4 text-fg-muted" />
-            <span className="sr-only">Buscar en FAQ</span>
-            <input
-              type="search"
-              value={filtro}
-              onChange={(e) => setFiltro(e.target.value)}
-              placeholder="Busca por ELO, torneos, cuenta..."
-              className="min-w-0 flex-1 bg-transparent text-sm text-fg-strong placeholder:text-fg-muted focus:outline-none"
-            />
-          </label>
-          <div className="flex flex-wrap gap-1.5">
-            {CATEGORIAS.map((cat) => (
+      <header className="mf-header">
+        <span className="mf-watermark" aria-hidden="true">
+          問
+        </span>
+        <p className="mf-eyebrow">
+          <span className="mf-hanko" aria-hidden="true">
+            問
+          </span>
+          <span className="mf-path">/faq</span>
+        </p>
+        <h1 className="mf-title">Preguntas frecuentes</h1>
+        <p className="mf-subtitle">
+          Las preguntas al maestro: todo lo que necesitas saber sobre AnimeShowdown sin tener
+          que escribirnos. Si tu pregunta no está aquí, puedes mandarnos un correo a{' '}
+          {LEGAL_CONTACT_EMAIL}.
+        </p>
+      </header>
+
+      <div className="mf-search">
+        <label className="mf-visually-hidden" htmlFor="mf-search-input">
+          Buscar en preguntas y respuestas
+        </label>
+        <input
+          id="mf-search-input"
+          type="search"
+          value={query}
+          onChange={onQueryChange}
+          placeholder="Buscar pregunta o respuesta…"
+          autoComplete="off"
+        />
+        <p className="mf-search-count" role="status">
+          {searching
+            ? `${totalHits} coincidencia${totalHits === 1 ? '' : 's'} para «${trimmed}»`
+            : ''}
+        </p>
+      </div>
+
+      {searching ? (
+        <div className="mf-results">
+          {results.length === 0 ? (
+            <div className="mf-empty">
+              <span className="mf-empty-kanji" aria-hidden="true">
+                空
+              </span>
+              <p>El maestro guarda silencio: nada responde a «{trimmed}».</p>
+            </div>
+          ) : (
+            results.map((group) => (
+              <section key={group.cat.id} className="mf-group" aria-label={group.cat.label}>
+                <h2 className="mf-group-label">
+                  <span className="mf-group-kanji" aria-hidden="true">
+                    {group.cat.kanji}
+                  </span>
+                  {group.cat.label}
+                </h2>
+                <ul className="mf-list">
+                  {group.hits.map(({ entry, inA }) => {
+                    const isOpen =
+                      searchOverrides[entry.id] !== undefined ? searchOverrides[entry.id] : inA
+                    return (
+                      <FaqItem
+                        key={entry.id}
+                        entry={entry}
+                        isOpen={isOpen}
+                        foldedQuery={foldedQuery}
+                        onToggle={() => toggleEntry(group.cat.id, entry, isOpen)}
+                      />
+                    )
+                  })}
+                </ul>
+              </section>
+            ))
+          )}
+        </div>
+      ) : (
+        <div className="mf-body">
+          <div
+            className="mf-tabs"
+            role="tablist"
+            aria-label="Categorías de preguntas"
+            onKeyDown={onTablistKeyDown}
+          >
+            {CATEGORIES.map((cat) => (
               <button
-                key={cat}
+                key={cat.id}
                 type="button"
-                onClick={() => setCategoria(cat)}
-                className={`min-h-10 rounded-lg px-3 text-xs font-bold transition-colors ${
-                  categoria === cat
-                    ? 'bg-gold text-bg'
-                    : 'border border-border bg-bg text-fg-muted hover:text-fg-strong'
-                }`}
+                role="tab"
+                id={`mf-tab-${cat.id}`}
+                className="mf-tab"
+                aria-selected={cat.id === activeCat}
+                aria-controls={`mf-cat-${cat.id}`}
+                tabIndex={cat.id === activeCat ? 0 : -1}
+                onClick={() => selectCat(cat.id)}
               >
-                {cat}
+                <span className="mf-tab-kanji" aria-hidden="true">
+                  {cat.kanji}
+                </span>
+                <span className="mf-tab-label">{cat.label}</span>
+                <span className="mf-tab-count">{cat.entries.length}</span>
               </button>
             ))}
           </div>
-        </div>
-
-        {visibles.length > 0 ? (
-          <ul className="flex flex-col gap-2">
-            {visibles.map((item) => (
-              <FaqItem
-                key={item.pregunta}
-                item={item}
-                abierta={item.pregunta === preguntaAbiertaVisible}
-                onToggle={() => setAbiertaPregunta(
-                  item.pregunta === preguntaAbiertaVisible ? null : item.pregunta,
-                )}
-              />
-            ))}
-          </ul>
-        ) : (
-          <EmptyState scene
-            icon={HelpCircle}
-            title={`Sin respuestas para "${filtro}"`}
-          >
-            <p>Prueba con ranking, torneos, cuenta o privacidad.</p>
-            <button
-              type="button"
-              onClick={() => { setFiltro(''); setCategoria('Todas') }}
-              className="mt-4 inline-flex min-h-11 items-center rounded-lg border border-accent/50 bg-accent/90 px-5 text-sm font-black text-white transition-all hover:-translate-y-0.5 hover:bg-accent-hover"
+          {/* Todas las categorías van al DOM (las ~10 Q/A son texto crawlable);
+              las inactivas se ocultan con hidden, sin borrarse. */}
+          {CATEGORIES.map((cat) => (
+            <div
+              key={cat.id}
+              role="tabpanel"
+              id={`mf-cat-${cat.id}`}
+              aria-labelledby={`mf-tab-${cat.id}`}
+              className="mf-tabpanel"
+              hidden={cat.id !== activeCat}
             >
-              Limpiar búsqueda
-            </button>
-          </EmptyState>
-        )}
-
-        <div className="mt-10 rounded-2xl border border-border bg-surface p-6">
-          <h2 className="text-lg font-bold text-fg-strong">
-            ¿No has encontrado tu respuesta?
-          </h2>
-          <p className="mt-2 text-[13px] text-fg-muted">
-            Escríbenos a {LEGAL_CONTACT_EMAIL} — leemos todo. Si
-            quieres ojear el código o reportar un bug técnico, también
-            tenemos repo público en GitHub.
-          </p>
-          <div className="mt-4 flex flex-wrap gap-2">
-            <a
-              href={LEGAL_CONTACT_MAILTO}
-              className="inline-flex items-center gap-1.5 rounded-lg bg-accent px-4 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-accent-hover"
-            >
-              Escribir a soporte
-            </a>
-            <a
-              href="https://github.com/diegoalegil/AnimeShowdown/issues"
-              target="_blank"
-              rel="noreferrer"
-              className="inline-flex items-center gap-1.5 rounded-lg border border-border bg-bg px-4 py-2.5 text-sm font-semibold text-fg-strong transition-colors hover:border-accent hover:text-gold"
-            >
-              <ExternalLink className="h-3.5 w-3.5" />
-              Reportar bug en GitHub
-            </a>
-          </div>
-        </div>
-
-        <div className="mt-6 flex flex-wrap gap-3 text-[13px] text-fg-muted">
-          <Link
-            to="/personajes"
-            className="hover:text-gold hover:underline"
-          >
-            Catálogo de personajes
-          </Link>
-          <span aria-hidden="true">·</span>
-          <Link to="/torneos" className="hover:text-gold hover:underline">
-            Torneos activos
-          </Link>
-          <span aria-hidden="true">·</span>
-          <Link to="/ranking" className="hover:text-gold hover:underline">
-            Ranking ELO
-          </Link>
-        </div>
-      </div>
-    </section>
-  )
-}
-
-function FaqItem({ item, abierta, onToggle }) {
-  return (
-    <li>
-      <button
-        type="button"
-        onClick={onToggle}
-        aria-expanded={abierta}
-        className="flex w-full items-center justify-between gap-3 rounded-xl border border-border bg-surface px-5 py-4 text-left transition-colors hover:border-accent/40"
-      >
-        <span className="text-[15px] font-semibold text-fg-strong">
-          {item.pregunta}
-        </span>
-        <span className="ml-auto hidden rounded-full border border-border bg-bg px-2 py-0.5 text-[11px] font-semibold text-fg-muted sm:inline-flex">
-          {item.categoria}
-        </span>
-        <ChevronDown
-          className={`h-4 w-4 shrink-0 text-fg-muted transition-transform ${
-            abierta ? 'rotate-180' : ''
-          }`}
-        />
-      </button>
-      {abierta && (
-        <div className="as-acordeon">
-          <div className="min-h-0 overflow-hidden">
-            <div className="rounded-b-xl border-x border-b border-border bg-bg px-5 py-4 text-[14px] leading-relaxed text-fg-muted">
-              {item.respuesta}
+              <h2 className="mf-visually-hidden">{cat.label}</h2>
+              <ul className="mf-list">
+                {cat.entries.map((entry) => {
+                  const isOpen = (openByCat[cat.id] || null) === entry.id
+                  return (
+                    <FaqItem
+                      key={entry.id}
+                      entry={entry}
+                      isOpen={isOpen}
+                      foldedQuery=""
+                      onToggle={() => toggleEntry(cat.id, entry, isOpen)}
+                    />
+                  )
+                })}
+              </ul>
             </div>
-          </div>
+          ))}
         </div>
       )}
-    </li>
+
+      <div className="mf-footer">
+        <h2 className="mf-footer-title">¿No has encontrado tu respuesta?</h2>
+        <p className="mf-footer-text">
+          Escríbenos a {LEGAL_CONTACT_EMAIL} — leemos todo. Si quieres ojear el código o
+          reportar un bug técnico, también tenemos repo público en GitHub.
+        </p>
+        <div className="mf-footer-actions">
+          <a href={LEGAL_CONTACT_MAILTO} className="mf-btn mf-btn-primary">
+            Escribir a soporte
+          </a>
+          <a
+            href="https://github.com/diegoalegil/AnimeShowdown/issues"
+            target="_blank"
+            rel="noreferrer"
+            className="mf-btn mf-btn-ghost"
+          >
+            <ExternalLink className="h-3.5 w-3.5" />
+            Reportar bug en GitHub
+          </a>
+        </div>
+      </div>
+
+      <div className="mf-links">
+        <Link to="/personajes" className="mf-link">
+          Catálogo de personajes
+        </Link>
+        <span className="mf-link-sep" aria-hidden="true">
+          ·
+        </span>
+        <Link to="/torneos" className="mf-link">
+          Torneos activos
+        </Link>
+        <span className="mf-link-sep" aria-hidden="true">
+          ·
+        </span>
+        <Link to="/ranking" className="mf-link">
+          Ranking ELO
+        </Link>
+      </div>
+    </section>
   )
 }
 
