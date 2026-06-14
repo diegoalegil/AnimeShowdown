@@ -1,0 +1,598 @@
+/* ====================================================================
+   RegisterRite — el rito de ingreso (/register)
+   Hermano mayor del bloque "DojoLogin": mismo vocabulario, namespace rr-.
+   CSP por hash: cero <style> en runtime, todos los keyframes viven aquí
+   (importado por RegisterRite.jsx, igual que dojo-login.css).
+   Solo transform/opacity. Cero blur, cero SVG filters, cero animación
+   de box-shadow (glows pre-pintados con cross-fade de opacity).
+   ease-stamp del hanko = cubic-bezier(0.34, 1.56, 0.64, 1).
+   Token-only: sin literales de color (hex/rgb/hsl); todo var()/color-mix.
+   ==================================================================== */
+
+/* --- keyframes ------------------------------------------------------ */
+
+/* Caída de cada shide al colgar la cuerda (entrada, stagger 90ms). */
+@keyframes rr-shide-drop {
+  from { opacity: 0; transform: translateY(-10px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+/* Un (1) balanceo al encenderse el shide de un campo válido. */
+@keyframes rr-shide-swing {
+  0%   { transform: rotate(0deg); }
+  35%  { transform: rotate(3.2deg); }
+  70%  { transform: rotate(-1.6deg); }
+  100% { transform: rotate(0deg); }
+}
+
+/* Tremor de error de servidor: ±2px, 150ms, UNA vez. Duplicado a/b para
+   re-disparar cambiando el valor del atributo sin re-montar el campo
+   (re-key de un fieldset robaría el foco del input). */
+@keyframes rr-tremor-a {
+  0%, 100% { transform: translateX(0); }
+  25% { transform: translateX(-2px); }
+  60% { transform: translateX(2px); }
+  85% { transform: translateX(-1px); }
+}
+@keyframes rr-tremor-b {
+  0%, 100% { transform: translateX(0); }
+  25% { transform: translateX(-2px); }
+  60% { transform: translateX(2px); }
+  85% { transform: translateX(-1px); }
+}
+
+/* Sello 誓 del juramento: caída + overshoot (ease-stamp) + asentado. */
+@keyframes rr-stamp {
+  0%   { opacity: 0; transform: scale(1.6) rotate(-9deg); }
+  62%  { opacity: 1; transform: scale(0.92) rotate(-2deg); }
+  100% { opacity: 1; transform: scale(1) rotate(-4deg); }
+}
+
+/* Sangrado de tinta bajo el sello (capa radial pre-pintada). */
+@keyframes rr-bleed {
+  from { opacity: 0; transform: scale(0.55); }
+  to   { opacity: 0.5; transform: scale(1); }
+}
+
+/* Corte de tinta del error (mismo gesto que dojo-ink-cut). */
+@keyframes rr-ink-cut {
+  from { transform: scaleX(1); }
+  to   { transform: scaleX(0); }
+}
+
+/* Pulso de tinta del botón mientras envía (glow pre-pintado). */
+@keyframes rr-ink-pulse {
+  0%, 100% { opacity: 0.12; }
+  50% { opacity: 1; }
+}
+
+/* --- raíz ------------------------------------------------------------ */
+
+.rr-rite { position: relative; }
+
+.rr-watermark {
+  position: absolute;
+  top: 14px;
+  right: 18px;
+  font-family: var(--font-kanji-serif);
+  font-size: 110px;
+  line-height: 1;
+  color: color-mix(in srgb, var(--color-gold) 5%, transparent);
+  pointer-events: none;
+  user-select: none;
+}
+
+/* --- cuerda shimenawa (horizontal, ≥640px) ---------------------------- */
+
+.rr-rope--h { position: relative; height: 92px; }
+
+.rr-rope__line {
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 10px;
+  height: 9px;
+  border-radius: 5px;
+  /* trenzado: bandas diagonales oro-sobre-madera, sin imagen */
+  background: repeating-linear-gradient(
+    72deg,
+    color-mix(in srgb, var(--color-gold) 36%, var(--color-bg)) 0 7px,
+    color-mix(in srgb, var(--color-gold) 13%, var(--color-bg)) 7px 14px
+  );
+  border: 1px solid color-mix(in srgb, var(--color-gold) 24%, transparent);
+  box-shadow: inset 0 1px 0 color-mix(in srgb, var(--color-fg-strong) 8%, transparent);
+  transform: scaleX(0);
+  transform-origin: left center;
+  transition: transform 500ms var(--ease-lift);
+  will-change: transform;
+}
+.rr-rite[data-in='true'] .rr-rope__line { transform: scaleX(1); }
+
+/* tensado: la cuerda se estira (se afina) y asoma un brillo dorado */
+.rr-rite[data-tense='true'] .rr-rope--h .rr-rope__line {
+  transform: scaleX(1) scaleY(0.78);
+}
+.rr-rope__sheen {
+  position: absolute;
+  inset: -1px;
+  border-radius: 5px;
+  opacity: 0;
+  pointer-events: none;
+  background: linear-gradient(
+    90deg,
+    transparent,
+    color-mix(in srgb, var(--color-gold-bright) 45%, transparent) 50%,
+    transparent
+  );
+  box-shadow: 0 0 18px color-mix(in srgb, var(--color-gold) 35%, transparent);
+  transition: opacity 300ms var(--ease-lift);
+}
+.rr-rite[data-tense='true'] .rr-rope__sheen { opacity: 1; }
+
+/* --- shide colgantes (uno por paso) ----------------------------------- */
+
+.rr-rope__hang {
+  position: absolute;
+  top: 14px;
+  width: 96px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 5px;
+  opacity: 0; /* la entrada los revela; reduced-motion lo anula abajo */
+}
+.rr-rope__hang--1 { left: calc(16.66% - 48px); }
+.rr-rope__hang--2 { left: calc(50% - 48px); }
+.rr-rope__hang--3 { left: calc(83.33% - 48px); }
+
+.rr-rite[data-in='true'] .rr-rope__hang {
+  animation: rr-shide-drop 300ms var(--ease-lift) both;
+}
+.rr-rite[data-in='true'] .rr-rope__hang--1 { animation-delay: 320ms; }
+.rr-rite[data-in='true'] .rr-rope__hang--2 { animation-delay: 410ms; }
+.rr-rite[data-in='true'] .rr-rope__hang--3 { animation-delay: 500ms; }
+
+.rr-rope__knot {
+  width: 12px;
+  height: 12px;
+  border-radius: 2px;
+  transform: rotate(45deg);
+  background: color-mix(in srgb, var(--color-gold) 26%, var(--color-bg));
+  border: 1px solid color-mix(in srgb, var(--color-gold) 38%, transparent);
+  transition: background-color 200ms ease, border-color 200ms ease;
+}
+.rr-rope__hang[data-lit='true'] .rr-rope__knot {
+  background: var(--color-gold);
+  border-color: var(--color-gold-bright);
+}
+
+/* tremor: wrapper propio para no pisar la animación de balanceo */
+.rr-shide-tremor[data-tremor='a'] { animation: rr-tremor-a 150ms cubic-bezier(0.36, 0.07, 0.19, 0.97) both; }
+.rr-shide-tremor[data-tremor='b'] { animation: rr-tremor-b 150ms cubic-bezier(0.36, 0.07, 0.19, 0.97) both; }
+
+/* el shide: tres pliegues de papel en zigzag (skew alterno, cero SVG) */
+.rr-shide {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  transform-origin: 50% -8px;
+}
+.rr-rope__hang[data-lit='true'] .rr-shide {
+  animation: rr-shide-swing 300ms var(--ease-lift);
+}
+.rr-shide i {
+  display: block;
+  width: 17px;
+  height: 10px;
+  margin-top: -1px;
+  background: color-mix(in srgb, var(--color-fg-strong) 14%, transparent);
+  border: 1px solid color-mix(in srgb, var(--color-fg-strong) 20%, transparent);
+  transition: background-color 200ms ease, border-color 200ms ease;
+}
+.rr-shide i:nth-child(1) { transform: translateX(-5px) skewX(-16deg); }
+.rr-shide i:nth-child(2) { transform: translateX(5px) skewX(16deg); }
+.rr-shide i:nth-child(3) { transform: translateX(-5px) skewX(-16deg); }
+.rr-rope__hang[data-lit='true'] .rr-shide i {
+  background: var(--color-fg-strong);
+  border-color: var(--color-border-gold);
+}
+
+.rr-rope__cap {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  letter-spacing: 0.02em;
+  color: var(--color-fg-muted);
+  transition: color 200ms ease;
+  white-space: nowrap;
+}
+.rr-rope__hang[data-lit='true'] .rr-rope__cap { color: var(--color-gold); }
+
+/* --- pasos ------------------------------------------------------------ */
+
+.rr-paso { position: relative; border: 0; padding: 0; margin: 0; min-width: 0; }
+.rr-paso legend {
+  display: flex;
+  align-items: baseline;
+  gap: 9px;
+  padding: 0;
+  margin-bottom: 10px;
+}
+.rr-paso__kanji {
+  font-family: var(--font-kanji-serif);
+  font-size: 16px;
+  line-height: 1;
+  color: var(--color-gold);
+}
+
+/* --- juramento (checkbox REAL con cara de sello) ----------------------- */
+
+.rr-oath { position: relative; display: flex; gap: 14px; align-items: flex-start; }
+
+/* el input nativo queda invisible pero focusable y togglable por teclado */
+.rr-oath__input {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  margin: 0;
+  opacity: 0;
+  pointer-events: none;
+}
+.rr-oath__label {
+  display: flex;
+  gap: 14px;
+  align-items: flex-start;
+  cursor: pointer;
+}
+.rr-oath__pad {
+  position: relative;
+  display: flex;
+  flex: none;
+  align-items: center;
+  justify-content: center;
+  width: 56px; /* hit target ≥44px */
+  height: 56px;
+  border-radius: 8px;
+  border: 1px dashed var(--color-border-gold-subtle);
+  background: color-mix(in srgb, var(--color-fg-strong) 4%, transparent);
+  transition: border-color 200ms ease;
+  overflow: hidden;
+}
+.rr-oath__input:checked ~ .rr-oath__label .rr-oath__pad {
+  border-style: solid;
+  border-color: color-mix(in srgb, var(--color-hanko) 50%, transparent);
+}
+.rr-oath__input:focus-visible ~ .rr-oath__label .rr-oath__pad {
+  outline: 2px solid color-mix(in srgb, var(--color-accent-text) 80%, transparent);
+  outline-offset: 3px;
+}
+/* fantasma del kanji cuando aún no hay juramento */
+.rr-oath__ghost {
+  font-family: var(--font-kanji-serif);
+  font-size: 30px;
+  color: color-mix(in srgb, var(--color-fg-strong) 14%, transparent);
+  transition: opacity 200ms ease;
+}
+.rr-oath__input:checked ~ .rr-oath__label .rr-oath__ghost { opacity: 0; }
+/* sangrado de tinta bajo el sello */
+.rr-oath__bleed {
+  position: absolute;
+  inset: 4px;
+  border-radius: 50%;
+  opacity: 0;
+  background: radial-gradient(
+    circle,
+    color-mix(in srgb, var(--color-hanko) 55%, transparent) 0%,
+    transparent 68%
+  );
+  pointer-events: none;
+}
+.rr-oath__input:checked ~ .rr-oath__label .rr-oath__bleed {
+  animation: rr-bleed 260ms ease-out 180ms both;
+}
+/* el sello 誓 que cae */
+.rr-oath__seal {
+  position: absolute;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 38px;
+  height: 38px;
+  border-radius: 5px;
+  border: 2px solid var(--color-hanko);
+  background: color-mix(in srgb, var(--color-hanko) 16%, transparent);
+  color: var(--color-hanko);
+  font-family: var(--font-kanji-serif);
+  font-size: 22px;
+  line-height: 1;
+  opacity: 0;
+  transform: rotate(-4deg);
+}
+.rr-oath__input:checked ~ .rr-oath__label .rr-oath__seal {
+  animation: rr-stamp 380ms cubic-bezier(0.34, 1.56, 0.64, 1) both;
+}
+
+/* --- tintero (fuerza de la contraseña, 4 niveles por tokens) ----------- */
+
+.rr-pwrow {
+  display: grid;
+  grid-template-columns: 1fr 12px;
+  gap: 10px;
+  align-items: stretch;
+}
+.rr-inkwell {
+  position: relative;
+  border-radius: 6px;
+  border: 1px solid var(--color-border);
+  background: color-mix(in srgb, var(--color-canvas) 85%, transparent);
+  overflow: hidden;
+}
+.rr-inkwell__ink {
+  position: absolute;
+  inset: 1px;
+  border-radius: 5px;
+  transform: scaleY(0);
+  transform-origin: bottom center;
+  transition: transform 300ms var(--ease-lift), background-color 200ms ease;
+  will-change: transform;
+}
+.rr-inkwell__ink[data-nivel='1'] { transform: scaleY(0.25); background: var(--color-accent); }
+.rr-inkwell__ink[data-nivel='2'] { transform: scaleY(0.5);  background: var(--color-gold); }
+.rr-inkwell__ink[data-nivel='3'] { transform: scaleY(0.75); background: var(--color-gold-bright); }
+.rr-inkwell__ink[data-nivel='4'] { transform: scaleY(1);    background: var(--color-success); }
+
+.rr-inkcap { font-family: var(--font-mono); font-size: 11px; transition: color 200ms ease; }
+.rr-inkcap[data-nivel='0'] { color: var(--color-fg-muted); }
+.rr-inkcap[data-nivel='1'] { color: var(--color-accent-text); }
+.rr-inkcap[data-nivel='2'] { color: var(--color-gold); }
+.rr-inkcap[data-nivel='3'] { color: var(--color-gold-bright); }
+.rr-inkcap[data-nivel='4'] { color: var(--color-success); }
+
+/* --- error de servidor (corte de tinta, mismo gesto que el dojo) ------- */
+
+.rr-error {
+  position: relative;
+  display: flex;
+  align-items: flex-start;
+  gap: 11px;
+  overflow: hidden;
+  border: 1px solid color-mix(in srgb, var(--color-accent-text) 35%, transparent);
+  /* sólido: el cover del corte debe taparlo sin costuras */
+  background: color-mix(in srgb, var(--color-bg) 78%, var(--color-accent));
+  border-radius: 8px;
+  padding: 11px 13px;
+}
+.rr-error__seal {
+  display: flex;
+  flex: none;
+  align-items: center;
+  justify-content: center;
+  width: 23px;
+  height: 23px;
+  margin-top: 1px;
+  border: 1px solid color-mix(in srgb, var(--color-hanko) 55%, transparent);
+  border-radius: 3px;
+  transform: rotate(-4deg);
+  font-family: var(--font-kanji-serif);
+  font-size: 12px;
+  color: var(--color-hanko);
+}
+.rr-error__cover {
+  position: absolute;
+  inset: 0;
+  background: color-mix(in srgb, var(--color-bg) 78%, var(--color-accent));
+  transform-origin: left center;
+  animation: rr-ink-cut 240ms var(--ease-brush) 40ms both;
+  pointer-events: none;
+}
+.rr-error__edge {
+  position: absolute;
+  right: 0;
+  top: 0;
+  bottom: 0;
+  width: 3px;
+  background: linear-gradient(
+    180deg,
+    color-mix(in srgb, var(--color-gold) 10%, transparent),
+    var(--color-gold) 30%,
+    var(--color-gold) 70%,
+    color-mix(in srgb, var(--color-gold) 10%, transparent)
+  );
+}
+/* sugerencias honestas del backend (solo si llegan) */
+.rr-error__sug {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 9px;
+}
+.rr-error__sug button {
+  min-height: 44px;
+  padding: 0 14px;
+  border-radius: 8px;
+  border: 1px solid var(--color-border-gold-subtle);
+  background: color-mix(in srgb, var(--color-canvas) 70%, transparent);
+  color: var(--color-fg);
+  font-family: var(--font-mono);
+  font-size: 12px;
+  cursor: pointer;
+  transition: border-color 150ms ease, color 150ms ease;
+}
+.rr-error__sug button:hover { border-color: var(--color-border-gold); color: var(--color-gold); }
+.rr-error__sug button:focus-visible {
+  outline: 2px solid color-mix(in srgb, var(--color-accent-text) 80%, transparent);
+  outline-offset: 2px;
+}
+
+/* --- botón de alta: tablilla apagada → lacada --------------------------- */
+
+.rr-submit {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  width: 100%;
+  min-height: 48px;
+  padding: 13px 18px;
+  border-radius: 10px;
+  border: 1px solid color-mix(in srgb, var(--color-gold) 22%, transparent);
+  background: linear-gradient(
+    180deg,
+    color-mix(in srgb, var(--color-surface) 82%, var(--color-gold)),
+    color-mix(in srgb, var(--color-bg) 88%, var(--color-gold))
+  );
+  color: var(--color-fg-muted);
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: color 200ms ease, border-color 200ms ease;
+}
+.rr-submit__t { position: relative; z-index: 1; }
+.rr-submit:disabled { cursor: wait; }
+.rr-submit:focus-visible {
+  outline: 2px solid color-mix(in srgb, var(--color-accent-text) 80%, transparent);
+  outline-offset: 3px;
+}
+/* laca: capa pre-pintada que cross-fadea (los gradientes no interpolan) */
+.rr-submit__lacquer {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  border-radius: 9px;
+  opacity: 0;
+  pointer-events: none;
+  background: linear-gradient(
+    180deg,
+    var(--color-accent-hover),
+    var(--color-accent) 55%,
+    color-mix(in srgb, var(--color-accent) 82%, var(--color-canvas))
+  );
+  box-shadow: inset 0 1px 0 color-mix(in srgb, var(--color-fg-strong) 16%, transparent);
+  transition: opacity 200ms ease;
+}
+.rr-submit[data-armed='true'] { color: var(--color-fg-strong); border-color: color-mix(in srgb, var(--color-hanko) 45%, transparent); }
+.rr-submit[data-armed='true'] .rr-submit__lacquer { opacity: 1; }
+.rr-submit[data-armed='true']:hover { border-color: color-mix(in srgb, var(--color-hanko) 70%, transparent); }
+.rr-submit__hanko {
+  display: flex;
+  flex: none;
+  align-items: center;
+  justify-content: center;
+  width: 20px;
+  height: 20px;
+  border: 1px solid color-mix(in srgb, var(--color-fg-strong) 45%, transparent);
+  border-radius: 3px;
+  transform: rotate(-4deg);
+  font-family: var(--font-kanji-serif);
+  font-size: 11px;
+  line-height: 1;
+}
+/* pulso de tinta mientras envía: glow pre-pintado, cross-fade de opacity */
+.rr-submit__glow {
+  position: absolute;
+  inset: -1px;
+  z-index: 0;
+  border-radius: 10px;
+  opacity: 0;
+  pointer-events: none;
+  box-shadow:
+    0 0 26px color-mix(in srgb, var(--color-hanko) 55%, transparent),
+    0 0 8px color-mix(in srgb, var(--color-hanko) 40%, transparent);
+}
+.rr-submit__glow[data-busy='true'] { animation: rr-ink-pulse 1.8s ease-in-out infinite; }
+
+/* --- 390px: cuerda vertical al margen, shide como nudos ----------------- */
+
+.rr-rope--v { display: none; }
+
+@media (max-width: 639px) {
+  .rr-rope--h { display: none; }
+
+  .rr-body { position: relative; padding-left: 34px; }
+
+  .rr-rope--v {
+    display: block;
+    position: absolute;
+    top: 2px;
+    bottom: 2px;
+    left: 7px;
+    width: 7px;
+  }
+  .rr-rope--v .rr-rope__line {
+    inset: 0;
+    height: auto;
+    width: 7px;
+    border-radius: 4px;
+    transform: scaleY(0);
+    transform-origin: top center;
+    background: repeating-linear-gradient(
+      162deg,
+      color-mix(in srgb, var(--color-gold) 36%, var(--color-bg)) 0 7px,
+      color-mix(in srgb, var(--color-gold) 13%, var(--color-bg)) 7px 14px
+    );
+  }
+  .rr-rite[data-in='true'] .rr-rope--v .rr-rope__line { transform: scaleY(1); }
+  .rr-rite[data-tense='true'] .rr-rope--v .rr-rope__line { transform: scaleY(1) scaleX(0.78); }
+  .rr-rope--v .rr-rope__sheen {
+    background: linear-gradient(
+      180deg,
+      transparent,
+      color-mix(in srgb, var(--color-gold-bright) 45%, transparent) 50%,
+      transparent
+    );
+  }
+
+  /* nudo por paso, atado a la cuerda */
+  .rr-paso::before {
+    content: '';
+    position: absolute;
+    left: -30px;
+    top: 8px;
+    width: 13px;
+    height: 13px;
+    border-radius: 2px;
+    transform: rotate(45deg);
+    background: color-mix(in srgb, var(--color-gold) 26%, var(--color-bg));
+    border: 1px solid color-mix(in srgb, var(--color-gold) 38%, transparent);
+    transition: background-color 200ms ease, border-color 200ms ease;
+  }
+  .rr-paso[data-lit='true']::before {
+    background: var(--color-gold);
+    border-color: var(--color-gold-bright);
+  }
+  /* el tremor en móvil sacude el nudo del paso afectado */
+  .rr-paso[data-tremor='a']::before { animation: rr-tremor-a 150ms cubic-bezier(0.36, 0.07, 0.19, 0.97) both; }
+  .rr-paso[data-tremor='b']::before { animation: rr-tremor-b 150ms cubic-bezier(0.36, 0.07, 0.19, 0.97) both; }
+
+  .rr-watermark { font-size: 76px; right: 12px; }
+}
+
+/* --- reduced motion ----------------------------------------------------- */
+/* Shide estáticos que encienden por color; el sello aparece sin caída;
+   sin tremor, sin corte, sin pulso: todo queda por color y texto. */
+@media (prefers-reduced-motion: reduce) {
+  .rr-rope__line,
+  .rr-inkwell__ink,
+  .rr-submit,
+  .rr-submit__lacquer,
+  .rr-oath__pad {
+    transition: none !important;
+  }
+  .rr-rope__hang,
+  .rr-shide,
+  .rr-shide-tremor[data-tremor],
+  .rr-paso[data-tremor]::before,
+  .rr-oath__input:checked ~ .rr-oath__label .rr-oath__seal,
+  .rr-oath__input:checked ~ .rr-oath__label .rr-oath__bleed,
+  .rr-error__cover,
+  .rr-submit__glow[data-busy='true'] {
+    animation: none !important;
+  }
+  .rr-rope__hang { opacity: 1; transform: none; }
+  .rr-rite .rr-rope__line { transform: scaleX(1); }
+  .rr-rite .rr-rope--v .rr-rope__line { transform: scaleY(1); }
+  .rr-oath__input:checked ~ .rr-oath__label .rr-oath__seal { opacity: 1; }
+  .rr-oath__input:checked ~ .rr-oath__label .rr-oath__bleed { opacity: 0.5; transform: scale(1); }
+  .rr-error__cover { transform: scaleX(0); }
+  .rr-submit__glow[data-busy='true'] { opacity: 0.35; }
+}
