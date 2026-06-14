@@ -1255,84 +1255,9 @@
   transform: rotateY(180deg);
 }
 
-.pack-opening__card-back {
-  position: relative;
-  height: 100%;
-  width: 100%;
-  overflow: hidden;
-  border-radius: var(--radius-2xl);
-  border: 1px solid rgb(255 255 255 / 0.16);
-  background:
-    radial-gradient(circle at 50% 42%, rgb(255 255 255 / 0.08), transparent 30%),
-    linear-gradient(180deg, rgb(29 35 48), rgb(9 12 19));
-  box-shadow:
-    inset 0 1px 0 rgb(255 255 255 / 0.12),
-    inset 0 0 0 1px rgb(0 0 0 / 0.62);
-}
-
-.pack-opening__card-back-mark {
-  position: absolute;
-  left: 50%;
-  top: 45%;
-  display: grid;
-  height: 5.5rem;
-  width: 5.5rem;
-  place-items: center;
-  border: 1px solid rgb(255 255 255 / 0.22);
-  border-radius: 999px;
-  background: rgb(0 0 0 / 0.28);
-  color: rgb(255 255 255 / 0.72);
-  font-size: 2.35rem;
-  font-weight: 1000;
-  transform: translate(-50%, -50%);
-}
-
-.pack-opening__card-back-label {
-  position: absolute;
-  inset-inline: 0;
-  bottom: 1.35rem;
-  color: rgb(255 255 255 / 0.64);
-  font-size: 0.63rem;
-  font-weight: 1000;
-  letter-spacing: 0.2em;
-  text-align: center;
-}
-
-.pack-opening__corner {
-  position: absolute;
-  z-index: 3;
-  width: 1rem;
-  height: 1rem;
-  border-color: rgb(255 255 255 / 0.54);
-}
-
-.pack-opening__corner--tl {
-  left: 0.42rem;
-  top: 0.42rem;
-  border-left: 2px solid;
-  border-top: 2px solid;
-}
-
-.pack-opening__corner--tr {
-  right: 0.42rem;
-  top: 0.42rem;
-  border-right: 2px solid;
-  border-top: 2px solid;
-}
-
-.pack-opening__corner--bl {
-  left: 0.42rem;
-  bottom: 0.42rem;
-  border-left: 2px solid;
-  border-bottom: 2px solid;
-}
-
-.pack-opening__corner--br {
-  right: 0.42rem;
-  bottom: 0.42rem;
-  border-right: 2px solid;
-  border-bottom: 2px solid;
-}
+/* El dorso boca-abajo lo aporta ahora el componente reutilizable <CardBack>
+   (components/card-back.css): seigaiha + enso de marca + canto por rareza. Las
+   clases pack-opening__card-back* y pack-opening__corner* se retiraron con él. */
 
 .pack-opening__burst {
   position: absolute;

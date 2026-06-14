@@ -6,6 +6,7 @@ import Button from '../../components/Button'
 import MonedaIcon from '../../components/MonedaIcon'
 import { useSound } from '../../contexts/SoundContext'
 import CartaTile from '../../components/CartaTile'
+import CardBack from '../../components/CardBack'
 import CartaFace from './CartaFace'
 import './cartas.css'
 import { EASE_LIFT } from '../../lib/motion'
@@ -550,7 +551,7 @@ function RevealStage({
               '--deck-i': i + 1,
             }}
           >
-            <CardBack />
+            <CardBack className="h-full w-full" />
           </div>
         ))}
       </div>
@@ -580,7 +581,7 @@ function RevealStage({
       >
         <div className="pack-opening__flip">
           <div className="pack-opening__flip-front">
-            <CardBack />
+            <CardBack className="h-full w-full" />
           </div>
           <div className="pack-opening__flip-back" aria-hidden={!revealed}>
             <CartaFace carta={item.carta} eager reveal />
@@ -631,19 +632,6 @@ function RevealStage({
         </button>
       )}
     </motion.div>
-  )
-}
-
-function CardBack() {
-  return (
-    <div className="pack-opening__card-back">
-      <div className="pack-opening__card-back-mark">A</div>
-      <div className="pack-opening__card-back-label">ANIMESHOWDOWN</div>
-      <span className="pack-opening__corner pack-opening__corner--tl" />
-      <span className="pack-opening__corner pack-opening__corner--tr" />
-      <span className="pack-opening__corner pack-opening__corner--bl" />
-      <span className="pack-opening__corner pack-opening__corner--br" />
-    </div>
   )
 }
 

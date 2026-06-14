@@ -1,0 +1,173 @@
+/* ============================================================
+   card-back.css — El Reverso de Federación (pieza 112)
+   El ARTE del dorso de carta como clases. Decorativo puro
+   (el consumidor pone aria-hidden). Cero imágenes, cero blur,
+   cero loops: el flip lo aporta CardFlip y NO se toca aquí.
+
+   Solo tokens del tema (var(--color-*) / var(--radius-*) /
+   var(--font-*)). Sin literales de color de ningún tipo, ni siquiera en
+   comentarios (el guard de CI los detecta por substring).
+   Alphas via color-mix(in srgb, var(--token) N%, transparent).
+   Nítido en DPR 1/2/3: el patrón usa tamaños ENTEROS de px.
+   La escala la dan unidades de container (cqw) → el mini hereda
+   el mismo arte sin re-maquetar. Importar desde el componente:
+       import './card-back.css'
+   ============================================================ */
+
+.card-back {
+  container-type: inline-size;
+  position: relative;
+  aspect-ratio: 2 / 3;
+  overflow: hidden;
+  border-radius: var(--radius-card);
+  /* El CANTO hereda la laca de su rareza (sistema --color-rarity-*).
+     Sin rareza → oro de federación. */
+  border: 1px solid var(--cb-laca, var(--color-border-gold));
+  background-color: var(--color-canvas);
+  /* Profundidad sin filtros: viñeta interior + leve sangrado de la
+     laca hacia dentro (refuerza el "lacado" del canto, no es glow). */
+  box-shadow:
+    inset 0 0 0 1px color-mix(in srgb, var(--cb-laca, var(--color-gold)) 18%, transparent),
+    var(--shadow-elev-2, 0 24px 78px -42px color-mix(in srgb, var(--color-canvas) 92%, transparent));
+}
+
+/* ---- Seigaiha (olas del mar): patrón en DOS tonos de lienzo ------
+   Patrón canónico de 5 radiales superpuestos. base = lienzo profundo;
+   ridge = superficie levemente entibiada en oro (la laca atrapa luz).
+   Tamaño de mosaico ENTERO (80×40) → bordes de arco crujientes en
+   retina, sin medias muestras. */
+.card-back__weave {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  --cb-base: var(--color-canvas);
+  --cb-ridge: color-mix(in srgb, var(--color-gold) 6%, var(--color-surface));
+  background-color: var(--cb-base);
+  background-image:
+    radial-gradient(circle at 100% 150%, var(--cb-base) 24%, var(--cb-ridge) 25%, var(--cb-ridge) 28%, var(--cb-base) 29%, var(--cb-base) 36%, var(--cb-ridge) 36%, var(--cb-ridge) 40%, transparent 40%),
+    radial-gradient(circle at 0 150%, var(--cb-base) 24%, var(--cb-ridge) 25%, var(--cb-ridge) 28%, var(--cb-base) 29%, var(--cb-base) 36%, var(--cb-ridge) 36%, var(--cb-ridge) 40%, transparent 40%),
+    radial-gradient(circle at 50% 100%, var(--cb-ridge) 10%, var(--cb-base) 11%, var(--cb-base) 23%, var(--cb-ridge) 24%, var(--cb-ridge) 30%, var(--cb-base) 31%, var(--cb-base) 43%, var(--cb-ridge) 44%, var(--cb-ridge) 50%, transparent 50%),
+    radial-gradient(circle at 100% 50%, var(--cb-ridge) 5%, var(--cb-base) 6%, var(--cb-base) 15%, var(--cb-ridge) 16%, var(--cb-ridge) 20%, var(--cb-base) 21%, var(--cb-base) 30%, var(--cb-ridge) 31%, var(--cb-ridge) 35%, var(--cb-base) 36%, var(--cb-base) 45%, var(--cb-ridge) 46%, var(--cb-ridge) 49%, transparent 50%),
+    radial-gradient(circle at 0 50%, var(--cb-ridge) 5%, var(--cb-base) 6%, var(--cb-base) 15%, var(--cb-ridge) 16%, var(--cb-ridge) 20%, var(--cb-base) 21%, var(--cb-base) 30%, var(--cb-ridge) 31%, var(--cb-ridge) 35%, var(--cb-base) 36%, var(--cb-base) 45%, var(--cb-ridge) 46%, var(--cb-ridge) 49%, transparent 50%);
+  background-size: 80px 40px;
+  background-position: center top;
+}
+
+/* Viñeta de profundidad — oscurece bordes, realza el centro. Sin blur. */
+.card-back__vignette {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  pointer-events: none;
+  background:
+    radial-gradient(
+      ellipse 78% 62% at 50% 42%,
+      transparent 42%,
+      color-mix(in srgb, var(--color-canvas) 62%, transparent) 100%
+    );
+}
+
+/* ---- Hairline perimetral DOBLE (oro de federación) --------------- */
+.card-back::before,
+.card-back::after {
+  content: "";
+  position: absolute;
+  z-index: 2;
+  pointer-events: none;
+  border-radius: calc(var(--radius-card) - 6px);
+}
+.card-back::before {
+  inset: 7px;
+  border: 1px solid var(--color-border-gold-subtle);
+}
+.card-back::after {
+  inset: 11px;
+  border-radius: calc(var(--radius-card) - 10px);
+  border: 1px solid color-mix(in srgb, var(--color-gold) 22%, transparent);
+}
+
+/* ---- Enso de marca con 戦 al centro ------------------------------ */
+.card-back__crest {
+  position: absolute;
+  inset: 0;
+  z-index: 3;
+  display: grid;
+  place-items: center;
+  pointer-events: none;
+}
+
+/* Enso: anillo de pincel abierto. El conic da el trazo (gap = la
+   apertura del enso; entrada/salida del pincel se atenúan a transparent);
+   la máscara radial lo convierte en aro. Color por tokens; en la máscara
+   solo importa el alfa (usamos un token opaco cualquiera). */
+.card-back__enso {
+  position: absolute;
+  width: 50cqw;
+  aspect-ratio: 1;
+  border-radius: 50%;
+  background: conic-gradient(
+    from 128deg,
+    transparent 0 5%,
+    color-mix(in srgb, var(--color-gold) 35%, transparent) 9%,
+    var(--color-gold) 22%,
+    var(--color-gold-bright) 50%,
+    var(--color-gold) 78%,
+    color-mix(in srgb, var(--color-gold) 35%, transparent) 92%,
+    transparent 96%
+  );
+  -webkit-mask: radial-gradient(
+    closest-side,
+    transparent 84%,
+    var(--color-fg-strong) 86%,
+    var(--color-fg-strong) 99%,
+    transparent 100%
+  );
+  mask: radial-gradient(
+    closest-side,
+    transparent 84%,
+    var(--color-fg-strong) 86%,
+    var(--color-fg-strong) 99%,
+    transparent 100%
+  );
+  opacity: 0.62;
+  transform: rotate(-3deg);
+}
+
+.card-back__mon {
+  position: relative;
+  font-family: var(--font-kanji-serif);
+  font-weight: 700;
+  font-size: 17cqw;
+  line-height: 1;
+  color: var(--color-gold-bright);
+  text-shadow: 0 0 calc(0.6cqw + 2px) color-mix(in srgb, var(--color-gold) 45%, transparent);
+  /* Mincho/display jamás sintetiza bold falso. */
+  font-synthesis-weight: none;
+}
+
+/* ---- Cantos por rareza (la laca del sistema --color-rarity-*) ----
+   Solo tiñe el CANTO; el interior queda en oro de federación. */
+.card-back--common { --cb-laca: var(--color-rarity-common); }
+.card-back--uncommon { --cb-laca: var(--color-rarity-uncommon); }
+.card-back--rare { --cb-laca: var(--color-rarity-rare); }
+.card-back--epic { --cb-laca: var(--color-rarity-epic); }
+.card-back--legendary { --cb-laca: var(--color-rarity-legendary); }
+
+/* ---- Mini (en listas) -------------------------------------------
+   El arte es el mismo (cqw escala enso y kanji solos); solo el mosaico
+   del patrón baja a un entero menor para no verse gigante. El 戦 sigue
+   legible porque crece con el contenedor, no con un px fijo. */
+.card-back--mini {
+  border-radius: var(--radius-lg);
+}
+.card-back--mini::before {
+  inset: 4px;
+  border-radius: calc(var(--radius-lg) - 2px);
+}
+.card-back--mini::after {
+  inset: 6px;
+  border-radius: calc(var(--radius-lg) - 4px);
+}
+.card-back--mini .card-back__weave {
+  background-size: 40px 20px;
+}
