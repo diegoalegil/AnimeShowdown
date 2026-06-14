@@ -1,0 +1,801 @@
+/* ============================================================
+   EL MURO DE VOCES — CSS de feature
+   Lo importa VoiceWall.jsx (import './voice-wall.css').
+   - Solo tokens globales de index.css (cero literales de color).
+   - ease-stamp NO es token global: se declara LOCAL aquí abajo.
+   - Todos los @keyframes viven en este archivo (CSP por hash:
+     prohibido inyectar estilos en runtime).
+   - Solo se animan transform y opacity.
+   ============================================================ */
+
+.voice-wall {
+  --ease-stamp: cubic-bezier(0.34, 1.56, 0.64, 1);
+  font-family: var(--font-sans);
+  color: var(--color-fg);
+  display: grid;
+  gap: 16px;
+}
+
+.voice-wall :focus-visible {
+  outline: 2px solid var(--color-gold);
+  outline-offset: 2px;
+}
+
+/* Solo lectores de pantalla */
+.vw-sr {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+  border: 0;
+}
+
+/* ---------- Cabecera del bloque ---------- */
+
+.vw-head {
+  display: flex;
+  align-items: baseline;
+  gap: 10px;
+  padding-bottom: 10px;
+  position: relative;
+}
+
+.vw-head::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  height: 1px;
+  background: linear-gradient(
+    90deg,
+    var(--color-border-gold),
+    var(--color-border-gold-subtle) 55%,
+    transparent
+  );
+}
+
+.vw-head-kanji {
+  font-family: var(--font-kanji-serif);
+  color: var(--color-gold);
+  font-size: 1.375rem;
+  line-height: 1;
+  transform: translateY(2px);
+}
+
+.vw-title {
+  margin: 0;
+  font-size: 1.0625rem;
+  font-weight: 600;
+  letter-spacing: 0.01em;
+  color: var(--color-fg-strong);
+}
+
+.vw-count {
+  margin-left: auto;
+  font-family: var(--font-mono);
+  font-size: var(--text-2xs);
+  color: var(--color-fg-muted);
+  font-variant-numeric: tabular-nums;
+}
+
+/* ---------- Lista / tiras ---------- */
+
+.vw-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 12px;
+}
+
+.vw-item {
+  display: grid;
+  gap: 0;
+}
+
+.vw-strip {
+  /* La rotación determinista llega por --vw-rot-base (inline, por id).
+     En reduced-motion se anula más abajo sin tocar el inline style. */
+  --vw-rot: var(--vw-rot-base, 0deg);
+  position: relative;
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  padding: 13px 16px 10px;
+  transform: rotate(var(--vw-rot));
+  /* Esquina doblada: muesca estática (clip), sin filtros */
+  clip-path: polygon(0 0, calc(100% - 16px) 0, 100% 16px, 100% 100%, 0 100%);
+  /* Muros largos fluidos */
+  content-visibility: auto;
+  contain-intrinsic-size: auto 128px;
+}
+
+/* Solapa de la esquina doblada (triángulo pre-renderizado, sin sombra viva) */
+.vw-strip::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  right: 0;
+  width: 16px;
+  height: 16px;
+  background: linear-gradient(
+    to top right,
+    color-mix(in srgb, var(--color-gold) 16%, var(--color-surface-alt)) 0%,
+    color-mix(in srgb, var(--color-gold) 16%, var(--color-surface-alt)) 49.5%,
+    transparent 50%
+  );
+  pointer-events: none;
+}
+
+/* Filo de soldadura (cross-fade de opacity al confirmar) */
+.vw-strip::after {
+  content: "";
+  position: absolute;
+  inset: -1px;
+  border: 1px solid var(--color-gold-bright);
+  border-radius: inherit;
+  opacity: 0;
+  pointer-events: none;
+}
+
+/* Entrada: stagger desde el muro vía --vw-delay (inline) */
+.vw-strip[data-enter="true"] {
+  animation: vw-strip-in 280ms var(--ease-lift) both;
+  animation-delay: var(--vw-delay, 0ms);
+}
+
+@keyframes vw-strip-in {
+  from {
+    opacity: 0;
+    transform: translateY(8px) rotate(var(--vw-rot));
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) rotate(var(--vw-rot));
+  }
+}
+
+/* Optimista: borde discontinuo hasta confirmar */
+.vw-strip[data-status="pending"] {
+  border-style: dashed;
+  border-color: var(--color-border-gold);
+}
+
+.vw-strip[data-status="confirmed"] {
+  border-color: var(--color-border);
+}
+
+/* El borde "se suelda": destello dorado que se apaga (solo opacity) */
+.vw-strip[data-weld="true"]::after {
+  animation: vw-weld-fade 200ms var(--ease-brush) both;
+}
+
+@keyframes vw-weld-fade {
+  from { opacity: 1; }
+  to { opacity: 0; }
+}
+
+/* Durante el vuelo FLIP, la tira real (orden DOM final) viaja oculta */
+.vw-strip[data-inflight="true"] {
+  visibility: hidden;
+}
+
+/* Asentamiento al pegarse (squash 80ms) */
+.vw-strip[data-settling="true"] {
+  animation: vw-settle 80ms ease-out both;
+}
+
+@keyframes vw-settle {
+  from { transform: rotate(var(--vw-rot)) scale(1.03, 0.94); }
+  to { transform: rotate(var(--vw-rot)) scale(1, 1); }
+}
+
+/* Borrar: la tira se despega, sin humo */
+.vw-strip[data-peeling="true"] {
+  animation: vw-peel 300ms var(--ease-brush) both;
+  pointer-events: none;
+}
+
+@keyframes vw-peel {
+  to {
+    opacity: 0;
+    transform: translateY(12px) rotate(calc(var(--vw-rot) + 2deg));
+  }
+}
+
+/* Ghost del vuelo (clon WAAPI, fuera del flujo) */
+.vw-ghost {
+  position: fixed;
+  margin: 0;
+  z-index: 60;
+  pointer-events: none;
+  transform-origin: 0 0;
+  visibility: visible;
+  content-visibility: visible;
+  box-shadow: var(--shadow-elev-2);
+  will-change: transform, opacity;
+}
+
+/* ---------- Interior de la tira ---------- */
+
+.vw-strip-head {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.vw-avatar {
+  flex: none;
+  width: 36px;
+  height: 36px;
+  border-radius: var(--radius-pill);
+  border: 1px solid var(--color-border-gold);
+  background: var(--color-surface-alt);
+  color: var(--color-gold);
+  display: grid;
+  place-items: center;
+  font-size: 0.875rem;
+  font-weight: 600;
+  overflow: hidden;
+}
+
+.vw-avatar img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+.vw-id {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+  min-width: 0;
+}
+
+.vw-author {
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: var(--color-fg-strong);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.vw-own-tag {
+  flex: none;
+  font-family: var(--font-mono);
+  font-size: var(--text-2xs);
+  color: var(--color-gold);
+  border: 1px solid var(--color-border-gold-subtle);
+  border-radius: var(--radius-pill);
+  padding: 0 7px;
+  line-height: 1.6;
+}
+
+.vw-time {
+  margin-left: auto;
+  flex: none;
+  font-family: var(--font-mono);
+  font-size: var(--text-2xs);
+  color: var(--color-fg-muted);
+}
+
+.vw-text {
+  margin: 9px 0 0;
+  font-size: 0.9375rem;
+  line-height: 1.6;
+  color: var(--color-fg);
+  text-wrap: pretty;
+  overflow-wrap: anywhere;
+}
+
+/* ---------- Reacciones: mini-hanko ---------- */
+
+.vw-foot {
+  margin-top: 8px;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  flex-wrap: wrap;
+}
+
+.vw-react {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  padding: 4px 9px 4px 4px;
+  background: transparent;
+  border: 0;
+  border-radius: var(--radius-pill);
+  cursor: pointer;
+  color: var(--color-fg-muted);
+  font-family: var(--font-mono);
+  font-size: var(--text-2xs);
+  font-variant-numeric: tabular-nums;
+  -webkit-tap-highlight-color: transparent;
+}
+
+/* Zona táctil >= 44px sin engordar el visual */
+.vw-react::before {
+  content: "";
+  position: absolute;
+  inset: -5px;
+  border-radius: inherit;
+}
+
+.vw-react:disabled {
+  opacity: 0.55;
+  cursor: default;
+}
+
+.vw-react:hover:not(:disabled) {
+  color: var(--color-fg);
+}
+
+.vw-react-seal {
+  position: relative;
+  width: 28px;
+  height: 28px;
+  border-radius: var(--radius-pill);
+  display: grid;
+  place-items: center;
+  font-family: var(--font-kanji-serif);
+  font-size: 0.9375rem;
+  line-height: 1;
+  color: color-mix(in srgb, var(--color-hanko) 72%, var(--color-fg-muted));
+  border: 1px solid color-mix(in srgb, var(--color-hanko) 45%, transparent);
+  transition: background-color 150ms ease, color 150ms ease, border-color 150ms ease;
+}
+
+.vw-react[aria-pressed="true"] .vw-react-seal {
+  background: color-mix(in srgb, var(--color-hanko) 86%, var(--color-canvas));
+  border-color: var(--color-hanko);
+  color: var(--color-fg-strong);
+}
+
+/* El sello cae (overshoot de hanko) */
+.vw-react-seal[data-stamping="true"] {
+  animation: vw-stamp 250ms var(--ease-stamp) both;
+}
+
+@keyframes vw-stamp {
+  0% {
+    opacity: 0;
+    transform: translateY(-7px) scale(1.45);
+  }
+  62% {
+    opacity: 1;
+    transform: translateY(0) scale(0.93);
+  }
+  100% {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+/* Sangrado de tinta: capa pre-renderizada, cross-fade de opacity */
+.vw-react-seal::after {
+  content: "";
+  position: absolute;
+  inset: -6px;
+  border-radius: inherit;
+  background: radial-gradient(
+    circle,
+    color-mix(in srgb, var(--color-hanko) 38%, transparent) 0%,
+    transparent 70%
+  );
+  opacity: 0;
+  pointer-events: none;
+}
+
+.vw-react-seal[data-stamping="true"]::after {
+  animation: vw-bleed 350ms ease-out both;
+}
+
+@keyframes vw-bleed {
+  0% { opacity: 0; }
+  35% { opacity: 1; }
+  100% { opacity: 0; }
+}
+
+/* Contador rodante (sustituible por LiveNumber del repo) */
+.vw-react-count {
+  display: inline-grid;
+  overflow: hidden;
+  min-width: 1ch;
+  text-align: left;
+}
+
+.vw-react-count > span {
+  grid-area: 1 / 1;
+}
+
+.vw-roll-in {
+  animation: vw-roll-in 220ms var(--ease-lift) both;
+}
+
+.vw-roll-out {
+  animation: vw-roll-out 220ms var(--ease-lift) both;
+}
+
+.vw-react-count[data-dir="down"] .vw-roll-in {
+  animation-name: vw-roll-in-down;
+}
+
+.vw-react-count[data-dir="down"] .vw-roll-out {
+  animation-name: vw-roll-out-down;
+}
+
+@keyframes vw-roll-in {
+  from { opacity: 0; transform: translateY(0.85em); }
+  to { opacity: 1; transform: none; }
+}
+
+@keyframes vw-roll-out {
+  from { opacity: 1; transform: none; }
+  to { opacity: 0; transform: translateY(-0.85em); }
+}
+
+@keyframes vw-roll-in-down {
+  from { opacity: 0; transform: translateY(-0.85em); }
+  to { opacity: 1; transform: none; }
+}
+
+@keyframes vw-roll-out-down {
+  from { opacity: 1; transform: none; }
+  to { opacity: 0; transform: translateY(0.85em); }
+}
+
+/* Acciones de texto (Responder / Borrar) */
+.vw-foot-actions {
+  margin-left: auto;
+  display: inline-flex;
+  gap: 2px;
+}
+
+.vw-action {
+  position: relative;
+  background: transparent;
+  border: 0;
+  cursor: pointer;
+  color: var(--color-fg-muted);
+  font-family: var(--font-mono);
+  font-size: var(--text-2xs);
+  padding: 6px 8px;
+  border-radius: var(--radius-lg);
+  transition: color 150ms ease;
+}
+
+.vw-action::before {
+  content: "";
+  position: absolute;
+  inset: -5px;
+}
+
+.vw-action:hover {
+  color: var(--color-gold-bright);
+}
+
+.vw-action-danger:hover {
+  color: var(--color-accent-text);
+}
+
+/* ---------- Hilo de respuestas: sangría con cuerda fina ---------- */
+
+.vw-replies {
+  list-style: none;
+  margin: 10px 0 0 18px;
+  padding: 0 0 0 18px;
+  position: relative;
+  display: grid;
+  gap: 10px;
+}
+
+.vw-replies::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  top: 2px;
+  bottom: 10px;
+  width: 1px;
+  /* cuerda: trazo discontinuo dorado, pre-renderizado */
+  background: repeating-linear-gradient(
+    180deg,
+    var(--color-border-gold) 0,
+    var(--color-border-gold) 5px,
+    transparent 5px,
+    transparent 9px
+  );
+}
+
+.vw-replies .vw-strip {
+  padding: 11px 14px 8px;
+  contain-intrinsic-size: auto 104px;
+}
+
+.vw-replies .vw-avatar {
+  width: 28px;
+  height: 28px;
+  font-size: 0.75rem;
+}
+
+.vw-reply-composer {
+  margin: 10px 0 0 36px;
+}
+
+/* ---------- EL PINCEL (composer) ---------- */
+
+.vw-composer {
+  display: grid;
+  gap: 8px;
+}
+
+.vw-composer-paper {
+  position: relative;
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  padding: 12px 14px 14px;
+  transition: border-color 200ms var(--ease-lift);
+}
+
+.vw-composer-paper:focus-within {
+  border-color: var(--color-border-gold-subtle);
+}
+
+.vw-input {
+  display: block;
+  width: 100%;
+  min-height: 76px;
+  background: transparent;
+  border: 0;
+  resize: vertical;
+  color: var(--color-fg);
+  caret-color: var(--color-gold);
+  font: inherit;
+  font-size: 0.9375rem;
+  line-height: 1.6;
+}
+
+.vw-input:focus-visible {
+  outline: none; /* el foco lo señala la pincelada inferior + borde del papel */
+}
+
+.vw-input::placeholder {
+  color: var(--color-fg-muted);
+  opacity: 0.75;
+}
+
+/* Hairline inferior que se PINTA al enfocar (pincelada) */
+.vw-hairline {
+  position: absolute;
+  left: 12px;
+  right: 12px;
+  bottom: 7px;
+  height: 1px;
+  background: linear-gradient(
+    90deg,
+    var(--color-gold),
+    var(--color-gold-bright) 55%,
+    color-mix(in srgb, var(--color-gold-bright) 35%, transparent)
+  );
+  transform: scaleX(0);
+  transform-origin: 0 50%;
+  transition: transform 480ms var(--ease-brush);
+  pointer-events: none;
+}
+
+.vw-composer-paper:focus-within .vw-hairline {
+  transform: scaleX(1);
+}
+
+.vw-composer-foot {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+/* Contador que se entinta al acercarse al límite */
+.vw-counter {
+  margin-left: auto;
+  font-family: var(--font-mono);
+  font-size: var(--text-2xs);
+  font-variant-numeric: tabular-nums;
+  color: var(--color-fg-muted);
+  transition: color 200ms ease;
+}
+
+.vw-counter[data-ink="warm"] {
+  color: var(--color-gold-bright);
+}
+
+.vw-counter[data-ink="hot"] {
+  color: var(--color-accent-text);
+}
+
+.vw-submit {
+  background: var(--color-accent);
+  color: var(--color-fg-strong);
+  border: 0;
+  border-radius: var(--radius-pill);
+  min-height: 44px;
+  padding: 0 22px;
+  font: inherit;
+  font-size: 0.875rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background-color 150ms ease, transform 150ms var(--ease-lift);
+}
+
+.vw-submit:hover:not(:disabled) {
+  background: var(--color-accent-hover);
+}
+
+.vw-submit:active:not(:disabled) {
+  transform: translateY(1px);
+}
+
+.vw-submit:disabled {
+  opacity: 0.45;
+  cursor: default;
+}
+
+/* Error honesto: nunca se pierde lo escrito */
+.vw-error {
+  margin: 0;
+  display: flex;
+  align-items: baseline;
+  gap: 10px;
+  flex-wrap: wrap;
+  font-size: 0.8125rem;
+  line-height: 1.5;
+  color: var(--color-accent-text);
+}
+
+.vw-recover {
+  background: transparent;
+  border: 1px solid var(--color-border-gold-subtle);
+  border-radius: var(--radius-pill);
+  color: var(--color-gold-bright);
+  font-family: var(--font-mono);
+  font-size: var(--text-2xs);
+  padding: 4px 12px;
+  min-height: 28px;
+  cursor: pointer;
+}
+
+.vw-recover:hover {
+  border-color: var(--color-border-gold);
+}
+
+/* ---------- Invitado: formulario sellado ---------- */
+
+.vw-guest {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  flex-wrap: wrap;
+  padding: 16px;
+  border: 1px dashed var(--color-border-gold-subtle);
+  border-radius: var(--radius-lg);
+  background: color-mix(in srgb, var(--color-surface) 65%, transparent);
+}
+
+.vw-guest-seal {
+  flex: none;
+  width: 44px;
+  height: 44px;
+  border-radius: var(--radius-pill);
+  border: 2px solid color-mix(in srgb, var(--color-hanko) 60%, transparent);
+  color: var(--color-hanko);
+  display: grid;
+  place-items: center;
+  font-family: var(--font-kanji-serif);
+  font-size: 1.25rem;
+  transform: rotate(-6deg);
+}
+
+.vw-guest-text {
+  margin: 0;
+  display: grid;
+  gap: 2px;
+  min-width: 0;
+  flex: 1 1 200px;
+}
+
+.vw-guest-text strong {
+  font-size: 0.9375rem;
+  color: var(--color-fg-strong);
+  font-weight: 600;
+}
+
+.vw-guest-text span {
+  font-size: 0.8125rem;
+  color: var(--color-fg-muted);
+}
+
+.vw-cta {
+  flex: none;
+  display: inline-flex;
+  align-items: center;
+  min-height: 44px;
+  padding: 0 20px;
+  border-radius: var(--radius-pill);
+  background: var(--color-accent);
+  color: var(--color-fg-strong);
+  text-decoration: none;
+  font-size: 0.875rem;
+  font-weight: 600;
+  transition: background-color 150ms ease;
+}
+
+.vw-cta:hover {
+  background: var(--color-accent-hover);
+}
+
+/* ---------- Vacío: sé la primera voz ---------- */
+
+.vw-empty {
+  position: relative;
+  overflow: hidden;
+  display: grid;
+  justify-items: center;
+  gap: 4px;
+  text-align: center;
+  padding: 52px 20px;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  background: var(--color-surface);
+}
+
+.vw-empty-kanji {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -54%);
+  font-family: var(--font-kanji-serif);
+  font-size: 11rem;
+  line-height: 1;
+  color: var(--color-fg-strong);
+  opacity: 0.05;
+  pointer-events: none;
+  user-select: none;
+}
+
+.vw-empty-title {
+  margin: 0;
+  font-size: 1rem;
+  font-weight: 600;
+  color: var(--color-fg-strong);
+}
+
+.vw-empty-sub {
+  margin: 0;
+  font-size: 0.8125rem;
+  color: var(--color-fg-muted);
+}
+
+/* ---------- prefers-reduced-motion: completo ---------- */
+
+@media (prefers-reduced-motion: reduce) {
+  .vw-strip {
+    --vw-rot: 0deg; /* rotaciones a 0 (gana sobre --vw-rot-base inline) */
+  }
+
+  .voice-wall *,
+  .voice-wall *::before,
+  .voice-wall *::after {
+    animation-duration: 0.01ms !important;
+    animation-delay: 0ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+  /* El vuelo FLIP se omite en JS (reducedMotion() en el handler). */
+}
