@@ -201,10 +201,11 @@
 .bc-delta-neg { color: var(--color-accent-text); }
 
 /* Sin delta de ELO (el backend no lo expone): la columna del delta no se
-   renderiza. La rejilla colapsa esa pista a 0 para no dejar un hueco
-   muerto entre la fecha y el sello. */
+   renderiza. Quitamos la pista del delta (5 pistas para 5 hijos) en vez de
+   colapsarla a 0: si se colapsa, el sello se auto-coloca en esa pista de 0px
+   (desbordando) y queda un hueco muerto de 32px a la derecha. */
 .bc-row[data-no-delta="true"] {
-  grid-template-columns: 22px 34px minmax(0, 1fr) auto 0 32px;
+  grid-template-columns: 22px 34px minmax(0, 1fr) auto 32px;
 }
 
 /* ---------- Mini-sello hanko ---------- */
@@ -429,7 +430,7 @@ html.as-calm .bc-row[data-fresh="true"] .bc-stamp { opacity: 1; }
   }
 
   .bc-row[data-no-delta="true"] {
-    grid-template-columns: 18px 30px minmax(0, 1fr) auto 0 28px;
+    grid-template-columns: 18px 30px minmax(0, 1fr) auto 28px;
   }
 
   .bc-thumb { width: 30px; height: 45px; }

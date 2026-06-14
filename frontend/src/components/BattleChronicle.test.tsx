@@ -39,8 +39,8 @@ describe('BattleChronicle', () => {
     // Una fila <li> por combate.
     expect(screen.getAllByRole('listitem')).toHaveLength(3)
 
-    // Récord 2勝 · 1負 computado del array (no hardcodeado).
-    expect(screen.getByLabelText('2 victorias, 1 derrotas')).toBeInTheDocument()
+    // Récord 2勝 · 1負 computado del array (no hardcodeado); plural correcto.
+    expect(screen.getByLabelText('2 victorias, 1 derrota')).toBeInTheDocument()
 
     // aria-label completo por fila (sin cláusula de ELO: deltaElo ausente).
     expect(

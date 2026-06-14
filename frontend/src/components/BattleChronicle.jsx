@@ -241,12 +241,16 @@ export default function BattleChronicle({
   const [prevLista, setPrevLista] = useState(combates)
   if (prevLista !== combates) {
     setPrevLista(combates)
+    // Prepend de UN combate nuevo: la cabeza cambia y la cabeza vieja pasa al
+    // índice 1. NO se exige length+1 — el endpoint capa a 10, así que con la
+    // lista llena un combate nuevo mantiene length=10 (la última fila sale).
     const esPrepend =
       prevLista.length > 0 &&
-      combates.length === prevLista.length + 1 &&
+      combates.length > 0 &&
       combates[0] != null &&
-      combates[1] != null &&
       prevLista[0] != null &&
+      combates[0].id !== prevLista[0].id &&
+      combates[1] != null &&
       combates[1].id === prevLista[0].id
     if (esPrepend) {
       const c = combates[0]
@@ -357,7 +361,10 @@ export default function BattleChronicle({
         <span className="bc-head-kanji" aria-hidden="true">戦</span>
         <h2 className="bc-title">{titulo}</h2>
         {combates.length > 0 ? (
-          <p className="bc-record" aria-label={`${victorias} victorias, ${derrotas} derrotas`}>
+          <p
+            className="bc-record"
+            aria-label={`${victorias} ${victorias === 1 ? 'victoria' : 'victorias'}, ${derrotas} ${derrotas === 1 ? 'derrota' : 'derrotas'}`}
+          >
             <span aria-hidden="true">
               {victorias}<span className="bc-record-k">勝</span>
               {' · '}
