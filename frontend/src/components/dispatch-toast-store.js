@@ -24,13 +24,13 @@ let soundFn = null
 
 let active = [] // tiras visibles (incluye salientes)
 let queue = [] // FIFO en espera de hueco
-let announce = { polite: '', assertive: '', seq: 0 }
+// seq INDEPENDIENTE por región: si compartieran uno, disparar un toast polite
+// mutaría el texto de la región assertive (paridad del padding) y el lector
+// re-anunciaría el último error. Cada región solo cambia con su propio tipo.
+let announce = { polite: '', assertive: '', politeSeq: 0, assertiveSeq: 0 }
 let snapshot = null
 const listeners = new Set()
 
-function countVisible() {
-  return active.reduce((n, t) => (t.leaving ? n : n + 1), 0)
-}
 
 function commit() {
   snapshot = {
@@ -121,9 +121,11 @@ function resolveTtl(p, type) {
 
 function pushAnnounce(t) {
   const text = t.title + (t.data ? ` — ${t.data}` : '')
-  announce = { ...announce, seq: announce.seq + 1 }
-  if (t.type === 'error') announce.assertive = text
-  else announce.polite = text
+  if (t.type === 'error') {
+    announce = { ...announce, assertive: text, assertiveSeq: announce.assertiveSeq + 1 }
+  } else {
+    announce = { ...announce, polite: text, politeSeq: announce.politeSeq + 1 }
+  }
 }
 
 function push(p) {
@@ -138,7 +140,11 @@ function push(p) {
     held: false,
     leaving: null,
   }
-  if (countVisible() < maxVisible) {
+  // Gatear con active.length (incluye las salientes), no countVisible: si un
+  // toast entra durante la ventana de salida de otro, ambos coexistirían
+  // visibles y se rompería el invariante ≤3. Esperan en cola FIFO hasta que la
+  // saliente se retira de verdad (remove()).
+  if (active.length < maxVisible) {
     active = active.concat(t)
     armEntry(t)
   } else {
@@ -190,7 +196,7 @@ export function remove(id) {
   const before = active.length
   active = active.filter((x) => x.id !== id)
   if (active.length === before) return
-  while (queue.length > 0 && countVisible() < maxVisible) {
+  while (queue.length > 0 && active.length < maxVisible) {
     const nxt = queue[0]
     queue = queue.slice(1)
     active = active.concat(nxt)
@@ -249,6 +255,9 @@ export const toast = Object.assign(make('info'), {
   success: make('success'),
   error: make('error'),
   info: make('info'),
+  // Compat sonner: toast.message es un toast neutro → mismo tipo que info (報).
+  // Lo usa ComentariosPersonaje; sin él, toast.message lanzaba TypeError.
+  message: make('info'),
   achievement: make('achievement'),
   dismiss: (id) => (id == null ? clearAll() : dismiss(id, 'natural')),
 })

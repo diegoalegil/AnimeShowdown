@@ -204,7 +204,9 @@
   font-size: 0.75rem;
   color: var(--color-gold-bright);
 }
-.dt-parte[data-type="error"] .dt-data { color: var(--color-accent-text); }
+/* La descripción de error usa el fg neutro (contraste AA): el rojo de acento
+   queda solo para el sello y el título, no para el cuerpo de texto pequeño. */
+.dt-parte[data-type="error"] .dt-data { color: var(--color-fg); }
 
 /* ---- acción y cierre (hit targets ≥44px) ----------------------------- */
 .dt-action {

@@ -172,16 +172,16 @@ export default function DispatchToasterView({ maxVisible: maxProp = 3, sound = t
 
   const shown = state.active.slice().reverse() // la más nueva arriba
   const ann = state.announce
-  const pad = (txt) => (ann.seq % 2 === 1 ? `${txt}\u200B` : txt)
+  const pad = (txt, seq) => (seq % 2 === 1 ? `${txt}\u200B` : txt)
 
   return (
     <section className={`dt-viewport ${className}`} data-motion={reduced ? 'off' : 'on'} aria-label="Partes del cuartel">
       {/* polite para 成/報/章; assertive SOLO errores (否). */}
       <div className="dt-live" aria-live="polite">
-        {pad(ann.polite)}
+        {pad(ann.polite, ann.politeSeq)}
       </div>
       <div className="dt-live" aria-live="assertive">
-        {pad(ann.assertive)}
+        {pad(ann.assertive, ann.assertiveSeq)}
       </div>
       <ol className="dt-stack">
         {shown.map((t, i) => (

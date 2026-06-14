@@ -1,8 +1,6 @@
 import { lazy, Suspense, useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { toast } from 'sonner'
-import { Trophy } from 'lucide-react'
-import { iconoDeBadge } from '../lib/badgeIcons'
 import { kanjiDeBadge } from '../lib/badgeKanji'
 import { rarezaToKey } from '../features/logros/medal-rarity'
 import { useAuth } from '../contexts/AuthContext'
@@ -47,8 +45,6 @@ function BadgeUnlockListener() {
     } catch {
       /* payload inválido, seguimos con defaults */
     }
-    const IconBadge = payload.icono ? iconoDeBadge(payload.icono) : Trophy
-
     // 1) Ceremonia de acuñación (o sonido directo bajo reduced-motion).
     //    setState diferido a microtask: el effect solo reacciona al push del
     //    WS (mismo patrón que DueloLivePage con aplicarEstado).
@@ -71,7 +67,6 @@ function BadgeUnlockListener() {
     // 2) Parte de logro (章, filo oro) 6s. Click → logro concreto.
     toast.achievement(lastMessage.titulo || '¡Logro desbloqueado!', {
       description: lastMessage.mensaje,
-      icon: <IconBadge className="h-5 w-5 text-gold" />,
       duration: 6000,
       action: {
         label: 'Ver',
