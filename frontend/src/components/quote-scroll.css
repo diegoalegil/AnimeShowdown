@@ -1,0 +1,350 @@
+/* ============================================================
+   QuoteScroll — kakejiku de la cita del personaje
+   Archivo de FEATURE: lo importa QuoteScroll.jsx (CSP por hash,
+   cero estilos en runtime; los @keyframes viven aquí).
+   Solo tokens del sistema + color-mix(); easings globales
+   --ease-lift / --ease-brush. ease-stamp NO es token global:
+   se declara LOCAL más abajo.
+   Se anima únicamente transform/opacity. Sin blur, sin filtros.
+   Sin loops propios (la piel .skl del esqueleto es la del repo).
+   ============================================================ */
+
+.qs-root {
+  /* ease-stamp local (overshoot de hanko) */
+  --qs-ease-stamp: cubic-bezier(0.34, 1.56, 0.64, 1);
+  --qs-paper: var(--color-fg-strong);
+  --qs-ink: var(--color-canvas);
+  --qs-width: 21rem;
+  --qs-rod-b: 1rem;
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  width: min(var(--qs-width), 100%);
+  margin: 0;
+  margin-inline: auto;
+}
+
+/* ---- cuelgue y varillas ---- */
+
+.qs-cord {
+  width: 1px;
+  height: 0.875rem;
+  margin-inline: auto;
+  background: var(--color-border-gold);
+}
+
+.qs-rod {
+  position: relative;
+  z-index: 3;
+  display: block;
+  margin-inline: -0.5rem;
+  border-radius: var(--radius-pill);
+  background: linear-gradient(
+    180deg,
+    color-mix(in srgb, var(--color-surface-alt) 86%, var(--color-gold)),
+    var(--color-surface-alt) 55%,
+    color-mix(in srgb, var(--color-surface-alt) 80%, var(--color-canvas))
+  );
+  border-top: 1px solid var(--color-border-gold-subtle);
+  box-shadow: var(--shadow-elev-2);
+}
+
+.qs-rod--top {
+  height: 0.625rem;
+}
+
+.qs-rod--bottom {
+  height: var(--qs-rod-b);
+}
+
+/* jikusaki — pomos del rodillo inferior */
+.qs-rod--bottom::before,
+.qs-rod--bottom::after {
+  content: "";
+  position: absolute;
+  top: 50%;
+  width: 0.875rem;
+  height: 1.375rem;
+  transform: translateY(-50%);
+  border-radius: var(--radius-pill);
+  background: color-mix(in srgb, var(--color-gold) 32%, var(--color-surface-alt));
+  border: 1px solid var(--color-border-gold-subtle);
+}
+
+.qs-rod--bottom::before { left: -0.625rem; }
+.qs-rod--bottom::after { right: -0.625rem; }
+
+/* ---- lámina (papel washi) ---- */
+
+.qs-body {
+  position: relative;
+}
+
+.qs-sheet {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 1rem;
+  min-height: 19rem;
+  padding: 2.75rem 1.75rem 5.5rem;
+  transform-origin: top center;
+  background: linear-gradient(
+    180deg,
+    color-mix(in srgb, var(--qs-paper) 94%, var(--color-gold)),
+    var(--qs-paper) 14%,
+    var(--qs-paper) 84%,
+    color-mix(in srgb, var(--qs-paper) 93%, var(--color-canvas))
+  );
+}
+
+/* ichimonji — bandas de brocado arriba y abajo del papel */
+.qs-sheet::before,
+.qs-sheet::after {
+  content: "";
+  position: absolute;
+  inset-inline: 0;
+  height: 0.75rem;
+  background: color-mix(in srgb, var(--color-gold) 26%, var(--qs-paper));
+}
+
+.qs-sheet::before {
+  top: 0;
+  border-bottom: 1px solid var(--color-border-gold);
+}
+
+.qs-sheet::after {
+  bottom: 0;
+  border-top: 1px solid var(--color-border-gold);
+}
+
+/* marca de agua kanji al 5% (誓 — canónico) */
+.qs-watermark {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  font-family: var(--font-kanji-serif);
+  font-size: 10rem;
+  line-height: 1;
+  color: color-mix(in srgb, var(--qs-ink) 5%, transparent);
+  pointer-events: none;
+  user-select: none;
+}
+
+/* ---- la cita ---- */
+
+.qs-quote {
+  position: relative;
+  z-index: 1;
+  margin: 0;
+}
+
+.qs-text {
+  margin: 0;
+  font-family: var(--font-kanji-serif);
+  font-size: 1.25rem;
+  font-weight: 400;
+  line-height: 1.9;
+  letter-spacing: 0.01em;
+  color: var(--qs-ink);
+  text-wrap: pretty;
+}
+
+/* cita larga (>200 chars): baja un punto; el pergamino crece, sin scroll */
+.qs-long .qs-text {
+  font-size: 1.0625rem;
+  line-height: 1.85;
+}
+
+/* ---- atribución (figcaption, hija directa de figure) ---- */
+
+.qs-attrib {
+  position: absolute;
+  inset-inline: 0;
+  bottom: calc(var(--qs-rod-b) + 2rem);
+  z-index: 2;
+  padding-inline: 1.75rem 5.25rem;
+  font-family: var(--font-mono);
+  font-size: var(--text-2xs, 0.6875rem);
+  letter-spacing: 0.02em;
+  line-height: 1.5;
+  color: color-mix(in srgb, var(--qs-ink) 70%, transparent);
+}
+
+.qs-cite {
+  font-style: normal;
+  color: color-mix(in srgb, var(--qs-ink) 90%, transparent);
+}
+
+/* ---- sello hanko del autor ---- */
+
+.qs-seal {
+  position: absolute;
+  right: 1.5rem;
+  bottom: 1.75rem;
+  z-index: 2;
+  display: grid;
+  place-items: center;
+  width: 2.75rem;
+  height: 2.75rem;
+  transform: rotate(-3deg);
+  border-radius: calc(var(--radius-lg) * 0.75);
+  background: var(--color-hanko);
+  color: var(--qs-paper);
+  font-family: var(--font-kanji-serif);
+  font-size: 1.625rem;
+  line-height: 1;
+}
+
+/* anillo interior del hanko */
+.qs-seal::after {
+  content: "";
+  position: absolute;
+  inset: 0.1875rem;
+  border: 1px solid color-mix(in srgb, var(--qs-paper) 55%, transparent);
+  border-radius: calc(var(--radius-lg) * 0.5);
+  pointer-events: none;
+}
+
+/* sangrado de tinta: capa pre-renderizada, solo cross-fade de opacity */
+.qs-seal::before {
+  content: "";
+  position: absolute;
+  inset: -0.25rem;
+  z-index: -1;
+  border-radius: var(--radius-lg);
+  background: color-mix(in srgb, var(--color-hanko) 28%, transparent);
+}
+
+/* ---- esqueleto de carga (silueta de pergamino, piel .skl del repo) ---- */
+
+.qs-skeleton .qs-rod,
+.qs-skeleton .qs-cord {
+  opacity: 0.55;
+}
+
+.qs-skeleton .qs-sheet {
+  min-height: var(--qs-reserve, 19rem);
+  padding: 0;
+  background: color-mix(in srgb, var(--color-surface) 85%, var(--color-canvas));
+}
+
+.qs-skeleton .qs-sheet::before,
+.qs-skeleton .qs-sheet::after {
+  background: color-mix(in srgb, var(--color-gold) 10%, var(--color-surface));
+  border-color: var(--color-border-gold-subtle);
+}
+
+/* ============================================================
+   COREOGRAFÍA — una sola vez, gobernada por data-phase.
+   Estado base = estado FINAL (visible): print y reduced-motion
+   muestran siempre el kakejiku desplegado.
+   ============================================================ */
+
+@media (prefers-reduced-motion: no-preference) {
+  /* pre: colgado pero enrollado */
+  .qs-root[data-phase="pre"] .qs-sheet {
+    transform: scaleY(0.06);
+  }
+  .qs-root[data-phase="pre"] .qs-rod--bottom {
+    transform: translateY(calc(-0.94 * var(--qs-drop, 19rem)));
+  }
+  .qs-root[data-phase="pre"] .qs-quote,
+  .qs-root[data-phase="pre"] .qs-watermark,
+  .qs-root[data-phase="pre"] .qs-attrib,
+  .qs-root[data-phase="pre"] .qs-seal {
+    opacity: 0;
+  }
+
+  /* play: desenrollado + texto + sello */
+  .qs-root[data-phase="play"] .qs-sheet {
+    animation: qs-unroll 500ms var(--ease-lift) both;
+  }
+  .qs-root[data-phase="play"] .qs-rod--bottom {
+    animation: qs-rod-drop 500ms var(--ease-lift) both;
+  }
+  .qs-root[data-phase="play"] .qs-quote,
+  .qs-root[data-phase="play"] .qs-watermark,
+  .qs-root[data-phase="play"] .qs-attrib {
+    animation: qs-fade 240ms ease-out 300ms both;
+  }
+  .qs-root[data-phase="play"] .qs-seal {
+    animation: qs-stamp 300ms var(--qs-ease-stamp) 520ms both;
+  }
+  .qs-root[data-phase="play"] .qs-seal::before {
+    animation: qs-bleed 220ms var(--ease-brush) 760ms both;
+  }
+}
+
+@keyframes qs-unroll {
+  from { transform: scaleY(0.06); }
+  to { transform: scaleY(1); }
+}
+
+@keyframes qs-rod-drop {
+  from { transform: translateY(calc(-0.94 * var(--qs-drop, 19rem))); }
+  to { transform: translateY(0); }
+}
+
+@keyframes qs-fade {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes qs-stamp {
+  from { opacity: 0; transform: rotate(-3deg) scale(1.45); }
+  to { opacity: 1; transform: rotate(-3deg) scale(1); }
+}
+
+@keyframes qs-bleed {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+/* ---- 390px: ancho completo con varillas finas ---- */
+
+@media (max-width: 26.25rem) {
+  .qs-root {
+    --qs-width: 100%;
+    --qs-rod-b: 0.75rem;
+  }
+  .qs-rod {
+    margin-inline: -0.25rem;
+  }
+  .qs-rod--top {
+    height: 0.5rem;
+  }
+  .qs-rod--bottom::before,
+  .qs-rod--bottom::after {
+    width: 0.625rem;
+    height: 1.0625rem;
+  }
+  .qs-sheet {
+    padding: 2.25rem 1.25rem 5rem;
+  }
+  .qs-attrib {
+    padding-inline: 1.25rem 4.75rem;
+  }
+  .qs-seal {
+    right: 1.125rem;
+    bottom: 1.5rem;
+  }
+}
+
+/* ---- print: siempre el estado final, sin transforms residuales ---- */
+
+@media print {
+  .qs-root[data-phase] .qs-sheet,
+  .qs-root[data-phase] .qs-rod--bottom {
+    transform: none;
+    animation: none;
+  }
+  .qs-root[data-phase] .qs-quote,
+  .qs-root[data-phase] .qs-watermark,
+  .qs-root[data-phase] .qs-attrib,
+  .qs-root[data-phase] .qs-seal {
+    opacity: 1;
+    animation: none;
+  }
+}
