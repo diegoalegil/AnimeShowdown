@@ -46,8 +46,11 @@ function DispatchLiveRegions() {
   const { announce } = useSyncExternalStore(subscribe, getSnapshot)
   return (
     <>
+      {/* role status/alert: roles de live-region que SÍ admiten aria-label
+          (un div con aria-label y sin rol dispara axe aria-prohibited-attr). */}
       <div
         className="sr-only"
+        role="status"
         aria-live="polite"
         aria-label="Notificaciones de AnimeShowdown"
       >
@@ -55,6 +58,7 @@ function DispatchLiveRegions() {
       </div>
       <div
         className="sr-only"
+        role="alert"
         aria-live="assertive"
         aria-label="Alertas de AnimeShowdown"
       >
