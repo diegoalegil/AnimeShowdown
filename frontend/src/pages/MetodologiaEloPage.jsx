@@ -1,3 +1,4 @@
+import { useCallback } from 'react'
 import { Link } from 'react-router-dom'
 import { ArrowRight, BarChart3, HelpCircle, ShieldCheck, Swords, Trophy } from 'lucide-react'
 import { useSeo } from '../hooks/useSeo'
@@ -5,6 +6,14 @@ import { breadcrumbsSchema, faqPageSchema } from '../lib/schema'
 import JsonLd from '../components/JsonLd'
 import { CinematicHero, VisualPageShell } from '../components/VisualSystem'
 import { BRAND_VISUALS } from '../data/visual-assets'
+import { useSoundOptional } from '../contexts/SoundContext'
+import EloTreatise from '../components/EloTreatise'
+
+// Factor K de DEMOSTRACIÓN del ejemplo vivo del tratado. El valor K real del
+// producto vive en el backend (la metodología es una estimación ELO base +
+// ranking comunitario); 32 es el valor canónico de demostración para ilustrar
+// la matemática estándar descrita en el documento, etiquetado como tal en la UI.
+const DEMO_K_FACTOR = 32
 
 const FAQ = [
   {
@@ -37,6 +46,12 @@ function MetodologiaEloPage() {
     canonical: 'https://animeshowdown.dev/metodologia-elo',
     image: BRAND_VISUALS.ranking.image,
   })
+
+  // El impacto del sello hanko (~180ms tras montar el tratado) dispara el
+  // sonido del sello vía SoundContext; respeta el mute global y no peta
+  // fuera del provider (variante opcional).
+  const { play } = useSoundOptional()
+  const handleStamp = useCallback(() => play('playSello'), [play])
 
   return (
     <VisualPageShell visual={BRAND_VISUALS.ranking} className="py-10 sm:py-12" lateralKanji={{ left: '理', right: '戦' }}>
@@ -84,6 +99,17 @@ function MetodologiaEloPage() {
             text="Los invitados tienen límite y peso reducido. Las cuentas mantienen historial y ayudan a proteger el ranking."
           />
         </section>
+
+        {/* El tratado del ELO: documento de archivo con sello hanko, fórmulas
+            con corte de tinta y ejemplo vivo interactivo. Reskin de la
+            metodología; todo su copy es crawlable como texto. */}
+        <div className="mt-8">
+          <EloTreatise
+            kFactor={DEMO_K_FACTOR}
+            revision="2026.06"
+            onStamp={handleStamp}
+          />
+        </div>
 
         <section className="mt-8 rounded-2xl border border-border bg-surface p-5 sm:p-6">
           <p className="text-[11px] font-black text-gold">
