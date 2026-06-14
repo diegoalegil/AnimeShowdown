@@ -1,0 +1,511 @@
+/* ============================================================
+   Issue 107 «Las preguntas al maestro» — /faq
+   Archivo de FEATURE: lo importa FaqPage.jsx (import './master-faq.css').
+   Solo tokens de index.css + color-mix(in srgb, var(--token) N%, transparent).
+   Cero literales de color (tambien en comentarios). Los @keyframes viven
+   aqui (CSP por hash: nada de estilos en runtime).
+   Animaciones: SOLO transform / opacity / grid-template-rows (acordeon legal).
+   Sin blur, sin backdrop-filter, sin SVG filters.
+   ============================================================ */
+
+.master-faq {
+  /* ease-stamp NO es token global: se declara local a la pieza */
+  --ease-stamp: cubic-bezier(0.34, 1.56, 0.64, 1);
+  --mf-open-dur: 280ms;   /* despliegue */
+  --mf-close-dur: 200ms;  /* plegado */
+  --mf-corner-size: 22px; /* esquina doblada */
+
+  max-width: 64rem;
+  margin-inline: auto;
+  padding: 1.25rem 1rem 4rem;
+  color: var(--color-fg);
+  font-family: var(--font-sans);
+}
+
+/* ---------------- cabecera: audiencia con el maestro ---------------- */
+
+.mf-header {
+  position: relative;
+  padding: 1.5rem 0 0;
+  margin-bottom: 1.5rem;
+  overflow: hidden;
+}
+.mf-header::after {
+  /* hairline dorada editorial */
+  content: "";
+  display: block;
+  height: 1px;
+  margin-top: 1.25rem;
+  background: linear-gradient(90deg, var(--color-border-gold), transparent 70%);
+}
+.mf-watermark {
+  /* marca de agua kanji al 5% (canon de la casa) */
+  position: absolute;
+  right: -0.5rem;
+  top: -1.25rem;
+  font-family: var(--font-kanji-serif);
+  font-size: clamp(6.5rem, 20vw, 10.5rem);
+  line-height: 1;
+  color: color-mix(in srgb, var(--color-gold) 5%, transparent);
+  pointer-events: none;
+  user-select: none;
+}
+.mf-eyebrow {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  margin: 0 0 0.875rem;
+}
+.mf-path {
+  font-family: var(--font-mono);
+  font-size: 0.8125rem;
+  color: var(--color-gold);
+}
+.mf-title {
+  margin: 0;
+  font-size: clamp(1.75rem, 5.5vw, 2.5rem);
+  line-height: 1.08;
+  font-weight: 650;
+  letter-spacing: -0.01em;
+  color: var(--color-fg-strong);
+  text-wrap: balance;
+}
+.mf-subtitle {
+  margin: 0.625rem 0 0;
+  max-width: 46rem;
+  color: var(--color-fg-muted);
+  font-size: 1rem;
+  line-height: 1.55;
+  text-wrap: pretty;
+}
+
+/* sello hanko: caida + overshoot (--ease-stamp) + sangrado por cross-fade */
+.mf-hanko {
+  position: relative;
+  display: grid;
+  place-items: center;
+  width: 44px;
+  height: 44px;
+  flex: none;
+  background: var(--color-hanko);
+  color: var(--color-fg-strong);
+  font-family: var(--font-kanji-serif);
+  font-size: 1.5rem;
+  line-height: 1;
+  border-radius: var(--radius-lg);
+  transform: rotate(-3deg);
+  animation: mf-stamp 420ms var(--ease-stamp) both;
+}
+.mf-hanko::after {
+  /* sangrado: capa pre-renderizada que se funde por opacity (sin blur) */
+  content: "";
+  position: absolute;
+  inset: -3px;
+  z-index: -1;
+  border-radius: inherit;
+  background: color-mix(in srgb, var(--color-hanko) 32%, transparent);
+  transform: rotate(2.5deg);
+  animation: mf-bleed 620ms linear both;
+}
+@keyframes mf-stamp {
+  0%   { transform: scale(1.9) rotate(-11deg); opacity: 0; }
+  62%  { transform: scale(0.94) rotate(-2deg); opacity: 1; }
+  100% { transform: scale(1) rotate(-3deg); opacity: 1; }
+}
+@keyframes mf-bleed {
+  0%, 55% { opacity: 0; }
+  78%     { opacity: 1; }
+  100%    { opacity: 0.85; }
+}
+
+/* ---------------- busqueda local ---------------- */
+
+.mf-search { margin: 0 0 1.25rem; }
+.mf-search input {
+  width: 100%;
+  min-height: 44px;
+  padding: 0.625rem 0.875rem;
+  background: var(--color-surface);
+  color: var(--color-fg-strong);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  font: inherit;
+}
+.mf-search input::placeholder { color: var(--color-fg-muted); }
+.mf-search input:focus-visible {
+  outline: 2px solid color-mix(in srgb, var(--color-gold) 60%, transparent);
+  outline-offset: 1px;
+  border-color: var(--color-border-gold-subtle);
+}
+.mf-search-count {
+  margin: 0.375rem 0 0;
+  min-height: 1.2em;
+  font-family: var(--font-mono);
+  font-size: var(--text-2xs);
+  color: var(--color-fg-muted);
+}
+.mf-mark {
+  background: color-mix(in srgb, var(--color-gold) 26%, transparent);
+  color: var(--color-fg-strong);
+  border-radius: 2px;
+  padding: 0 1px;
+}
+
+/* ---------------- layout: pestanas de cuaderno + pergaminos ---------------- */
+
+.mf-body { display: grid; gap: 1rem; align-items: start; }
+.mf-tabs {
+  display: flex;
+  gap: 0.375rem;
+  overflow-x: auto;
+  padding-bottom: 0.25rem;
+}
+.mf-tab {
+  display: flex;
+  align-items: center;
+  gap: 0.625rem;
+  min-height: 44px;
+  padding: 0.5rem 0.875rem;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  background: transparent;
+  color: var(--color-fg-muted);
+  font: inherit;
+  font-size: 0.9375rem;
+  white-space: nowrap;
+  cursor: pointer;
+  transition: transform var(--mf-close-dur) var(--ease-lift),
+    color 150ms linear, border-color 150ms linear, background-color 150ms linear;
+}
+.mf-tab:hover { color: var(--color-fg-strong); }
+.mf-tab:focus-visible {
+  outline: 2px solid color-mix(in srgb, var(--color-gold) 70%, transparent);
+  outline-offset: 2px;
+}
+.mf-tab[aria-selected="true"] {
+  background: var(--color-surface-alt);
+  color: var(--color-fg-strong);
+  border-color: var(--color-border-gold-subtle);
+}
+.mf-tab-kanji {
+  font-family: var(--font-kanji-serif);
+  font-size: 1.0625rem;
+  color: var(--color-gold);
+  opacity: 0.75;
+}
+.mf-tab[aria-selected="true"] .mf-tab-kanji { opacity: 1; }
+.mf-tab-count {
+  margin-left: auto;
+  padding-left: 0.625rem;
+  font-family: var(--font-mono);
+  font-size: var(--text-2xs);
+  color: var(--color-fg-muted);
+}
+
+@media (min-width: 720px) {
+  .mf-body { grid-template-columns: 13rem minmax(0, 1fr); gap: 2rem; }
+  .mf-tabs {
+    flex-direction: column;
+    position: sticky;
+    top: 4.5rem;
+    overflow: visible;
+    padding-bottom: 0;
+    border-right: 1px solid var(--color-border);
+    padding-right: 0.875rem;
+  }
+  /* la pestana activa "sale del cuaderno" hacia el contenido */
+  .mf-tab[aria-selected="true"] { transform: translateX(6px); }
+}
+
+/* tabpanels inactivos: SIEMPRE en el DOM (crawlables) pero ocultos a la vista.
+   No usamos display:none porque el contenido (las ~10 Q/A) debe seguir siendo
+   texto rastreable; el atributo hidden de HTML lo retira del flujo visual y del
+   arbol de accesibilidad sin borrarlo del DOM. */
+.mf-tabpanel[hidden] { display: none; }
+
+/* ---------------- pergamino (item de acordeon) ---------------- */
+
+.mf-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.625rem;
+}
+.mf-item {
+  position: relative;
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  overflow: hidden;
+  transition: border-color 200ms linear, box-shadow 200ms linear;
+}
+.mf-item:hover { border-color: color-mix(in srgb, var(--color-gold) 22%, transparent); }
+.mf-item[data-open] {
+  border-color: var(--color-border-gold-subtle);
+  box-shadow: var(--shadow-elev-2);
+}
+
+.mf-q { margin: 0; font-size: inherit; font-weight: inherit; }
+.mf-q-btn {
+  display: block;
+  width: 100%;
+  min-height: 44px;
+  padding: 0.875rem 3.25rem 0.875rem 1rem;
+  background: none;
+  border: 0;
+  text-align: left;
+  font: inherit;
+  font-size: 1rem;
+  font-weight: 550;
+  line-height: 1.45;
+  color: var(--color-fg-strong);
+  cursor: pointer;
+}
+.mf-q-btn:hover { color: var(--color-gold-bright); }
+.mf-q-btn:focus-visible {
+  outline: 2px solid color-mix(in srgb, var(--color-gold) 70%, transparent);
+  outline-offset: -3px;
+  border-radius: inherit;
+}
+
+/* chevron (cuna de borde, rota down->up) */
+.mf-chevron {
+  position: absolute;
+  right: 1.125rem;
+  top: 1.35rem;
+  width: 8px;
+  height: 8px;
+  border-right: 1.5px solid var(--color-gold);
+  border-bottom: 1.5px solid var(--color-gold);
+  transform: rotate(45deg);
+  transition: transform var(--mf-open-dur) var(--ease-lift);
+  pointer-events: none;
+}
+.mf-item[data-open] .mf-chevron { transform: rotate(225deg); }
+
+/* esquina doblada: triangulo de lienzo (pagina cortada) + solapa con filo
+   dorado, en un solo nodo con gradientes de 2 paradas. Al abrir se ALISA:
+   scale(0) hacia la esquina + fade (solo transform/opacity). */
+.mf-corner {
+  position: absolute;
+  top: 0;
+  right: 0;
+  width: var(--mf-corner-size);
+  height: var(--mf-corner-size);
+  pointer-events: none;
+  transform-origin: top right;
+  transition: transform var(--mf-open-dur) var(--ease-lift),
+    opacity var(--mf-open-dur) var(--ease-lift);
+  background:
+    linear-gradient(
+      225deg,
+      transparent calc(50% - 1.5px),
+      color-mix(in srgb, var(--color-gold) 55%, transparent) calc(50% - 1.5px),
+      color-mix(in srgb, var(--color-gold) 55%, transparent) calc(50% + 0.5px),
+      transparent calc(50% + 0.5px)
+    ),
+    linear-gradient(225deg, var(--color-bg) 50%, var(--color-surface-alt) 50%);
+}
+.mf-item[data-open] .mf-corner {
+  transform: scale(0);
+  opacity: 0;
+}
+
+/* ---------------- despliegue: grid-rows 0fr->1fr (cero height animado) ------- */
+
+.mf-panel {
+  display: grid;
+  grid-template-rows: 0fr;
+  transition: grid-template-rows var(--mf-close-dur) var(--ease-lift);
+}
+.mf-item[data-open] .mf-panel {
+  grid-template-rows: 1fr;
+  transition-duration: var(--mf-open-dur);
+}
+.mf-panel-inner {
+  overflow: hidden;
+  min-height: 0;
+  /* plegado: fuera del arbol de accesibilidad pero el texto permanece en el
+     DOM (rastreable por el renderer; no es display:none ni se borra) */
+  visibility: hidden;
+  transition: visibility 0s linear var(--mf-close-dur);
+}
+.mf-item[data-open] .mf-panel-inner {
+  visibility: visible;
+  transition-delay: 0s;
+}
+.mf-a {
+  padding: 0 3.25rem 1rem 1rem;
+  font-size: 0.9375rem;
+  line-height: 1.6;
+  color: var(--color-fg);
+  opacity: 0;
+  transform: translateY(-4px);
+  transition: opacity var(--mf-close-dur) var(--ease-lift),
+    transform var(--mf-close-dur) var(--ease-lift);
+}
+.mf-item[data-open] .mf-a {
+  opacity: 1;
+  transform: none;
+  transition-duration: var(--mf-open-dur);
+}
+.mf-a p { margin: 0.625rem 0 0; text-wrap: pretty; }
+
+/* corte de tinta: hairline dorada que se retira con --ease-brush */
+.mf-cut {
+  display: block;
+  height: 1px;
+  background: linear-gradient(90deg, var(--color-gold), transparent 85%);
+  transform: scaleX(0);
+  transform-origin: left;
+  transition: transform var(--mf-open-dur) var(--ease-brush);
+}
+.mf-item[data-open] .mf-cut { transform: scaleX(1); }
+
+/* ---------------- modo busqueda ---------------- */
+
+.mf-group { margin: 0 0 1.25rem; }
+.mf-group-label {
+  display: flex;
+  align-items: center;
+  gap: 0.625rem;
+  margin: 0 0 0.625rem;
+  font-family: var(--font-mono);
+  font-size: var(--text-2xs);
+  font-weight: 400;
+  color: var(--color-gold);
+}
+.mf-group-label::after {
+  content: "";
+  height: 1px;
+  flex: 1;
+  background: color-mix(in srgb, var(--color-gold) 18%, transparent);
+}
+.mf-group-kanji { font-family: var(--font-kanji-serif); font-size: 0.875rem; }
+
+.mf-empty {
+  padding: 3rem 1rem 2rem;
+  text-align: center;
+  color: var(--color-fg-muted);
+}
+.mf-empty-kanji {
+  display: block;
+  margin-bottom: 0.75rem;
+  font-family: var(--font-kanji-serif);
+  font-size: 3rem;
+  line-height: 1;
+  color: color-mix(in srgb, var(--color-gold) 35%, transparent);
+}
+.mf-empty p { margin: 0; }
+
+/* ---------------- cierre editorial: contacto + enlaces ---------------- */
+
+.mf-footer {
+  margin-top: 2.5rem;
+  padding: 1.5rem;
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+}
+.mf-footer-title {
+  margin: 0;
+  font-size: 1.0625rem;
+  font-weight: 650;
+  color: var(--color-fg-strong);
+}
+.mf-footer-text {
+  margin: 0.5rem 0 0;
+  font-size: 0.875rem;
+  line-height: 1.55;
+  color: var(--color-fg-muted);
+}
+.mf-footer-actions {
+  margin-top: 1rem;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+.mf-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.375rem;
+  min-height: 44px;
+  padding: 0 1.125rem;
+  border-radius: var(--radius-lg);
+  font-size: 0.875rem;
+  font-weight: 600;
+  text-decoration: none;
+  cursor: pointer;
+  transition: transform 150ms var(--ease-lift),
+    color 150ms linear, border-color 150ms linear, background-color 150ms linear;
+}
+.mf-btn:focus-visible {
+  outline: 2px solid color-mix(in srgb, var(--color-gold) 70%, transparent);
+  outline-offset: 2px;
+}
+.mf-btn-primary {
+  background: var(--color-accent);
+  /* fg-strong (claro) sobre accent: contraste AA. accent-text es un rojo de
+     PRIMER PLANO (links/iconos), no texto-sobre-accent → daba rojo-sobre-rojo. */
+  color: var(--color-fg-strong);
+  border: 1px solid transparent;
+}
+.mf-btn-primary:hover { transform: translateY(-1px); }
+.mf-btn-ghost {
+  background: var(--color-bg);
+  color: var(--color-fg-strong);
+  border: 1px solid var(--color-border);
+}
+.mf-btn-ghost:hover { border-color: var(--color-border-gold-subtle); color: var(--color-gold); }
+
+.mf-links {
+  margin-top: 1.5rem;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.75rem;
+  font-size: 0.8125rem;
+  color: var(--color-fg-muted);
+}
+.mf-link {
+  color: var(--color-fg-muted);
+  text-decoration: none;
+}
+.mf-link:hover { color: var(--color-gold); text-decoration: underline; }
+.mf-link-sep { color: var(--color-fg-muted); }
+
+/* ---------------- utilidades ---------------- */
+
+.mf-visually-hidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  margin: -1px;
+  padding: 0;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+  border: 0;
+}
+
+/* ---------------- reduced motion: despliegue instantaneo ---------------- */
+
+@media (prefers-reduced-motion: reduce) {
+  .mf-panel,
+  .mf-panel-inner,
+  .mf-a,
+  .mf-cut,
+  .mf-corner,
+  .mf-chevron,
+  .mf-tab,
+  .mf-item,
+  .mf-btn {
+    transition: none;
+  }
+  .mf-hanko,
+  .mf-hanko::after {
+    animation: none;
+  }
+}
