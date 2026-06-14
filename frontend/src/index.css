@@ -120,6 +120,10 @@
   --ease-lift: cubic-bezier(0.16, 1, 0.3, 1);
   --ease-brush: cubic-bezier(0.65, 0.05, 0.36, 1);
 
+  /* Alto de layout del header sticky. Lo consumen header-standards.css (shell),
+     el scroll-padding-top y el min-height del <main> — un solo número. */
+  --as-header-h: 4.5rem;
+
   /* Radios — escala formalizada (B6). Valores explícitos = los de Tailwind v4
      (cero cambio visual); aquí quedan documentados y en un solo sitio. Suelo del
      sistema = 8px (rounded-lg): no usamos rounded-sm/md ni el rounded suelto (4/6px).
@@ -1929,7 +1933,7 @@
       radial-gradient(circle at 12% 18%, rgb(159 29 44 / 0.14), transparent 30rem),
       linear-gradient(180deg, var(--color-bg) 0%, #070a11 45%, var(--color-canvas) 100%);
     overflow-x: clip;
-    scroll-padding-top: calc(4.5rem + env(safe-area-inset-top));
+    scroll-padding-top: calc(var(--as-header-h) + env(safe-area-inset-top));
   }
 
   body {

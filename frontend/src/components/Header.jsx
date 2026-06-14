@@ -14,6 +14,14 @@ import { useInstantSoundPress } from '../hooks/useInstantSoundPress'
 import { usePersonajeRuleta } from '../hooks/usePersonajeRuleta'
 import { OPEN_COMMAND_PALETTE_EVENT } from './CommandPaletteLazyMount'
 import { registerRitoAvatarTarget, unregisterRitoAvatarTarget } from '../lib/viewTransitions'
+import {
+  NavInkRail,
+  NorenMobileMenu,
+  NorenTablilla,
+  PaperDropdown,
+} from './HeaderStandards'
+import { useCondensedHeader } from '../hooks/useHeaderStandards'
+import './header-standards.css'
 
 // Destino del morph del rito de acuñación (registro → home): la placa del
 // nuevo luchador vuela hasta el avatar del header. Hay dos avatares (cluster
@@ -61,10 +69,13 @@ const moreNavLinks = [
 
 const navLinkBase = 'relative rounded-lg px-3 py-2 text-sm transition-colors'
 
+// Estado activo: la gota de tinta (NavInkRail) reemplaza el subrayado
+// decoration-accent del nav desktop; conservamos el peso/fondo y el
+// aria-current lo aporta NavLink. El subrayado del panel móvil no cambia.
 function regularLinkClass({ isActive }) {
   return `${navLinkBase} font-medium ${
     isActive
-      ? 'bg-white/5 font-bold text-fg-strong underline decoration-accent decoration-2 underline-offset-4 shadow-aura'
+      ? 'bg-white/5 font-bold text-fg-strong shadow-aura'
       : 'text-fg hover:bg-white/5 hover:text-fg-strong'
   }`
 }
@@ -94,91 +105,27 @@ function Header() {
   const { t } = useTranslation()
   const { user, logout } = useAuth()
   const { muted, toggleMute, play } = useSound()
+  const { pathname } = useLocation()
   // Nota de rendimiento 2026-05-18: CTAs principales del header con pointerdown
   // para que el sonido vaya por delante del click (más perceptible como
   // "instantáneo"). Aplica al "Votar ahora" desktop + "Votar" mobile.
   const ctaVotarDesktop = useInstantSoundPress('playClick')
   const ctaVotarMobile = useInstantSoundPress('playClick')
   const { girarRuleta, isLoading: ruletaLoading } = usePersonajeRuleta()
-  const [scrolled, setScrolled] = useState(false)
+  // Condensación al scrollear: direccional con histéresis, sin animar height.
+  // Sustituye al antiguo estado `scrolled`. La gota de tinta (NavInkRail) se
+  // ancla al nav vía navRef.
+  const condensed = useCondensedHeader()
   const [mobileOpen, setMobileOpen] = useState(false)
-  const scrolledRef = useRef(false)
   const mobileToggleRef = useRef(null)
-  const mobilePanelRef = useRef(null)
+  const navRef = useRef(null)
 
-  useEffect(() => {
-    let frame = 0
-
-    const updateScrolled = () => {
-      frame = 0
-      const nextScrolled = window.scrollY > 16
-      if (scrolledRef.current === nextScrolled) return
-      scrolledRef.current = nextScrolled
-      setScrolled(nextScrolled)
-    }
-
-    const scheduleUpdate = () => {
-      if (frame) return
-      frame = window.requestAnimationFrame(updateScrolled)
-    }
-
-    updateScrolled()
-    window.addEventListener('scroll', scheduleUpdate, { passive: true })
-    return () => {
-      if (frame) window.cancelAnimationFrame(frame)
-      window.removeEventListener('scroll', scheduleUpdate)
-    }
-  }, [])
-
-  // Cuando el menu movil esta abierto, el fondo no debe scrollear y
-  // el foco debe quedar atrapado dentro del panel:
-  //   - Bloquear scroll del body con overflow: hidden mientras open.
-  //   - Trap de Tab dentro del panel (Tab al ultimo → primero,
-  //      Shift+Tab al primero → ultimo).
-  //   - Escape cierra el menu y devuelve foco al toggle button.
-  //   - Al abrir, mover foco al primer NavLink del panel.
-  useEffect(() => {
-    if (!mobileOpen) return undefined
-    // Scroll-lock del body
-    const prevOverflow = document.body.style.overflow
-    document.body.style.overflow = 'hidden'
-    // Mover foco al primer NavLink del panel tras animacion
-    const focusTimer = window.setTimeout(() => {
-      const first = mobilePanelRef.current?.querySelector(
-        'a, button, [tabindex]:not([tabindex="-1"])'
-      )
-      first?.focus()
-    }, 50)
-    // Handler combinado Escape + Tab trap
-    const onKey = (e) => {
-      if (e.key === 'Escape') {
-        e.preventDefault()
-        setMobileOpen(false)
-        mobileToggleRef.current?.focus()
-        return
-      }
-      if (e.key !== 'Tab' || !mobilePanelRef.current) return
-      const focusables = mobilePanelRef.current.querySelectorAll(
-        'a, button, [tabindex]:not([tabindex="-1"])'
-      )
-      if (focusables.length === 0) return
-      const first = focusables[0]
-      const last = focusables[focusables.length - 1]
-      if (e.shiftKey && document.activeElement === first) {
-        e.preventDefault()
-        last.focus()
-      } else if (!e.shiftKey && document.activeElement === last) {
-        e.preventDefault()
-        first.focus()
-      }
-    }
-    document.addEventListener('keydown', onKey)
-    return () => {
-      document.body.style.overflow = prevOverflow
-      window.clearTimeout(focusTimer)
-      document.removeEventListener('keydown', onKey)
-    }
-  }, [mobileOpen])
+  // activeKey de la gota: la key i18n-estable cuyo `to` prefija el pathname;
+  // null en fichas, /votar, grupo «Más», auth, etc. (la gota se desvanece).
+  const activeKey =
+    primaryNavLinks.find(
+      ({ to }) => pathname === to || pathname.startsWith(`${to}/`),
+    )?.i18nKey ?? null
 
   const closeMobile = () => setMobileOpen(false)
   const openQuickSearch = () => {
@@ -193,12 +140,15 @@ function Header() {
 
   return (
     <header
-      className={`as-vt-header sticky top-0 z-30 flex items-center justify-between gap-3 px-5 py-3 transition-[background-color,border-color,box-shadow] duration-200 sm:gap-5 sm:px-8 sm:py-4 ${
-        scrolled
-          ? 'border-b border-white/10 bg-bg/95 shadow-elev-2 pointer-fine:bg-bg/78 pointer-fine:backdrop-blur-2xl'
-          : 'border-b border-white/8 bg-bg/90 pointer-fine:bg-bg/52 pointer-fine:backdrop-blur-xl'
-      }`}
+      className="as-vt-header as-header-shell"
+      data-condensed={condensed || undefined}
     >
+      {/* Capa de fondo: lleva el fondo/borde/blur EXISTENTE del header (incl.
+          el backdrop-blur de pointer-fine:); la condensación la sube vía
+          transform (header-standards.css), nunca animando height. El shell
+          jamás lleva transform — rompería su position:sticky. */}
+      <div className="as-header-bg border-b border-white/10 bg-bg/90 pointer-fine:bg-bg/52 pointer-fine:backdrop-blur-xl" />
+      <div className="as-header-row justify-between">
       <AppLink to="/" className="flex min-h-11 min-w-0 flex-1 items-center gap-2.5 min-[1120px]:flex-none">
         <img
           src="/logo.svg"
@@ -207,7 +157,7 @@ function Header() {
           height={40}
           className="h-9 w-9 shrink-0 object-contain sm:h-10 sm:w-10"
         />
-        <span className="truncate text-base font-extrabold tracking-tight sm:text-lg">
+        <span className="as-header-wordmark truncate text-base font-extrabold tracking-tight sm:text-lg">
           <span className="text-fg-strong">Anime</span>
           <span className="text-gold">Showdown</span>
         </span>
@@ -215,12 +165,17 @@ function Header() {
 
       {/* Nav desktop (≥1120px). 5 enlaces principales + menú "Más" + CTA caben
           en una fila con holgura; por debajo pasa al panel del hamburger.
-          1024px (lg) era demasiado justo con el logotipo + estos elementos. */}
-      <nav className="hidden flex-nowrap items-center justify-center gap-1 min-[1120px]:flex">
+          1024px (lg) era demasiado justo con el logotipo + estos elementos.
+          `relative` ancla la gota de tinta (NavInkRail, última hija). */}
+      <nav
+        ref={navRef}
+        className="relative hidden flex-nowrap items-center justify-center gap-1 min-[1120px]:flex"
+      >
         {primaryNavLinks.map(({ to, i18nKey }) => (
           <AppNavLink
             key={to}
             to={to}
+            data-nav-key={i18nKey}
             onClick={() => play('playClick')}
             className={regularLinkClass}
           >
@@ -293,6 +248,8 @@ function Header() {
             {t('nav.login')}
           </AppNavLink>
         )}
+        {/* Gota de tinta del item de sección activo (última hija del nav). */}
+        <NavInkRail containerRef={navRef} activeKey={activeKey} />
       </nav>
 
       {/* Cluster móvil/tablet: avatar/notif si logueado, CTA Votar si no, +
@@ -354,49 +311,28 @@ function Header() {
           onClick={() => setMobileOpen((v) => !v)}
           aria-label={mobileOpen ? 'Cerrar menú' : 'Abrir menú'}
           aria-expanded={mobileOpen}
-          aria-controls="mobile-nav-panel"
+          aria-controls="mobile-nav-noren"
           className="inline-flex h-11 w-11 items-center justify-center rounded-lg text-fg-strong transition-colors hover:bg-surface-alt"
         >
           {mobileOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
         </button>
       </div>
+      </div>
 
-      {/* Panel móvil — absoluto bajo el header, click outside cierra. */}
-      {mobileOpen && (
-        <>
-          <button
-            type="button"
-            aria-label="Cerrar menú"
-            onClick={closeMobile}
-            className="fixed inset-0 top-0 z-20 bg-black/40 lg:hidden"
-          />
-          <div
-            ref={mobilePanelRef}
-            id="mobile-nav-panel"
-            role="dialog"
-            aria-modal="true"
-            aria-label="Menú de navegación"
-            className="absolute inset-x-0 top-full z-30 max-h-[calc(100dvh_-_4rem_-_env(safe-area-inset-bottom))] overflow-y-auto border-b border-white/10 bg-bg/98 px-5 pb-[calc(1rem_+_env(safe-area-inset-bottom))] pt-4 shadow-elev-2 pointer-fine:bg-bg/95 pointer-fine:backdrop-blur-2xl lg:hidden"
-          >
-            <div className="flex flex-col gap-1">
-              {[...primaryNavLinks, ...moreNavLinks].map(({ to, i18nKey }) => (
-                <AppNavLink
-                  key={to}
-                  to={to}
-                  onClick={() => { play('playClick'); closeMobile() }}
-                  className={({ isActive }) =>
-                    `flex min-h-11 items-center rounded-lg px-3 text-sm font-medium ${
-                      isActive
-                        ? 'bg-surface-alt text-fg-strong'
-                        : 'text-fg hover:bg-surface-alt'
-                    }`
-                  }
-                >
-                  {t(`nav.${i18nKey}`)}
-                </AppNavLink>
-              ))}
+      {/* Panel móvil — noren que cae desde el bajo del header. SIEMPRE montado
+          (la tela existe, solo se levanta): scroll-lock/trap/Esc los gestiona
+          NorenMobileMenu. Las tablillas hacen stagger de 40ms por índice. */}
+      <NorenMobileMenu
+        open={mobileOpen}
+        onClose={closeMobile}
+        toggleRef={mobileToggleRef}
+        label="Menú de navegación"
+      >
+        <div className="flex flex-col gap-1">
+          {[...primaryNavLinks, ...moreNavLinks].map(({ to, i18nKey }, i) => (
+            <NorenTablilla key={to} index={i}>
               <AppNavLink
-                to="/votar"
+                to={to}
                 onClick={() => { play('playClick'); closeMobile() }}
                 className={({ isActive }) =>
                   `flex min-h-11 items-center rounded-lg px-3 text-sm font-medium ${
@@ -406,131 +342,122 @@ function Header() {
                   }`
                 }
               >
-                {t('nav.votar')}
+                {t(`nav.${i18nKey}`)}
               </AppNavLink>
+            </NorenTablilla>
+          ))}
+          <NorenTablilla index={primaryNavLinks.length + moreNavLinks.length}>
+            <AppNavLink
+              to="/votar"
+              onClick={() => { play('playClick'); closeMobile() }}
+              className={({ isActive }) =>
+                `flex min-h-11 items-center rounded-lg px-3 text-sm font-medium ${
+                  isActive
+                    ? 'bg-surface-alt text-fg-strong'
+                    : 'text-fg hover:bg-surface-alt'
+                }`
+              }
+            >
+              {t('nav.votar')}
+            </AppNavLink>
+          </NorenTablilla>
+          <NorenTablilla index={primaryNavLinks.length + moreNavLinks.length + 1}>
+            <button
+              type="button"
+              onClick={() => handleRuleta({ close: true })}
+              disabled={ruletaLoading}
+              className="flex w-full min-h-11 items-center gap-2 rounded-lg px-3 text-left text-sm font-black text-gold hover:bg-surface-alt disabled:opacity-55"
+            >
+              <Shuffle className="h-4 w-4" />
+              {ruletaLoading ? t('header.ruletaLoading') : t('nav.ruleta')}
+            </button>
+          </NorenTablilla>
+          {!user && (
+            <NorenTablilla index={primaryNavLinks.length + moreNavLinks.length + 2}>
+              <AppNavLink
+                to="/login"
+                onClick={() => { play('playClick'); closeMobile() }}
+                className="mt-1 inline-flex min-h-11 w-full items-center justify-center rounded-lg border border-border px-3 text-sm font-medium text-fg-muted hover:border-accent hover:text-gold"
+              >
+                {t('nav.login')}
+              </AppNavLink>
+            </NorenTablilla>
+          )}
+        </div>
+        <NorenTablilla index={primaryNavLinks.length + moreNavLinks.length + 3}>
+          <div className="mt-3 flex items-center gap-2 border-t border-border pt-3">
+            <LanguageToggle />
+            <button
+              type="button"
+              onClick={() => { toggleMute(); if (muted) play('playClick') }}
+              aria-label={muted ? t('header.activarSonidos') : t('header.silenciar')}
+              className="inline-flex h-11 w-11 items-center justify-center rounded-lg text-fg-muted hover:bg-surface-alt hover:text-fg-strong"
+            >
+              {muted ? <VolumeX className="h-4 w-4" /> : <Volume2 className="h-4 w-4" />}
+            </button>
+            <CalmLantern size="h-11 w-11" />
+            {user && (
               <button
                 type="button"
-                onClick={() => handleRuleta({ close: true })}
-                disabled={ruletaLoading}
-                className="flex min-h-11 items-center gap-2 rounded-lg px-3 text-left text-sm font-black text-gold hover:bg-surface-alt disabled:opacity-55"
+                onClick={() => { logout(); closeMobile() }}
+                className="ml-auto inline-flex min-h-11 items-center gap-1 rounded-lg border border-border bg-surface px-3 text-[12px] font-semibold text-fg-strong"
               >
-                <Shuffle className="h-4 w-4" />
-                {ruletaLoading ? t('header.ruletaLoading') : t('nav.ruleta')}
+                <LogOut className="h-3.5 w-3.5" />
+                {t('nav.salir')}
               </button>
-              {!user && (
-                <AppNavLink
-                  to="/login"
-                  onClick={() => { play('playClick'); closeMobile() }}
-                  className="mt-1 inline-flex min-h-11 items-center justify-center rounded-lg border border-border px-3 text-sm font-medium text-fg-muted hover:border-accent hover:text-gold"
-                >
-                  {t('nav.login')}
-                </AppNavLink>
-              )}
-            </div>
-            <div className="mt-3 flex items-center gap-2 border-t border-border pt-3">
-              <LanguageToggle />
-              <button
-                type="button"
-                onClick={() => { toggleMute(); if (muted) play('playClick') }}
-                aria-label={muted ? t('header.activarSonidos') : t('header.silenciar')}
-                className="inline-flex h-11 w-11 items-center justify-center rounded-lg text-fg-muted hover:bg-surface-alt hover:text-fg-strong"
-              >
-                {muted ? <VolumeX className="h-4 w-4" /> : <Volume2 className="h-4 w-4" />}
-              </button>
-              <CalmLantern size="h-11 w-11" />
-              {user && (
-                <button
-                  type="button"
-                  onClick={() => { logout(); closeMobile() }}
-                  className="ml-auto inline-flex min-h-11 items-center gap-1 rounded-lg border border-border bg-surface px-3 text-[12px] font-semibold text-fg-strong"
-                >
-                  <LogOut className="h-3.5 w-3.5" />
-                  {t('nav.salir')}
-                </button>
-              )}
-            </div>
+            )}
           </div>
-        </>
-      )}
+        </NorenTablilla>
+      </NorenMobileMenu>
     </header>
   )
 }
 
-// Menú "Más" del nav desktop: disclosure accesible (botón + región de
-// enlaces). Escape y click fuera cierran; el botón se resalta si la ruta
-// activa está dentro del grupo.
+// Menú "Más" del nav desktop: panel de papel (PaperDropdown) accesible —
+// hover-intent + pin por click, Escape/click-fuera/Tab cierran, teclado de
+// menú. El botón se resalta si la ruta activa está dentro del grupo.
 function MoreMenu({ moreLinks, t, play }) {
-  const [open, setOpen] = useState(false)
   const { pathname } = useLocation()
-  const btnRef = useRef(null)
-  const menuRef = useRef(null)
   const isActive = moreLinks.some(
     ({ to }) => pathname === to || pathname.startsWith(`${to}/`),
   )
 
-  useEffect(() => {
-    if (!open) return undefined
-    const onPointer = (e) => {
-      if (btnRef.current?.contains(e.target) || menuRef.current?.contains(e.target)) return
-      setOpen(false)
-    }
-    const onKey = (e) => {
-      if (e.key === 'Escape') {
-        setOpen(false)
-        btnRef.current?.focus()
-      }
-    }
-    document.addEventListener('pointerdown', onPointer)
-    document.addEventListener('keydown', onKey)
-    return () => {
-      document.removeEventListener('pointerdown', onPointer)
-      document.removeEventListener('keydown', onKey)
-    }
-  }, [open])
-
   return (
-    <div className="relative">
-      <button
-        ref={btnRef}
-        type="button"
-        onClick={() => { setOpen((v) => !v); play('playClick') }}
-        aria-haspopup="true"
-        aria-expanded={open}
-        className={`${navLinkBase} inline-flex items-center gap-1 font-medium ${
-          isActive || open
+    <PaperDropdown
+      isActive={isActive}
+      onActivate={() => play('playClick')}
+      buttonClassName={({ open, isActive: active }) =>
+        `${navLinkBase} inline-flex items-center gap-1 font-medium ${
+          active || open
             ? 'bg-white/5 text-fg-strong'
             : 'text-fg hover:bg-white/5 hover:text-fg-strong'
-        }`}
-      >
-        {t('nav.mas', 'Más')}
-        <ChevronDown
-          className={`h-3.5 w-3.5 transition-transform duration-200 ${open ? 'rotate-180' : ''}`}
-        />
-      </button>
-      {open && (
-        <div
-          ref={menuRef}
-          className="absolute right-0 top-full z-40 mt-2 min-w-44 overflow-hidden rounded-xl border border-white/10 bg-bg/98 p-1.5 shadow-elev-2 pointer-fine:bg-bg/95 pointer-fine:backdrop-blur-xl"
+        }`
+      }
+      label={
+        <>
+          {t('nav.mas', 'Más')}
+          <ChevronDown className="h-3.5 w-3.5" />
+        </>
+      }
+    >
+      {moreLinks.map(({ to, i18nKey }) => (
+        <AppNavLink
+          key={to}
+          to={to}
+          role="menuitem"
+          onClick={() => play('playClick')}
+          className={({ isActive: linkActive }) =>
+            `flex min-h-10 items-center rounded-lg px-3 text-sm font-medium ${
+              linkActive
+                ? 'bg-surface-alt text-fg-strong'
+                : 'text-fg hover:bg-surface-alt hover:text-fg-strong'
+            }`
+          }
         >
-          {moreLinks.map(({ to, i18nKey }) => (
-            <AppNavLink
-              key={to}
-              to={to}
-              onClick={() => { play('playClick'); setOpen(false) }}
-              className={({ isActive: linkActive }) =>
-                `flex min-h-10 items-center rounded-lg px-3 text-sm font-medium ${
-                  linkActive
-                    ? 'bg-surface-alt text-fg-strong'
-                    : 'text-fg hover:bg-surface-alt hover:text-fg-strong'
-                }`
-              }
-            >
-              {t(`nav.${i18nKey}`)}
-            </AppNavLink>
-          ))}
-        </div>
-      )}
-    </div>
+          {t(`nav.${i18nKey}`)}
+        </AppNavLink>
+      ))}
+    </PaperDropdown>
   )
 }
 
