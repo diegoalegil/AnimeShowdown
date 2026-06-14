@@ -118,8 +118,10 @@ describe('PackOpening', () => {
   afterEach(async () => {
     // Drena los timers de 1ms del fastTiming con window aún vivo. Bajo carga
     // de CI (coverage), un timeout rezagado disparaba tras el teardown del
-    // entorno y reventaba como unhandled "window is not defined".
-    await new Promise((resolve) => setTimeout(resolve, 10))
+    // entorno y reventaba como unhandled "window is not defined". 10ms se
+    // quedaba corto bajo carga alta (recurría en el maratón de PRs); 60ms cubre
+    // de sobra la cadena de timers de 1ms del reveal sin ralentizar la suite.
+    await new Promise((resolve) => setTimeout(resolve, 60))
   })
 
   beforeEach(() => {
