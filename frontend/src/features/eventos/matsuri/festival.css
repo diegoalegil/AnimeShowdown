@@ -1,0 +1,852 @@
+/* =============================================================================
+   festival.css — Matsuri nocturno (takeover de /eventos/:slug)
+   Feature stylesheet de la pieza FestivalProcession y satélites.
+
+   Reglas duras del proyecto respetadas aquí:
+   · Cero color literal (sin hexadecimales ni funciones de color por canal) —
+     ni en comentarios. Todo color sale de un token var(--color-*); los alfas
+     via color-mix(in srgb, var(--token) N%, transparent).
+   · Solo se anima transform/opacity. Ningun width/height/top/left animado.
+   · Cero blur(), cero backdrop-filter, cero filtros SVG vivos. La luna es un
+     gradiente; los glows son capas pre-pintadas que cruzan opacidad.
+   · Easings de la casa: var(--ease-lift), var(--ease-brush). El overshoot de
+     hanko (ease-stamp) NO es token global -> se declara local abajo.
+   · Velocidad global escalable por el panel de director: --fest-speed (1 = real,
+     5 = camara lenta). Toda duracion se multiplica por el.
+   · Loops decorativos se pausan con: html.as-calm, html.as-tab-hidden (global),
+     .fest[data-reduce] y .fest-lantern-row.is-offscreen (IntersectionObserver).
+   ============================================================================= */
+
+.fest {
+  --fest-speed: 1;
+  /* ease-stamp local: overshoot del hanko al estampar (no es token global). */
+  --ease-stamp: cubic-bezier(0.34, 1.56, 0.64, 1);
+  position: relative;
+  isolation: isolate;
+  color: var(--color-fg);
+  font-family: var(--font-sans);
+  background: var(--color-canvas);
+}
+
+/* ============================================================ CIELO + LUNA */
+
+/* Lienzo escenografico FIJO: cielo + luna + faroles + hanabi quedan pinchados al
+   viewport (la marquesina del matsuri bajo la que se camina) mientras la calle
+   (cabecera, puestos, senda) hace scroll por encima. Asi el parallax vinculado
+   al scroll tiene sentido durante todo el recorrido. aria-hidden lo pone el JSX. */
+.fest-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  overflow: hidden;
+}
+
+/* El cielo se pinta de inmediato (LCP): degradado nocturno plano, sin imagen,
+   sin filtro. El tinte calido cerca del horizonte = la calle iluminada abajo. */
+.fest-sky {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  background:
+    radial-gradient(
+      120% 80% at 78% 14%,
+      color-mix(in srgb, var(--color-gold) 9%, transparent),
+      transparent 46%
+    ),
+    radial-gradient(
+      140% 90% at 22% 4%,
+      color-mix(in srgb, var(--color-accent) 12%, transparent),
+      transparent 52%
+    ),
+    linear-gradient(
+      180deg,
+      var(--color-canvas) 0%,
+      color-mix(in srgb, var(--color-bg) 80%, var(--color-canvas)) 46%,
+      color-mix(in srgb, var(--color-accent) 7%, var(--color-bg)) 100%
+    );
+}
+
+/* Estrellas pre-pintadas (puntos deterministas), sin loop. */
+.fest-stars {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  opacity: 0.5;
+  background-image:
+    radial-gradient(1px 1px at 12% 18%, color-mix(in srgb, var(--color-fg-strong) 60%, transparent) 50%, transparent 51%),
+    radial-gradient(1px 1px at 28% 9%, color-mix(in srgb, var(--color-fg-strong) 45%, transparent) 50%, transparent 51%),
+    radial-gradient(1px 1px at 44% 22%, color-mix(in srgb, var(--color-gold) 55%, transparent) 50%, transparent 51%),
+    radial-gradient(1px 1px at 63% 6%, color-mix(in srgb, var(--color-fg-strong) 50%, transparent) 50%, transparent 51%),
+    radial-gradient(1px 1px at 84% 26%, color-mix(in srgb, var(--color-fg-strong) 42%, transparent) 50%, transparent 51%),
+    radial-gradient(1px 1px at 92% 12%, color-mix(in srgb, var(--color-gold) 40%, transparent) 50%, transparent 51%),
+    radial-gradient(1px 1px at 7% 34%, color-mix(in srgb, var(--color-fg-strong) 35%, transparent) 50%, transparent 51%),
+    radial-gradient(1px 1px at 52% 4%, color-mix(in srgb, var(--color-fg-strong) 38%, transparent) 50%, transparent 51%);
+  mask-image: linear-gradient(to bottom, var(--color-canvas) 0%, transparent 60%);
+}
+
+/* La luna: disco de gradiente (NUNCA blur). Halo en dos capas pre-pintadas
+   que respiran en opacidad (cross-fade), no en filter. */
+.fest-moon {
+  position: absolute;
+  top: clamp(2rem, 7vh, 6rem);
+  right: clamp(1.5rem, 9vw, 7rem);
+  width: clamp(8rem, 17vw, 14rem);
+  aspect-ratio: 1;
+  z-index: 1;
+  border-radius: var(--radius-pill);
+  background:
+    radial-gradient(
+      circle at 38% 34%,
+      var(--color-gold-pale, var(--color-gold-bright)) 0%,
+      var(--color-gold-bright) 30%,
+      var(--color-gold) 62%,
+      color-mix(in srgb, var(--color-gold) 70%, var(--color-canvas)) 100%
+    );
+  box-shadow:
+    inset -10px -12px 26px color-mix(in srgb, var(--color-canvas) 40%, transparent),
+    inset 8px 8px 18px color-mix(in srgb, var(--color-gold-bright) 70%, transparent);
+}
+
+/* Halo difuso pre-horneado (gradiente radial), respira en opacidad. */
+.fest-moon__halo {
+  position: absolute;
+  inset: -60%;
+  z-index: -1;
+  border-radius: var(--radius-pill);
+  background: radial-gradient(
+    circle,
+    color-mix(in srgb, var(--color-gold) 34%, transparent) 0%,
+    color-mix(in srgb, var(--color-gold) 12%, transparent) 32%,
+    transparent 62%
+  );
+  opacity: 0.55;
+  animation: fest-moon-breathe calc(var(--fest-speed) * 7s) var(--ease-lift) infinite;
+}
+
+@keyframes fest-moon-breathe {
+  0%, 100% { opacity: 0.42; transform: scale(1); }
+  50%      { opacity: 0.7;  transform: scale(1.04); }
+}
+
+/* Kanji del evento GRABADO en la luna: glifo levemente hundido (bisel falso
+   con dos sombras de texto, no filtro). */
+.fest-moon__kanji {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  font-family: var(--font-kanji-serif);
+  font-weight: 700;
+  font-size: clamp(3.5rem, 8vw, 6.5rem);
+  line-height: 1;
+  color: color-mix(in srgb, var(--color-canvas) 58%, var(--color-gold));
+  text-shadow:
+    0 1.5px 0 color-mix(in srgb, var(--color-gold-bright) 55%, transparent),
+    0 -1.5px 2px color-mix(in srgb, var(--color-canvas) 70%, transparent);
+  user-select: none;
+}
+
+/* ====================================================== FAROLES (parallax) */
+
+/* Cada fila se desplaza en X por transform escrito desde el componente via ref
+   (cero estado por frame). El componente solo toca --row-shift; nada mas. */
+.fest-lantern-row {
+  position: absolute;
+  left: 0;
+  right: 0;
+  z-index: 2;
+  display: flex;
+  justify-content: space-around;
+  align-items: flex-start;
+  pointer-events: none;
+  transform: translate3d(var(--row-shift, 0px), 0, 0);
+  will-change: transform;
+}
+.fest-lantern-row--back  { top: clamp(4rem, 11vh, 9rem);  opacity: 0.62; }
+.fest-lantern-row--mid   { top: clamp(2.5rem, 7vh, 6rem); opacity: 0.82; }
+.fest-lantern-row--front { top: clamp(1rem, 3vh, 3rem);   opacity: 1; }
+.fest-lantern-row--back  .fest-lantern { transform: scale(0.66); }
+.fest-lantern-row--mid   .fest-lantern { transform: scale(0.82); }
+
+/* Chochin: cuerpo ovalado con costillas (repeating-linear-gradient), capucha y
+   borla. Carmesi y oro alternados. */
+.fest-lantern {
+  position: relative;
+  width: 2.6rem;
+  height: 3.4rem;
+  border-radius: 46% 46% 44% 44% / 38% 38% 40% 40%;
+  transform-origin: top center;
+  /* Encendido por filas: arranca apagado, sube a 1 con transicion. */
+  opacity: 0;
+  transition: opacity calc(var(--fest-speed) * 400ms) var(--ease-lift);
+}
+/* Stagger del encendido por filas (front -> mid -> back), 120ms entre filas. */
+.fest-lantern-row--front .fest-lantern,
+.fest-lantern-row--front .fest-lantern__glow { transition-delay: 0ms; }
+.fest-lantern-row--mid .fest-lantern,
+.fest-lantern-row--mid .fest-lantern__glow { transition-delay: calc(var(--fest-speed) * 120ms); }
+.fest-lantern-row--back .fest-lantern,
+.fest-lantern-row--back .fest-lantern__glow { transition-delay: calc(var(--fest-speed) * 240ms); }
+.fest-lantern__paper {
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  border: 1px solid color-mix(in srgb, var(--color-canvas) 55%, transparent);
+  background-image:
+    repeating-linear-gradient(
+      180deg,
+      color-mix(in srgb, var(--color-canvas) 26%, transparent) 0 1px,
+      transparent 1px 7px
+    ),
+    radial-gradient(circle at 50% 42%, color-mix(in srgb, var(--color-fg-strong) 30%, transparent), transparent 64%);
+}
+.fest-lantern--carmin .fest-lantern__paper {
+  background-color: var(--color-accent);
+}
+.fest-lantern--oro .fest-lantern__paper {
+  background-color: color-mix(in srgb, var(--color-gold) 88%, var(--color-canvas));
+}
+/* Capucha y base. */
+.fest-lantern__cap,
+.fest-lantern__base {
+  position: absolute;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 1.5rem;
+  height: 0.32rem;
+  background: color-mix(in srgb, var(--color-canvas) 30%, var(--color-fg-muted));
+  border-radius: 2px;
+}
+.fest-lantern__cap  { top: -0.3rem; }
+.fest-lantern__base { bottom: -0.3rem; width: 1rem; }
+/* Borla. */
+.fest-lantern__tassel {
+  position: absolute;
+  left: 50%;
+  bottom: -0.95rem;
+  transform: translateX(-50%);
+  width: 2px;
+  height: 0.7rem;
+  background: var(--color-gold);
+  border-radius: var(--radius-pill);
+}
+/* Glow pre-pintado detras del farol: cruza opacidad (latido), nunca filter. */
+.fest-lantern__glow {
+  position: absolute;
+  inset: -55%;
+  z-index: -1;
+  border-radius: var(--radius-pill);
+  background: radial-gradient(
+    circle,
+    color-mix(in srgb, var(--color-gold-bright) 50%, transparent) 0%,
+    color-mix(in srgb, var(--color-gold) 18%, transparent) 38%,
+    transparent 66%
+  );
+  opacity: 0;
+  transition: opacity calc(var(--fest-speed) * 400ms) var(--ease-lift);
+}
+.fest-lantern--carmin .fest-lantern__glow {
+  background: radial-gradient(
+    circle,
+    color-mix(in srgb, var(--color-accent-hover) 52%, transparent) 0%,
+    color-mix(in srgb, var(--color-accent) 18%, transparent) 38%,
+    transparent 66%
+  );
+}
+
+/* Estado ENCENDIDO (lo activa el componente fila a fila). El latido es un
+   keyframe SOLO sobre el glow ya visible. */
+.fest-lantern-row.is-lit .fest-lantern { opacity: 1; }
+.fest-lantern-row.is-lit .fest-lantern__glow {
+  opacity: 1;
+  animation: fest-lantern-breathe calc(var(--fest-speed) * 3.4s) ease-in-out infinite;
+}
+/* Desfase determinista del latido por posicion (sin azar): vecinos no laten al unisono. */
+.fest-lantern:nth-child(2n) .fest-lantern__glow { animation-delay: calc(var(--fest-speed) * -0.8s); }
+.fest-lantern:nth-child(3n) .fest-lantern__glow { animation-delay: calc(var(--fest-speed) * -1.6s); }
+.fest-lantern:nth-child(5n) .fest-lantern__glow { animation-delay: calc(var(--fest-speed) * -2.3s); }
+
+@keyframes fest-lantern-breathe {
+  0%, 100% { opacity: 0.6; }
+  50%      { opacity: 1; }
+}
+
+/* Evento TERMINADO: faroles apagandose (glow a casi nada, papel atenuado). */
+.fest--terminado .fest-lantern__glow { opacity: 0.12 !important; animation: none !important; }
+.fest--terminado .fest-lantern-row.is-lit .fest-lantern { opacity: 0.5; }
+.fest--terminado .fest-lantern__paper { filter: none; background-blend-mode: multiply; }
+
+/* Evento POR EMPEZAR: calle en penumbra (faroles tenues, sin latido pleno). */
+.fest--proximo .fest-lantern-row.is-lit .fest-lantern__glow { opacity: 0.3; animation: none; }
+.fest--proximo .fest-lantern-row.is-lit .fest-lantern { opacity: 0.55; }
+
+/* ===================================================== CALLE / PUESTOS yatai */
+
+/* Holgura superior: el contenido arranca por DEBAJO de la marquesina de faroles
+   y la luna (LCP cinematografico), sea cual sea la primera seccion visible. */
+.fest-scroll { padding-top: clamp(13rem, 26vh, 17rem); }
+
+.fest-street {
+  position: relative;
+  z-index: 3;
+  display: grid;
+  gap: clamp(1.25rem, 3vw, 2rem);
+  padding: clamp(2rem, 5vh, 3.5rem) clamp(1rem, 4vw, 3rem) clamp(4rem, 10vh, 7rem);
+  max-width: 64rem;
+  margin: 0 auto;
+}
+
+/* Puesto: toldo + tablilla + cuerpo. Entra con rise UNA vez al verse. */
+.fest-stall {
+  position: relative;
+  border-radius: var(--radius-card);
+  background:
+    linear-gradient(180deg, color-mix(in srgb, var(--color-fg-strong) 4%, transparent), transparent 40%),
+    var(--color-surface);
+  border: 1px solid var(--color-border);
+  box-shadow: var(--shadow-elev-2);
+  overflow: hidden;
+  opacity: 0;
+  transform: translate3d(0, 22px, 0);
+}
+/* Reveal por transicion (no animation): el estado final es opacity 1 / sin
+   desplazamiento, asi que aunque el compositor no avance el tween (preview en
+   segundo plano, o motor sin animaciones) el puesto queda VISIBLE; cuando si
+   corre, sube 22px con la curva lift. El stagger via transition-delay inline. */
+.fest-stall.is-visible {
+  opacity: 1;
+  transform: translate3d(0, 0, 0);
+  transition:
+    opacity calc(var(--fest-speed) * 350ms) var(--ease-lift),
+    transform calc(var(--fest-speed) * 350ms) var(--ease-lift);
+}
+/* Ya revelado (re-render posterior): visible al instante, sin re-animar. */
+.fest-stall.is-shown { opacity: 1; transform: none; transition: none; }
+@keyframes fest-rise {
+  from { opacity: 0; transform: translate3d(0, 22px, 0); }
+  to   { opacity: 1; transform: translate3d(0, 0, 0); }
+}
+
+/* Toldo (awning): franjas. Carmesi y oro ALTERNADOS por el componente. */
+.fest-stall__toldo {
+  position: relative;
+  height: 2.4rem;
+  border-bottom: 2px solid color-mix(in srgb, var(--color-canvas) 35%, transparent);
+  /* Borde inferior festoneado del toldo. */
+  -webkit-mask-image: radial-gradient(0.7rem 0.7rem at 0.7rem 100%, transparent 96%, var(--color-canvas) 97%);
+  mask-image: none;
+}
+.fest-stall__toldo::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: -0.55rem;
+  height: 0.7rem;
+  background-size: 1.4rem 0.7rem;
+  background-repeat: repeat-x;
+}
+.fest-stall--carmin .fest-stall__toldo {
+  background: repeating-linear-gradient(
+    90deg,
+    var(--color-accent) 0 1.4rem,
+    color-mix(in srgb, var(--color-fg-strong) 88%, var(--color-accent)) 1.4rem 2.8rem
+  );
+}
+.fest-stall--carmin .fest-stall__toldo::after {
+  background-image: radial-gradient(0.7rem 0.7rem at 0.7rem 0, var(--color-accent) 96%, transparent 97%);
+}
+.fest-stall--oro .fest-stall__toldo {
+  background: repeating-linear-gradient(
+    90deg,
+    color-mix(in srgb, var(--color-gold) 90%, var(--color-canvas)) 0 1.4rem,
+    color-mix(in srgb, var(--color-fg-strong) 86%, var(--color-gold)) 1.4rem 2.8rem
+  );
+}
+.fest-stall--oro .fest-stall__toldo::after {
+  background-image: radial-gradient(0.7rem 0.7rem at 0.7rem 0, color-mix(in srgb, var(--color-gold) 90%, var(--color-canvas)) 96%, transparent 97%);
+}
+
+/* Tablilla (cartel de madera colgante con kanji + titulo). */
+.fest-stall__tablilla {
+  position: relative;
+  z-index: 2;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.6rem;
+  margin: 0.9rem 1.1rem 0;
+  padding: 0.4rem 0.85rem;
+  border-radius: var(--radius-lg);
+  background: color-mix(in srgb, var(--color-canvas) 40%, var(--color-surface-alt));
+  border: 1px solid var(--color-border-gold-subtle);
+  box-shadow: inset 0 1px 0 color-mix(in srgb, var(--color-fg-strong) 8%, transparent);
+}
+.fest-stall__kanji {
+  font-family: var(--font-kanji-serif);
+  font-weight: 700;
+  font-size: 1.4rem;
+  line-height: 1;
+  color: var(--color-gold);
+}
+.fest-stall--carmin .fest-stall__kanji { color: var(--color-gold-bright); }
+.fest-stall__titulo {
+  font-size: 1.02rem;
+  font-weight: 700;
+  color: var(--color-fg-strong);
+  letter-spacing: -0.01em;
+}
+.fest-stall__tipo {
+  font-family: var(--font-mono);
+  font-size: var(--text-2xs);
+  color: var(--color-fg-muted);
+}
+.fest-stall__body {
+  position: relative;
+  z-index: 1;
+  padding: 0.85rem 1.1rem 1.2rem;
+  color: var(--color-fg);
+  font-size: 0.95rem;
+  line-height: 1.55;
+}
+
+/* Puesto CERRADO (evento por empezar): toldo bajado tapando el cuerpo. */
+.fest-stall--cerrado .fest-stall__body { opacity: 0.28; filter: none; }
+.fest-stall__shutter {
+  position: absolute;
+  inset: 2.4rem 0 0;
+  z-index: 3;
+  display: grid;
+  place-items: center;
+  gap: 0.4rem;
+  background:
+    repeating-linear-gradient(
+      180deg,
+      color-mix(in srgb, var(--color-canvas) 75%, var(--color-surface)) 0 6px,
+      color-mix(in srgb, var(--color-canvas) 92%, var(--color-surface-alt)) 6px 12px
+    );
+  border-top: 1px solid color-mix(in srgb, var(--color-gold) 30%, transparent);
+  color: var(--color-fg-muted);
+  font-family: var(--font-mono);
+  font-size: var(--text-2xs);
+  text-align: center;
+}
+.fest-stall__shutter-kanji {
+  font-family: var(--font-kanji-serif);
+  font-size: 1.6rem;
+  color: color-mix(in srgb, var(--color-gold) 60%, var(--color-fg-muted));
+}
+
+/* ============================================== SENDA DE PIEDRAS (procesion) */
+
+.fest-path {
+  position: relative;
+  z-index: 3;
+  list-style: none;
+  margin: 0 auto;
+  padding: 0;
+  display: grid;
+  gap: clamp(1.6rem, 4vh, 2.6rem);
+  justify-items: center;
+  width: fit-content;
+}
+/* La senda de tierra detras de las piedras. */
+.fest-path::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: 50%;
+  width: 3.2rem;
+  transform: translateX(-50%);
+  background: linear-gradient(
+    180deg,
+    color-mix(in srgb, var(--color-gold) 10%, transparent),
+    color-mix(in srgb, var(--color-canvas) 60%, transparent)
+  );
+  border-radius: var(--radius-pill);
+  z-index: -1;
+}
+.fest-stone {
+  position: relative;
+  width: 3.4rem;
+  height: 2.3rem;
+  border-radius: 48% 52% 46% 54% / 56% 60% 40% 44%;
+  background: radial-gradient(
+    circle at 42% 36%,
+    color-mix(in srgb, var(--color-fg-strong) 14%, var(--color-surface-alt)),
+    color-mix(in srgb, var(--color-canvas) 50%, var(--color-surface)) 78%
+  );
+  border: 1px solid var(--color-border);
+  display: grid;
+  place-items: center;
+  font-family: var(--font-jp);
+  font-size: 0.95rem;
+  color: var(--color-fg-muted);
+}
+/* Capa de piedra ENCENDIDA (oro), cruza opacidad sobre la apagada. */
+.fest-stone__lit {
+  position: absolute;
+  inset: -1px;
+  border-radius: inherit;
+  background: radial-gradient(
+    circle at 42% 34%,
+    var(--color-gold-bright) 0%,
+    var(--color-gold) 55%,
+    color-mix(in srgb, var(--color-gold) 60%, var(--color-canvas)) 100%
+  );
+  border: 1px solid var(--color-border-gold);
+  box-shadow: var(--shadow-aura-sm);
+  --aura-color: color-mix(in srgb, var(--color-gold) 60%, transparent);
+  /* Sin transicion en reposo: las piedras YA alcanzadas estan encendidas al
+     montar (sin ceremonia). SOLO el hito nuevo anima, via .is-igniting. */
+  opacity: 0;
+}
+.fest-stone__num {
+  position: relative;
+  z-index: 1;
+}
+.fest-stone.is-on .fest-stone__lit { opacity: 1; }
+.fest-stone.is-on .fest-stone__num {
+  color: color-mix(in srgb, var(--color-canvas) 70%, var(--color-gold));
+  font-weight: 700;
+}
+/* Encendido NUEVO: pequeño overshoot del brillo (una pasada). */
+.fest-stone.is-igniting .fest-stone__lit {
+  animation: fest-stone-ignite calc(var(--fest-speed) * 500ms) var(--ease-stamp) both;
+}
+@keyframes fest-stone-ignite {
+  0%   { opacity: 0; transform: scale(0.9); }
+  60%  { opacity: 1; transform: scale(1.08); }
+  100% { opacity: 1; transform: scale(1); }
+}
+
+/* ====================================================== HANABI (fuegos) pool */
+
+.fest-hanabi {
+  position: absolute;
+  inset: 0;
+  z-index: 4;
+  pointer-events: none;
+  overflow: hidden;
+}
+/* Un crisantemo: contenedor posicionado; sus particulas salen del centro. */
+.fest-burst {
+  position: absolute;
+  width: 0;
+  height: 0;
+  opacity: 0;
+}
+.fest-burst.is-firing { opacity: 1; }
+.fest-particle {
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 6px;
+  height: 6px;
+  margin: -3px 0 0 -3px;
+  border-radius: var(--radius-pill);
+  background: radial-gradient(circle, var(--color-gold-bright) 0%, var(--color-gold) 60%, transparent 72%);
+  opacity: 0;
+  transform: translate3d(0, 0, 0);
+}
+.fest-burst--carmin .fest-particle {
+  background: radial-gradient(circle, var(--color-gold-pale, var(--color-gold-bright)) 0%, var(--color-accent-hover) 60%, transparent 72%);
+}
+/* Al disparar: cada particula viaja a (--dx,--dy) pre-calculados y se apaga.
+   Una pasada, transform+opacity. El stagger por crisantemo lo pone --burst-delay. */
+.fest-burst.is-firing .fest-particle {
+  /* will-change SOLO mientras dispara (36 partículas): no dejar capas de
+     compositor colgadas toda la sesión cuando el hanabi está en reposo. */
+  will-change: transform, opacity;
+  animation: fest-hanabi-fly calc(var(--fest-speed) * 1100ms) var(--ease-lift) var(--burst-delay, 0ms) both;
+}
+@keyframes fest-hanabi-fly {
+  0%   { opacity: 0; transform: translate3d(0, 0, 0) scale(0.4); }
+  12%  { opacity: 1; }
+  70%  { opacity: 0.9; }
+  100% { opacity: 0; transform: translate3d(var(--dx), var(--dy), 0) scale(1); }
+}
+/* Destello central del estallido (una capa, opacidad). */
+.fest-burst__core {
+  position: absolute;
+  left: -12px; top: -12px;
+  width: 24px; height: 24px;
+  border-radius: var(--radius-pill);
+  background: radial-gradient(circle, color-mix(in srgb, var(--color-gold-bright) 90%, transparent), transparent 70%);
+  opacity: 0;
+}
+.fest-burst.is-firing .fest-burst__core {
+  animation: fest-hanabi-core calc(var(--fest-speed) * 520ms) var(--ease-lift) var(--burst-delay, 0ms) both;
+}
+@keyframes fest-hanabi-core {
+  0%   { opacity: 0; transform: scale(0.3); }
+  30%  { opacity: 1; transform: scale(1.1); }
+  100% { opacity: 0; transform: scale(1.5); }
+}
+
+/* Reduced-motion / calma: hanabi = UN solo destello de opacidad (sin viaje). */
+.fest-hanabi--flash {
+  position: absolute;
+  inset: 0;
+  z-index: 4;
+  pointer-events: none;
+  opacity: 0;
+  background: radial-gradient(
+    circle at 50% 26%,
+    color-mix(in srgb, var(--color-gold) 22%, transparent),
+    transparent 40%
+  );
+}
+.fest-hanabi--flash.is-flashing {
+  animation: fest-hanabi-flash calc(var(--fest-speed) * 600ms) ease-out both;
+}
+@keyframes fest-hanabi-flash {
+  0% { opacity: 0; } 25% { opacity: 1; } 100% { opacity: 0; }
+}
+
+/* ====================================================== CABECERA / COUNTDOWN */
+
+.fest-head {
+  position: relative;
+  z-index: 5;
+  max-width: 64rem;
+  margin: 0 auto;
+  padding: clamp(0.5rem, 2vh, 1.5rem) clamp(1rem, 4vw, 3rem) 0;
+  text-align: center;
+}
+.fest-head__kicker {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  font-size: 0.82rem;
+  font-weight: 600;
+  color: var(--color-gold);
+}
+.fest-head__title {
+  margin: 0.6rem 0 0;
+  font-size: clamp(1.9rem, 5vw, 3.2rem);
+  font-weight: 800;
+  line-height: 1.05;
+  letter-spacing: -0.02em;
+  color: var(--color-fg-strong);
+  text-wrap: balance;
+}
+.fest-head__desc {
+  margin: 0.7rem auto 0;
+  max-width: 38rem;
+  color: var(--color-fg-muted);
+  font-size: 1rem;
+  line-height: 1.6;
+  text-wrap: pretty;
+}
+
+/* Integracion con el contenido REAL del evento (clases del padre). */
+/* Enlace "Ver todos los eventos" sobre la cabecera. */
+.fest-back-link {
+  display: inline-flex;
+  margin-bottom: 0.6rem;
+}
+/* Emoji del evento delante del titulo (h1 unico). */
+.fest-head__emoji {
+  font-size: 0.85em;
+  vertical-align: -0.04em;
+}
+/* CTAs del estado activo, centradas bajo el countdown. */
+.fest-head__ctas {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  margin-top: 1.2rem;
+}
+/* Rejilla interna del puesto de Mision (texto + mini-stats). */
+.fest-stall-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 0.75rem;
+}
+@media (min-width: 640px) {
+  .fest-stall-grid { grid-template-columns: 2fr 1fr; gap: 1rem; }
+}
+/* Copia de despedida del estado terminado. */
+.fest-farewell__copy {
+  margin: 0.7rem 0 0;
+  color: var(--color-fg-muted);
+  line-height: 1.6;
+}
+/* Enlace de retorno al pie de la calle (estados no terminados). */
+.fest-back-foot {
+  position: relative;
+  z-index: 5;
+  max-width: 64rem;
+  margin: clamp(1.5rem, 4vh, 2.5rem) auto 0;
+  padding: 0 clamp(1rem, 4vw, 3rem);
+  text-align: center;
+}
+
+/* Tablilla de fecha (madera con hairline dorada). */
+.fest-tablilla-fecha {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-top: 1rem;
+  padding: 0.45rem 0.95rem;
+  border-radius: var(--radius-lg);
+  background: color-mix(in srgb, var(--color-canvas) 45%, var(--color-surface-alt));
+  border: 1px solid var(--color-border-gold-subtle);
+  color: var(--color-fg);
+  font-family: var(--font-mono);
+  font-size: 0.85rem;
+}
+
+/* Odometro de countdown: cifras mono, monoespaciadas tabulares. */
+.fest-count {
+  display: inline-flex;
+  align-items: flex-end;
+  justify-content: center;
+  gap: clamp(0.5rem, 1.6vw, 1rem);
+  margin: 1.2rem auto 0;
+  padding: clamp(0.8rem, 2vw, 1.3rem) clamp(1rem, 3vw, 2rem);
+  border-radius: var(--radius-card);
+  background:
+    linear-gradient(180deg, color-mix(in srgb, var(--color-fg-strong) 4%, transparent), transparent 60%),
+    var(--color-surface);
+  border: 1px solid var(--color-border-gold-subtle);
+  box-shadow: var(--shadow-elev-2);
+}
+.fest-count--hero {
+  --aura-color: color-mix(in srgb, var(--color-gold) 38%, transparent);
+  box-shadow: var(--shadow-elev-2), var(--shadow-aura-sm);
+  transform: scale(1);
+}
+.fest-count__unit { display: grid; justify-items: center; gap: 0.2rem; }
+.fest-count__value {
+  font-family: var(--font-mono);
+  font-variant-numeric: tabular-nums;
+  font-weight: 700;
+  font-size: clamp(2.2rem, 6vw, 3.6rem);
+  line-height: 1;
+  color: var(--color-gold-bright);
+  letter-spacing: 0.02em;
+}
+.fest-count--hero .fest-count__value { color: var(--color-gold-bright); }
+.fest-count__label {
+  font-family: var(--font-mono);
+  font-size: var(--text-2xs);
+  text-transform: lowercase;
+  color: var(--color-fg-muted);
+}
+.fest-count__sep {
+  font-family: var(--font-mono);
+  font-size: clamp(1.6rem, 4vw, 2.6rem);
+  font-weight: 700;
+  color: color-mix(in srgb, var(--color-gold) 50%, var(--color-fg-muted));
+  align-self: center;
+  padding-bottom: 0.6rem;
+}
+
+/* Despedida (evento terminado) + CTA al siguiente. */
+.fest-farewell {
+  position: relative;
+  z-index: 5;
+  max-width: 40rem;
+  margin: clamp(2rem, 6vh, 4rem) auto 0;
+  padding: clamp(1.4rem, 4vw, 2.2rem);
+  border-radius: var(--radius-card);
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  text-align: center;
+}
+.fest-cta {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  min-height: 2.75rem;
+  margin-top: 1rem;
+  padding: 0 1.2rem;
+  border-radius: var(--radius-lg);
+  border: 1px solid color-mix(in srgb, var(--color-gold) 28%, transparent);
+  background: linear-gradient(180deg, var(--color-accent-hover), var(--color-accent));
+  color: var(--color-fg-strong);
+  font-weight: 700;
+  font-size: 0.95rem;
+  text-decoration: none;
+  box-shadow: inset 0 1px 0 color-mix(in srgb, var(--color-fg-strong) 18%, transparent);
+  transition: transform calc(var(--fest-speed) * 160ms) var(--ease-lift);
+}
+.fest-cta:hover { transform: translateY(-1px); }
+
+/* Anuncio aria-live: oculto visualmente. */
+.fest-sr {
+  position: absolute;
+  width: 1px; height: 1px;
+  margin: -1px; padding: 0; border: 0;
+  overflow: hidden; clip: rect(0 0 0 0);
+  white-space: nowrap;
+}
+
+/* ============================================================ 390px (movil) */
+
+/* Una sola fila de faroles, puestos apilados (ya lo estan), senda mas estrecha. */
+@media (max-width: 430px) {
+  .fest-lantern-row--back,
+  .fest-lantern-row--mid { display: none; }
+  .fest-lantern-row--front { justify-content: space-between; padding: 0 1rem; }
+  .fest-scroll { padding-top: clamp(9rem, 24vh, 12rem); }
+  .fest-moon { width: 7rem; top: 1.5rem; right: 1rem; }
+  .fest-path::before { width: 2.4rem; }
+}
+/* Cuando el director fuerza 390px, el contenedor lleva [data-w390]. */
+.fest[data-w390] .fest-lantern-row--back,
+.fest[data-w390] .fest-lantern-row--mid { display: none; }
+.fest[data-w390] .fest-lantern-row--front { justify-content: space-between; padding: 0 1rem; }
+.fest[data-w390] .fest-scroll { padding-top: clamp(9rem, 24vh, 12rem); }
+.fest[data-w390] .fest-moon { width: 7rem; top: 1.5rem; right: 1rem; }
+
+/* ================================================ REDUCED-MOTION / CALMA */
+
+/* Gate unico de la pieza: el componente pone [data-reduce] en .fest cuando
+   useReducedMotionPref/calma lo pidan; aqui ademas respetamos la media query
+   del SO y el html.as-calm global. Parallax y hanabi-pool los apaga el JS;
+   esto apaga los loops y transiciones decorativas. */
+.fest[data-reduce] .fest-moon__halo,
+.fest[data-reduce] .fest-lantern-row.is-lit .fest-lantern__glow,
+html.as-calm .fest-moon__halo,
+html.as-calm .fest-lantern-row.is-lit .fest-lantern__glow {
+  animation: none !important;
+}
+.fest[data-reduce] .fest-lantern,
+.fest[data-reduce] .fest-lantern__glow,
+.fest[data-reduce] .fest-stall,
+.fest[data-reduce] .fest-stone__lit,
+.fest[data-reduce] .fest-stone__num,
+.fest[data-reduce] .fest-count,
+.fest[data-reduce] .fest-cta {
+  transition: none !important;
+}
+.fest[data-reduce] .fest-stall { animation: none !important; transition: none !important; opacity: 1; transform: none; }
+.fest[data-reduce] .fest-stone.is-igniting .fest-stone__lit { animation: none !important; opacity: 1; }
+.fest[data-reduce] .fest-burst .fest-particle,
+.fest[data-reduce] .fest-burst__core { animation: none !important; opacity: 0 !important; }
+
+/* Loops pausados fuera de viewport (IntersectionObserver propio). */
+.fest-lantern-row.is-offscreen .fest-lantern__glow { animation-play-state: paused; }
+.fest-moon.is-offscreen .fest-moon__halo { animation-play-state: paused; }
+
+@media (prefers-reduced-motion: reduce) {
+  .fest-moon__halo,
+  .fest-lantern-row.is-lit .fest-lantern__glow { animation: none !important; }
+  .fest-stall { animation: none !important; transition: none !important; opacity: 1; transform: none; }
+  .fest-lantern { opacity: 1; transition: none !important; }
+  .fest-lantern__glow { transition: none !important; }
+  .fest-stone__lit,
+  .fest-stone__num { transition: none !important; }
+  .fest-stone.is-igniting .fest-stone__lit { animation: none !important; opacity: 1; }
+  .fest-burst .fest-particle,
+  .fest-burst__core { animation: none !important; opacity: 0 !important; }
+  .fest-cta { transition: none !important; }
+}
