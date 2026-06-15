@@ -1,0 +1,690 @@
+/* =============================================================================
+   library.css — CSS de feature de UniverseLibrary (la Biblioteca de los
+   Universos). El componente raíz lo importa con `import './library.css'`.
+   TODOS los @keyframes de la pieza viven aquí (CSP por hash: cero estilos en
+   runtime). PROHIBIDO cualquier literal de color: solo tokens y color-mix.
+   Todas las animaciones tocan SOLO transform/opacity (Safari/WebKit-safe).
+   ========================================================================== */
+
+.lib-room {
+  --lib-spine-w: clamp(2.75rem, 5.4vw, 3.625rem);
+  --lib-spine-h: clamp(13rem, 30vh, 16.5rem);
+  --lib-wood: color-mix(in srgb, var(--color-gold) 16%, var(--color-canvas));
+  --lib-wood-edge: color-mix(in srgb, var(--color-gold) 30%, var(--color-canvas));
+
+  position: relative;
+  isolation: isolate;
+  /* perspectiva LEVE en el CONTENEDOR (jamás preserve-3d con filtros) */
+  perspective: 1700px;
+  perspective-origin: 50% 24%;
+  color: var(--color-fg);
+  font-family: var(--font-sans);
+}
+
+/* Marca de agua kanji al 5% (戦) — sobria, detrás de todo. */
+.lib-room::before {
+  content: "戦";
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  display: grid;
+  place-items: start end;
+  padding: 2rem 3vw;
+  font-family: var(--font-kanji-serif);
+  font-size: clamp(11rem, 26vw, 24rem);
+  line-height: 0.8;
+  color: color-mix(in srgb, var(--color-gold) 5%, transparent);
+  pointer-events: none;
+  user-select: none;
+}
+
+/* ---------------------------------------------------------------- estantería */
+.lib-shelf {
+  position: relative;
+  margin: 0 0 clamp(2.25rem, 4vw, 3.25rem);
+}
+/* contentVisibility:auto por estantería (perf) — EXCEPTO la primera: es el LCP
+   y, además, content-visibility:auto congela la caída de canto de entrada
+   (las animaciones de un subárbol "skippable" no avanzan hasta el 1er check). */
+.lib-shelf:not(.lib-shelf--first) {
+  content-visibility: auto;
+  contain-intrinsic-size: auto calc(var(--lib-spine-h) + 4.5rem);
+}
+
+/* fila de tomos */
+.lib-row {
+  position: relative;
+  z-index: 2;
+  margin: 0;
+  list-style: none;
+  display: flex;
+  align-items: flex-end;
+  gap: clamp(0.5rem, 1.1vw, 0.95rem);
+  padding: 0 clamp(0.75rem, 2.4vw, 2rem);
+  min-height: var(--lib-spine-h);
+}
+
+/* tablón de madera bajo los tomos */
+.lib-plank {
+  position: relative;
+  height: 1.5rem;
+  margin: 0 clamp(0.25rem, 1vw, 1rem);
+  border-radius: 0 0 var(--radius-lg) var(--radius-lg);
+  background:
+    linear-gradient(180deg,
+      var(--lib-wood-edge) 0%,
+      var(--lib-wood) 36%,
+      color-mix(in srgb, var(--color-canvas) 72%, var(--lib-wood)) 100%);
+  box-shadow:
+    inset 0 1px 0 color-mix(in srgb, var(--color-gold) 38%, transparent),
+    0 14px 30px -18px color-mix(in srgb, var(--color-canvas) 92%, transparent);
+}
+/* hairline dorada del canto del tablón */
+.lib-plank::before {
+  content: "";
+  position: absolute;
+  inset: 0 0 auto 0;
+  height: 1px;
+  background: linear-gradient(90deg,
+    transparent,
+    var(--color-border-gold) 12%,
+    var(--color-border-gold) 88%,
+    transparent);
+}
+/* sombra de contacto proyectada del tablón hacia el fondo de la sala */
+.lib-plank::after {
+  content: "";
+  position: absolute;
+  inset: 100% 4% auto 4%;
+  height: 1.75rem;
+  background: radial-gradient(60% 100% at 50% 0%,
+    color-mix(in srgb, var(--color-canvas) 80%, transparent),
+    transparent 72%);
+  pointer-events: none;
+}
+
+/* ------------------------------------------------------------- barra superior */
+.lib-toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.85rem 1.25rem;
+  margin-bottom: clamp(1.5rem, 3vw, 2.25rem);
+}
+
+.lib-lantern { flex: 1 1 16rem; min-width: 0; }
+.lib-lantern__field {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  height: 2.75rem;
+  padding: 0 0.85rem;
+  border-radius: var(--radius-lg);
+  border: 1px solid var(--color-border);
+  background: color-mix(in srgb, var(--color-canvas) 40%, var(--color-surface));
+  transition: border-color 160ms var(--ease-lift), box-shadow 160ms var(--ease-lift);
+}
+.lib-lantern__field:focus-within {
+  border-color: var(--color-border-gold);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--color-gold) 13%, transparent);
+}
+.lib-lantern__icon { flex: 0 0 auto; color: var(--color-gold); }
+.lib-lantern__input {
+  flex: 1 1 auto;
+  min-width: 0;
+  border: 0;
+  background: transparent;
+  color: var(--color-fg-strong);
+  font: inherit;
+  font-size: 0.95rem;
+}
+.lib-lantern__input::placeholder { color: var(--color-fg-muted); }
+.lib-lantern__input:focus { outline: none; }
+.lib-lantern__count {
+  display: block;
+  margin-top: 0.4rem;
+  padding-left: 0.2rem;
+  font-family: var(--font-mono);
+  font-size: var(--text-2xs);
+  letter-spacing: 0.03em;
+  color: var(--color-fg-muted);
+}
+
+/* orden = tablillas de madera (radiogroup) */
+.lib-orden {
+  display: inline-flex;
+  flex-wrap: wrap; /* 5 tablillas no caben en una línea a 390px → envolver, sin overflow horizontal */
+  gap: 0.3rem;
+  padding: 0.3rem;
+  border-radius: var(--radius-lg);
+  border: 1px solid var(--color-border);
+  background: color-mix(in srgb, var(--color-canvas) 45%, var(--color-surface));
+}
+.lib-orden__tab {
+  min-height: 2.1rem;
+  padding: 0 0.85rem;
+  border: 1px solid transparent;
+  border-radius: var(--radius-lg);
+  background: transparent;
+  color: var(--color-fg-muted);
+  font: inherit;
+  font-size: 0.85rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: color 160ms var(--ease-lift), background 160ms var(--ease-lift), border-color 160ms var(--ease-lift);
+}
+.lib-orden__tab:hover { color: var(--color-fg); }
+.lib-orden__tab[data-active="1"] {
+  color: var(--color-fg-strong);
+  border-color: var(--color-border-gold-subtle);
+  background:
+    linear-gradient(180deg, color-mix(in srgb, var(--color-gold) 14%, transparent), transparent),
+    var(--lib-wood);
+  box-shadow: inset 0 1px 0 color-mix(in srgb, var(--color-gold) 30%, transparent);
+}
+.lib-orden__tab:focus-visible { outline: 2px solid var(--color-gold-bright); outline-offset: 2px; }
+
+/* estantería vacía honesta */
+.lib-empty {
+  display: grid;
+  place-items: center;
+  gap: 0.4rem;
+  min-height: 14rem;
+  padding: 2rem;
+  text-align: center;
+}
+.lib-empty__kanji {
+  font-family: var(--font-kanji-serif);
+  font-size: clamp(4rem, 14vw, 7rem);
+  line-height: 1;
+  color: color-mix(in srgb, var(--color-gold) 32%, transparent);
+}
+.lib-empty__title { margin: 0; font-weight: 700; font-size: 1.15rem; color: var(--color-fg-strong); }
+.lib-empty__hint { margin: 0; font-size: 0.9rem; color: var(--color-fg-muted); }
+
+/* ------------------------------------------------------------------ el tomo */
+.lib-book {
+  position: relative;
+  flex: 0 0 auto;
+  width: var(--lib-spine-w);
+  height: var(--lib-spine-h);
+}
+.lib-book[data-open="1"] { z-index: 41; }
+
+.book-spine {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  width: 100%;
+  height: 100%;
+  padding: 0.6rem 0.3rem 0.5rem;
+  border: 0;
+  border-radius: 0.2rem 0.2rem 0.12rem 0.12rem;
+  cursor: pointer;
+  color: var(--color-fg-strong);
+  font: inherit;
+  text-align: center;
+  transform-origin: bottom center;
+  transition:
+    transform 180ms var(--ease-lift),
+    box-shadow 180ms var(--ease-lift),
+    filter 180ms var(--ease-lift);
+  /* lomo lacado: oscuro con dos cantos (ridges) y brillo de barniz */
+  background:
+    linear-gradient(90deg,
+      color-mix(in srgb, var(--color-canvas) 55%, transparent) 0 2px,
+      transparent 2px 5px,
+      color-mix(in srgb, var(--color-fg-strong) 6%, transparent) 6px 7px,
+      transparent 7px calc(100% - 7px),
+      color-mix(in srgb, var(--color-fg-strong) 5%, transparent) calc(100% - 7px) calc(100% - 6px),
+      transparent calc(100% - 5px) calc(100% - 2px),
+      color-mix(in srgb, var(--color-canvas) 55%, transparent) calc(100% - 2px)),
+    linear-gradient(180deg,
+      color-mix(in srgb, var(--color-fg-strong) 9%, transparent),
+      transparent 18%),
+    var(--spine-base, var(--color-surface));
+  box-shadow:
+    inset 0 1px 0 color-mix(in srgb, var(--color-fg-strong) 14%, transparent),
+    inset 0 -10px 18px -12px color-mix(in srgb, var(--color-canvas) 88%, transparent),
+    0 10px 18px -14px color-mix(in srgb, var(--color-canvas) 90%, transparent);
+}
+
+/* lacas (asignadas por library-core: variación determinista, paleta sobria) */
+.book-spine[data-laca="carmin"] { --spine-base: linear-gradient(180deg, color-mix(in srgb, var(--color-accent) 82%, var(--color-canvas)), color-mix(in srgb, var(--color-accent) 52%, var(--color-canvas))); }
+.book-spine[data-laca="madera"] { --spine-base: linear-gradient(180deg, var(--lib-wood-edge), color-mix(in srgb, var(--color-canvas) 70%, var(--lib-wood))); }
+.book-spine[data-laca="tinta"]  { --spine-base: linear-gradient(180deg, var(--color-surface-alt), color-mix(in srgb, var(--color-canvas) 60%, var(--color-surface))); }
+
+.book-spine:hover,
+.book-spine:focus-visible {
+  transform: translateY(-14px);
+  outline: none;
+  box-shadow:
+    inset 0 1px 0 color-mix(in srgb, var(--color-fg-strong) 18%, transparent),
+    0 26px 30px -16px color-mix(in srgb, var(--color-canvas) 92%, transparent),
+    0 0 0 1px color-mix(in srgb, var(--color-gold) 40%, transparent);
+}
+.book-spine:focus-visible {
+  box-shadow:
+    inset 0 1px 0 color-mix(in srgb, var(--color-fg-strong) 18%, transparent),
+    0 26px 30px -16px color-mix(in srgb, var(--color-canvas) 92%, transparent),
+    0 0 0 2px var(--color-gold-bright);
+}
+.book-spine[aria-expanded="true"] {
+  transform: translateY(-14px);
+}
+
+/* kanji de universo grabado en oro (cabeza del lomo) */
+.book-spine__kanji {
+  font-family: var(--font-kanji-serif);
+  font-size: clamp(1.05rem, 2.4vw, 1.35rem);
+  line-height: 1;
+  color: var(--color-gold);
+  text-shadow:
+    0 1px 0 color-mix(in srgb, var(--color-canvas) 80%, transparent),
+    0 0 10px color-mix(in srgb, var(--color-gold) 22%, transparent);
+}
+
+/* hairline dorada bajo el kanji */
+.book-spine__rule {
+  width: 60%;
+  height: 1px;
+  margin: 0.4rem 0;
+  background: linear-gradient(90deg, transparent, var(--color-border-gold), transparent);
+}
+
+/* título vertical en el lomo */
+.book-spine__title {
+  flex: 1 1 auto;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  writing-mode: vertical-rl;
+  text-orientation: mixed;
+  font-family: var(--font-kanji-serif);
+  font-weight: 600;
+  font-size: clamp(0.72rem, 1.45vw, 0.86rem);
+  letter-spacing: 0.04em;
+  line-height: 1.15;
+  color: var(--color-fg-strong);
+  text-shadow: 0 1px 2px color-mix(in srgb, var(--color-canvas) 70%, transparent);
+  max-height: calc(var(--lib-spine-h) - 7.5rem);
+  overflow: hidden;
+}
+
+/* tejuelo: franja del arte de marca recortada (pie del lomo) */
+.book-spine__tejuelo {
+  position: relative;
+  width: calc(100% - 0.2rem);
+  height: 2.5rem;
+  margin-top: 0.4rem;
+  border-radius: 0.12rem;
+  overflow: hidden;
+  border: 1px solid var(--color-border-gold-subtle);
+  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--color-canvas) 50%, transparent);
+}
+.book-spine__tejuelo img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: center;
+  display: block;
+}
+/* degradado elegante del tejuelo SIN arte (lomo tipográfico puro) */
+.book-spine__tejuelo--bare {
+  height: 1.5rem;
+  border-style: dashed;
+  border-color: var(--color-border-gold-subtle);
+  background:
+    repeating-linear-gradient(45deg,
+      color-mix(in srgb, var(--color-gold) 9%, transparent) 0 3px,
+      transparent 3px 7px);
+}
+.book-spine__elo {
+  margin-top: 0.35rem;
+  font-family: var(--font-mono);
+  font-size: var(--text-2xs);
+  letter-spacing: 0.02em;
+  color: var(--color-elo-number);
+}
+
+/* ------------------------------------------------------- caída de canto (1×) */
+/* Robusto ante timeline estancado (pestaña en segundo plano / print): el
+   estado BASE de .lib-book es VISIBLE (opacity 1). La animación es una mejora
+   que solo corre cuando el padre marca data-entered="1", y eso lo hace vía
+   requestAnimationFrame — que NO dispara en pestañas ocultas. Así: oculto →
+   sin animar pero visible; visible → cae de canto una vez. */
+@keyframes lib-spine-drop {
+  from {
+    opacity: 0;
+    transform: translateY(8px) rotate(var(--drop-rot, 4deg));
+  }
+}
+@media (prefers-reduced-motion: no-preference) {
+  .lib-room[data-entered="1"] .lib-shelf--first .lib-book {
+    transform-origin: bottom center;
+    animation: lib-spine-drop 320ms var(--ease-lift) backwards;
+    animation-delay: calc(var(--i, 0) * 25ms);
+  }
+}
+
+/* --------------------------------------------------- linterna: atenuado + barrido */
+.lib-room[data-buscando="1"] .lib-book[data-match="0"] {
+  opacity: 0.25;
+}
+.lib-book {
+  transition: opacity 220ms var(--ease-lift);
+}
+
+/* capa ÚNICA reutilizada de barrido de farol por estantería */
+.lantern-sweep {
+  position: absolute;
+  inset: 0;
+  z-index: 5;
+  pointer-events: none;
+  overflow: hidden;
+  border-radius: var(--radius-lg);
+}
+.lantern-sweep::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: 0;
+  width: 42%;
+  transform: translateX(-160%);
+  background: linear-gradient(100deg,
+    transparent,
+    color-mix(in srgb, var(--color-gold) 22%, transparent) 42%,
+    color-mix(in srgb, var(--color-gold-bright) 30%, transparent) 52%,
+    color-mix(in srgb, var(--color-gold) 18%, transparent) 62%,
+    transparent);
+  will-change: transform;
+}
+@keyframes lib-lantern-sweep {
+  from { transform: translateX(-160%); }
+  to   { transform: translateX(330%); }
+}
+@media (prefers-reduced-motion: no-preference) {
+  .lantern-sweep[data-run="1"]::before {
+    animation: lib-lantern-sweep 600ms var(--ease-lift) both;
+  }
+}
+
+/* ------------------------------------------------------------- el fly-leaf */
+.fly-leaf {
+  position: absolute;
+  top: -0.5rem;
+  z-index: 40;
+  width: min(21rem, 86vw);
+  transform-origin: top center;
+  transform: scaleY(0);
+  opacity: 0;
+  border-radius: var(--radius-xl);
+  overflow: hidden;
+  border: 1px solid var(--color-border-gold-subtle);
+  background:
+    linear-gradient(180deg, color-mix(in srgb, var(--color-fg-strong) 4%, transparent), transparent 30%),
+    var(--color-surface);
+  box-shadow:
+    var(--shadow-elev-2),
+    0 0 0 1px color-mix(in srgb, var(--color-canvas) 60%, transparent);
+  transition:
+    transform 380ms var(--ease-brush),
+    opacity 200ms ease;
+}
+.fly-leaf[data-anchor="left"]  { left: 0; transform-origin: top left; }
+.fly-leaf[data-anchor="right"] { right: 0; transform-origin: top right; }
+.fly-leaf[data-open="1"] {
+  transform: scaleY(1);
+  opacity: 1;
+}
+.fly-leaf[data-closing="1"] {
+  transition:
+    transform 250ms var(--ease-brush),
+    opacity 180ms ease;
+}
+
+/* arte de escena a sangre con scrim de legibilidad */
+.fly-leaf__scene {
+  position: relative;
+  aspect-ratio: 16 / 9;
+  background: var(--color-surface-alt);
+  overflow: hidden;
+}
+/* wrapper del morph (kind="card"): rellena la caja de la escena; solo la
+   imagen viaja en el snapshot, el scrim/título/kanji quedan fuera. */
+.fly-leaf__scene-media {
+  position: absolute;
+  inset: 0;
+}
+.fly-leaf__scene img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+.fly-leaf__scene--bare {
+  position: absolute;
+  inset: 0;
+  background:
+    repeating-linear-gradient(45deg,
+      color-mix(in srgb, var(--color-gold) 8%, transparent) 0 6px,
+      transparent 6px 14px),
+    var(--color-surface-alt);
+  display: grid;
+  place-items: center;
+}
+.fly-leaf__scene-kanji {
+  font-family: var(--font-kanji-serif);
+  font-size: 3rem;
+  color: color-mix(in srgb, var(--color-gold) 40%, transparent);
+}
+.fly-leaf__scrim {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(180deg,
+    transparent 38%,
+    color-mix(in srgb, var(--color-canvas) 70%, transparent) 70%,
+    color-mix(in srgb, var(--color-canvas) 94%, transparent) 100%);
+  pointer-events: none;
+}
+.fly-leaf__scene-title {
+  position: absolute;
+  left: 0.9rem;
+  right: 0.9rem;
+  bottom: 0.7rem;
+  margin: 0;
+  font-family: var(--font-kanji-serif);
+  font-weight: 700;
+  font-size: clamp(1.05rem, 3.6vw, 1.25rem);
+  line-height: 1.1;
+  color: var(--color-fg-strong);
+  text-shadow: var(--text-shadow-scrim);
+  text-wrap: balance;
+}
+.fly-leaf__scene-kanji-mark {
+  position: absolute;
+  top: 0.5rem;
+  right: 0.7rem;
+  font-family: var(--font-kanji-serif);
+  font-size: 1.5rem;
+  color: var(--color-gold);
+  text-shadow: 0 1px 6px color-mix(in srgb, var(--color-canvas) 80%, transparent);
+}
+
+.fly-leaf__body {
+  padding: 0.85rem 0.95rem 1rem;
+}
+
+/* stats del universo en mono */
+.fly-leaf__stats {
+  display: flex;
+  gap: 0.5rem;
+  margin-bottom: 0.85rem;
+}
+.fly-leaf__stat {
+  flex: 1;
+  padding: 0.5rem 0.55rem;
+  border-radius: var(--radius-lg);
+  border: 1px solid var(--color-border);
+  background: color-mix(in srgb, var(--color-canvas) 35%, transparent);
+}
+.fly-leaf__stat dt {
+  margin: 0 0 0.15rem;
+  font-size: var(--text-2xs);
+  letter-spacing: 0.05em;
+  text-transform: none;
+  color: var(--color-fg-muted);
+}
+.fly-leaf__stat dd {
+  margin: 0;
+  font-family: var(--font-mono);
+  font-size: 1.05rem;
+  font-weight: 600;
+  color: var(--color-elo-number);
+}
+.fly-leaf__stat--chars dd { color: var(--color-fg-strong); }
+.fly-leaf__synthetic {
+  font-size: var(--text-2xs);
+  color: var(--color-fg-muted);
+}
+
+/* top 3 con retratos mini */
+.fly-leaf__top {
+  margin: 0 0 0.95rem;
+  padding: 0;
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+}
+.fly-leaf__top-label {
+  margin: 0 0 0.45rem;
+  font-size: var(--text-2xs);
+  letter-spacing: 0.06em;
+  color: var(--color-gold);
+}
+.fly-leaf__fighter {
+  display: flex;
+  align-items: center;
+  gap: 0.55rem;
+}
+.fly-leaf__portrait {
+  flex: 0 0 auto;
+  width: 2rem;
+  height: 2.6rem;
+  border-radius: 0.3rem;
+  overflow: hidden;
+  border: 1px solid var(--color-border-gold-subtle);
+  background: var(--color-surface-alt);
+}
+.fly-leaf__portrait img { width: 100%; height: 100%; object-fit: cover; object-position: top center; display: block; }
+.fly-leaf__rank {
+  font-family: var(--font-mono);
+  font-size: var(--text-2xs);
+  color: var(--color-fg-muted);
+  width: 1.2rem;
+}
+.fly-leaf__fighter-name {
+  font-size: 0.85rem;
+  color: var(--color-fg);
+  font-weight: 500;
+}
+
+/* CTA entrar al universo (enganchable al morph anime-scene) */
+.fly-leaf__cta {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.4rem;
+  width: 100%;
+  min-height: 2.75rem;
+  border-radius: var(--radius-lg);
+  border: 1px solid color-mix(in srgb, var(--color-gold) 28%, transparent);
+  color: var(--color-fg-strong);
+  font-weight: 600;
+  font-size: 0.9rem;
+  text-decoration: none;
+  background: linear-gradient(180deg,
+    var(--color-accent-hover),
+    var(--color-accent));
+  box-shadow: inset 0 1px 0 color-mix(in srgb, var(--color-fg-strong) 18%, transparent);
+  transition: transform 160ms var(--ease-lift), filter 160ms var(--ease-lift);
+}
+.fly-leaf__cta:hover { transform: translateY(-1px); filter: brightness(1.08); }
+.fly-leaf__cta:focus-visible { outline: 2px solid var(--color-gold-bright); outline-offset: 2px; }
+.fly-leaf__cta svg { width: 1rem; height: 1rem; }
+
+/* botón cerrar del fly-leaf */
+.fly-leaf__close {
+  position: absolute;
+  top: 0.5rem;
+  left: 0.6rem;
+  z-index: 2;
+  width: 1.85rem;
+  height: 1.85rem;
+  display: grid;
+  place-items: center;
+  border-radius: var(--radius-pill);
+  border: 1px solid color-mix(in srgb, var(--color-fg-strong) 16%, transparent);
+  background: color-mix(in srgb, var(--color-canvas) 55%, transparent);
+  color: var(--color-fg-strong);
+  cursor: pointer;
+}
+.fly-leaf__close:focus-visible { outline: 2px solid var(--color-gold-bright); outline-offset: 2px; }
+
+@media (prefers-reduced-motion: reduce) {
+  .fly-leaf {
+    transform: none !important;
+    transition: opacity 150ms ease !important;
+  }
+  .book-spine,
+  .lib-book { transition: opacity 150ms ease !important; }
+  .book-spine:hover,
+  .book-spine:focus-visible,
+  .book-spine[aria-expanded="true"] { transform: none; }
+}
+
+/* ----------------------------------------------------------- 390px (móvil) */
+@media (max-width: 30rem) {
+  .lib-room { perspective: none; }
+  .lib-toolbar { flex-direction: column; align-items: stretch; }
+  .lib-lantern { flex: 0 0 auto; }
+  .lib-row {
+    flex-wrap: nowrap;
+    overflow-x: auto;
+    scroll-snap-type: x mandatory;
+    /* no secuestrar el scroll vertical de la página */
+    overscroll-behavior-x: contain;
+    -webkit-overflow-scrolling: touch;
+    scroll-padding-inline: 1rem;
+    padding-bottom: 0.5rem;
+  }
+  .lib-row::-webkit-scrollbar { display: none; }
+  .lib-row { scrollbar-width: none; }
+  .lib-book { scroll-snap-align: start; }
+  /* La fila es un carrusel horizontal con overflow → un fly-leaf absoluto dentro
+     quedaría recortado y atrapado en su scroll. En móvil lo sacamos a hoja fija
+     (bottom sheet) con su propio scroll; el scaleY se despliega desde abajo. */
+  .fly-leaf {
+    position: fixed;
+    left: 1rem;
+    right: 1rem;
+    top: auto;
+    bottom: 1rem;
+    width: auto;
+    max-height: 80vh;
+    overflow-y: auto;
+    transform-origin: bottom center;
+    z-index: 60;
+  }
+  .fly-leaf[data-anchor="left"],
+  .fly-leaf[data-anchor="right"] {
+    left: 1rem;
+    right: 1rem;
+    transform-origin: bottom center;
+  }
+}
