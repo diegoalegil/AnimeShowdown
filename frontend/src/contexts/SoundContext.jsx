@@ -45,7 +45,7 @@ export function SoundProvider({ children }) {
   // y los useEffect con `play` en deps re-corrían (case BadgeUnlockListener,
   // VotarPage, etc.). useCallback + useMemo estabiliza identidades.
   const play = useCallback(
-    (name) => {
+    (name, ...args) => {
       if (muted) return
       const fn = sfx[name]
       if (typeof fn !== 'function') return
@@ -53,8 +53,10 @@ export function SoundProvider({ children }) {
       // (esperan resume() del AudioContext). El caller no necesita
       // await; agarramos la Promise para silenciar rechazos y evitar
       // unhandled-rejection en consola.
+      // Reenviamos args opcionales al sonido (p.ej. playYunque(intensity) de la
+      // fragua); los sonidos sin parámetros los ignoran sin más.
       try {
-        const result = fn()
+        const result = fn(...args)
         if (result && typeof result.then === 'function') {
           result.catch(() => { /* audio rejection silenced */ })
         }

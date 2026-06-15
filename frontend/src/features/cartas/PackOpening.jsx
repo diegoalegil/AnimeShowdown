@@ -8,6 +8,8 @@ import { useSound } from '../../contexts/SoundContext'
 import CartaTile from '../../components/CartaTile'
 import CardBack from '../../components/CardBack'
 import CartaFace from './CartaFace'
+import ForgeCharge from './forge/ForgeCharge'
+import { blowsForReveal } from './forge/forge-core'
 import './cartas.css'
 import { EASE_LIFT } from '../../lib/motion'
 
@@ -105,12 +107,14 @@ function PackOpening({
   hook = null,
   timing = PACK_TIMING,
 }) {
-  const { play, warm } = useSound()
+  const { play } = useSound()
   const reduceMotion = useReducedMotion()
   const cartas = useMemo(() => normalizarCartas(reveal), [reveal])
   const level = packLevel(cartas, reveal)
+  // Golpes del lingote (La Forja de Sobres): derivado de la MAX rareza del sobre.
+  const blows = useMemo(() => blowsForReveal(cartas, reveal), [cartas, reveal])
   const totalDuplicados = reveal?.monedasDuplicados ?? 0
-  const [phase, setPhase] = useState(reduceMotion ? 'summary' : 'idle')
+  const [phase, setPhase] = useState(reduceMotion ? 'summary' : 'charge')
   const [activeIndex, setActiveIndex] = useState(0)
   const [revealed, setRevealed] = useState(false)
   const [leaving, setLeaving] = useState(false)
@@ -164,31 +168,22 @@ function PackOpening({
     setPhase('reveal')
   }, [cartas.length])
 
-  const beginRip = useCallback(() => {
-    if (phaseRef.current !== 'peel') return
+  // Rotura del lingote en la fragua: cede al revelado EXISTENTE. La fragua ya
+  // emite playPackTear; aquí conservamos el flash/sacudida del clímax del sobre
+  // (lo que hacía beginRip) y arrancamos el revelado sin demora extra: las
+  // cartas ya están resueltas (reveal llegó antes), no hay async que esperar.
+  const handleForgeBreak = useCallback(() => {
+    if (phaseRef.current !== 'charge') return
     clearTimers()
-    setPhase('rip')
-    play('playPackTear')
-    triggerFlash(level === 'special' ? 'special' : 'top')
-    triggerShake(level === 'special' ? 'special' : 'top')
-    after(timing.rip, startReveal)
-  }, [after, clearTimers, level, play, startReveal, timing.rip, triggerFlash, triggerShake])
-
-  const beginPeel = useCallback(() => {
-    if (phaseRef.current !== 'idle') return
-    warm?.()
-    clearTimers()
-    activeIndexRef.current = 0
-    revealedRef.current = false
-    leavingRef.current = false
-    setCollected([])
-    setActiveIndex(0)
-    setRevealed(false)
-    setLeaving(false)
-    setPhase('peel')
-    play('playPackCharge')
-    after(timing.peel, beginRip)
-  }, [after, beginRip, clearTimers, play, timing.peel, warm])
+    if (level === 'special') {
+      triggerFlash('special')
+      triggerShake('special')
+    } else {
+      triggerFlash('top')
+      triggerShake('top')
+    }
+    startReveal()
+  }, [clearTimers, level, startReveal, triggerFlash, triggerShake])
 
   const revealCurrent = useCallback(() => {
     if (phaseRef.current !== 'reveal' || revealedRef.current) return
@@ -297,7 +292,9 @@ function PackOpening({
   ])
 
   const activeItem = phase === 'reveal' ? cartas[activeIndex] : null
-  const showSkip = phase !== 'idle' && phase !== 'summary'
+  // El "Saltar" global aparece en el revelado; durante la fragua el control es
+  // su propio "Abrir directo" (el ritual no debe mostrar dos skips a la vez).
+  const showSkip = phase === 'reveal'
 
   return (
     <div
@@ -319,19 +316,20 @@ function PackOpening({
         </div>
 
         <AnimatePresence mode="wait">
-          {phase === 'idle' || phase === 'peel' || phase === 'rip' ? (
+          {phase === 'charge' ? (
             <motion.div
-              key="pack"
+              key="forge"
               className="pack-opening__pack-scene"
-              initial={{ opacity: 0, y: 28, scale: 0.94, rotateX: 10 }}
-              animate={{ opacity: 1, y: 0, scale: 1, rotateX: 0 }}
-              exit={{ opacity: 0, y: -30, scale: 1.08, rotateX: -12 }}
+              initial={{ opacity: 0, y: 28, scale: 0.94 }}
+              animate={{ opacity: 1, y: 0, scale: 1 }}
+              exit={{ opacity: 0, y: -30, scale: 1.08 }}
               transition={{ duration: 0.42, ease: EASE_LIFT }}
             >
-              <PackEnvelope
-                phase={phase}
+              <ForgeCharge
+                blows={blows}
                 level={level}
-                onTap={phase === 'idle' ? beginPeel : beginRip}
+                reduceMotion={reduceMotion}
+                onBreak={handleForgeBreak}
               />
             </motion.div>
           ) : phase === 'reveal' && activeItem ? (
@@ -365,17 +363,6 @@ function PackOpening({
           )}
         </AnimatePresence>
 
-        {phase === 'idle' || phase === 'peel' ? (
-          <button
-            type="button"
-            className="pack-opening__open-btn"
-            onClick={phase === 'idle' ? beginPeel : beginRip}
-          >
-            <span className="pack-opening__open-glow" />
-            <span>{phase === 'idle' ? 'Rasgar sobre' : 'Toca para rasgar'}</span>
-          </button>
-        ) : null}
-
         {showSkip && (
           <button type="button" className="pack-opening__skip" onClick={skipAll}>
             <FastForward className="h-4 w-4" aria-hidden="true" />
@@ -383,7 +370,7 @@ function PackOpening({
           </button>
         )}
 
-        {phase !== 'summary' && (
+        {phase === 'reveal' && (
           <PackCollection cards={collected} total={cartas.length} />
         )}
 
@@ -398,115 +385,6 @@ function PackOpening({
   )
 }
 
-function PackEnvelope({ phase, level, onTap }) {
-  const falls = useMemo(() => Array.from({ length: 42 }, (_, i) => ({
-    left: 4 + ((i * 23) % 92),
-    delay: ((i * 7) % 19) / 20,
-    dur: 0.9 + ((i * 5) % 9) / 10,
-    size: 3 + (i % 6),
-    drift: -34 + ((i * 17) % 68),
-    kind: i % 5 === 0 ? 'gold' : i % 3 === 0 ? 'spark' : 'red',
-  })), [])
-  const petals = useMemo(() => Array.from({ length: 11 }, (_, i) => ({
-    left: 8 + ((i * 19) % 82),
-    top: 14 + ((i * 13) % 70),
-    delay: ((i * 11) % 23) / 10,
-    dur: 5 + (i % 4),
-    drift: -28 + ((i * 31) % 56),
-    rot: (i * 47) % 360,
-  })), [])
-
-  return (
-    <div className="pack-opening__pack-wrap">
-      <div className="pack-opening__pack-glow" />
-      <button
-        type="button"
-        className={cx(
-          'pack-opening__pack3d',
-          `pack-opening__pack3d--${phase}`,
-          level === 'special' && 'pack-opening__pack3d--special',
-        )}
-        onClick={onTap}
-        aria-label={phase === 'idle' ? 'Sobre premium, toca para rasgar' : 'Rasgar ahora'}
-      >
-        <div className="pack-opening__foil">
-          <div className="pack-opening__foil-ink" />
-          <div className="pack-opening__foil-sheen" />
-        </div>
-
-        <div className="pack-opening__crimp pack-opening__crimp--top">
-          <div className="pack-opening__crimp-teeth" />
-          <div className="pack-opening__crimp-band" />
-        </div>
-        <div className="pack-opening__crimp pack-opening__crimp--bottom">
-          <div className="pack-opening__crimp-band" />
-          <div className="pack-opening__crimp-teeth" />
-        </div>
-
-        <div className="pack-opening__pack-content">
-          <div className="pack-opening__pack-logo">
-            <i />
-            <span>ANIME<b>SHOWDOWN</b></span>
-          </div>
-          <div className="pack-opening__jp">アニメの戦い</div>
-          <div className="pack-opening__pack-title">
-            <span>SOBRE</span>
-            <strong>PREMIUM</strong>
-            <em>JUEGO DE CARTAS COLECCIONABLES</em>
-          </div>
-          <div className="pack-opening__seal">
-            <span>封</span>
-          </div>
-        </div>
-
-        <div className="pack-opening__petals">
-          {petals.map((petal, index) => (
-            <span
-              key={index}
-              className="pack-opening__petal"
-              style={{
-                left: `${petal.left}%`,
-                top: `${petal.top}%`,
-                '--petal-drift': `${petal.drift}px`,
-                animationDelay: `${petal.delay}s`,
-                animationDuration: `${petal.dur}s`,
-                transform: `rotate(${petal.rot}deg)`,
-              }}
-            />
-          ))}
-        </div>
-
-        <div className="pack-opening__inner-glow" />
-        <div className="pack-opening__exhale" />
-        <div className="pack-opening__beam" />
-        <div className="pack-opening__top-strip">
-          <div className="pack-opening__crimp pack-opening__crimp--top">
-            <div className="pack-opening__crimp-teeth" />
-            <div className="pack-opening__crimp-band" />
-          </div>
-        </div>
-        <div className="pack-opening__rip-line" />
-
-        <div className="pack-opening__fall">
-          {falls.map((fall, index) => (
-            <span
-              key={index}
-              className={`pack-opening__fall-bit pack-opening__fall-bit--${fall.kind}`}
-              style={{
-                left: `${fall.left}%`,
-                width: `${fall.size}px`,
-                height: `${fall.size}px`,
-                '--fall-drift': `${fall.drift}px`,
-                animationDelay: `${fall.delay}s`,
-                animationDuration: `${fall.dur}s`,
-              }}
-            />
-          ))}
-        </div>
-      </button>
-    </div>
-  )
-}
 
 function RevealStage({
   item,
@@ -523,6 +401,15 @@ function RevealStage({
   const isSpecial = item.climax === 'ESPECIAL'
   const isTop = item.climax === 'TOP'
   const isAuto = item.climax === 'NORMAL'
+
+  // Foco al montar cada carta (key reveal-${posicion}): en el handoff forja→reveal
+  // el lingote (botón) que tenía el foco se desmonta; sin esto el foco caería al
+  // <body> y el lector dejaría de anunciar el revelado (WCAG 2.4.3). El shell ES
+  // el control de revelar/continuar, así que enfocarlo mantiene el contexto.
+  const shellRef = useRef(null)
+  useEffect(() => {
+    shellRef.current?.focus({ preventScroll: true })
+  }, [])
 
   return (
     <motion.div
@@ -557,6 +444,7 @@ function RevealStage({
       </div>
 
       <motion.button
+        ref={shellRef}
         type="button"
         className={cx(
           'pack-opening__card-shell',

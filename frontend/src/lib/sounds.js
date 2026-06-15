@@ -596,6 +596,66 @@ export async function playAcunado() {
   })
 }
 
+// Golpe de yunque (La Forja de Sobres) — clang metálico inarmónico + crack
+// filtrado + sub descendente (el tambor grave que entra desde el 3er golpe).
+// intensity 0..1: a baja intensidad el sub queda casi mudo; desde ~0.6 entra
+// el "tambor grave". Rampas exponenciales nunca por debajo de 0.0001. Respeta
+// el mute global vía ensureRunning(), igual que el resto del banco.
+export async function playYunque(intensity = 0.5) {
+  const ctx = await ensureRunning()
+  if (!ctx) return
+  const now = ctx.currentTime
+  const k = Math.max(0.18, Math.min(1, intensity))
+
+  // Clang metálico: parciales inarmónicos (campana de yunque).
+  const partials = [1860, 2490, 3110, 4170]
+  partials.forEach((freq, i) => {
+    const osc = ctx.createOscillator()
+    const gain = ctx.createGain()
+    osc.type = 'triangle'
+    osc.frequency.setValueAtTime(freq * (1 + i * 0.002), now)
+    osc.frequency.exponentialRampToValueAtTime(freq * 0.86, now + 0.18)
+    const peak = (0.05 / (i + 1)) * (0.6 + k)
+    gain.gain.setValueAtTime(0.0001, now)
+    gain.gain.exponentialRampToValueAtTime(Math.max(0.0002, peak), now + 0.004)
+    gain.gain.exponentialRampToValueAtTime(0.0001, now + 0.22 + i * 0.04)
+    osc.connect(gain)
+    gain.connect(ctx.destination)
+    osc.start(now)
+    osc.stop(now + 0.3 + i * 0.04)
+  })
+
+  // Crack del impacto (ruido en bandpass; getNoiseBuffer ya existe en sounds.js).
+  const crack = ctx.createBufferSource()
+  crack.buffer = getNoiseBuffer(ctx, 0.12)
+  const bp = ctx.createBiquadFilter()
+  bp.type = 'bandpass'
+  bp.frequency.setValueAtTime(1500 + 1400 * k, now)
+  bp.Q.value = 3
+  const crackGain = ctx.createGain()
+  crackGain.gain.setValueAtTime(0.12 * (0.6 + k), now)
+  crackGain.gain.exponentialRampToValueAtTime(0.0001, now + 0.1)
+  crack.connect(bp)
+  bp.connect(crackGain)
+  crackGain.connect(ctx.destination)
+  crack.start(now)
+
+  // Sub descendente — el tambor grave. Presencia escala con intensity.
+  const sub = ctx.createOscillator()
+  const subGain = ctx.createGain()
+  sub.type = 'sine'
+  sub.frequency.setValueAtTime(150, now)
+  sub.frequency.exponentialRampToValueAtTime(38, now + 0.26 + 0.12 * k)
+  const subPeak = 0.08 + 0.32 * k
+  subGain.gain.setValueAtTime(0.0001, now)
+  subGain.gain.exponentialRampToValueAtTime(Math.max(0.0002, subPeak), now + 0.012)
+  subGain.gain.exponentialRampToValueAtTime(0.0001, now + 0.34 + 0.18 * k)
+  sub.connect(subGain)
+  subGain.connect(ctx.destination)
+  sub.start(now)
+  sub.stop(now + 0.6)
+}
+
 // Lavado grave — la aguada avanzando (t0→t+600). Ruido pasabajos que cae
 // de 420→110Hz: agua y tinta, sin brillo metálico.
 export async function playVerdictWash() {

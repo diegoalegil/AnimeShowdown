@@ -1,0 +1,624 @@
+/* ============================================================================
+   La Forja de Sobres (num. 117) — CSS de feature (forge.css)
+   Importado por ForgeCharge.jsx: import './forge.css'
+
+   ALCANCE: solo el RITUAL DE CARGA pre-revelado (yunque + lingote + brasas +
+   chispas). El vuelo de cartas y el resumen los hace el revelado EXISTENTE de
+   PackOpening, así que su CSS de la canvas NO se integra aquí.
+
+   TOKEN-PURE: cero literales de color (ni en comentarios). Solo var(--token) y
+   color-mix(in srgb, var(--token) N%, transparent). Cumple el guard del CI.
+
+   COREOGRAFÍA: @keyframes disparados por data-attributes + custom props inline
+   (NO WAAPI). Patrón del Burst/Confetti del repo: alternar data-fire a<->b
+   relanza la animación sin remontar el pool de chispas. Cero <style> en runtime
+   => CSP por hash OK. --ease-stamp es LOCAL (no es token global del sistema).
+   ========================================================================== */
+
+/* ----------------------------------------------------------------------------
+   Contenedor
+   -------------------------------------------------------------------------- */
+.forge {
+  --ease-stamp: cubic-bezier(0.34, 1.56, 0.64, 1);
+
+  --t-spark: 350ms;
+  --t-flash: 80ms;
+  --t-crack: 120ms;
+  --t-shake: 90ms;
+  --t-break: 300ms;
+  --t-arrival: 450ms;
+
+  position: relative;
+  width: 100%;
+  min-height: 100%;
+  overflow: hidden;
+  isolation: isolate;
+  display: flex;
+  flex-direction: column;
+  background:
+    radial-gradient(140% 120% at 50% 116%, color-mix(in srgb, var(--color-accent) 14%, transparent), transparent 58%),
+    linear-gradient(180deg, var(--color-bg), var(--color-canvas) 72%);
+  color: var(--color-fg);
+  font-family: var(--font-sans);
+}
+
+/* ----------------------------------------------------------------------------
+   Brasas de la fragua — capas radial-gradient en cross-fade (pre-horneadas).
+   Cero blur / cero filter: WebKit las compone como pintura plana. El latido es
+   opacity sobre capas estáticas; data-heat sube la capa caliente.
+   -------------------------------------------------------------------------- */
+.forge__hearth {
+  position: absolute;
+  inset: 0;
+  z-index: -2;
+  pointer-events: none;
+}
+
+.forge__ember-bed {
+  position: absolute;
+  inset: 0;
+  background:
+    radial-gradient(90% 62% at 50% 104%, color-mix(in srgb, var(--color-warning) 30%, transparent), transparent 56%),
+    radial-gradient(64% 46% at 50% 106%, color-mix(in srgb, var(--color-accent) 42%, transparent), transparent 60%);
+  opacity: 0.82;
+}
+
+/* Capa de parpadeo: respira en opacity (loop pausable). */
+.forge__ember-flicker {
+  position: absolute;
+  inset: 0;
+  background:
+    radial-gradient(52% 40% at 50% 108%, color-mix(in srgb, var(--color-gold-bright) 34%, transparent), transparent 58%),
+    radial-gradient(40% 30% at 46% 110%, color-mix(in srgb, var(--color-warning) 46%, transparent), transparent 54%);
+  opacity: 0.5;
+  animation: forge-ember-breathe 3200ms ease-in-out infinite;
+}
+
+/* Capa CALIENTE: invisible en reposo, cross-fade in cuando data-heat=high/max. */
+.forge__ember-hot {
+  position: absolute;
+  inset: 0;
+  background:
+    radial-gradient(120% 86% at 50% 110%, color-mix(in srgb, var(--color-warning) 52%, transparent), transparent 60%),
+    radial-gradient(86% 60% at 50% 112%, color-mix(in srgb, var(--color-gold-bright) 40%, transparent), transparent 56%),
+    radial-gradient(58% 44% at 50% 114%, color-mix(in srgb, var(--color-accent) 60%, transparent), transparent 62%);
+  opacity: 0;
+  transition: opacity 420ms var(--ease-lift, ease);
+}
+.forge[data-heat='high'] .forge__ember-hot {
+  opacity: 0.92;
+}
+.forge[data-heat='max'] .forge__ember-hot {
+  opacity: 1;
+}
+.forge[data-heat='max'] .forge__ember-flicker {
+  opacity: 0.85;
+  animation-duration: 900ms;
+}
+
+@keyframes forge-ember-breathe {
+  0%,
+  100% {
+    opacity: 0.34;
+    transform: translate3d(0, 0, 0) scale(1);
+  }
+  50% {
+    opacity: 0.62;
+    transform: translate3d(0, -0.6%, 0) scale(1.015);
+  }
+}
+
+/* Marca de agua kanji al ~5% (火 = fuego/fragua). */
+.forge__watermark {
+  position: absolute;
+  right: clamp(0.5rem, 6vw, 4rem);
+  bottom: clamp(-1.5rem, -2vw, -0.5rem);
+  z-index: -1;
+  font-family: var(--font-kanji-serif);
+  font-size: clamp(8rem, 28vw, 22rem);
+  line-height: 0.8;
+  font-weight: 700;
+  color: color-mix(in srgb, var(--color-gold) 6%, transparent);
+  text-shadow: 0 0 80px color-mix(in srgb, var(--color-accent) 16%, transparent);
+  pointer-events: none;
+  user-select: none;
+}
+
+/* Pausa de loops decorativos: pestaña oculta, modo calma, fuera de viewport. */
+html.as-tab-hidden .forge__ember-flicker,
+.forge.as-calm .forge__ember-flicker,
+.forge.is-offscreen .forge__ember-flicker {
+  animation-play-state: paused;
+}
+
+/* ----------------------------------------------------------------------------
+   Escenario
+   -------------------------------------------------------------------------- */
+.forge__stage {
+  position: relative;
+  z-index: 1;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: clamp(0.85rem, 2.6vh, 1.75rem);
+  padding: clamp(1.25rem, 4vw, 2.5rem) clamp(1rem, 4vw, 2.5rem) clamp(1.5rem, 4vh, 2.75rem);
+  text-align: center;
+}
+
+.forge__kicker {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  color: color-mix(in srgb, var(--color-gold) 92%, transparent);
+  font-size: 0.82rem;
+  font-weight: 600;
+  letter-spacing: 0.01em;
+}
+.forge__kicker::before {
+  content: '';
+  width: 1.75rem;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, var(--color-gold));
+}
+.forge__kicker-jp {
+  font-family: var(--font-kanji-serif);
+  color: var(--color-gold);
+}
+
+/* ----------------------------------------------------------------------------
+   Yunque de piedra
+   -------------------------------------------------------------------------- */
+.forge__anvil {
+  position: relative;
+  width: clamp(15rem, 42vw, 23rem);
+  height: clamp(3.25rem, 9vw, 4.75rem);
+  margin-top: clamp(0.5rem, 2vh, 1.25rem);
+  pointer-events: none;
+}
+.forge__anvil-face {
+  position: absolute;
+  left: 8%;
+  right: 8%;
+  top: 0;
+  height: 42%;
+  border-radius: var(--radius-lg) var(--radius-lg) 0 0;
+  background: linear-gradient(180deg, color-mix(in srgb, var(--color-fg) 16%, var(--color-surface-alt)), var(--color-surface));
+  box-shadow:
+    inset 0 1px 0 color-mix(in srgb, var(--color-fg-strong) 14%, transparent),
+    inset 0 -8px 18px color-mix(in srgb, var(--color-canvas) 70%, transparent);
+}
+.forge__anvil-waist {
+  position: absolute;
+  left: 32%;
+  right: 32%;
+  top: 38%;
+  bottom: 0;
+  background: linear-gradient(180deg, var(--color-surface), color-mix(in srgb, var(--color-canvas) 60%, var(--color-surface)));
+  clip-path: polygon(18% 0, 82% 0, 100% 100%, 0 100%);
+}
+.forge__anvil-glow {
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: -36%;
+  height: 60%;
+  background: radial-gradient(60% 100% at 50% 100%, color-mix(in srgb, var(--color-warning) 40%, transparent), transparent 70%);
+  opacity: 0.6;
+  pointer-events: none;
+}
+
+/* ----------------------------------------------------------------------------
+   ForgeIngot — el lingote sellado que recibe los golpes
+   Hit target >= 232x188px. transform-only en golpe/rotura.
+   -------------------------------------------------------------------------- */
+.forge-ingot {
+  position: relative;
+  appearance: none;
+  border: 0;
+  background: transparent;
+  padding: clamp(1.5rem, 4vw, 2.75rem);
+  margin: 0;
+  cursor: pointer;
+  display: grid;
+  place-items: center;
+  min-width: 232px;
+  min-height: 188px;
+  border-radius: var(--radius-2xl);
+  color: inherit;
+  -webkit-tap-highlight-color: transparent;
+  touch-action: manipulation;
+}
+.forge-ingot:focus-visible {
+  outline: none;
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--color-gold) 55%, transparent);
+}
+
+.forge-ingot__bar {
+  position: relative;
+  width: clamp(11rem, 32vw, 16rem);
+  height: clamp(6.25rem, 17vw, 8.75rem);
+  transform-origin: 50% 100%;
+}
+/* Caída de llegada (una pasada; gobernada por data-arriving + timer del JS). */
+.forge-ingot[data-arriving='true'] .forge-ingot__bar {
+  animation: forge-ingot-drop var(--t-arrival) cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+@keyframes forge-ingot-drop {
+  0% {
+    transform: translate3d(0, -160px, 0) scale(1.04);
+    opacity: 0;
+  }
+  70% {
+    transform: translate3d(0, 8px, 0) scale(0.98);
+    opacity: 1;
+  }
+  100% {
+    transform: translate3d(0, 0, 0) scale(1);
+    opacity: 1;
+  }
+}
+/* Microsacudida por golpe (rotate 0.6deg) — restart por paridad data-fire. */
+.forge-ingot[data-fire='a'] .forge-ingot__bar {
+  animation: forge-shake-a var(--t-shake) ease-in-out both;
+}
+.forge-ingot[data-fire='b'] .forge-ingot__bar {
+  animation: forge-shake-b var(--t-shake) ease-in-out both;
+}
+@keyframes forge-shake-a {
+  0% {
+    transform: rotate(0deg);
+  }
+  45% {
+    transform: rotate(0.6deg);
+  }
+  75% {
+    transform: rotate(-0.3deg);
+  }
+  100% {
+    transform: rotate(0deg);
+  }
+}
+@keyframes forge-shake-b {
+  0% {
+    transform: rotate(0deg);
+  }
+  45% {
+    transform: rotate(0.6deg);
+  }
+  75% {
+    transform: rotate(-0.3deg);
+  }
+  100% {
+    transform: rotate(0deg);
+  }
+}
+.forge-ingot__half {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  width: 51%;
+  background: linear-gradient(
+    180deg,
+    color-mix(in srgb, var(--color-fg) 22%, var(--color-surface-alt)),
+    var(--color-surface-alt) 38%,
+    color-mix(in srgb, var(--color-canvas) 38%, var(--color-surface)) 100%
+  );
+  box-shadow:
+    inset 0 2px 0 color-mix(in srgb, var(--color-fg-strong) 16%, transparent),
+    inset 0 -10px 22px color-mix(in srgb, var(--color-canvas) 66%, transparent);
+  transition:
+    transform var(--t-break) var(--ease-lift, ease),
+    opacity var(--t-break) ease;
+}
+.forge-ingot__half--l {
+  left: 0;
+  border-radius: var(--radius-xl) 0 0 var(--radius-xl);
+  clip-path: polygon(0 0, 100% 0, 92% 50%, 100% 100%, 0 100%);
+}
+.forge-ingot__half--r {
+  right: 0;
+  border-radius: 0 var(--radius-xl) var(--radius-xl) 0;
+  clip-path: polygon(8% 0, 100% 0, 100% 100%, 8% 100%, 0 50%);
+}
+/* Calor latente del metal sellado (capa pre-horneada, no filter). */
+.forge-ingot__bar::before {
+  content: '';
+  position: absolute;
+  inset: -12% -8%;
+  z-index: -1;
+  border-radius: var(--radius-2xl);
+  background: radial-gradient(60% 60% at 50% 60%, color-mix(in srgb, var(--color-accent) 34%, transparent), transparent 72%);
+  opacity: 0.7;
+}
+.forge[data-heat='high'] .forge-ingot__bar::before,
+.forge[data-heat='max'] .forge-ingot__bar::before {
+  background: radial-gradient(64% 64% at 50% 58%, color-mix(in srgb, var(--color-warning) 46%, transparent), transparent 72%);
+  opacity: 1;
+}
+
+/* Sello hanko sobre el lingote (印 = sello/marca, canónico). */
+.forge-ingot__seal {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  font-family: var(--font-kanji-serif);
+  font-size: clamp(2.5rem, 8vw, 4rem);
+  font-weight: 700;
+  color: color-mix(in srgb, var(--color-hanko) 88%, transparent);
+  text-shadow: 0 1px 0 color-mix(in srgb, var(--color-canvas) 60%, transparent);
+  transform: rotate(-5deg);
+  pointer-events: none;
+}
+
+/* Grietas: spans con clip-path ESTÁTICO, revelados por opacity (transition). */
+.forge-ingot__cracks {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+}
+.forge-ingot__crack {
+  position: absolute;
+  inset: 0;
+  opacity: 0;
+  transition: opacity var(--t-crack) ease-out;
+  background: linear-gradient(
+    90deg,
+    transparent,
+    color-mix(in srgb, var(--color-gold-bright) 70%, transparent) 48%,
+    color-mix(in srgb, var(--color-canvas) 80%, transparent) 52%,
+    transparent
+  );
+}
+.forge-ingot__crack[data-on='true'] {
+  opacity: 1;
+}
+.forge-ingot__crack--1 {
+  clip-path: polygon(46% 0, 52% 0, 58% 30%, 50% 52%, 56% 74%, 49% 100%, 44% 100%, 51% 72%, 45% 50%, 53% 28%);
+}
+.forge-ingot__crack--2 {
+  clip-path: polygon(20% 14%, 24% 14%, 40% 40%, 33% 58%, 38% 60%, 34% 66%, 26% 50%, 30% 40%);
+}
+.forge-ingot__crack--3 {
+  clip-path: polygon(64% 20%, 68% 22%, 60% 44%, 72% 62%, 66% 64%, 56% 46%, 62% 28%);
+}
+.forge-ingot__crack--4 {
+  clip-path: polygon(34% 4%, 37% 4%, 30% 24%, 36% 30%, 28% 40%, 24% 26%, 31% 12%);
+}
+.forge-ingot__crack--5 {
+  clip-path: polygon(70% 6%, 74% 8%, 82% 34%, 76% 52%, 70% 50%, 78% 34%);
+}
+
+/* Filo dorado: flash de opacity de 80ms — restart por paridad data-fire. */
+.forge-ingot__edge {
+  position: absolute;
+  inset: 0;
+  border-radius: var(--radius-xl);
+  box-shadow:
+    inset 0 0 0 2px color-mix(in srgb, var(--color-gold-bright) 90%, transparent),
+    inset 0 0 24px color-mix(in srgb, var(--color-gold-bright) 50%, transparent);
+  opacity: 0;
+  pointer-events: none;
+}
+.forge-ingot[data-fire='a'] .forge-ingot__edge {
+  animation: forge-edge-a var(--t-flash) ease-out both;
+}
+.forge-ingot[data-fire='b'] .forge-ingot__edge {
+  animation: forge-edge-b var(--t-flash) ease-out both;
+}
+@keyframes forge-edge-a {
+  0% {
+    opacity: 0;
+  }
+  40% {
+    opacity: 0.95;
+  }
+  100% {
+    opacity: 0;
+  }
+}
+@keyframes forge-edge-b {
+  0% {
+    opacity: 0;
+  }
+  40% {
+    opacity: 0.95;
+  }
+  100% {
+    opacity: 0;
+  }
+}
+
+/* Rotura: las dos mitades se separan +-18px y la barra se desvanece. */
+.forge-ingot[data-broken='true'] .forge-ingot__half--l {
+  transform: translate3d(-18px, 0, 0);
+  opacity: 0;
+}
+.forge-ingot[data-broken='true'] .forge-ingot__half--r {
+  transform: translate3d(18px, 0, 0);
+  opacity: 0;
+}
+.forge-ingot[data-broken='true'] .forge-ingot__seal {
+  opacity: 0;
+  transition: opacity var(--t-break) ease;
+}
+.forge-ingot[data-broken='true'] .forge-ingot__cracks {
+  opacity: 0;
+  transition: opacity var(--t-break) ease;
+}
+
+/* ----------------------------------------------------------------------------
+   Chispas — pool FIJO de 8 spans, reutilizados (data-fire los relanza).
+   transform/opacity. aria-hidden. Reduced-motion: ocultas del todo.
+   -------------------------------------------------------------------------- */
+.spark-burst {
+  position: absolute;
+  left: 50%;
+  top: 46%;
+  width: 0;
+  height: 0;
+  pointer-events: none;
+}
+.spark-burst__bit {
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 6px;
+  height: 6px;
+  margin: -3px 0 0 -3px;
+  border-radius: var(--radius-pill);
+  background: radial-gradient(circle, var(--color-gold-pale), color-mix(in srgb, var(--color-warning) 70%, transparent) 60%, transparent 72%);
+  opacity: 0;
+}
+/* Restart sin remontar el pool: alternar data-fire a/b reanuda la animación.
+   El hint will-change vive SOLO mientras hay un golpe en curso (data-fire a/b),
+   no en reposo/arrival, para no dejar 8 capas de compositor colgadas. */
+.spark-burst[data-fire='a'] .spark-burst__bit {
+  animation: forge-spark-a var(--t-spark) cubic-bezier(0.2, 0.7, 0.3, 1) var(--spark-delay, 0ms) both;
+  will-change: transform, opacity;
+}
+.spark-burst[data-fire='b'] .spark-burst__bit {
+  animation: forge-spark-b var(--t-spark) cubic-bezier(0.2, 0.7, 0.3, 1) var(--spark-delay, 0ms) both;
+  will-change: transform, opacity;
+}
+@keyframes forge-spark-a {
+  0% {
+    transform: translate3d(0, 0, 0) scale(1) rotate(0deg);
+    opacity: 1;
+  }
+  20% {
+    opacity: 1;
+  }
+  100% {
+    transform: translate3d(var(--sx, 0), var(--sy, 0), 0) scale(0.2) rotate(var(--spin, 90deg));
+    opacity: 0;
+  }
+}
+@keyframes forge-spark-b {
+  0% {
+    transform: translate3d(0, 0, 0) scale(1) rotate(0deg);
+    opacity: 1;
+  }
+  20% {
+    opacity: 1;
+  }
+  100% {
+    transform: translate3d(var(--sx, 0), var(--sy, 0), 0) scale(0.2) rotate(var(--spin, 90deg));
+    opacity: 0;
+  }
+}
+
+/* ----------------------------------------------------------------------------
+   Copys + tablero de golpes
+   -------------------------------------------------------------------------- */
+.forge__prompt {
+  min-height: 1.5rem;
+  font-size: clamp(0.95rem, 2.4vw, 1.15rem);
+  font-weight: 600;
+  color: var(--color-fg-strong);
+}
+.forge__hint {
+  font-size: var(--text-2xs);
+  color: var(--color-fg-muted);
+  font-family: var(--font-mono);
+  letter-spacing: 0.02em;
+}
+
+.forge__tally {
+  display: inline-flex;
+  gap: 0.4rem;
+  align-items: center;
+  font-family: var(--font-mono);
+  font-size: var(--text-2xs);
+  color: var(--color-fg-muted);
+}
+.forge__tally-dot {
+  width: 0.6rem;
+  height: 0.6rem;
+  border-radius: var(--radius-pill);
+  border: 1px solid var(--color-border-gold-subtle);
+  background: transparent;
+  transition:
+    background 160ms ease,
+    border-color 160ms ease;
+}
+.forge__tally-dot[data-struck='true'] {
+  background: var(--color-gold);
+  border-color: var(--color-gold-bright);
+}
+
+/* "Abrir directo" — control discreto y enfocable (skip del ritual). */
+.forge__direct {
+  appearance: none;
+  border: 0;
+  background: transparent;
+  cursor: pointer;
+  font-size: var(--text-2xs);
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  color: var(--color-fg-muted);
+  padding: 0.35rem 0.6rem;
+  border-radius: var(--radius-pill);
+  text-transform: uppercase;
+  transition: color 140ms ease;
+}
+.forge__direct:hover {
+  color: var(--color-gold);
+}
+.forge__direct:focus-visible {
+  outline: none;
+  color: var(--color-gold);
+  box-shadow: 0 0 0 2px color-mix(in srgb, var(--color-gold) 45%, transparent);
+}
+
+/* ----------------------------------------------------------------------------
+   Reduced motion / modo calma
+   Golpes sin chispas ni sacudida (la grieta aparece en seco); brasas estáticas.
+   -------------------------------------------------------------------------- */
+@media (prefers-reduced-motion: reduce) {
+  .forge__ember-flicker {
+    animation: none !important;
+    opacity: 0.5;
+  }
+  .forge-ingot__crack {
+    transition: none !important;
+  }
+  .forge-ingot__half {
+    transition-duration: 1ms !important;
+  }
+  .spark-burst {
+    display: none !important;
+  }
+}
+
+/* La clase .forge.as-calm replica reduced-motion bajo el camino "seco" del JS. */
+.forge.as-calm .forge__ember-flicker {
+  animation: none !important;
+  opacity: 0.5;
+}
+.forge.as-calm .forge-ingot__crack {
+  transition: none !important;
+}
+.forge.as-calm .forge-ingot__half {
+  transition-duration: 1ms !important;
+}
+.forge.as-calm .spark-burst {
+  display: none !important;
+}
+.forge.as-calm .forge-ingot[data-arriving='true'] .forge-ingot__bar {
+  animation: none !important;
+}
+
+.forge .sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
+  border: 0;
+}
