@@ -69,7 +69,9 @@ const LUNES = lunesDeEstaSemanaUTC()
 function isoSemana(semanas, { dia = 0, finDeDia = false } = {}) {
   const t = LUNES + semanas * SEMANA_MS + dia * DIA_MS
   const d = new Date(t)
-  if (finDeDia) d.setUTCHours(23, 59, 59, 0)
+  // 999ms (no 0): el evento siguiente arranca el lunes 00:00:00.000, así no queda
+  // un hueco sin ACTIVO en la franja domingo 23:59:59.x (ni con pestaña abierta).
+  if (finDeDia) d.setUTCHours(23, 59, 59, 999)
   return d.toISOString()
 }
 
