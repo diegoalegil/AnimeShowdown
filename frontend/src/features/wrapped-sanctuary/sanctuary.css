@@ -109,9 +109,9 @@ html.as-tab-hidden .sanctuary-mist,
   height: 20px;
   border-radius: 2px;
   opacity: 0;
-  will-change: transform;
 }
 .is-awake .sanctuary-ballot {
+  will-change: transform;
   animation: sanctuary-ballot calc(var(--bd, 1.8s) * var(--sanctuary-speed)) linear
     calc(var(--bdelay, 0s) * var(--sanctuary-speed)) 1 both;
 }

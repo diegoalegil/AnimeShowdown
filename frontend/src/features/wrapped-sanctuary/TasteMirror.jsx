@@ -7,6 +7,7 @@
 
 import { useRef } from 'react'
 import { brandImage } from '../../lib/brand-assets'
+import { slugifyAnime } from '../../lib/animes'
 import { useCountUp } from './sanctuary-core'
 
 /**
@@ -20,10 +21,12 @@ import { useCountUp } from './sanctuary-core'
  * Escena A SANGRE del espejo (aria-hidden). Va en el slot `scenery` de
  * SanctuaryRoom (absolute inset-0 de la <section>), por eso es full-bleed; si
  * fuera children quedaría recortada a la columna de texto.
- * @param {{ universoTop:{slug:string} }} props
+ * @param {{ universoTop:{anime:string} }} props
  */
 export function TasteMirrorScene({ universoTop }) {
-  const scene = universoTop?.slug ? brandImage(`${universoTop.slug}-scene-01`) : null
+  // brandImage indexa por slug de ANIME (no de personaje): resolvemos el slug
+  // desde el nombre del anime, idéntico a como WrappedPage construye sceneUrl.
+  const scene = universoTop?.anime ? brandImage(`${slugifyAnime(universoTop.anime)}-scene-01`) : null
   return (
     <div className="sanctuary-scene absolute inset-0" aria-hidden="true">
       {scene ? (

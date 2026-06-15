@@ -188,7 +188,7 @@ function WrappedSanctuary({ wrapped, onCompartir, onVolverArena }) {
             href={`#${r.id}`}
             aria-label={`Ir a ${r.titulo}`}
             aria-current={active === r.id ? 'true' : undefined}
-            className={`flex h-[34px] w-[34px] items-center justify-center rounded-full border font-kanji-serif text-[17px] transition-colors ${
+            className={`relative flex h-[34px] w-[34px] items-center justify-center rounded-full border font-kanji-serif text-[17px] transition-colors before:absolute before:inset-[-5px] before:content-[''] ${
               active === r.id ? 'border-border-gold bg-surface' : 'border-white/10 bg-surface'
             } ${cls(r.id)}`}
           >

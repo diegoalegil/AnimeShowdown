@@ -764,67 +764,6 @@
   }
 }
 
-/* Wrapped cinematográfico: SLAM del número (aterriza con overshoot),
-   micro-shake del frame de aterrizaje, slow-zoom de la scene y el bob del
-   chevrón del cover. Solo transform/opacity; los dispara el view timeline
-   (Chrome) o framer (fallback) desde WrappedCinematic. */
-@keyframes wrapped-slam {
-  0% {
-    opacity: 0;
-    transform: scale(2.6) translateZ(0);
-  }
-  55% {
-    opacity: 1;
-  }
-  74% {
-    transform: scale(0.94) translateZ(0);
-  }
-  88% {
-    transform: scale(1.045) translateZ(0);
-  }
-  100% {
-    opacity: 1;
-    transform: scale(1) translateZ(0);
-  }
-}
-@keyframes wrapped-shake {
-  0%,
-  100% {
-    transform: translate3d(0, 0, 0);
-  }
-  20% {
-    transform: translate3d(-7px, 3px, 0);
-  }
-  40% {
-    transform: translate3d(6px, -4px, 0);
-  }
-  60% {
-    transform: translate3d(-4px, 2px, 0);
-  }
-  80% {
-    transform: translate3d(3px, -1px, 0);
-  }
-}
-@keyframes wrapped-scenezoom {
-  from {
-    transform: scale(1.12) translate3d(0, 2%, 0);
-  }
-  to {
-    transform: scale(1.04) translate3d(0, -1.5%, 0);
-  }
-}
-@keyframes wrapped-bob {
-  0%,
-  100% {
-    transform: translate3d(0, 0, 0);
-    opacity: 0.7;
-  }
-  50% {
-    transform: translate3d(0, 8px, 0);
-    opacity: 1;
-  }
-}
-
 /* MistDrift: el elemento mide 200% del contenedor y cada tile ocupa el 50%
    del elemento (background-size) → desplazar -50% recorre exactamente un
    tile y el loop no tiene costura (la banda es tileable en X). */
@@ -1120,10 +1059,6 @@
       rgb(120 80 30 / 0.04) 75%,
       rgb(197 161 90 / 0.20)
     );
-  }
-
-  .as-tab-hidden .wrapped-bob {
-    animation-play-state: paused !important;
   }
 
   /* Tale of the Tape: gradientes/colores fuera del JSX (guard de hex). El

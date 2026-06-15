@@ -29,9 +29,9 @@ export function anioKanji(anio) {
 // Guion canonico por sala. Kanji con SIGNIFICADO (anti-relleno) — todos
 // reutilizados del subset de marca existente salvo donde se indica:
 //   入 entrar · 票 papeleta/voto · 祭 rito/altar · 灯 farol · 界 mundo/universo
-//   結 nudo/conclusion (ya en uso por WrappedCinematic) · 印 sello/cuno · 推 oshi
+//   結 nudo/conclusion (sala emaki) · 推 oshi
 export const GUION = Object.freeze({
-  entrada: { kanji: '入', titulo: 'La Entrada', selloKanji: '印' },
+  entrada: { kanji: '入', titulo: 'La Entrada' },
   votos: { kanji: '票', titulo: 'La Lluvia de Votos' },
   altar: { kanji: '祭', titulo: 'El Altar de los Fieles' },
   racha: { kanji: '灯', titulo: 'La Senda de la Racha' },
@@ -95,16 +95,6 @@ function withGuion(id) {
 export function podio(top3 = []) {
   const order = top3.length === 3 ? [1, 0, 2] : top3.map((_, i) => i)
   return order.map((srcIdx) => ({ ...top3[srcIdx], rank: srcIdx }))
-}
-
-/** Iniciales para el retrato placeholder ("Gojo Satoru" -> "GS"). */
-export function iniciales(nombre = '') {
-  return nombre
-    .split(' ')
-    .map((w) => w[0])
-    .slice(0, 2)
-    .join('')
-    .toUpperCase()
 }
 
 /**

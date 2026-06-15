@@ -4,7 +4,6 @@ import {
   MAX_LANTERNS,
   anioKanji,
   ballotPool,
-  iniciales,
   nfEs,
   podio,
   visibleRooms,
@@ -22,12 +21,6 @@ describe('sanctuary-core · formateadores', () => {
     expect(anioKanji(2026)).toBe('二零二六')
     expect(anioKanji('2026')).toBe('二零二六')
     expect(anioKanji(null)).toBe('')
-  })
-
-  it('iniciales saca hasta dos iniciales en mayúsculas', () => {
-    expect(iniciales('Gojo Satoru')).toBe('GS')
-    expect(iniciales('Goku')).toBe('G')
-    expect(iniciales('')).toBe('')
   })
 })
 

@@ -64,6 +64,7 @@ function EmakiFinale({ wrapped, onCompartir, onVolver, feedback = '' }) {
           className="sanctuary-emaki-strip flex items-stretch overflow-x-auto bg-gradient-to-b from-surface-alt to-surface"
           role="group"
           aria-label="Resumen de tu temporada"
+          tabIndex={0}
         >
           <div className="flex shrink-0 flex-col items-start justify-center gap-1.5 border-r border-border-gold-subtle bg-gradient-to-br from-accent/25 to-transparent px-[30px] py-7">
             <span lang="ja" className="font-kanji-serif text-3xl text-gold">
