@@ -105,10 +105,12 @@ function Asiento({ slot, votos, hrefPersonaje }) {
   return <div style={base}>{inner}</div>
 }
 
-/** Resumen accesible del duelo (aria-label del rollo). */
+/** Resumen accesible del duelo (aria-label del rollo). Sigue el estado VISIBLE
+ * (seated), igual que el render: un asiento sin ocupar se anuncia "por definir",
+ * no adelanta finalistas durante el scrub. Un slot resuelto siempre está seated. */
 function describeMatch(m, live) {
-  const an = m.slot1.persona?.slug ? m.slot1.persona.nombre : 'por definir'
-  const bn = m.slot2.persona?.slug ? m.slot2.persona.nombre : 'por definir'
+  const an = m.slot1.seated && m.slot1.persona?.slug ? m.slot1.persona.nombre : 'por definir'
+  const bn = m.slot2.seated && m.slot2.persona?.slug ? m.slot2.persona.nombre : 'por definir'
   if (m.status === 'resolved') {
     const g = m.slot1.isWinner ? an : bn
     const l = m.slot1.isWinner ? bn : an
