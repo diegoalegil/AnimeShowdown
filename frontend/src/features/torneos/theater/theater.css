@@ -1,0 +1,402 @@
+/* ============================================================================
+   theater.css — FEATURE CSS de "El Teatro del Torneo" (AnimeShowdown)
+   ----------------------------------------------------------------------------
+   El componente raíz lo importa con  `import './theater.css'`  (CSP por hash:
+   CERO estilos en runtime — todos los @keyframes viven AQUÍ).
+
+   REGLAS DEL PROYECTO RESPETADAS:
+   · CERO color literal (ni hex ni funciones de color por canales) — solo tokens
+     var(--color-*) del index.css y color-mix(in srgb, var(--token) N%, transparent).
+   · Solo se animan transform / opacity / clip-path / stroke-dashoffset.
+     Nada de animar width / height / top / filter. Glow/latido = capas
+     pre-pintadas con cross-fade de opacity.
+   · ease-stamp NO es token global: se declara local aquí.
+   · prefers-reduced-motion COMPLETO en cada animación. En la demo, la clase
+     html.force-reduced espeja el media query para el toggle del director.
+   · Loops pausables: html.as-calm, html.as-tab-hidden y .is-offscreen.
+   ============================================================================ */
+
+/* ease-stamp local — overshoot del hanko (caída + asentado con rebote). */
+:where(.teatro) {
+  --ease-stamp: cubic-bezier(0.34, 1.56, 0.64, 1);
+  --teatro-paper:
+    repeating-linear-gradient(
+      180deg,
+      color-mix(in srgb, var(--color-gold) 4%, transparent) 0,
+      color-mix(in srgb, var(--color-gold) 4%, transparent) 1px,
+      transparent 1px,
+      transparent 7px
+    );
+}
+
+/* ───────────────────────── ACTO 0 · TELÓN ────────────────────────────────
+   Dos hojas que se retiran translateX ±102%. El proscenio queda pintado
+   debajo (LCP sin animación). Gating: la clase --abre dispara la apertura;
+   sin ella, el telón está CERRADO (base de SCHEDULED). */
+@keyframes teatro-telon-izq {
+  from { transform: translateX(0); }
+  to   { transform: translateX(-102%); }
+}
+@keyframes teatro-telon-der {
+  from { transform: translateX(0); }
+  to   { transform: translateX(102%); }
+}
+.teatro-telon__hoja {
+  /* Sin will-change permanente: la apertura es UNA animación de transform de
+     700ms al montar; el navegador promueve y libera la capa solo. La clase
+     --abre nunca vuelve a false, así que un hint estático dejaría 2 capas de
+     compositor colgadas toda la vida de la página (peor en WebKit). */
+  background:
+    linear-gradient(
+      90deg,
+      color-mix(in srgb, var(--color-canvas) 55%, var(--color-accent)) 0%,
+      var(--color-accent) 18%,
+      color-mix(in srgb, var(--color-accent) 70%, var(--color-canvas)) 50%,
+      var(--color-accent) 82%,
+      color-mix(in srgb, var(--color-canvas) 55%, var(--color-accent)) 100%
+    );
+  /* Pliegues verticales del terciopelo: rayas de luz/sombra pre-pintadas. */
+  background-image:
+    repeating-linear-gradient(
+      90deg,
+      color-mix(in srgb, var(--color-canvas) 42%, transparent) 0,
+      color-mix(in srgb, var(--color-canvas) 42%, transparent) 2px,
+      transparent 2px,
+      transparent 26px,
+      color-mix(in srgb, var(--color-fg-strong) 8%, transparent) 28px,
+      transparent 30px,
+      transparent 52px
+    ),
+    linear-gradient(
+      90deg,
+      color-mix(in srgb, var(--color-canvas) 55%, var(--color-accent)) 0%,
+      var(--color-accent) 22%,
+      color-mix(in srgb, var(--color-accent) 68%, var(--color-canvas)) 50%,
+      var(--color-accent) 78%,
+      color-mix(in srgb, var(--color-canvas) 55%, var(--color-accent)) 100%
+    );
+}
+.teatro-telon--abre .teatro-telon__hoja--izq {
+  animation: teatro-telon-izq 700ms var(--ease-brush) forwards;
+}
+.teatro-telon--abre .teatro-telon__hoja--der {
+  animation: teatro-telon-der 700ms var(--ease-brush) forwards;
+}
+
+/* ─────────────────── ACTO 0 · CORTE DE TINTA (título) ─────────────────────
+   Cover scaleX origin-left que se retira con filo dorado de 3px. */
+@keyframes teatro-corte-retira {
+  from { transform: scaleX(1); }
+  to   { transform: scaleX(0); }
+}
+.teatro-corte {
+  position: absolute;
+  inset: 0;
+  transform-origin: left center;
+  transform: scaleX(0);
+  background: var(--color-canvas);
+  pointer-events: none;
+}
+.teatro-corte--play {
+  transform: scaleX(1);
+  animation: teatro-corte-retira 420ms var(--ease-brush) var(--teatro-corte-delay, 400ms) forwards;
+}
+.teatro-corte::after { /* filo dorado de 3px en el borde de salida */
+  content: "";
+  position: absolute;
+  top: 0;
+  right: 0;
+  width: 3px;
+  height: 100%;
+  background: linear-gradient(
+    180deg,
+    color-mix(in srgb, var(--color-gold) 10%, transparent),
+    var(--color-gold-bright) 30%,
+    var(--color-gold-bright) 70%,
+    color-mix(in srgb, var(--color-gold) 10%, transparent)
+  );
+}
+
+/* ───────────────────────── ACTO 0 · FAROLES ──────────────────────────────
+   Encienden con fade 400ms; luego laten con cross-fade de opacity (capa
+   fuerte pre-pintada respira sobre la base tenue). Loop pausable. */
+@keyframes teatro-farol-enciende {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+@keyframes teatro-farol-late {
+  0%, 100% { opacity: 0.35; }
+  50%      { opacity: 1; }
+}
+.teatro-farol { opacity: 0; }
+.teatro-farol--on {
+  animation: teatro-farol-enciende 400ms ease both;
+  animation-delay: var(--teatro-farol-delay, 650ms);
+}
+.teatro-farol__halo { /* capa fuerte pre-pintada que respira */
+  position: absolute;
+  inset: -40%;
+  border-radius: 50%;
+  background: radial-gradient(
+    circle,
+    color-mix(in srgb, var(--color-gold-bright) 55%, transparent) 0%,
+    color-mix(in srgb, var(--color-gold) 22%, transparent) 38%,
+    transparent 70%
+  );
+  opacity: 0.35;
+  pointer-events: none;
+  animation: teatro-farol-late 3.4s ease-in-out infinite;
+  animation-delay: var(--teatro-flicker-offset, 0s);
+}
+
+/* ───────────────────── ACTO 1 · ROLLO EMAKI (desenrolla) ──────────────────
+   scaleY 0.06 → 1 origin-top. Base = desenrollado (estado final). La clase
+   --play arranca desde enrollado; stagger por --teatro-emaki-delay inline. */
+@keyframes teatro-emaki-unroll {
+  from { transform: scaleY(0.06); }
+  to   { transform: scaleY(1); }
+}
+.teatro-emaki { transform-origin: top center; }
+.teatro-emaki--play {
+  animation: teatro-emaki-unroll 420ms var(--ease-lift) both;
+  animation-delay: var(--teatro-emaki-delay, 0ms);
+}
+/* Varilla superior del rollo (el listón de madera del que cuelga el papel). */
+.teatro-emaki__papel {
+  background:
+    var(--teatro-paper),
+    linear-gradient(
+      180deg,
+      color-mix(in srgb, var(--color-fg-strong) 7%, var(--color-surface)),
+      var(--color-surface) 60%,
+      color-mix(in srgb, var(--color-canvas) 40%, var(--color-surface))
+    );
+}
+
+/* ─────────────────── ACTO 1 · CUERDAS SVG (trazo único) ───────────────────
+   stroke-dashoffset 1 → 0, 500ms. pathLength=1 normaliza el dash. */
+@keyframes teatro-cuerda-traza {
+  to { stroke-dashoffset: 0; }
+}
+.teatro-cuerda {
+  stroke-dasharray: 1;
+  stroke-dashoffset: 0; /* base = trazada */
+}
+.teatro-cuerda--play {
+  stroke-dashoffset: 1;
+  animation: teatro-cuerda-traza 500ms var(--ease-brush) var(--teatro-cuerda-delay, 0ms) forwards;
+}
+
+/* ─────────────── EN CURSO · CORDÓN CIAN (duelo abierto, late) ──────────────
+   Capa de glow pre-pintada que cross-fadea opacity (jamás box-shadow vivo). */
+@keyframes teatro-cian-late {
+  0%, 100% { opacity: 0.25; }
+  50%      { opacity: 0.9; }
+}
+.teatro-cian-glow {
+  position: absolute;
+  inset: -2px;
+  border-radius: inherit;
+  box-shadow:
+    0 0 0 1px color-mix(in srgb, var(--color-electric) 70%, transparent),
+    0 0 22px -2px color-mix(in srgb, var(--color-electric) 65%, transparent);
+  opacity: 0.25;
+  pointer-events: none;
+  animation: teatro-cian-late 1.7s ease-in-out infinite;
+}
+
+/* ─────────────── MODO FUNCIÓN · CORTE DE TINTA sobre el perdedor ───────────
+   Brochazo horizontal que tacha (scaleX origin-left, 420ms). */
+@keyframes teatro-tacha {
+  from { transform: scaleX(0); }
+  to   { transform: scaleX(1); }
+}
+.teatro-tacha {
+  transform-origin: left center;
+  transform: scaleX(0);
+  background: linear-gradient(
+    90deg,
+    color-mix(in srgb, var(--color-accent) 30%, transparent),
+    var(--color-accent) 12%,
+    var(--color-accent) 88%,
+    color-mix(in srgb, var(--color-accent) 30%, transparent)
+  );
+}
+.teatro-tacha--play { animation: teatro-tacha 420ms var(--ease-brush) forwards; }
+.teatro-tacha--set  { transform: scaleX(1); }
+
+/* Cortinilla lateral entre rondas (300ms). */
+@keyframes teatro-cortinilla {
+  0%   { transform: translateX(-101%); }
+  50%  { transform: translateX(0); }
+  100% { transform: translateX(101%); }
+}
+.teatro-cortinilla--play { animation: teatro-cortinilla 300ms var(--ease-brush) forwards; }
+
+/* ───────────────────────── CORONACIÓN ─────────────────────────────────────
+   estandarte cae 550ms → sello 王 ease-stamp 380ms + sangrado →
+   pan de oro 900ms (una pasada) → nombre trazado 800ms. */
+@keyframes teatro-estandarte-cae {
+  from { transform: translateY(-118%); }
+  to   { transform: translateY(0); }
+}
+.teatro-estandarte--play { animation: teatro-estandarte-cae 550ms var(--ease-lift) both; }
+.teatro-estandarte__tela {
+  background:
+    var(--teatro-paper),
+    linear-gradient(
+      180deg,
+      color-mix(in srgb, var(--color-accent) 88%, var(--color-canvas)),
+      color-mix(in srgb, var(--color-accent) 64%, var(--color-canvas)) 100%
+    );
+}
+
+@keyframes teatro-sello-estampa {
+  0%   { opacity: 0; transform: translateY(-46px) scale(2.4) rotate(-16deg); }
+  60%  { opacity: 1; transform: translateY(3px) scale(0.9) rotate(-6deg); }
+  78%  { transform: translateY(-2px) scale(1.06) rotate(-9deg); }
+  100% { opacity: 1; transform: translateY(0) scale(1) rotate(-8deg); }
+}
+.teatro-sello--play {
+  animation: teatro-sello-estampa 380ms var(--ease-stamp) var(--teatro-sello-delay, 0ms) both;
+}
+.teatro-sello--set { opacity: 1; transform: rotate(-8deg); }
+
+/* Sangrado del sello: anillo estático que escala+desvanece (una pasada). */
+@keyframes teatro-sangrado {
+  0%   { transform: scale(0.4); opacity: 0; }
+  22%  { opacity: 0.6; }
+  100% { transform: scale(2.1); opacity: 0; }
+}
+.teatro-sangrado--play {
+  animation: teatro-sangrado 620ms var(--ease-lift) var(--teatro-sangrado-delay, 0ms) forwards;
+}
+
+/* Pan de oro: 12 partículas transform-only, UNA pasada. Cada una recibe
+   --gx (deriva x), --gr (giro), --gd (delay), --gs (escala) inline. */
+@keyframes teatro-panoro {
+  0%   { transform: translate3d(0, -10vh, 0) rotate(0deg) scale(var(--gs, 1)); opacity: 0; }
+  12%  { opacity: 1; }
+  100% { transform: translate3d(var(--gx, 0), 92vh, 0) rotate(var(--gr, 220deg)) scale(var(--gs, 1)); opacity: 0; }
+}
+.teatro-panoro {
+  position: absolute;
+  top: 0;
+  width: 10px;
+  height: 14px;
+  background: linear-gradient(135deg, var(--color-gold-pale), var(--color-gold-bright) 55%, var(--color-gold));
+  opacity: 0;
+  pointer-events: none;
+  will-change: transform, opacity;
+}
+.teatro-panoro--play {
+  animation: teatro-panoro 900ms var(--teatro-panoro-ease, cubic-bezier(0.45, 0, 0.7, 1)) var(--gd, 0ms) forwards;
+}
+
+/* Nombre del campeón trazado: pincelada de revelado por clip-path inset
+   (izq→der) — el "from" es el único declarado, base = revelado. */
+@keyframes teatro-nombre-traza {
+  from { clip-path: inset(0 100% 0 0); }
+  to   { clip-path: inset(0 0 0 0); }
+}
+.teatro-nombre--play { animation: teatro-nombre-traza 800ms var(--ease-brush) var(--teatro-nombre-delay, 0ms) both; }
+
+/* 王 trazado trazo a trazo (KanjiStroke-style) — dash escalonado por path. */
+@keyframes teatro-stroke-draw {
+  from { stroke-dashoffset: 1; }
+  to   { stroke-dashoffset: 0; }
+}
+.teatro-kstroke path {
+  stroke-dasharray: 1;
+  stroke-dashoffset: 1;
+  animation: teatro-stroke-draw var(--teatro-stroke-ms, 420ms) var(--ease-brush) both;
+}
+
+/* ───────────────── Scrubber nativo de la función (slider) ─────────────────*/
+.teatro-scrub {
+  -webkit-appearance: none;
+  appearance: none;
+  height: 8px;
+  border-radius: var(--radius-pill);
+  background: linear-gradient(
+    90deg,
+    var(--color-gold) 0,
+    var(--color-gold) var(--scrub-pct, 0%),
+    color-mix(in srgb, var(--color-fg) 14%, transparent) var(--scrub-pct, 0%)
+  );
+  cursor: pointer;
+}
+.teatro-scrub::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  background: radial-gradient(circle at 38% 32%, var(--color-gold-pale), var(--color-gold) 60%, color-mix(in srgb, var(--color-gold) 60%, var(--color-canvas)));
+  border: 2px solid var(--color-canvas);
+  box-shadow: 0 0 0 1px var(--color-gold-bright), 0 2px 6px color-mix(in srgb, var(--color-canvas) 60%, transparent);
+}
+.teatro-scrub::-moz-range-thumb {
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  background: var(--color-gold);
+  border: 2px solid var(--color-canvas);
+}
+
+/* ───────────────── Marca de agua kanji al ~5% (fondo escena) ──────────────*/
+.teatro-watermark {
+  font-family: var(--font-kanji-serif);
+  color: color-mix(in srgb, var(--color-gold) 5%, transparent);
+  text-shadow: 0 0 80px color-mix(in srgb, var(--color-accent) 18%, transparent);
+  user-select: none;
+  pointer-events: none;
+}
+
+/* ─────────────────────── PAUSA de loops decorativos ───────────────────────*/
+html.as-tab-hidden .teatro-farol__halo,
+html.as-tab-hidden .teatro-cian-glow,
+.is-offscreen .teatro-farol__halo,
+.is-offscreen .teatro-cian-glow {
+  animation-play-state: paused !important;
+}
+
+/* ─────────────── REDUCED MOTION (media query + clase espejo demo) ──────────
+   Conserva el 100% de la información: telón abierto, faroles estáticos,
+   rollos desenrollados, función en "pasos secos" (cada paso = estado
+   directo, sin animación intermedia), narrador intacto. */
+@media (prefers-reduced-motion: reduce) {
+  .teatro-telon__hoja--izq { transform: translateX(-102%) !important; animation: none !important; }
+  .teatro-telon__hoja--der { transform: translateX(102%) !important; animation: none !important; }
+  .teatro-corte, .teatro-corte--play { animation: none !important; transform: scaleX(0) !important; }
+  .teatro-farol, .teatro-farol--on { animation: none !important; opacity: 1 !important; }
+  .teatro-farol__halo { animation: none !important; opacity: 0.6 !important; }
+  .teatro-emaki, .teatro-emaki--play { animation: none !important; transform: scaleY(1) !important; }
+  .teatro-cuerda, .teatro-cuerda--play { animation: none !important; stroke-dashoffset: 0 !important; }
+  .teatro-cian-glow { animation: none !important; opacity: 0.7 !important; }
+  .teatro-tacha--play { animation: none !important; transform: scaleX(1) !important; }
+  .teatro-cortinilla--play { animation: none !important; transform: translateX(101%) !important; }
+  .teatro-estandarte--play { animation: none !important; transform: translateY(0) !important; }
+  .teatro-sello--play { animation: none !important; opacity: 1 !important; transform: rotate(-8deg) !important; }
+  .teatro-sangrado--play { animation: none !important; opacity: 0 !important; }
+  .teatro-panoro--play { animation: none !important; opacity: 0 !important; }
+  .teatro-nombre--play { animation: none !important; clip-path: inset(0 0 0 0) !important; }
+  .teatro-kstroke path { animation: none !important; stroke-dashoffset: 0 !important; }
+}
+/* Espejo del media query para el toggle "reduced-motion simulado" del director. */
+html.force-reduced .teatro-telon__hoja--izq { transform: translateX(-102%) !important; animation: none !important; }
+html.force-reduced .teatro-telon__hoja--der { transform: translateX(102%) !important; animation: none !important; }
+html.force-reduced .teatro-corte, html.force-reduced .teatro-corte--play { animation: none !important; transform: scaleX(0) !important; }
+html.force-reduced .teatro-farol, html.force-reduced .teatro-farol--on { animation: none !important; opacity: 1 !important; }
+html.force-reduced .teatro-farol__halo { animation: none !important; opacity: 0.6 !important; }
+html.force-reduced .teatro-emaki, html.force-reduced .teatro-emaki--play { animation: none !important; transform: scaleY(1) !important; }
+html.force-reduced .teatro-cuerda, html.force-reduced .teatro-cuerda--play { animation: none !important; stroke-dashoffset: 0 !important; }
+html.force-reduced .teatro-cian-glow { animation: none !important; opacity: 0.7 !important; }
+html.force-reduced .teatro-tacha--play { animation: none !important; transform: scaleX(1) !important; }
+html.force-reduced .teatro-cortinilla--play { animation: none !important; transform: translateX(101%) !important; }
+html.force-reduced .teatro-estandarte--play { animation: none !important; transform: translateY(0) !important; }
+html.force-reduced .teatro-sello--play { animation: none !important; opacity: 1 !important; transform: rotate(-8deg) !important; }
+html.force-reduced .teatro-sangrado--play { animation: none !important; opacity: 0 !important; }
+html.force-reduced .teatro-panoro--play { animation: none !important; opacity: 0 !important; }
+html.force-reduced .teatro-nombre--play { animation: none !important; clip-path: inset(0 0 0 0) !important; }
+html.force-reduced .teatro-kstroke path { animation: none !important; stroke-dashoffset: 0 !important; }

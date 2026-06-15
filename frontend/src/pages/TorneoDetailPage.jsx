@@ -1,6 +1,5 @@
 import { useState } from 'react'
 import { useParams, Link } from 'react-router-dom'
-import { motion } from 'framer-motion'
 import { toast } from 'sonner'
 import { AlertTriangle, ArrowLeft, CheckCircle2, Crown, Lock, Target, Trophy, Users } from 'lucide-react'
 import PersonajeCard from '../components/PersonajeCard'
@@ -8,17 +7,15 @@ import Bracket from '../components/Bracket'
 import DuelosAbiertosStrip from '../components/DuelosAbiertosStrip'
 import LiveMatchSpectator from '../components/LiveMatchSpectator'
 import PersonajeImg from '../components/PersonajeImg'
-import ReactionsBar from '../components/ReactionsBar'
-import EditorialCover from '../components/EditorialCover'
 import ShareButtons from '../components/ShareButtons'
 import KanjiSpinner from '../components/KanjiSpinner'
 import EmptyState from '../components/EmptyState'
 import Skeleton from '../components/Skeleton'
 import { useAuth } from '../contexts/AuthContext'
 import { ApiError } from '../lib/api'
-import { formatDateSafe, parseDateSafe } from '../lib/dateUtils'
-import { useTorneoBySlug, getEstadoBadge } from '../lib/torneosQueries'
+import { useTorneoBySlug } from '../lib/torneosQueries'
 import ChampionSeal from '../features/torneos/seal/ChampionSeal'
+import TournamentTheater from '../features/torneos/theater/TournamentTheater'
 import {
   useAplicarPrediccionCampeon,
   useLeaderboardPrediccionesTorneo,
@@ -30,15 +27,6 @@ import JsonLd from '../components/JsonLd'
 import { BRAND_VISUALS, getTournamentVisual } from '../data/visual-assets'
 import { VisualPageShell } from '../components/VisualSystem'
 import NotFoundPage from './NotFoundPage'
-
-const headerVariants = {
-  hidden: { opacity: 0, y: 16 },
-  visible: {
-    opacity: 1,
-    y: 0,
-    transition: { duration: 0.5, ease: 'easeOut' },
-  },
-}
 
 /**
  * Detalle de un torneo (/torneos/[slug]) consumiendo el backend vía
@@ -149,11 +137,7 @@ function TorneoDetailPage() {
 
   const {
     nombre,
-    descripcion,
     estado,
-    fechaInicio,
-    fechaFinalizacion,
-    numParticipantes,
     totalRondas,
     ganadorSlug,
     enfrentamientos,
@@ -162,11 +146,6 @@ function TorneoDetailPage() {
     ? enfrentamientos
     : []
 
-  const badge = getEstadoBadge(estado)
-  const fechaInicioDate = parseDateSafe(fechaInicio)
-  const fechaFinDate = parseDateSafe(fechaFinalizacion)
-  const fechaInicioFmt = formatearFecha(fechaInicio)
-  const fechaFinFmt = formatearFecha(fechaFinalizacion)
   const visual = getTournamentVisual(torneo.slug, nombre)
 
   // Roster: extraemos los participantes únicos de la ronda 1 (siempre los
@@ -205,52 +184,17 @@ function TorneoDetailPage() {
           <ArrowLeft className="h-4 w-4" />
           Volver a torneos
         </Link>
-        {/* 3: <header> con Microdata schema.org/SportsEvent.
-            JSON-LD del torneo va en JsonLd arriba; el Microdata aquí
-            sirve a crawlers que prefieren parsearlo inline. */}
-        <motion.header
-          itemScope
-          itemType="https://schema.org/SportsEvent"
-          className="relative mb-10 flex min-h-96 flex-col items-start justify-end gap-3 overflow-hidden rounded-2xl border border-border p-6 sm:p-8"
-          initial="hidden"
-          animate="visible"
-          variants={headerVariants}
+        {/* El TEATRO enmarca toda la página: el telón se abre sobre el cuerpo,
+            el PROSCENIO es la cabecera (el ÚNICO <h1> grabado + microdata
+            SportsEvent + badge + descripción + fechas + ReactionsBar) y el
+            cuerpo rico vive DENTRO del marco como children. El bracket vivo y
+            todos los paneles se preservan tal cual. La "función" scrubbable +
+            coronación quedan reservadas a torneos FINISHED. */}
+        <TournamentTheater
+          torneo={torneo}
+          enfrentamientos={enfrentamientosList}
+          hrefPersonaje={(slug) => `/personajes/${slug}`}
         >
-          <EditorialCover
-            visual={visual}
-            className="absolute inset-0 rounded-none border-0 opacity-95"
-            imageClassName="saturate-110 contrast-105"
-          />
-          <meta itemProp="url" content={`https://animeshowdown.dev/torneos/${torneo.slug}`} />
-          {fechaInicioDate && <meta itemProp="startDate" content={fechaInicio} />}
-          {fechaFinDate && <meta itemProp="endDate" content={fechaFinalizacion} />}
-          <span className="relative inline-flex items-center gap-2 rounded-full border border-border bg-surface/70 px-3.5 py-1.5 text-[12px] font-semibold text-fg-muted backdrop-blur">
-            <span className={`h-2 w-2 rounded-full ${badge.dot}`} />
-            {badge.label}
-          </span>
-          <h1
-            itemProp="name"
-            className="relative text-[clamp(2rem,5vw,3.5rem)] leading-tight tracking-tight"
-          >
-            {nombre}
-          </h1>
-          {descripcion && (
-            <p itemProp="description" className="relative max-w-3xl text-fg-muted">
-              {descripcion}
-            </p>
-          )}
-          <p className="relative text-fg-muted">
-            {numParticipantes} personajes
-            {fechaInicioFmt && ` · ${fechaInicioFmt}`}
-            {fechaFinFmt && ` → ${fechaFinFmt}`}
-          </p>
-          {/* 3: reactions sobre el torneo. */}
-          {torneo?.id && (
-            <div className="relative">
-              <ReactionsBar targetType="TORNEO" targetId={torneo.id} />
-            </div>
-          )}
-        </motion.header>
         {campeon && (
           <Link
             to={`/personajes/${campeon.slug}`}
@@ -361,6 +305,7 @@ function TorneoDetailPage() {
             />
           </div>
         )}
+        </TournamentTheater>
     </VisualPageShell>
   )
 }
@@ -573,14 +518,6 @@ function findPersonajePorSlug(enfrentamientos, slug) {
     if (e.ganador?.slug === slug) return e.ganador
   }
   return null
-}
-
-function formatearFecha(iso) {
-  return formatDateSafe(iso, {
-    day: 'numeric',
-    month: 'short',
-    year: 'numeric',
-  })
 }
 
 export default TorneoDetailPage
