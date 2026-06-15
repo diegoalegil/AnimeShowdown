@@ -334,7 +334,7 @@ function SectionTop10Ranking({ top10 }) {
         <SectionGate
           kanji="位"
           kanjiMeaning="rango, posición"
-          eyebrow="Top 10 · ELO base ·b"
+          eyebrow="Top 10 · ELO base"
           title="Coliseo de Leyendas"
           viewAllTo="/ranking"
           viewAllLabel="Ver ranking completo"

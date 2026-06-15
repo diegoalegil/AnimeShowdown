@@ -67,13 +67,18 @@ function MisionesPage() {
       isPast: i < arr.length - 1,
     }
   })
+  // Recompensa = sello del d\u00eda. El cat\u00e1logo de monedas/recompensas NO existe
+  // todav\u00eda en el repo, as\u00ed que la cartilla NO promete monedas: el sello es la
+  // recompensa real (protege la racha). El d\u00eda que exista un sistema de
+  // monedas, esto pasa a 'claimable' + onClaim y la copia vuelve a hablar de
+  // recompensa canjeable.
   const cartillaMissions = [
     {
       id: 'votos',
       kanji: '\u7968',
       label: 'Vota ' + DAILY_VOTE_TARGET + ' duelos',
       progress: Math.min(progress.votes, DAILY_VOTE_TARGET) + '/' + DAILY_VOTE_TARGET + ' votos',
-      reward: 'monedas al completar',
+      reward: 'sella el d\u00eda',
       state: progress.votes >= DAILY_VOTE_TARGET ? 'completed' : 'pending',
     },
     {
@@ -81,7 +86,7 @@ function MisionesPage() {
       kanji: '\u6226',
       label: 'Juega un daily trial',
       progress: Math.min(progress.gamesCompleted, DAILY_GAME_TARGET) + '/' + DAILY_GAME_TARGET + ' juego',
-      reward: 'monedas al completar',
+      reward: 'sella el d\u00eda',
       state: progress.gamesCompleted >= DAILY_GAME_TARGET ? 'completed' : 'pending',
     },
     {
@@ -89,7 +94,7 @@ function MisionesPage() {
       kanji: '\u89a7',
       label: 'Revisa el ranking',
       progress: progress.rankingViewed ? 'visto' : 'pendiente',
-      reward: 'monedas al completar',
+      reward: 'sella el d\u00eda',
       state: progress.rankingViewed ? 'completed' : 'pending',
     },
   ]

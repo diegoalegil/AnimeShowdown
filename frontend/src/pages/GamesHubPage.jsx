@@ -198,8 +198,8 @@ function GamesHubPage() {
           </div>
         </section>
 
-        {/* Ritual diario (omikuji): el palito puede regalar pista para los
-            retos de arriba. Va debajo de los juegos pero antes que misión/stats. */}
+        {/* Ritual diario (omikuji): suerte narrativa del día, sin mecánica que
+            afecte a los retos. Va debajo de los juegos pero antes que misión/stats. */}
         <section className="mb-6">
           <h2 className="mb-3 text-[11px] font-semibold text-fg-muted">
             Ritual diario

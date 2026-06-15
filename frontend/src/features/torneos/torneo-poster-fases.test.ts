@@ -3,7 +3,7 @@ import { describe, expect, it } from 'vitest'
 import { FASES, adaptTorneoParaPoster, deriveFaseActual } from './torneo-poster-fases'
 
 describe('deriveFaseActual', () => {
-  it('SCHEDULED siempre está en inscripción', () => {
+  it('SCHEDULED siempre está en la fase de cartel (0)', () => {
     expect(deriveFaseActual({ estado: 'SCHEDULED', rondaActual: 3, totalRondas: 3 })).toBe(0)
   })
 
@@ -17,7 +17,7 @@ describe('deriveFaseActual', () => {
     expect(deriveFaseActual({ estado: 'IN_PROGRESS', rondaActual: 3, totalRondas: 3 })).toBe(3)
   })
 
-  it('en juego sin datos de ronda cae a grupos, no a inscripción', () => {
+  it('en juego sin datos de ronda cae a grupos, no al cartel', () => {
     expect(deriveFaseActual({ estado: 'IN_PROGRESS' })).toBe(1)
   })
 })
