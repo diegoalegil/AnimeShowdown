@@ -242,6 +242,73 @@
 .lib-empty__reset:hover { border-color: var(--color-gold-bright); color: var(--color-gold-bright); }
 .lib-empty__reset:focus-visible { outline: 2px solid var(--color-gold); outline-offset: 2px; }
 
+/* rampa de recuperación: salir del callejón sin salida (ver todos + populares) */
+.lib-empty__actions {
+  margin-top: 0.6rem;
+}
+.lib-empty__reset {
+  display: inline-flex;
+  align-items: center;
+  min-height: 2.5rem;
+  padding: 0.4rem 0.95rem;
+  border: 1px solid var(--color-border-gold);
+  border-radius: var(--radius-lg);
+  background: var(--color-gold-soft);
+  font-size: 0.85rem;
+  font-weight: 700;
+  color: var(--color-fg-strong);
+  cursor: pointer;
+  transition: border-color 0.18s ease, color 0.18s ease, transform 0.18s ease;
+}
+.lib-empty__reset:hover {
+  color: var(--color-gold);
+  transform: translateY(-1px);
+}
+.lib-empty__popular {
+  margin-top: 0.9rem;
+}
+.lib-empty__popular-label {
+  display: block;
+  margin-bottom: 0.45rem;
+  font-size: var(--text-2xs);
+  color: var(--color-fg-muted);
+}
+.lib-empty__popular-list {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 0.45rem;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.lib-empty__chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  min-height: 2.5rem;
+  padding: 0.35rem 0.8rem;
+  border: 1px solid var(--color-border);
+  border-radius: 999px;
+  background: var(--color-surface);
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: var(--color-fg-strong);
+  cursor: pointer;
+  transition: border-color 0.18s ease, color 0.18s ease, transform 0.18s ease;
+}
+.lib-empty__chip:hover {
+  border-color: color-mix(in srgb, var(--color-gold) 50%, transparent);
+  color: var(--color-gold);
+  transform: translateY(-1px);
+}
+.lib-empty__chip-kanji {
+  font-family: var(--font-kanji-serif);
+  font-size: 1rem;
+  line-height: 1;
+  color: var(--color-gold);
+}
+
 /* ------------------------------------------------------------------ el tomo */
 .lib-book {
   position: relative;
@@ -563,6 +630,26 @@
 
 .fly-leaf__body {
   padding: 0.85rem 0.95rem 1rem;
+}
+
+/* Caption editorial del kanji: el micro-momento de descubrimiento — el glifo
+   del universo y su significado real, una sola línea bajo la guarda. */
+.fly-leaf__kanji-caption {
+  display: flex;
+  align-items: baseline;
+  gap: 0.45rem;
+  margin: 0 0 0.7rem;
+  font-size: var(--text-2xs);
+  line-height: 1.35;
+  color: var(--color-fg-muted);
+  text-wrap: balance;
+}
+.fly-leaf__kanji-caption-glyph {
+  flex: 0 0 auto;
+  font-family: var(--font-kanji-serif);
+  font-size: 1.05rem;
+  line-height: 1;
+  color: var(--color-gold);
 }
 
 /* stats del universo en mono */

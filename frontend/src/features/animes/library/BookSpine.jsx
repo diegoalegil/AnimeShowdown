@@ -16,6 +16,7 @@ import { lacaPorIndice } from './library-core'
  * @param {Object} props
  * @param {import('./library-core').Universo} props.universo  Datos del universo.
  * @param {string} props.kanji         Kanji de universo (1 glifo) grabado en el lomo.
+ * @param {string} [props.kanjiSignificado]  Significado editorial del kanji (tooltip nativo del lomo).
  * @param {number} props.indiceGlobal  Índice global (stagger de la caída de canto).
  * @param {boolean} props.expanded     ¿Su fly-leaf está abierto?
  * @param {boolean} props.match        ¿Casa con la búsqueda activa? (atenúa si no).
@@ -26,6 +27,7 @@ import { lacaPorIndice } from './library-core'
 function BookSpineImpl({
   universo,
   kanji,
+  kanjiSignificado,
   indiceGlobal,
   expanded,
   match,
@@ -76,7 +78,12 @@ function BookSpineImpl({
         aria-expanded={expanded}
         onClick={() => onToggle(slug)}
       >
-        <span className="book-spine__kanji" aria-hidden="true" lang="ja">
+        <span
+          className="book-spine__kanji"
+          aria-hidden="true"
+          lang="ja"
+          title={kanjiSignificado ? `${kanji} — ${kanjiSignificado}` : undefined}
+        >
           {kanji}
         </span>
         <span className="book-spine__rule" aria-hidden="true" />

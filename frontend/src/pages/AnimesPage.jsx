@@ -6,7 +6,7 @@ import { animesListSchema, breadcrumbsSchema } from '../lib/schema'
 import JsonLd from '../components/JsonLd'
 import SugerirPersonajeCTA from '../components/SugerirPersonajeCTA'
 import { filtrarOrdenarAnimes, getAnimesCatalogo } from '../lib/animes'
-import { kanjiDeAnime } from '../data/animes-kanji'
+import { kanjiDeAnime, significadoKanjiDeAnime } from '../data/animes-kanji'
 import { VisualPageShell, CinematicHero } from '../components/VisualSystem'
 import EmptyState from '../components/EmptyState'
 import Skeleton from '../components/Skeleton'
@@ -49,7 +49,12 @@ function AnimesPage() {
   // partimos del catálogo ya enriquecido (eloMedio/top3/searchText) y le
   // adjuntamos el kanji curado real (animes-kanji.js); sin entrada → 印.
   const universos = useMemo(
-    () => derivarUniversos(getAnimesCatalogo(personajes), kanjiDeAnime),
+    () =>
+      derivarUniversos(
+        getAnimesCatalogo(personajes),
+        kanjiDeAnime,
+        significadoKanjiDeAnime,
+      ),
     [personajes],
   )
 

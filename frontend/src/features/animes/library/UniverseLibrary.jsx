@@ -2,7 +2,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import './library.css'
 import { useSoundOptional } from '../../../contexts/SoundContext'
 import { markAnimeScene } from '../../../lib/animeSceneMorph'
-import { construirBiblioteca } from './library-core'
+import { construirBiblioteca, ordenarUniversos } from './library-core'
 import BookSpine from './BookSpine'
 import FlyLeaf from './FlyLeaf'
 import LibrarianLantern from './LibrarianLantern'
@@ -176,6 +176,15 @@ export default function UniverseLibrary({
   const buscando = search.trim().length > 0
   const sinResultados = buscando && visibles === 0
 
+  // Rampa de recuperación de la sala vacía: 3 universos populares (orden
+  // "destacados" del catálogo, determinista) como accesos rápidos. Clicar
+  // rellena la búsqueda con el nombre del universo (reusa el filtro existente,
+  // sin routing nuevo). Memoizado para no reordenar en cada keystroke.
+  const universosPopulares = useMemo(
+    () => ordenarUniversos(universos ?? [], 'destacados').slice(0, 3),
+    [universos],
+  )
+
   // Una búsqueda que no casa con nada sustituye las estanterías por la sala
   // vacía: el fly-leaf del tomo previamente abierto se desmonta, pero su
   // openSlug/closingSlug seguían vivos, así que al volver a casar reaparecía
@@ -242,13 +251,42 @@ export default function UniverseLibrary({
           <p className="lib-empty__hint">
             Ningún universo casa con «{search.trim()}».
           </p>
-          <button
-            type="button"
-            className="lib-empty__reset"
-            onClick={() => onSearch('')}
-          >
-            Ver todos los universos
-          </button>
+          <div className="lib-empty__actions">
+            <button
+              type="button"
+              className="lib-empty__reset"
+              onClick={() => {
+                onSearch('')
+                play('playClack')
+              }}
+            >
+              Ver todos los universos
+            </button>
+          </div>
+          {universosPopulares.length > 0 && (
+            <div className="lib-empty__popular">
+              <span className="lib-empty__popular-label">O prueba con:</span>
+              <ul className="lib-empty__popular-list">
+                {universosPopulares.map((u) => (
+                  <li key={u.slug}>
+                    <button
+                      type="button"
+                      className="lib-empty__chip"
+                      onClick={() => {
+                        onSearch(u.anime)
+                        play('playClick')
+                      }}
+                    >
+                      <span lang="ja" aria-hidden="true" className="lib-empty__chip-kanji">
+                        {u.kanji}
+                      </span>
+                      {u.anime}
+                    </button>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          )}
         </div>
       ) : (
         estanterias.map((fila, shelfIndex) => {
@@ -274,6 +312,7 @@ export default function UniverseLibrary({
                     key={u.slug}
                     universo={u}
                     kanji={u.kanji}
+                    kanjiSignificado={u.kanjiSignificado}
                     indiceGlobal={u._i}
                     expanded={isOpen || isClosing}
                     match={u._match}
@@ -284,6 +323,7 @@ export default function UniverseLibrary({
                       <FlyLeaf
                         universo={u}
                         kanji={u.kanji}
+                        kanjiSignificado={u.kanjiSignificado}
                         anchor={anchor}
                         closing={isClosing}
                         hrefUniverso={hrefUniverso}

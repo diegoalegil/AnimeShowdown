@@ -7,6 +7,7 @@ import {
   TrendingUp,
 } from 'lucide-react'
 import { brandImage } from '../../lib/brand-assets'
+import { kanjiDeAnime, significadoKanjiDeAnime } from '../../data/animes-kanji'
 import AnimeCinematicHero from './AnimeCinematicHero'
 
 /**
@@ -29,6 +30,14 @@ function AnimeHero({
   const identity = visual?.identity
   const dossierCopy = identity?.copy || visual.mood || 'Atmosfera cinematografica de marca.'
   const motifs = identity?.motifs?.slice(0, 3) ?? []
+  // Significado editorial REAL del kanji (animes-kanji.js). Solo lo mostramos
+  // cuando el glifo curado allí coincide con el que pinta el dossier — así el
+  // caption nunca etiqueta un glifo distinto (honestidad: dato real o nada).
+  const dossierKanji = identity?.kanji ?? visual?.kanji
+  const kanjiSignificado =
+    dossierKanji && kanjiDeAnime(anime) === dossierKanji
+      ? significadoKanjiDeAnime(anime)
+      : undefined
   // El symbol comparte slug con la scene en el banco (verificado: los 105
   // tríos están completos). Si el anime no tiene arte, sin medallón.
   const symbol = brandImage(`${visual?.slug ?? slug}-symbol-01`)
@@ -96,6 +105,12 @@ function AnimeHero({
               <p className="text-[11px] font-black text-gold">
                 {identity?.emblem ?? 'Dossier del universo'}
               </p>
+              {kanjiSignificado && (
+                <p className="mt-1 text-[11px] leading-5 text-fg-muted">
+                  <span lang="ja" className="text-gold">{dossierKanji}</span>{' '}
+                  — {kanjiSignificado}
+                </p>
+              )}
               <p className="mt-2 text-sm leading-7 text-fg-muted">
                 {dossierCopy}
               </p>

@@ -17,6 +17,7 @@
  * @property {number} destacadoScore Score del orden "destacados" del catálogo.
  * @property {Array<{slug:string,nombre:string}>} top3  Top 3 por ELO base.
  * @property {string} kanji          Kanji de universo curado (o fallback 印).
+ * @property {string} [kanjiSignificado] Significado editorial del kanji (caption/tooltip); ausente si no hay entrada curada.
  * @property {string[]} [aliases]    Alias de búsqueda (getAnimeAliases).
  * @property {string} [searchText]   Texto pre-normalizado del catálogo (match).
  * @property {boolean} [eloSintetico] ELO derivado/estimado → se rotula "·b".
@@ -43,9 +44,14 @@ export function normalizar(value) {
  *
  * @param {Array<Object>} catalogoAnimes  Salida de getAnimesCatalogo.
  * @param {(anime:string)=>(string|undefined)} [kanjiDe]  Resolutor de kanji curado por nombre.
+ * @param {(anime:string)=>(string|undefined)} [significadoDe]  Resolutor del significado editorial del kanji.
  * @returns {Universo[]}
  */
-export function derivarUniversos(catalogoAnimes, kanjiDe = () => undefined) {
+export function derivarUniversos(
+  catalogoAnimes,
+  kanjiDe = () => undefined,
+  significadoDe = () => undefined,
+) {
   return (catalogoAnimes ?? []).map((a) => ({
     anime: a.anime,
     slug: a.slug,
@@ -57,6 +63,9 @@ export function derivarUniversos(catalogoAnimes, kanjiDe = () => undefined) {
     aliases: a.aliases ?? [],
     searchText: a.searchText,
     kanji: kanjiDe(a.anime) ?? KANJI_DEFECTO,
+    // Significado editorial del kanji (caption/tooltip). Solo cuando hay
+    // entrada curada con significado — un fallback 印 jamás lleva caption.
+    kanjiSignificado: significadoDe(a.anime),
     // El ELO es sintético (getStatsPersonaje._sintetico) → "·b" / "ELO base".
     eloSintetico: true,
   }))
