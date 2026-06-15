@@ -12,15 +12,13 @@
    COREOGRAFÍA: @keyframes disparados por data-attributes + custom props inline
    (NO WAAPI). Patrón del Burst/Confetti del repo: alternar data-fire a<->b
    relanza la animación sin remontar el pool de chispas. Cero <style> en runtime
-   => CSP por hash OK. --ease-stamp es LOCAL (no es token global del sistema).
+   => CSP por hash OK.
    ========================================================================== */
 
 /* ----------------------------------------------------------------------------
    Contenedor
    -------------------------------------------------------------------------- */
 .forge {
-  --ease-stamp: cubic-bezier(0.34, 1.56, 0.64, 1);
-
   --t-spark: 350ms;
   --t-flash: 80ms;
   --t-crack: 120ms;
@@ -473,15 +471,14 @@ html.as-tab-hidden .forge__ember-flicker,
   opacity: 0;
 }
 /* Restart sin remontar el pool: alternar data-fire a/b reanuda la animación.
-   El hint will-change vive SOLO mientras hay un golpe en curso (data-fire a/b),
-   no en reposo/arrival, para no dejar 8 capas de compositor colgadas. */
+   Sin will-change permanente: las chispas animan solo transform/opacity, que el
+   compositor promueve por sí mismo durante la animación activa, así que no quedan
+   8 capas de compositor colgadas en reposo/arrival. */
 .spark-burst[data-fire='a'] .spark-burst__bit {
   animation: forge-spark-a var(--t-spark) cubic-bezier(0.2, 0.7, 0.3, 1) var(--spark-delay, 0ms) both;
-  will-change: transform, opacity;
 }
 .spark-burst[data-fire='b'] .spark-burst__bit {
   animation: forge-spark-b var(--t-spark) cubic-bezier(0.2, 0.7, 0.3, 1) var(--spark-delay, 0ms) both;
-  will-change: transform, opacity;
 }
 @keyframes forge-spark-a {
   0% {
@@ -555,6 +552,9 @@ html.as-tab-hidden .forge__ember-flicker,
   border: 0;
   background: transparent;
   cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  min-height: 2.75rem;
   font-size: var(--text-2xs);
   font-weight: 600;
   letter-spacing: 0.02em;

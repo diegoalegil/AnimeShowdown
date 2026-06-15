@@ -327,7 +327,6 @@ function PackOpening({
             >
               <ForgeCharge
                 blows={blows}
-                level={level}
                 reduceMotion={reduceMotion}
                 onBreak={handleForgeBreak}
               />
