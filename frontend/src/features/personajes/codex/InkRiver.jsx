@@ -37,6 +37,9 @@ export default function InkRiver({ historial, nombre = 'Este personaje', calm = 
   const haloRef = useRef(null)
   const hitoRefs = useRef([])
   const drawnRef = useRef(false)
+  // ¿El río está intersecando el viewport ahora mismo? Lo mantiene el IO; lo
+  // consulta onVis para no reanudar el halo offscreen al volver la pestaña.
+  const onScreenRef = useRef(false)
 
   // Disparo al entrar al viewport (una pasada) + pausa del halo fuera de él y
   // con la pestaña oculta. Todo en effect: ningún ref se toca en el render.
@@ -78,11 +81,13 @@ export default function InkRiver({ historial, nombre = 'Este personaje', calm = 
       (entries) => {
         entries.forEach((en) => {
           if (en.isIntersecting) {
+            onScreenRef.current = true
             dibujar()
             if (haloRef.current && drawnRef.current && !reduced) {
               haloRef.current.style.animationPlayState = 'running'
             }
           } else if (haloRef.current) {
+            onScreenRef.current = false
             haloRef.current.style.animationPlayState = 'paused'
           }
         })
@@ -93,7 +98,10 @@ export default function InkRiver({ historial, nombre = 'Este personaje', calm = 
 
     const onVis = () => {
       if (haloRef.current && drawnRef.current && !reduced) {
-        haloRef.current.style.animationPlayState = document.hidden ? 'paused' : 'running'
+        // Al volver la pestaña solo reanudamos si el halo sigue en viewport; si
+        // está offscreen permanece pausado (no reanudar loops fuera de juego).
+        haloRef.current.style.animationPlayState =
+          document.hidden || !onScreenRef.current ? 'paused' : 'running'
       }
     }
     document.addEventListener('visibilitychange', onVis)

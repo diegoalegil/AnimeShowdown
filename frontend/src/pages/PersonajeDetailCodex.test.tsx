@@ -269,4 +269,73 @@ describe('PersonajeDetailPage — integración FighterCodex', () => {
     renderFicha('goku')
     expect(screen.getAllByRole('heading', { level: 1 })).toHaveLength(1)
   })
+
+  // Regresión: el prop `compact` de los marcapáginas era código muerto (nunca se
+  // cableaba), así que en móvil los tabs mostraban la etiqueta completa y se
+  // desbordaban bajo `.codex{overflow:hidden}`. FighterCodex ahora deriva
+  // `compact` de `tabOrientation === 'horizontal'` (matchMedia <640px) → en
+  // móvil los tabs quedan kanji-only.
+  it('colapsa los marcapáginas a kanji-only en móvil (compact cableado)', () => {
+    // Por defecto jsdom no define matchMedia → tabOrientation se queda en
+    // 'vertical' y el tab muestra etiqueta (desktop). Verificamos ese baseline.
+    renderFicha('goku')
+    expect(screen.getByRole('tab', { name: /戦.*Stats/s })).toBeInTheDocument()
+    cleanup()
+
+    // Móvil: matchMedia('(min-width:640px)') NO matchea → orientación horizontal
+    // → compact=true → la etiqueta "Stats" desaparece y solo queda el kanji 戦.
+    const mql = {
+      matches: false,
+      media: '(min-width: 640px)',
+      onchange: null,
+      addEventListener: vi.fn(),
+      removeEventListener: vi.fn(),
+      addListener: vi.fn(),
+      removeListener: vi.fn(),
+      dispatchEvent: vi.fn(),
+    }
+    vi.stubGlobal(
+      'matchMedia',
+      vi.fn(() => mql),
+    )
+    try {
+      renderFicha('goku')
+      const statsTab = screen.getByRole('tab', { name: '戦' })
+      expect(statsTab).toBeInTheDocument()
+      expect(statsTab).not.toHaveTextContent('Stats')
+    } finally {
+      vi.unstubAllGlobals()
+    }
+  })
+
+  // Regresión: la coreografía de apertura solo corría para el PRIMER personaje
+  // de la sesión; al navegar a otro slug (mismo route, cambio de param) el
+  // FighterCodex seguía montado y no reproducía la animación. Con `key={slug}`
+  // en PersonajeDetailPage, el códice remonta por personaje → frontispicio +
+  // Microdata del NUEVO slug. Navegamos de verdad por la ruta (link prev/next)
+  // para ejercitar el cambio de :slug dentro del mismo Route.
+  it('monta el códice del nuevo slug al navegar entre personajes (key={slug})', async () => {
+    renderFicha('goku')
+    expect(screen.getByRole('heading', { level: 1, name: 'Goku' })).toBeInTheDocument()
+    // La Microdata schema.org/Person del códice apunta al slug actual.
+    expect(
+      screen.getByText('Goku', { selector: 'h1[itemprop="name"]' }),
+    ).toBeInTheDocument()
+
+    // El link prev/next hace navegación de cliente real → cambia el param :slug
+    // del mismo Route (el caso que el bug dejaba sin remontar la coreografía).
+    fireEvent.click(
+      screen.getByRole('link', { name: /Ir al personaje siguiente: Vegeta/i }),
+    )
+
+    // El frontispicio del nuevo personaje se monta como H1 del códice (árbol del
+    // FighterCodex keyado por slug → instancia nueva, coreografía reproducible
+    // de cero). Antes del fix, el mismo códice quedaba montado sin volver a
+    // estampar el nombre del personaje al que se navega.
+    await waitFor(() =>
+      expect(
+        screen.getByText('Vegeta', { selector: 'h1[itemprop="name"]' }),
+      ).toBeInTheDocument(),
+    )
+  })
 })
