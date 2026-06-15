@@ -26,10 +26,7 @@ import { GamesHubStatsBar } from '../features/games/hub/GamesHubStats'
 import GamesHubSummaryBanner from '../features/games/hub/GamesHubSummaryBanner'
 import StreakFlame from '../features/games/hub/StreakFlame'
 import { leerEstadoJuego, leerMejorRacha } from '../features/games/hub/game-progress'
-import {
-  buildGamesHubPlan,
-  shouldShowDailyHistory,
-} from '../features/games/hub/games-hub-plan'
+import { buildGamesHubPlan } from '../features/games/hub/games-hub-plan'
 import { GAMES, gamesHubSchema } from '../features/games/hub/games-hub-config'
 
 /**
@@ -225,18 +222,16 @@ function GamesHubPage() {
         {/* La llama de racha sustituye a la tira plana de historial: nivel
             visual por días (brasa → llama → llama doble), calendario 完 de
             dos semanas con datos REALES y aviso ámbar si la racha corre
-            peligro. Mismo gate de actividad: una cuenta nueva no ve una
-            llama apagada a cero. */}
-        {shouldShowDailyHistory(dailyStreak, completadosHoy) && (
-          <div className="mt-6 flex justify-center">
-            <StreakFlame
-              streakDays={dailyStreak.current}
-              playedToday={dailyStreak.lastCompletedDate === todayKey}
-              hoursLeft={reinicio.h + reinicio.m / 60}
-              history={dailyHistory.map((d) => Boolean(d?.completed))}
-            />
-          </div>
-        )}
+            peligro. A racha 0 (cuenta nueva) NO se oculta: muestra una brasa
+            aspiracional que invita a encender la primera llama hoy. */}
+        <div className="mt-6 flex justify-center">
+          <StreakFlame
+            streakDays={dailyStreak.current}
+            playedToday={dailyStreak.lastCompletedDate === todayKey}
+            hoursLeft={reinicio.h + reinicio.m / 60}
+            history={dailyHistory.map((d) => Boolean(d?.completed))}
+          />
+        </div>
 
         <DailyRulesDetails />
 

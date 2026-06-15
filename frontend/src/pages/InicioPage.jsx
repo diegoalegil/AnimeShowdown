@@ -400,7 +400,7 @@ const RETOS_DIARIOS = [
     to: '/games/impostor-trial',
     kanji: '裏',
     titulo: 'Impostor Trial',
-    desc: '4 cartas · 1 traidor',
+    desc: '5 cartas · 1 traidor',
     color: 'purple',
   },
   {
