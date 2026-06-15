@@ -1,0 +1,255 @@
+/* ============================================================================
+   codex.css — CSS de feature de FighterCodex (el códice del combatiente).
+   Lo importa el componente raíz: `import './codex.css'` en FighterCodex.jsx.
+   Todos los @keyframes viven aquí (CSP por hash: cero estilos inyectados en
+   runtime). PROHIBIDO cualquier color literal (hexadecimal o funciones de
+   color) incluso en comentarios — solo tokens de index.css y color-mix() para
+   las alphas.
+
+   Reglas de la casa aplicadas:
+   - el giro 3D usa SOLO transform en un nodo SIN filtros / overflow / opacity;
+     -webkit-backface-visibility en TODAS las caras del flip.
+   - glow/latido = capas pre-renderizadas con cross-fade de opacity (jamás
+     animar filter/blur — WebKit los recompone fatal).
+   - keyframes de entrada definidos con `from`: el estado base ES el final, así
+     print y reduced-motion ven el contenido sin JS.
+   - todo lo que anima es transform/opacity/clip-path/stroke-dashoffset.
+   ========================================================================== */
+
+.codex {
+  /* ease-stamp NO es token global (overshoot de hanko): se declara local. */
+  --ease-stamp: cubic-bezier(0.34, 1.56, 0.64, 1);
+  position: relative;
+  border-radius: var(--radius-card);
+  background: linear-gradient(180deg, var(--color-surface), var(--color-bg));
+  border: 1px solid var(--color-border-gold-subtle);
+  box-shadow:
+    var(--shadow-elev-2),
+    inset 0 1px 0 color-mix(in srgb, var(--color-fg-strong) 5%, transparent);
+  overflow: hidden;
+}
+
+/* --------------------------------------------------------------- cubierta 3D */
+.codex__hero {
+  position: relative;
+  perspective: 1800px;
+  perspective-origin: left center;
+}
+/* El nodo que gira: sin filter, sin overflow, sin opacity (regla backface). */
+.codex__cover {
+  position: absolute;
+  inset: 0;
+  z-index: 4;
+  transform-origin: left center;
+  transform: rotateY(0deg);
+  -webkit-backface-visibility: hidden;
+  backface-visibility: hidden;
+}
+.codex__cover[data-open='true'] {
+  transform: rotateY(-158deg);
+}
+.codex--play .codex__cover[data-open='true'] {
+  animation: codex-cover-open var(--codex-cover-dur, 650ms) var(--ease-lift) both;
+}
+@keyframes codex-cover-open {
+  from { transform: rotateY(0deg); }
+}
+
+/* ---------------------------------------------------------------- frontispicio */
+.codex__name {
+  /* el trazado del nombre: wipe con clip-path; base = revelado (final). */
+  clip-path: inset(0 0 0 0);
+  font-synthesis-weight: none;
+}
+.codex--play .codex__name[data-trace='true'] {
+  animation: codex-name-wipe var(--codex-name-dur, 500ms) var(--ease-brush) both;
+}
+@keyframes codex-name-wipe {
+  from { clip-path: inset(0 100% 0 0); }
+}
+
+.codex__rise { opacity: 1; transform: translateY(0); }
+.codex--play .codex__rise[data-rise='true'] {
+  animation: codex-rise 380ms var(--ease-lift) both;
+}
+@keyframes codex-rise {
+  from { opacity: 0; transform: translateY(10px); }
+}
+
+/* ----------------------------------------------------------------- sellos hanko */
+.codex__seal { position: relative; }
+.codex__seal-disc {
+  position: relative;
+  display: grid;
+  place-items: center;
+  border-radius: var(--radius-lg);
+  transform: rotate(-6deg);
+  background: radial-gradient(
+    circle at 50% 42%,
+    var(--color-hanko) 60%,
+    color-mix(in srgb, var(--color-hanko) 72%, var(--color-canvas)) 100%
+  );
+  box-shadow:
+    inset 0 0 0 1.5px color-mix(in srgb, var(--color-fg-strong) 26%, transparent),
+    inset 0 -4px 6px color-mix(in srgb, var(--color-canvas) 70%, transparent);
+  color: var(--color-fg-strong);
+  font-family: var(--font-kanji-serif);
+  font-weight: 700;
+}
+/* El sello entra estampado: caída + overshoot + asiento (ease-stamp). */
+.codex--play .codex__seal[data-stamp='true'] {
+  animation: codex-seal-stamp var(--codex-seal-dur, 460ms) var(--ease-stamp) both;
+  animation-delay: var(--codex-seal-delay, 0ms);
+}
+@keyframes codex-seal-stamp {
+  0%   { opacity: 0; transform: translateY(-46px) scale(1.7) rotate(-20deg); }
+  55%  { opacity: 1; transform: translateY(3px) scale(0.9) rotate(-4deg); }
+  74%  { transform: translateY(-2px) scale(1.07) rotate(-8deg); }
+  100% { opacity: 1; transform: translateY(0) scale(1) rotate(-6deg); }
+}
+/* Sangrado del sello: anillo pre-pintado que solo escala/atenúa. */
+.codex__seal-ripple {
+  position: absolute;
+  inset: 0;
+  border-radius: var(--radius-lg);
+  border: 2px solid var(--color-hanko);
+  opacity: 0;
+  pointer-events: none;
+}
+.codex--play .codex__seal[data-stamp='true'] .codex__seal-ripple {
+  animation: codex-seal-ripple 600ms var(--ease-lift) both;
+  animation-delay: var(--codex-seal-delay, 0ms);
+}
+@keyframes codex-seal-ripple {
+  0%   { transform: scale(0.5); opacity: 0; }
+  18%  { opacity: 0.55; }
+  100% { transform: scale(2.2); opacity: 0; }
+}
+
+/* -------------------------------------------------------------- marcapáginas */
+.codex__bookmark {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  cursor: pointer;
+  border: none;
+  text-align: left;
+  font-family: var(--font-sans);
+  color: var(--color-fg-muted);
+  background: linear-gradient(
+    90deg,
+    color-mix(in srgb, var(--color-accent) 22%, var(--color-surface)),
+    var(--color-surface)
+  );
+  transition: background 0.2s ease, color 0.2s ease;
+}
+.codex__bookmark[aria-selected='true'] {
+  color: var(--color-gold);
+  background: var(--color-bg);
+  box-shadow: inset 3px 0 0 var(--color-gold);
+}
+.codex__bookmark:focus-visible {
+  outline: 2px solid var(--color-gold);
+  outline-offset: -2px;
+}
+.codex--play .codex__bookmark[data-enter='true'] {
+  animation: codex-bookmark-in 300ms var(--ease-lift) both;
+  animation-delay: var(--codex-bm-delay, 0ms);
+}
+@keyframes codex-bookmark-in {
+  from { opacity: 0; transform: translateX(20px); }
+}
+/* En 390px los marcapáginas son tabs horizontales arriba del pliego. */
+@media (max-width: 540px) {
+  .codex--play .codex__bookmark[data-enter='true'] {
+    animation-name: codex-bookmark-in-top;
+  }
+  @keyframes codex-bookmark-in-top {
+    from { opacity: 0; transform: translateY(-14px); }
+  }
+}
+
+/* ---------------------------------------------------------------- cambio de pliego */
+.codex__panel {
+  transform-origin: left center;
+  will-change: transform;
+}
+.codex__panel[data-phase='closing'] {
+  animation: codex-pleat-close var(--codex-close-dur, 300ms) var(--ease-brush) forwards;
+}
+.codex__panel[data-phase='opening'] {
+  animation: codex-pleat-open var(--codex-open-dur, 350ms) var(--ease-brush) forwards;
+}
+@keyframes codex-pleat-close { to { transform: scaleX(0); } }
+@keyframes codex-pleat-open { from { transform: scaleX(0); } }
+
+/* ---------------------------------------------------------------- río de tinta */
+.codex__river-line {
+  stroke-dasharray: 1;     /* pathLength=1 en el SVG: sin getTotalLength */
+  stroke-dashoffset: 0;    /* base = trazado (print / reduced-motion) */
+}
+.codex--play .codex__river-line[data-draw='true'] {
+  stroke-dashoffset: 1;
+  animation: codex-ink-draw var(--codex-river-dur, 700ms) var(--ease-brush) forwards;
+}
+@keyframes codex-ink-draw { to { stroke-dashoffset: 0; } }
+
+/* El latido del punto final: capa de opacidad, pausada por defecto. */
+.codex__river-halo {
+  animation: codex-river-halo 1.8s ease-in-out infinite;
+  animation-play-state: paused;
+}
+@keyframes codex-river-halo {
+  0%, 100% { opacity: 0; }
+  50% { opacity: 0.5; }
+}
+
+.codex__hito { transform: translate(-50%, -50%) scale(1) rotate(-7deg); }
+.codex--play .codex__hito[data-stamp='true'] {
+  animation: codex-hito-stamp 420ms var(--ease-stamp) both;
+  animation-delay: var(--codex-hito-delay, 0ms);
+}
+@keyframes codex-hito-stamp {
+  0%   { opacity: 0; transform: translate(-50%, -50%) scale(2.1) rotate(-16deg); }
+  60%  { opacity: 1; transform: translate(-50%, -50%) scale(0.92) rotate(-4deg); }
+  100% { opacity: 1; transform: translate(-50%, -50%) scale(1) rotate(-7deg); }
+}
+
+/* ====================== PERF: loops decorativos fuera de juego ============= */
+/* El halo del río se pausa con la pestaña oculta y fuera del viewport (el
+   IntersectionObserver del componente conmuta animation-play-state). */
+html.as-tab-hidden .codex__river-halo {
+  animation-play-state: paused !important;
+}
+
+/* ====================== reduced-motion / as-calm ========================== */
+/* Apagamos toda la coreografía: la cubierta queda abierta, los sellos sin
+   cadencia, el río pintado completo, los pliegos con fade corto (lo gestiona
+   el componente). El estado base de cada keyframe (definido en `from`/base)
+   ya es el final, así que basta con cortar las animaciones. */
+@media (prefers-reduced-motion: reduce) {
+  .codex__cover[data-open='true'] { transform: rotateY(-158deg); }
+  .codex__cover,
+  .codex__name,
+  .codex__rise,
+  .codex__seal,
+  .codex__seal-ripple,
+  .codex__bookmark,
+  .codex__panel,
+  .codex__river-line,
+  .codex__hito {
+    animation: none !important;
+  }
+  .codex__river-halo { animation: none !important; opacity: 0 !important; }
+}
+html.as-calm .codex__cover[data-open='true'] { transform: rotateY(-158deg); }
+html.as-calm .codex__cover,
+html.as-calm .codex__name,
+html.as-calm .codex__rise,
+html.as-calm .codex__seal,
+html.as-calm .codex__seal-ripple,
+html.as-calm .codex__bookmark,
+html.as-calm .codex__panel,
+html.as-calm .codex__river-line,
+html.as-calm .codex__hito { animation: none !important; }
+html.as-calm .codex__river-halo { animation: none !important; opacity: 0 !important; }
