@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useRef, useState } from 'react'
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import './library.css'
 import { useSoundOptional } from '../../../contexts/SoundContext'
 import { markAnimeScene } from '../../../lib/animeSceneMorph'
@@ -48,6 +48,8 @@ export default function UniverseLibrary({
   // Refs de cada tomo para devolver el foco al cerrar su fly-leaf.
   const spineRefs = useRef(new Map())
   const focusSlugRef = useRef(null)
+  // Refs de las tablillas de orden (radios) para el roving tabindex + flechas.
+  const ordenRefs = useRef([])
 
   // Dispara la caída de canto SOLO cuando la página es visible: rAF no corre en
   // pestañas ocultas, así el estado base (visible) nunca queda atrapado en el
@@ -57,11 +59,19 @@ export default function UniverseLibrary({
     return () => cancelAnimationFrame(id)
   }, [])
 
-  const { estanterias, total, visibles } = construirBiblioteca(universos, {
-    criterio: sort,
-    query: search,
-    porEstanteria: POR_ESTANTERIA,
-  })
+  // Memoizado sobre [universos, sort, search]: así los tomos enriquecidos
+  // conservan su referencia entre renders que NO tocan esas entradas (p.ej.
+  // abrir/cerrar un fly-leaf), y el React.memo del BookSpine corta de verdad
+  // (solo re-renderiza el tomo cuyo `expanded` cambia, no los 7 hermanos).
+  const { estanterias, total, visibles } = useMemo(
+    () =>
+      construirBiblioteca(universos, {
+        criterio: sort,
+        query: search,
+        porEstanteria: POR_ESTANTERIA,
+      }),
+    [universos, sort, search],
+  )
 
   // Cola de cierre: cuando hay un slug cerrándose, esperar 250 ms (timing del
   // colapso) y luego limpiar; si había uno en cola, abrirlo. setState dentro
@@ -134,16 +144,51 @@ export default function UniverseLibrary({
   const handleEnter = useCallback((slug) => markAnimeScene(slug), [])
   const handleEnterWhoosh = useCallback(() => play('playWhoosh'), [play])
 
-  const registerRef = useCallback(
-    (slug) => (node) => {
-      if (node) spineRefs.current.set(slug, node)
-      else spineRefs.current.delete(slug)
+  // registerRef recibe (slug, node): el BookSpine lo invoca en su ref callback.
+  // Estable (sin closure por tomo) para no anular el React.memo del BookSpine.
+  const registerRef = useCallback((slug, node) => {
+    if (node) spineRefs.current.set(slug, node)
+    else spineRefs.current.delete(slug)
+  }, [])
+
+  // Patrón ARIA radiogroup: roving tabindex (solo el radio activo es tabbable)
+  // + navegación por flechas con wrap, que mueve la selección, reproduce el
+  // click y enfoca el radio destino.
+  const handleOrdenKeyDown = useCallback(
+    (e) => {
+      const keys = ['ArrowRight', 'ArrowDown', 'ArrowLeft', 'ArrowUp']
+      if (!keys.includes(e.key)) return
+      e.preventDefault()
+      const n = sortOptions.length
+      if (n === 0) return
+      const actual = sortOptions.findIndex((o) => o.value === sort)
+      const base = actual < 0 ? 0 : actual
+      const adelante = e.key === 'ArrowRight' || e.key === 'ArrowDown'
+      const siguiente = (base + (adelante ? 1 : -1) + n) % n
+      const destino = sortOptions[siguiente]
+      onSort(destino.value)
+      play('playClick')
+      ordenRefs.current[siguiente]?.focus()
     },
-    [],
+    [sortOptions, sort, onSort, play],
   )
 
   const buscando = search.trim().length > 0
   const sinResultados = buscando && visibles === 0
+
+  // Una búsqueda que no casa con nada sustituye las estanterías por la sala
+  // vacía: el fly-leaf del tomo previamente abierto se desmonta, pero su
+  // openSlug/closingSlug seguían vivos, así que al volver a casar reaparecía
+  // solo y robaba el foco. Cerrar al entrar en "sin resultados" lo evita.
+  // El reset va dentro de un rAF (no setState síncrono en cuerpo de effect).
+  useEffect(() => {
+    if (!sinResultados) return undefined
+    const id = requestAnimationFrame(() => {
+      setOpenSlug(null)
+      setClosingSlug(null)
+    })
+    return () => cancelAnimationFrame(id)
+  }, [sinResultados])
 
   return (
     <div
@@ -159,13 +204,22 @@ export default function UniverseLibrary({
           visibles={visibles}
           total={total}
         />
-        <div className="lib-orden" role="radiogroup" aria-label="Ordenar estantería">
-          {sortOptions.map((o) => (
+        <div
+          className="lib-orden"
+          role="radiogroup"
+          aria-label="Ordenar estantería"
+          onKeyDown={handleOrdenKeyDown}
+        >
+          {sortOptions.map((o, i) => (
             <button
               key={o.value}
+              ref={(node) => {
+                ordenRefs.current[i] = node
+              }}
               type="button"
               role="radio"
               aria-checked={sort === o.value}
+              tabIndex={sort === o.value ? 0 : -1}
               className="lib-orden__tab"
               data-active={sort === o.value ? '1' : '0'}
               onClick={() => {
@@ -190,10 +244,17 @@ export default function UniverseLibrary({
           </p>
         </div>
       ) : (
-        estanterias.map((fila, shelfIndex) => (
+        estanterias.map((fila, shelfIndex) => {
+          // ¿Esta estantería contiene el tomo abierto (o cerrándose)? Si sí, su
+          // CSS levanta el content-visibility para no recortar el fly-leaf.
+          const filaConOpen = fila.some(
+            (u) => u.slug === openSlug || u.slug === closingSlug,
+          )
+          return (
           <div
             key={shelfIndex}
             className={`lib-shelf${shelfIndex === 0 ? ' lib-shelf--first' : ''}`}
+            data-has-open={filaConOpen ? '1' : '0'}
           >
             <ul className="lib-row">
               {fila.map((u, indexEnFila) => {
@@ -210,7 +271,7 @@ export default function UniverseLibrary({
                     expanded={isOpen || isClosing}
                     match={u._match}
                     onToggle={handleToggle}
-                    registerRef={registerRef(u.slug)}
+                    registerRef={registerRef}
                   >
                     {(isOpen || isClosing) && (
                       <FlyLeaf
@@ -237,7 +298,8 @@ export default function UniverseLibrary({
             />
             <div className="lib-plank" aria-hidden="true" />
           </div>
-        ))
+          )
+        })
       )}
     </div>
   )

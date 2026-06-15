@@ -1,5 +1,6 @@
-import { memo } from 'react'
+import { memo, useCallback, useLayoutEffect, useRef } from 'react'
 import { brandImage } from '../../../lib/brand-assets'
+import { mountSceneCard } from '../../../lib/animeSceneMorph'
 import { lacaPorIndice } from './library-core'
 
 /**
@@ -19,7 +20,7 @@ import { lacaPorIndice } from './library-core'
  * @param {boolean} props.expanded     ¿Su fly-leaf está abierto?
  * @param {boolean} props.match        ¿Casa con la búsqueda activa? (atenúa si no).
  * @param {(slug:string)=>void} props.onToggle  Abre/cierra su fly-leaf.
- * @param {(el:HTMLButtonElement|null)=>void} [props.registerRef]  Registra el nodo (devolver foco al cerrar).
+ * @param {(slug:string, el:HTMLButtonElement|null)=>void} [props.registerRef]  Registra el nodo (devolver foco al cerrar).
  * @param {React.ReactNode} [props.children]  El FlyLeaf, anclado al tomo cuando está abierto.
  */
 function BookSpineImpl({
@@ -39,6 +40,27 @@ function BookSpineImpl({
   // Rotación de entrada alternada izq/der, determinista por paridad.
   const dropRot = indiceGlobal % 2 === 0 ? '4deg' : '-4deg'
 
+  // registerRef es estable y recibe (slug, node): lo curramos aquí (estable por
+  // slug vía useCallback) para el ref del botón sin anular el memo del padre.
+  const handleButtonRef = useCallback(
+    (node) => registerRef?.(slug, node),
+    [registerRef, slug],
+  )
+
+  // Morph de VUELTA (detalle → catálogo): registramos el tejuelo como cover del
+  // morph anime-scene SOLO cuando el fly-leaf NO está abierto. Así, al volver de
+  // la ficha (sin tomo abierto), mountSceneCard ya tiene un destino visible y la
+  // vuelta contrae el hero hacia el tejuelo (con sus propios guards de
+  // heldAtCapture/coverVisible); cuando el tomo SÍ está abierto, es el FlyLeaf
+  // quien registra la escena grande (origen de la IDA), evitando un duplicado de
+  // view-transition-name y conservando el morph de ida intacto.
+  const tejueloRef = useRef(null)
+  useLayoutEffect(() => {
+    const el = tejueloRef.current
+    if (!el || expanded) return undefined
+    return mountSceneCard(el, slug)
+  }, [slug, expanded])
+
   return (
     <li
       className="lib-book"
@@ -47,7 +69,7 @@ function BookSpineImpl({
       style={{ '--i': indiceGlobal, '--drop-rot': dropRot }}
     >
       <button
-        ref={registerRef}
+        ref={handleButtonRef}
         type="button"
         className="book-spine"
         data-laca={laca}
@@ -60,7 +82,7 @@ function BookSpineImpl({
         <span className="book-spine__rule" aria-hidden="true" />
         <span className="book-spine__title">{anime}</span>
         {scene ? (
-          <span className="book-spine__tejuelo" aria-hidden="true">
+          <span ref={tejueloRef} className="book-spine__tejuelo" aria-hidden="true">
             <img
               src={scene.src}
               srcSet={scene.srcSet}

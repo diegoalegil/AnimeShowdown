@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react'
+import { Fragment, useEffect, useRef, useState } from 'react'
 import { brandImage } from '../../../lib/brand-assets'
 import { AppLink } from '../../../components/AppLink'
 import AnimeSceneMorph from '../../../components/AnimeSceneMorph'
@@ -60,11 +60,40 @@ export default function FlyLeaf({
   // Listener en el documento: el fly-leaf es un overlay, el foco puede estar
   // dentro (CTA/cerrar) o haber vuelto al tomo. addEventListener en effect es
   // legal; nada de setState síncrono en cuerpo de effect.
+  //
+  // Como el fly-leaf actúa de diálogo (role="dialog" aria-modal — y en móvil es
+  // un bottom-sheet fixed sobre el carrusel), también atrapamos Tab/Shift+Tab
+  // dentro de la hoja: el foco cicla entre sus focusables (cerrar + CTA) y no se
+  // escapa hacia los tomos de detrás, que quedarían visualmente ocultos.
   useEffect(() => {
     function onKey(e) {
       if (e.key === 'Escape') {
         e.stopPropagation()
         onClose()
+        return
+      }
+      if (e.key !== 'Tab') return
+      const root = rootRef.current
+      if (!root) return
+      const focusables = root.querySelectorAll(
+        'a[href], button:not([disabled]), [tabindex]:not([tabindex="-1"])',
+      )
+      if (focusables.length === 0) return
+      const primero = focusables[0]
+      const ultimo = focusables[focusables.length - 1]
+      const activo = document.activeElement
+      // Si el foco está fuera de la hoja (p.ej. quedó en el tomo), lo traemos.
+      if (!root.contains(activo)) {
+        e.preventDefault()
+        primero.focus()
+        return
+      }
+      if (e.shiftKey && activo === primero) {
+        e.preventDefault()
+        ultimo.focus()
+      } else if (!e.shiftKey && activo === ultimo) {
+        e.preventDefault()
+        primero.focus()
       }
     }
     document.addEventListener('keydown', onKey)
@@ -78,13 +107,23 @@ export default function FlyLeaf({
   }, [])
 
   return (
+    <Fragment>
+      {/* Backdrop del bottom-sheet móvil: oscurece el carrusel de detrás y
+          cierra al tocar. En escritorio queda inerte (CSS lo oculta). */}
+      <div
+        className="fly-leaf__backdrop"
+        data-closing={closing ? '1' : '0'}
+        aria-hidden="true"
+        onClick={onClose}
+      />
     <section
       ref={rootRef}
       className="fly-leaf"
       data-anchor={anchor}
       data-open={closing ? '0' : entered ? '1' : '0'}
       data-closing={closing ? '1' : '0'}
-      role="region"
+      role="dialog"
+      aria-modal="true"
       aria-label={`Universo ${anime}`}
     >
       <button
@@ -131,7 +170,7 @@ export default function FlyLeaf({
         <span className="fly-leaf__scene-kanji-mark" aria-hidden="true" lang="ja">
           {kanji}
         </span>
-        <h3 className="fly-leaf__scene-title">{anime}</h3>
+        <h2 className="fly-leaf__scene-title">{anime}</h2>
       </div>
 
       <div className="fly-leaf__body">
@@ -191,5 +230,6 @@ export default function FlyLeaf({
         </AppLink>
       </div>
     </section>
+    </Fragment>
   )
 }

@@ -50,6 +50,14 @@
   content-visibility: auto;
   contain-intrinsic-size: auto calc(var(--lib-spine-h) + 4.5rem);
 }
+/* La estantería con un tomo abierto (o cerrándose) NO debe recortar su pintado:
+   content-visibility:auto aplica paint/layout containment y el fly-leaf
+   desbordante quedaría cortado (su CTA "Entrar al universo" inalcanzable en
+   las estanterías 2+). Solo una estantería puede tener tomo abierto a la vez,
+   así que el perf de las demás se conserva. */
+.lib-shelf[data-has-open="1"] {
+  content-visibility: visible;
+}
 
 /* fila de tomos */
 .lib-row {
@@ -374,6 +382,12 @@
 .lib-room[data-buscando="1"] .lib-book[data-match="0"] {
   opacity: 0.25;
 }
+/* Si el teclado aterriza en un no-coincidente atenuado (o el SR lo enfoca),
+   restauramos su opacidad para que el anillo de foco y el texto recuperen
+   contraste AA en vez de quedar casi invisibles a 0.25. */
+.lib-room[data-buscando="1"] .lib-book[data-match="0"]:focus-within {
+  opacity: 1;
+}
 .lib-book {
   transition: opacity 220ms var(--ease-lift);
 }
@@ -401,15 +415,17 @@
     color-mix(in srgb, var(--color-gold-bright) 30%, transparent) 52%,
     color-mix(in srgb, var(--color-gold) 18%, transparent) 62%,
     transparent);
-  will-change: transform;
 }
 @keyframes lib-lantern-sweep {
   from { transform: translateX(-160%); }
   to   { transform: translateX(330%); }
 }
 @media (prefers-reduced-motion: no-preference) {
+  /* will-change SOLO mientras el barrido anima (600ms): así la capa no se
+     promueve a compositor en cada estantería en reposo. */
   .lantern-sweep[data-run="1"]::before {
     animation: lib-lantern-sweep 600ms var(--ease-lift) both;
+    will-change: transform;
   }
 }
 
@@ -636,6 +652,13 @@
 }
 .fly-leaf__close:focus-visible { outline: 2px solid var(--color-gold-bright); outline-offset: 2px; }
 
+/* backdrop del bottom-sheet: en escritorio el fly-leaf se ancla al tomo, así
+   que el backdrop es inerte (display:none). En móvil pasa a velo a pantalla
+   completa (ver el bloque @media 30rem). */
+.fly-leaf__backdrop {
+  display: none;
+}
+
 @media (prefers-reduced-motion: reduce) {
   .fly-leaf {
     transform: none !important;
@@ -666,6 +689,21 @@
   .lib-row::-webkit-scrollbar { display: none; }
   .lib-row { scrollbar-width: none; }
   .lib-book { scroll-snap-align: start; }
+  /* velo a pantalla completa tras el bottom-sheet: cierra al tocar y separa
+     visualmente el diálogo del carrusel de tomos de detrás. */
+  .fly-leaf__backdrop {
+    display: block;
+    position: fixed;
+    inset: 0;
+    z-index: 55;
+    background: color-mix(in srgb, var(--color-canvas) 64%, transparent);
+    opacity: 1;
+    transition: opacity 200ms ease;
+  }
+  .fly-leaf__backdrop[data-closing="1"] {
+    opacity: 0;
+    pointer-events: none;
+  }
   /* La fila es un carrusel horizontal con overflow → un fly-leaf absoluto dentro
      quedaría recortado y atrapado en su scroll. En móvil lo sacamos a hoja fija
      (bottom sheet) con su propio scroll; el scaleY se despliega desde abajo. */

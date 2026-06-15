@@ -15,16 +15,9 @@ import { usePersonajesCatalogo } from '../hooks/usePersonajesCatalogo'
 import UniverseLibrary from '../features/animes/library/UniverseLibrary'
 import { derivarUniversos } from '../features/animes/library/library-core'
 
-const SORT_LABELS = {
-  destacados: 'Destacados',
-  personajes: 'Más personajes',
-  elo: 'Mayor ELO base máximo',
-  promedio: 'Mayor ELO base promedio',
-  az: 'A-Z',
-}
-
-// Tablillas de orden de la Biblioteca: las MISMAS opciones de SORT_LABELS,
-// con etiquetas cortas para las tablillas de madera (radiogroup).
+// Tablillas de orden de la Biblioteca (radiogroup): claves de orden del
+// catálogo (library-core / ANIME_SORTERS) con etiquetas cortas para las
+// tablillas de madera. Única fuente de las opciones de orden.
 const SORT_TABLILLAS = [
   { value: 'destacados', label: 'Destacados' },
   { value: 'personajes', label: 'Personajes' },
@@ -146,6 +139,12 @@ function AnimesPage() {
               </button>
             }
           />
+        ) : !isLoading && !isError && animesCatalogo.length === 0 ? (
+          <EmptyState
+            icon={Sparkles}
+            title="Aún no hay universos"
+            description="El catálogo anime está vacío por ahora. Vuelve pronto."
+          />
         ) : (
           <UniverseLibrary
             universos={universos}
@@ -176,5 +175,4 @@ function CatalogoSkeletonGrid() {
   )
 }
 
-export { SORT_LABELS }
 export default AnimesPage
