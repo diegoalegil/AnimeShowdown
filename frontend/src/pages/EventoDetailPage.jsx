@@ -45,13 +45,15 @@ import NotFoundPage from './NotFoundPage'
  *   <li>Senda de hitos (MilestonePath) = fases de fecha derivadas de la línea
  *       temporal real (deriveHitosEvento): Apertura / Ecuador / Recta final /
  *       Cierre. Piedras encendidas para fases pasadas, sin ceremonia.</li>
- *   <li>Misión + mini-stats (Participantes / Top 100 / ELO máx).</li>
- *   <li>Ranking: PodioEvento (#1/#2/#3) + grid de ParticipanteCard por ELO.</li>
+ *   <li>Misión + mini-stats (Participantes / Top 100 / ELO base máx).</li>
+ *   <li>Ranking: PodioEvento (#1/#2/#3) + grid de ParticipanteCard ordenados por
+ *       ELO base estimado del catálogo (sintético; el ranking competitivo real
+ *       vive en /ranking, no se mueve con los votos del evento).</li>
  * </ul>
  *
  * <p>Estados reales (getEstadoEvento): ACTIVO (calle viva + hanabi de entrada),
  * PROXIMO (penumbra, countdown protagonista, puestos con persiana), PASADO
- * (faroles apagándose + despedida; el podio es el resultado final).
+ * (faroles apagándose + despedida).
  *
  * <p>El `now` se refresca cada 60s para que el estado/hitos pasen de "próximo" a
  * "activo" sin reload (el countdown vivo lo lleva EventCountdown por su cuenta).
@@ -108,13 +110,16 @@ function EventoDetailPage() {
   const top100 = participantes.filter((p) => p.elo >= 1750).length
   const top25 = participantes.filter((p) => p.elo >= 1950).length
   const eloMax = participantes[0]?.elo ?? 0
+  // Copy honesto: el orden es por ELO base estimado del catálogo (sintético, no
+  // se mueve con los votos del evento). El ranking competitivo real vive en
+  // /ranking; aquí solo encuadramos el roster del evento.
   const misionPorEstado = {
     [ESTADO_EVENTO.ACTIVO]:
-      'Vota duelos entre estos personajes para mover su ELO durante la ventana del evento. El podio final se cierra cuando termine el countdown.',
+      'Roster ordenado por ELO base estimado del catálogo (no se mueve con los votos del evento). El ranking competitivo real vive en /ranking.',
     [ESTADO_EVENTO.PROXIMO]:
-      'Aún no está abierto. Elige tus favoritos del roster y vuelve cuando empiece el countdown — el ranking del evento se calculará desde el momento del start.',
+      'Aún no está abierto. Explora el roster del evento; el ranking competitivo real vive en /ranking.',
     [ESTADO_EVENTO.PASADO]:
-      'Evento cerrado. El podio que ves es el resultado final acumulado durante su ventana activa.',
+      'Evento cerrado. El orden que ves es por ELO base estimado del catálogo; el ranking competitivo vive en /ranking.',
   }
   const misionEvento = misionPorEstado[estado]
 
@@ -207,7 +212,6 @@ function EventoDetailPage() {
       {/* Puesto: Misión + mini-stats (aviso 御). Datos reales intactos. */}
       {participantes.length > 0 && (
         <YataiStall
-          tipo="texto"
           titulo="Misión del evento"
           kanji={KANJI_TIPO.texto}
           etiqueta={ETIQUETA_TIPO.texto}
@@ -229,7 +233,7 @@ function EventoDetailPage() {
             <div className="grid grid-cols-3 gap-2 rounded-xl border border-border bg-surface p-3 sm:p-4">
               <MiniStat label="Participantes" value={participantes.length} />
               <MiniStat label="Top 100" value={top100} tone="amber" />
-              <MiniStat label="ELO máx" value={eloMax || '—'} mono />
+              <MiniStat label="ELO base máx" value={eloMax || '—'} mono />
             </div>
           </div>
         </YataiStall>
@@ -237,7 +241,6 @@ function EventoDetailPage() {
 
       {/* Puesto: Ranking del evento (recompensa 王). Podio + roster intactos. */}
       <YataiStall
-        tipo="recompensa"
         titulo="Ranking del evento"
         kanji={KANJI_TIPO.recompensa}
         etiqueta={ETIQUETA_TIPO.recompensa}
@@ -330,7 +333,7 @@ function PodioEvento({ participantes, tono }) {
           </h3>
           <p className="mt-1 text-sm text-fg-muted">{primero.anime}</p>
           <p className="mt-4 font-mono text-sm font-bold text-gold">
-            ELO {primero.elo}
+            ELO base {primero.elo}
           </p>
         </div>
       </Link>
@@ -356,7 +359,7 @@ function PodioEvento({ participantes, tono }) {
               </p>
               <p className="line-clamp-1 text-[12px] text-fg-muted">{p.anime}</p>
               <p className="mt-2 font-mono text-[12px] font-bold text-gold">
-                ELO {p.elo}
+                ELO base {p.elo}
               </p>
             </div>
           </Link>
@@ -390,7 +393,14 @@ function ParticipanteCard({ rank, personaje, tono }) {
           <span
             className={`absolute left-1.5 top-1.5 inline-flex h-5 min-w-[20px] items-center justify-center rounded-md px-1 font-mono text-[10px] font-extrabold ${tonoRank}`}
           >
-            {rank === 1 ? <Crown className="h-3 w-3" /> : `#${rank}`}
+            {rank === 1 ? (
+              <>
+                <Crown className="h-3 w-3" />
+                <span className="sr-only">#1</span>
+              </>
+            ) : (
+              `#${rank}`
+            )}
           </span>
         </div>
         <div className="min-w-0">
@@ -402,7 +412,7 @@ function ParticipanteCard({ rank, personaje, tono }) {
           </p>
         </div>
         <p className="font-mono text-[11px] font-bold text-gold">
-          ELO {personaje.elo}
+          ELO base {personaje.elo}
         </p>
       </Link>
     </li>

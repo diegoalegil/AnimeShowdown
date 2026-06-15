@@ -120,12 +120,13 @@ describe('EventoDetailPage — matsuri (evento ACTIVO)', () => {
 
   it('preserva el contenido real: mision, mini-stats, podio y roster', () => {
     renderEvento(EVENTO_ACTIVO.slug)
-    // Mision (texto por estado ACTIVO).
-    expect(screen.getByText(/Vota duelos entre estos personajes/)).toBeInTheDocument()
-    // Mini-stats: Participantes / Top 100 / ELO max.
+    // Mision (texto por estado ACTIVO): copy honesto, sin afirmar que los votos
+    // del evento mueven el ELO; remite al ranking competitivo real.
+    expect(screen.getByText(/Roster ordenado por ELO base estimado/)).toBeInTheDocument()
+    // Mini-stats: Participantes / Top 100 / ELO base max (etiqueta honesta).
     expect(screen.getByText('Participantes')).toBeInTheDocument()
     expect(screen.getByText('Top 100')).toBeInTheDocument()
-    expect(screen.getByText('ELO máx')).toBeInTheDocument()
+    expect(screen.getByText('ELO base máx')).toBeInTheDocument()
     // Podio: #1 del evento es Luffy (elo mas alto).
     expect(screen.getByText('#1 del evento')).toBeInTheDocument()
     // Roster: los 4 participantes aparecen.
@@ -148,6 +149,18 @@ describe('EventoDetailPage — matsuri (evento ACTIVO)', () => {
     // aria-current="step" sobre el ultimo alcanzado (Ecuador, indice 1).
     expect(piedras[1]).toHaveAttribute('aria-current', 'step')
     expect(piedras[0]).not.toHaveAttribute('aria-current')
+  })
+
+  it('etiqueta el ELO como "ELO base" (honestidad: es sintetico, no competitivo)', () => {
+    const { container } = renderEvento(EVENTO_ACTIVO.slug)
+    // Podio + roster muestran "ELO base {n}", nunca "ELO {n}" a secas.
+    const conBase = screen.getAllByText(/ELO base \d+/)
+    expect(conBase.length).toBeGreaterThan(0)
+    // Ninguna superficie muestra "ELO {n}" sin el calificador "base".
+    const todoTexto = container.textContent ?? ''
+    expect(/ELO (?!base)\d/.test(todoTexto)).toBe(false)
+    // La mision NO afirma que los votos del evento muevan el ELO.
+    expect(screen.queryByText(/para mover su ELO/)).toBeNull()
   })
 
   it('estado ACTIVO arma la celebracion de hanabi (pool de crisantemos)', () => {
@@ -180,6 +193,21 @@ describe('EventoDetailPage — matsuri (evento PROXIMO)', () => {
     // Ningun crisantemo en "is-firing" ni destello "is-flashing": sin entrada.
     expect(container.querySelector('.fest-burst.is-firing')).toBeNull()
     expect(container.querySelector('.fest-hanabi--flash.is-flashing')).toBeNull()
+  })
+
+  it('puesto CERRADO: el cuerpo es inert (saca los <Link> del foco/arbol a11y)', () => {
+    const { container } = renderEvento(EVENTO_PROXIMO.slug)
+    // El stall de Ranking (con persiana) lleva inert en su cuerpo: los <Link>
+    // del podio/roster quedan fuera del orden de Tab y del arbol accesible.
+    const cerrados = container.querySelectorAll('.fest-stall--cerrado .fest-stall__body')
+    expect(cerrados.length).toBeGreaterThan(0)
+    cerrados.forEach((body) => expect(body.hasAttribute('inert')).toBe(true))
+    // Coherencia: un cuerpo abierto (estado ACTIVO) NO es inert.
+    cleanup()
+    const { container: activo } = renderEvento(EVENTO_ACTIVO.slug)
+    activo
+      .querySelectorAll('.fest-stall:not(.fest-stall--cerrado) .fest-stall__body')
+      .forEach((body) => expect(body.hasAttribute('inert')).toBe(false))
   })
 })
 

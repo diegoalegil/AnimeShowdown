@@ -103,8 +103,6 @@ export function deriveHitosEvento(evento, now = Date.now()) {
 
 /** Particulas por crisantemo. */
 export const HANABI_PARTICULAS = 12
-/** Numero de crisantemos por celebracion. */
-export const HANABI_CRISANTEMOS = 3
 
 /**
  * Posicion (en % del cielo) y desfase de cada uno de los 3 crisantemos.
