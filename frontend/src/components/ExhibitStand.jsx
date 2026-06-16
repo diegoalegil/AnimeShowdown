@@ -96,8 +96,10 @@ function ExhibitFigure({ onSettle, children }) {
  * @property {(deltaDeg: number) => void} [onRotate]  Hook de rotación por teclado/tablilla.
  *                                          DEPENDE de que Personaje3D exponga rotación
  *                                          imperativa; ver notas de handoff. Si se omite,
- *                                          las tablillas siguen visibles (el arrastre sobre
- *                                          el canvas rota nativamente vía OrbitControls).
+ *                                          NO se montan las tablillas de rotación ni el
+ *                                          atajo de flechas (serían no-ops anunciados a los
+ *                                          lectores de pantalla); el arrastre sobre el canvas
+ *                                          sigue rotando nativamente vía OrbitControls.
  * @property {React.ReactNode} children     El visor lazy, p.ej. <Personaje3D slug={slug} />.
  */
 
@@ -156,9 +158,13 @@ function ExhibitStand({
     [onRotate],
   )
 
-  // Flechas ←/→ rotan (si el visor lo expone). Handler de evento → compiler OK.
+  // Flechas ←/→ rotan SÓLO si el visor expone rotación imperativa (onRotate).
+  // Sin onRotate el handler es inerte: no captura las flechas ni anuncia un
+  // control que no hace nada a los lectores de pantalla. Handler de evento →
+  // compiler OK.
   const handleKeyDown = useCallback(
     (e) => {
+      if (!onRotate) return
       if (e.key === 'ArrowLeft') {
         e.preventDefault()
         rotateBy(-15)
@@ -167,7 +173,7 @@ function ExhibitStand({
         rotateBy(15)
       }
     },
-    [rotateBy],
+    [onRotate, rotateBy],
   )
 
   // Imagen estática de respaldo (WebGL caído). Se posa en la peana igual que
@@ -248,25 +254,30 @@ function ExhibitStand({
           </div>
         )}
 
-        {/* Tablillas flotantes: rotar izquierda / derecha */}
-        <div className="exhibit-stand__controls">
-          <button
-            type="button"
-            className="exhibit-stand__tablilla"
-            aria-label={`Girar ${nombre} a la izquierda`}
-            onClick={() => rotateBy(-15)}
-          >
-            <RotateLeftIcon />
-          </button>
-          <button
-            type="button"
-            className="exhibit-stand__tablilla"
-            aria-label={`Girar ${nombre} a la derecha`}
-            onClick={() => rotateBy(15)}
-          >
-            <RotateRightIcon />
-          </button>
-        </div>
+        {/* Tablillas flotantes: rotar izquierda / derecha. Sólo se montan si el
+            caller expone rotación imperativa (onRotate); sin ella serían
+            no-ops anunciados a los lectores de pantalla. El arrastre sobre el
+            canvas sigue rotando nativamente vía OrbitControls. */}
+        {onRotate && (
+          <div className="exhibit-stand__controls">
+            <button
+              type="button"
+              className="exhibit-stand__tablilla"
+              aria-label={`Girar ${nombre} a la izquierda`}
+              onClick={() => rotateBy(-15)}
+            >
+              <RotateLeftIcon />
+            </button>
+            <button
+              type="button"
+              className="exhibit-stand__tablilla"
+              aria-label={`Girar ${nombre} a la derecha`}
+              onClick={() => rotateBy(15)}
+            >
+              <RotateRightIcon />
+            </button>
+          </div>
+        )}
 
         {/* Tablilla de cierre */}
         <div className="exhibit-stand__close">

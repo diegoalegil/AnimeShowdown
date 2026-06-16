@@ -3,7 +3,7 @@ import { useCallback, useEffect, useId, useLayoutEffect, useRef, useState } from
 // Asumido: src/features/personajes/codex/FighterCodex.jsx
 import PersonajeImg from '../../../components/PersonajeImg'
 import { adoptPersonajeHero, releasePersonajeHero } from '../../../lib/viewTransitions'
-import { playVerdictStamp, playSello, playWhoosh, playClack } from '../../../lib/sounds'
+import { useSoundOptional } from '../../../contexts/SoundContext'
 import CodexPleat, { CodexBookmark } from './CodexPleat'
 import InkRiver from './InkRiver'
 import FacingPages from './FacingPages'
@@ -81,6 +81,7 @@ export default function FighterCodex({
   onRetar,
 }) {
   const uid = useId().replace(/:/g, '')
+  const { play } = useSoundOptional()
   const [activePleat, setActivePleat] = useState('stats')
   // Orientación real del tablist: vertical en ≥sm (marcapáginas en columna),
   // horizontal en móvil (fila arriba). aria-orientation debe coincidir con el
@@ -141,7 +142,7 @@ export default function FighterCodex({
     // 1) el morph asienta, luego gira la cubierta (650ms ease-lift).
     push(GUION.morphSettle, () => {
       if (coverRef.current) coverRef.current.dataset.open = 'true'
-      playWhoosh()
+      play('playWhoosh')
     })
     // 2) frontispicio: nombre + líneas (tras abrir).
     push(GUION.morphSettle + GUION.cover, () => {
@@ -161,8 +162,8 @@ export default function FighterCodex({
           el.style.setProperty('--codex-seal-delay', '0ms')
           el.dataset.stamp = 'true'
         }
-        if (verdict) playVerdictStamp()
-        else playSello()
+        if (verdict) play('playVerdictStamp')
+        else play('playSello')
       })
     })
     // 4) marcapáginas entran con stagger 60ms.
@@ -177,6 +178,10 @@ export default function FighterCodex({
     })
 
     return () => timers.forEach(clearTimeout)
+    // play fuera de deps a proposito: efecto one-shot de la ceremonia de apertura;
+    // re-ejecutarlo al togglear mute repetiria la animacion. El mute se gatea
+    // dentro de play().
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [personaje.slug, skipEntrance])
 
   // -- cambio de pliego: cierre hacia el marcapáginas + apertura del nuevo,
@@ -188,7 +193,7 @@ export default function FighterCodex({
       switchTimers.current = []
       const reduced = prefiereCalma()
       const { closeOrigin, openOrigin } = direccionPliego(activePleat, key)
-      playClack()
+      play('playClack')
       const panel = panelRef.current
 
       if (reduced || !panel) {
@@ -226,7 +231,7 @@ export default function FighterCodex({
         }, GUION.pleatClose),
       )
     },
-    [activePleat],
+    [activePleat, play],
   )
 
   useEffect(() => () => switchTimers.current.forEach(clearTimeout), [])

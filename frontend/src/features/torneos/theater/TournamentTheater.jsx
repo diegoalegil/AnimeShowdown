@@ -4,7 +4,7 @@ import ActRail from './ActRail'
 import ShowTimeline from './ShowTimeline'
 import CoronationRite from './CoronationRite'
 import { compileScript, computeLayout, deriveBracketState, normalizeRounds, valueTextPaso } from './theater-utils'
-import { playWhoosh, playClack, playVerdictStamp, playAcunado } from '../../../lib/sounds'
+import { useSoundOptional } from '../../../contexts/SoundContext'
 import { formatDateSafe, parseDateSafe } from '../../../lib/dateUtils'
 import { getEstadoBadge } from '../../../lib/torneosQueries'
 import ReactionsBar from '../../../components/ReactionsBar'
@@ -42,6 +42,7 @@ import './theater.css'
  */
 export default function TournamentTheater({ torneo, enfrentamientos, children, hrefPersonaje }) {
   const reduced = useReducedMotion() ?? false
+  const { play } = useSoundOptional()
   const scheduled = torneo.estado === 'SCHEDULED'
   const finished = torneo.estado === 'FINISHED'
 
@@ -87,11 +88,14 @@ export default function TournamentTheater({ torneo, enfrentamientos, children, h
     if (reduced || scheduled) {
       T(() => { setCurtain(!scheduled); setTitle(true); setLanterns(true) }, 0)
     } else {
-      T(() => { setCurtain(true); playWhoosh() }, 30)
+      T(() => { setCurtain(true); play('playWhoosh') }, 30)
       T(() => setTitle(true), 420)
-      T(() => { setLanterns(true); playClack() }, 660)
+      T(() => { setLanterns(true); play('playClack') }, 660)
     }
     return () => { timersRef.current.forEach(clearTimeout); timersRef.current = [] }
+    // play fuera de deps: telon one-shot; re-correrlo al togglear mute repetiria
+    // la apertura. Mute gateado en play().
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [reduced, scheduled])
 
   // ── Bucle de reproducción de la función ──
@@ -106,12 +110,15 @@ export default function TournamentTheater({ torneo, enfrentamientos, children, h
     if (!reduced) {
       // El corte de tinta del paso (setCut) jamás se dispara síncrono en el
       // cuerpo del effect: arranca en un tick (delay 0) y se retira a 420ms.
-      local.push(setTimeout(() => { setCut(true); playVerdictStamp() }, 0))   // corte: arranca
+      local.push(setTimeout(() => { setCut(true); play('playVerdictStamp') }, 0))   // corte: arranca
       local.push(setTimeout(() => setCut(false), 420 / speed))                // corte: se retira
-      local.push(setTimeout(() => playAcunado(), (420 + 560) / speed))        // asiento del ganador
+      local.push(setTimeout(() => play('playAcunado'), (420 + 560) / speed))        // asiento del ganador
     }
     local.push(setTimeout(() => setStep((s) => Math.min(total, s + 1)), stepMs))
     return () => local.forEach(clearTimeout)
+    // play fuera de deps: el bucle ya depende de step/playing; meter play
+    // reprogramaria el paso al togglear mute. Mute gateado en play().
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [playing, step, modo, speed, reduced, total])
 
   // ── Foco del overlay (WCAG 2.4.3): al abrir la función movemos el foco a la
@@ -155,7 +162,7 @@ export default function TournamentTheater({ torneo, enfrentamientos, children, h
   const puedeVerFuncion = finished && hasRounds && total > 0
   const verLaFuncion = () => {
     prevFocusRef.current = typeof document !== 'undefined' ? document.activeElement : null
-    setModo('funcion'); setStep(0); setPlaying(true); playClack()
+    setModo('funcion'); setStep(0); setPlaying(true); play('playClack')
   }
   const salir = () => {
     setModo('bracket'); setPlaying(false)

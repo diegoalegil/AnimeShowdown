@@ -14,8 +14,9 @@ import {
 // Arte de marca por anime (franja del territorio):
 import { brandImage } from '../../../lib/brand-assets';
 // Banco de sonido sintetizado + mute global (localStorage animeshowdown.muted):
-import { playClack } from '../../../lib/sounds';
-import { useSound } from '../../../contexts/SoundContext';
+// play() enruta a sfx[name] respetando el mute global; useSoundOptional es la
+// variante tolerante (no-op sin provider) para que los tests aislados no rompan.
+import { useSoundOptional } from '../../../contexts/SoundContext';
 // ─────────────────────────────────────────────────────────────────────────────
 
 /** Jitter determinista por slot del pool (sin Math.random en render). */
@@ -79,7 +80,7 @@ function estampar(prev, slot, born, { terr, casa, big }) {
  * @returns {JSX.Element}
  */
 export function ArenaCommandRoom({ votos = [], catalogo = [], topSlugs = [], kanjiMap = {}, className = '' }) {
-  const { muted } = useSound?.() ?? { muted: false };
+  const { muted, play } = useSoundOptional();
 
   // Sanea el feed en la frontera: un item sin ganador (legacy/borde del backend,
   // que tipa ganador como nullable) es ruido que reventaría claveVoto y los
@@ -140,7 +141,7 @@ export function ArenaCommandRoom({ votos = [], catalogo = [], topSlugs = [], kan
     if (mutedRef.current || tabHiddenRef.current) return;
     if (timeMs - clackRef.current < 3000) return;
     clackRef.current = timeMs;
-    playClack?.();
+    play('playClack');
   };
 
   // ── coreografía de gotas: SOLO timers dentro del effect ───────────────────
