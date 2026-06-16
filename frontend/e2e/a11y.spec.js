@@ -19,6 +19,7 @@ const ROUTES = [
   { path: '/games/anigrid', name: 'anigrid' },
   { path: '/games/impostor-trial', name: 'impostor-trial' },
   { path: '/games/elo-duel', name: 'elo-duel' },
+  { path: '/games/ruleta', name: 'ruleta' },
   { path: '/omikuji', name: 'omikuji' },
   { path: '/login', name: 'login' },
   { path: '/register', name: 'register' },
