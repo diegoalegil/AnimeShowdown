@@ -104,17 +104,18 @@ function DojoLogin({
     async (e) => {
       e.preventDefault()
       if (submitting) return
-      // Validacion client-side minima (la que tenia el login clasico):
-      // evita viajes al server con campos vacios o demasiado cortos.
+      // Validacion client-side minima: el backend valida el login con
+      // @NotBlank (sin @Size), asi que NO imponemos minimos propios aqui
+      // — exigir 3/6 caracteres bloqueaba a quien tuviera credenciales
+      // cortas antes de llegar al server. Solo evitamos el viaje vacio.
       const id = identificador.trim()
-      if (id.length < 3 || password.length < 6) {
+      if (!id || !password) {
         setError({
           kind: 'cred',
-          title: 'Faltan datos en el registro.',
-          body:
-            id.length < 3
-              ? 'Tu usuario o email necesita al menos 3 caracteres.'
-              : 'Tu contraseña necesita al menos 6 caracteres.',
+          title: 'Faltan datos para entrar.',
+          body: !id
+            ? 'Escribe tu usuario o email para entrar al dojo.'
+            : 'Escribe tu contraseña para entrar al dojo.',
         })
         return
       }
