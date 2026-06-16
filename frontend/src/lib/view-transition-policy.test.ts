@@ -20,7 +20,9 @@ const SUPERFICIES_APPLINK = [
   'src/components/HearthHero.jsx',
   'src/pages/InicioPage.jsx',
   'src/pages/RankingPage.jsx',
-  'src/pages/AnimesPage.jsx',
+  // El catálogo /animes es ahora la biblioteca (pieza 120): AnimesPage monta
+  // <UniverseLibrary> y la navegación al universo vive en el CTA del fly-leaf.
+  'src/features/animes/library/FlyLeaf.jsx',
   'src/pages/AnimeDetailPage.jsx',
 ]
 
@@ -66,9 +68,14 @@ describe('política de view transitions', () => {
   })
 
   it('el catálogo de animes marca la scene al click y la cover viaja en el morph', () => {
-    const source = leer('src/pages/AnimesPage.jsx')
-    expect(source).toContain('markAnimeScene')
-    expect(source).toContain('sceneMorphSlug')
+    // El catálogo /animes es ahora la biblioteca de tomos (pieza 120). El
+    // contrato del morph se conserva, solo cambia de archivo: UniverseLibrary
+    // marca la scene al abrir el universo y el fly-leaf envuelve el arte en
+    // AnimeSceneMorph kind="card" (origen del morph) tras el CTA AppLink.
+    expect(leer('src/features/animes/library/UniverseLibrary.jsx')).toContain('markAnimeScene')
+    const flyLeaf = leer('src/features/animes/library/FlyLeaf.jsx')
+    expect(flyLeaf).toContain('AnimeSceneMorph')
+    expect(flyLeaf).toContain('kind="card"')
   })
 
   it('el hero del anime adopta el lienzo del morph y gatea el slow-zoom', () => {
