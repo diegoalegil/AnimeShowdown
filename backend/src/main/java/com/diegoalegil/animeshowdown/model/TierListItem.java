@@ -10,9 +10,13 @@ import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.MapsId;
 import jakarta.persistence.Table;
+import lombok.Getter;
+import lombok.Setter;
 
 @Entity
 @Table(name = "tier_list_item")
+@Getter
+@Setter
 public class TierListItem {
 
     @EmbeddedId
@@ -46,45 +50,5 @@ public class TierListItem {
         this.id = new TierListItemId(
                 tierList != null ? tierList.getId() : null,
                 personaje != null ? personaje.getId() : null);
-    }
-
-    public TierListItemId getId() {
-        return id;
-    }
-
-    public void setId(TierListItemId id) {
-        this.id = id;
-    }
-
-    public TierList getTierList() {
-        return tierList;
-    }
-
-    public void setTierList(TierList tierList) {
-        this.tierList = tierList;
-    }
-
-    public Personaje getPersonaje() {
-        return personaje;
-    }
-
-    public void setPersonaje(Personaje personaje) {
-        this.personaje = personaje;
-    }
-
-    public TierListTier getTier() {
-        return tier;
-    }
-
-    public void setTier(TierListTier tier) {
-        this.tier = tier;
-    }
-
-    public int getPosicion() {
-        return posicion;
-    }
-
-    public void setPosicion(int posicion) {
-        this.posicion = posicion;
     }
 }

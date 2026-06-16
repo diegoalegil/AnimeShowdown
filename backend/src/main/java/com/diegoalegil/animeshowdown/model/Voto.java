@@ -15,6 +15,8 @@ import jakarta.persistence.Table;
 import jakarta.persistence.UniqueConstraint;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
+import lombok.Getter;
+import lombok.Setter;
 
 @Entity
 @Table(name = "votos", uniqueConstraints = {
@@ -46,38 +48,47 @@ import java.time.LocalDateTime;
         // de Hibernate validate.
         @Index(name = "idx_votos_fecha", columnList = "fecha")
 })
+@Getter
 public class Voto {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Setter
     private Long id;
 
     @Column(nullable = false, updatable = false)
+    @Setter
     private LocalDateTime fecha;
 
     @Column(nullable = false, precision = 4, scale = 2)
     private BigDecimal peso = BigDecimal.ONE;
 
     @Column(name = "anon_session_id", length = 64)
+    @Setter
     private String anonSessionId;
 
     @Column(name = "anon_ip_hash", length = 64)
+    @Setter
     private String anonIpHash;
 
     @Column(name = "empate", nullable = false)
+    @Setter
     private boolean empate = false;
 
     @ManyToOne
     @JoinColumn(name = "personaje_id", nullable = false)
+    @Setter
     private Personaje personaje;
 
     @JsonIgnore
     @ManyToOne
     @JoinColumn(name = "usuario_id", nullable = true)
+    @Setter
     private Usuario usuario;
 
     @ManyToOne
     @JoinColumn(name = "enfrentamiento_id", nullable = true)
+    @Setter
     private Enfrentamiento enfrentamiento;
 
     // Intención de voto (feature #15): el "por qué" OPCIONAL del voto.
@@ -88,6 +99,7 @@ public class Voto {
     // largo de la lista cerrada con holgura. La columna la crea V37; declararla
     // aquí mantiene en sync el esquema con ddl-auto=validate.
     @Column(name = "categoria", length = 24)
+    @Setter
     private String categoria;
 
     public Voto() {
@@ -118,83 +130,7 @@ public class Voto {
         }
     }
 
-    public Long getId() {
-        return id;
-    }
-
-    public void setId(Long id) {
-        this.id = id;
-    }
-
-    public LocalDateTime getFecha() {
-        return fecha;
-    }
-
-    public void setFecha(LocalDateTime fecha) {
-        this.fecha = fecha;
-    }
-
-    public BigDecimal getPeso() {
-        return peso;
-    }
-
     public void setPeso(BigDecimal peso) {
         this.peso = peso == null ? BigDecimal.ONE : peso;
-    }
-
-    public String getAnonSessionId() {
-        return anonSessionId;
-    }
-
-    public void setAnonSessionId(String anonSessionId) {
-        this.anonSessionId = anonSessionId;
-    }
-
-    public String getAnonIpHash() {
-        return anonIpHash;
-    }
-
-    public void setAnonIpHash(String anonIpHash) {
-        this.anonIpHash = anonIpHash;
-    }
-
-    public boolean isEmpate() {
-        return empate;
-    }
-
-    public void setEmpate(boolean empate) {
-        this.empate = empate;
-    }
-
-    public Personaje getPersonaje() {
-        return personaje;
-    }
-
-    public void setPersonaje(Personaje personaje) {
-        this.personaje = personaje;
-    }
-
-    public Usuario getUsuario() {
-        return usuario;
-    }
-
-    public void setUsuario(Usuario usuario) {
-        this.usuario = usuario;
-    }
-
-    public Enfrentamiento getEnfrentamiento() {
-        return enfrentamiento;
-    }
-
-    public void setEnfrentamiento(Enfrentamiento enfrentamiento) {
-        this.enfrentamiento = enfrentamiento;
-    }
-
-    public String getCategoria() {
-        return categoria;
-    }
-
-    public void setCategoria(String categoria) {
-        this.categoria = categoria;
     }
 }
