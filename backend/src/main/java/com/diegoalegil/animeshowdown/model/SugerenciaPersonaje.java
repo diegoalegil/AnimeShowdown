@@ -15,6 +15,9 @@ import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
 
+import lombok.Getter;
+import lombok.Setter;
+
 /**
  * Sugerencia de personaje propuesta por un usuario, en cola de moderación.
  *
@@ -26,67 +29,56 @@ import jakarta.persistence.Table;
         @Index(name = "idx_sugerencia_estado_creado", columnList = "estado, creado_en"),
         @Index(name = "idx_sugerencia_usuario_creado", columnList = "usuario_id, creado_en")
 })
+@Getter
 public class SugerenciaPersonaje {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
+    @Setter
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "usuario_id", nullable = false)
     private Usuario usuario;
 
+    @Setter
     @Column(nullable = false, length = 120)
     private String nombre;
 
+    @Setter
     @Column(nullable = false, length = 120)
     private String anime;
 
+    @Setter
     @Column(columnDefinition = "TEXT")
     private String motivo;
 
     /** REGLA #7: identidad real (kanji/emblema/referencia). Obligatoria. */
+    @Setter
     @Column(nullable = false, length = 300)
     private String identidad;
 
+    @Setter
     @Column(name = "url_referencia", length = 500)
     private String urlReferencia;
 
+    @Setter
     @Enumerated(EnumType.STRING)
     @Column(nullable = false, length = 20)
     private SugerenciaEstado estado = SugerenciaEstado.PENDIENTE;
 
+    @Setter
     @Column(name = "motivo_rechazo", length = 500)
     private String motivoRechazo;
 
+    @Setter
     @Column(name = "creado_en", nullable = false)
     private LocalDateTime creadoEn;
 
+    @Setter
     @Column(name = "revisado_en")
     private LocalDateTime revisadoEn;
 
     public SugerenciaPersonaje() {
     }
-
-    public Long getId() { return id; }
-    public Usuario getUsuario() { return usuario; }
-    public void setUsuario(Usuario usuario) { this.usuario = usuario; }
-    public String getNombre() { return nombre; }
-    public void setNombre(String nombre) { this.nombre = nombre; }
-    public String getAnime() { return anime; }
-    public void setAnime(String anime) { this.anime = anime; }
-    public String getMotivo() { return motivo; }
-    public void setMotivo(String motivo) { this.motivo = motivo; }
-    public String getIdentidad() { return identidad; }
-    public void setIdentidad(String identidad) { this.identidad = identidad; }
-    public String getUrlReferencia() { return urlReferencia; }
-    public void setUrlReferencia(String urlReferencia) { this.urlReferencia = urlReferencia; }
-    public SugerenciaEstado getEstado() { return estado; }
-    public void setEstado(SugerenciaEstado estado) { this.estado = estado; }
-    public String getMotivoRechazo() { return motivoRechazo; }
-    public void setMotivoRechazo(String motivoRechazo) { this.motivoRechazo = motivoRechazo; }
-    public LocalDateTime getCreadoEn() { return creadoEn; }
-    public void setCreadoEn(LocalDateTime creadoEn) { this.creadoEn = creadoEn; }
-    public LocalDateTime getRevisadoEn() { return revisadoEn; }
-    public void setRevisadoEn(LocalDateTime revisadoEn) { this.revisadoEn = revisadoEn; }
 }

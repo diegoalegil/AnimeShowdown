@@ -12,6 +12,8 @@ import jakarta.persistence.Index;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
+import lombok.Getter;
+import lombok.Setter;
 
 /**
  * Códigos de recuperación one-shot del 2FA TOTP.
@@ -33,21 +35,29 @@ public class TotpBackupCode {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Getter
     private Long id;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "usuario_id", nullable = false)
+    @Getter
+    @Setter
     private Usuario usuario;
 
     /** Hash BCrypt del código (10 chars alfanuméricos en plaintext). */
     @Column(name = "codigo_hash", nullable = false)
+    @Getter
+    @Setter
     private String codigoHash;
 
     @Column(name = "creado_en", nullable = false)
+    @Getter
     private LocalDateTime creadoEn;
 
     /** Null = aún no usado. Timestamp = el código ya se consumió en un login. */
     @Column(name = "usado_en")
+    @Getter
+    @Setter
     private LocalDateTime usadoEn;
 
     public TotpBackupCode() {
@@ -57,38 +67,6 @@ public class TotpBackupCode {
         this.usuario = usuario;
         this.codigoHash = codigoHash;
         this.creadoEn = LocalDateTime.now();
-    }
-
-    public Long getId() {
-        return id;
-    }
-
-    public Usuario getUsuario() {
-        return usuario;
-    }
-
-    public void setUsuario(Usuario usuario) {
-        this.usuario = usuario;
-    }
-
-    public String getCodigoHash() {
-        return codigoHash;
-    }
-
-    public void setCodigoHash(String codigoHash) {
-        this.codigoHash = codigoHash;
-    }
-
-    public LocalDateTime getCreadoEn() {
-        return creadoEn;
-    }
-
-    public LocalDateTime getUsadoEn() {
-        return usadoEn;
-    }
-
-    public void setUsadoEn(LocalDateTime usadoEn) {
-        this.usadoEn = usadoEn;
     }
 
     public boolean estaUsado() {

@@ -10,7 +10,12 @@ import jakarta.persistence.Id;
 import jakarta.persistence.Index;
 import jakarta.persistence.Table;
 
+import lombok.Getter;
+import lombok.Setter;
+
 @Entity
+@Getter
+@Setter
 @Table(
     name = "password_reset_tokens",
     indexes = {
@@ -60,23 +65,4 @@ public class PasswordResetToken {
         this.creadoEn = LocalDateTime.now();
         this.usado = false;
     }
-
-    public Long getId() { return id; }
-    public void setId(Long id) { this.id = id; }
-    public Long getUsuarioId() { return usuarioId; }
-    public void setUsuarioId(Long usuarioId) { this.usuarioId = usuarioId; }
-    public String getCodigo() { return codigo; }
-    public void setCodigo(String codigo) { this.codigo = codigo; }
-    public String getCodigoHash() { return codigoHash; }
-    public void setCodigoHash(String codigoHash) { this.codigoHash = codigoHash; }
-    public LocalDateTime getExpiraEn() { return expiraEn; }
-    public void setExpiraEn(LocalDateTime expiraEn) { this.expiraEn = expiraEn; }
-    public LocalDateTime getCreadoEn() { return creadoEn; }
-    public void setCreadoEn(LocalDateTime creadoEn) { this.creadoEn = creadoEn; }
-    public boolean isUsado() { return usado; }
-    public void setUsado(boolean usado) { this.usado = usado; }
-    public LocalDateTime getUsadoEn() { return usadoEn; }
-    public void setUsadoEn(LocalDateTime usadoEn) { this.usadoEn = usadoEn; }
-    public Integer getIntentosFallidos() { return intentosFallidos; }
-    public void setIntentosFallidos(Integer intentosFallidos) { this.intentosFallidos = intentosFallidos; }
 }

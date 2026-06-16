@@ -19,7 +19,12 @@ import jakarta.persistence.PrePersist;
 import jakarta.persistence.PreUpdate;
 import jakarta.persistence.Table;
 
+import lombok.Getter;
+import lombok.Setter;
+
 @Entity
+@Getter
+@Setter
 @Table(name = "tier_list", indexes = {
         @Index(name = "idx_tier_list_usuario", columnList = "usuario_id"),
         @Index(name = "idx_tier_list_publico_slug", columnList = "publico, slug")
@@ -67,77 +72,5 @@ public class TierList {
     @PreUpdate
     void onUpdate() {
         updatedAt = LocalDateTime.now();
-    }
-
-    public Long getId() {
-        return id;
-    }
-
-    public void setId(Long id) {
-        this.id = id;
-    }
-
-    public Usuario getUsuario() {
-        return usuario;
-    }
-
-    public void setUsuario(Usuario usuario) {
-        this.usuario = usuario;
-    }
-
-    public String getTitulo() {
-        return titulo;
-    }
-
-    public void setTitulo(String titulo) {
-        this.titulo = titulo;
-    }
-
-    public String getAnimeSlug() {
-        return animeSlug;
-    }
-
-    public void setAnimeSlug(String animeSlug) {
-        this.animeSlug = animeSlug;
-    }
-
-    public boolean isPublico() {
-        return publico;
-    }
-
-    public void setPublico(boolean publico) {
-        this.publico = publico;
-    }
-
-    public String getSlug() {
-        return slug;
-    }
-
-    public void setSlug(String slug) {
-        this.slug = slug;
-    }
-
-    public LocalDateTime getCreatedAt() {
-        return createdAt;
-    }
-
-    public void setCreatedAt(LocalDateTime createdAt) {
-        this.createdAt = createdAt;
-    }
-
-    public LocalDateTime getUpdatedAt() {
-        return updatedAt;
-    }
-
-    public void setUpdatedAt(LocalDateTime updatedAt) {
-        this.updatedAt = updatedAt;
-    }
-
-    public List<TierListItem> getItems() {
-        return items;
-    }
-
-    public void setItems(List<TierListItem> items) {
-        this.items = items;
     }
 }

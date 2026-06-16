@@ -4,6 +4,9 @@ import java.time.LocalDateTime;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 
+import lombok.Getter;
+import lombok.Setter;
+
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
@@ -18,6 +21,8 @@ import jakarta.persistence.Table;
 
 @Entity
 @Table(name = "torneos")
+@Getter
+@Setter
 public class Torneo {
 
     @Id
@@ -154,158 +159,6 @@ public class Torneo {
             // ya con SlugUtil + check de unicidad.
             this.slug = SlugUtil.slugify(this.nombre) + "-" + System.currentTimeMillis();
         }
-    }
-
-    public Long getId() {
-        return id;
-    }
-
-    public void setId(Long id) {
-        this.id = id;
-    }
-
-    public String getSlug() {
-        return slug;
-    }
-
-    public void setSlug(String slug) {
-        this.slug = slug;
-    }
-
-    public String getNombre() {
-        return nombre;
-    }
-
-    public void setNombre(String nombre) {
-        this.nombre = nombre;
-    }
-
-    public String getDescripcion() {
-        return descripcion;
-    }
-
-    public void setDescripcion(String descripcion) {
-        this.descripcion = descripcion;
-    }
-
-    public EstadoTorneo getEstado() {
-        return estado;
-    }
-
-    public void setEstado(EstadoTorneo estado) {
-        this.estado = estado;
-    }
-
-    public LocalDateTime getFechaCreacion() {
-        return fechaCreacion;
-    }
-
-    public void setFechaCreacion(LocalDateTime fechaCreacion) {
-        this.fechaCreacion = fechaCreacion;
-    }
-
-    public LocalDateTime getFechaInicio() {
-        return fechaInicio;
-    }
-
-    public void setFechaInicio(LocalDateTime fechaInicio) {
-        this.fechaInicio = fechaInicio;
-    }
-
-    public LocalDateTime getFechaFinalizacion() {
-        return fechaFinalizacion;
-    }
-
-    public void setFechaFinalizacion(LocalDateTime fechaFinalizacion) {
-        this.fechaFinalizacion = fechaFinalizacion;
-    }
-
-    public Personaje getGanadorPersonaje() {
-        return ganadorPersonaje;
-    }
-
-    public void setGanadorPersonaje(Personaje ganadorPersonaje) {
-        this.ganadorPersonaje = ganadorPersonaje;
-    }
-
-    public Usuario getCreadoPor() {
-        return creadoPor;
-    }
-
-    public void setCreadoPor(Usuario creadoPor) {
-        this.creadoPor = creadoPor;
-    }
-
-    public EstadoRevision getEstadoRevision() {
-        return estadoRevision;
-    }
-
-    public void setEstadoRevision(EstadoRevision estadoRevision) {
-        this.estadoRevision = estadoRevision;
-    }
-
-    public String getMotivoRechazo() {
-        return motivoRechazo;
-    }
-
-    public void setMotivoRechazo(String motivoRechazo) {
-        this.motivoRechazo = motivoRechazo;
-    }
-
-    public LocalDateTime getFechaRevisado() {
-        return fechaRevisado;
-    }
-
-    public void setFechaRevisado(LocalDateTime fechaRevisado) {
-        this.fechaRevisado = fechaRevisado;
-    }
-
-    public VisibilidadTorneo getVisibilidad() {
-        return visibilidad;
-    }
-
-    public void setVisibilidad(VisibilidadTorneo visibilidad) {
-        this.visibilidad = visibilidad;
-    }
-
-    public boolean isPublico() {
-        return publico;
-    }
-
-    public void setPublico(boolean publico) {
-        this.publico = publico;
-    }
-
-    public boolean isAutoGenerado() {
-        return autoGenerado;
-    }
-
-    public void setAutoGenerado(boolean autoGenerado) {
-        this.autoGenerado = autoGenerado;
-    }
-
-    public boolean isEsArena() {
-        return esArena;
-    }
-
-    public void setEsArena(boolean esArena) {
-        this.esArena = esArena;
-    }
-
-    public String getEventoSlug() {
-        return eventoSlug;
-    }
-
-    public void setEventoSlug(String eventoSlug) {
-        this.eventoSlug = eventoSlug;
-    }
-
-    public String getAutoOrigen() {
-        return autoOrigen;
-    }
-
-    public void setAutoOrigen(String autoOrigen) {
-        this.autoOrigen = autoOrigen;
     }
 
 }

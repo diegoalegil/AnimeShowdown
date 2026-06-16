@@ -13,8 +13,13 @@ import jakarta.persistence.PrePersist;
 import jakarta.persistence.PreUpdate;
 import jakarta.persistence.Table;
 
+import lombok.Getter;
+import lombok.Setter;
+
 @Entity
 @Table(name = "eventos_tematicos")
+@Getter
+@Setter
 public class EventoTematico {
 
     @Id
@@ -93,165 +98,5 @@ public class EventoTematico {
     @PreUpdate
     protected void onUpdate() {
         updatedAt = LocalDateTime.now();
-    }
-
-    public Long getId() {
-        return id;
-    }
-
-    public void setId(Long id) {
-        this.id = id;
-    }
-
-    public String getSlug() {
-        return slug;
-    }
-
-    public void setSlug(String slug) {
-        this.slug = slug;
-    }
-
-    public String getTitulo() {
-        return titulo;
-    }
-
-    public void setTitulo(String titulo) {
-        this.titulo = titulo;
-    }
-
-    public String getDescripcionCorta() {
-        return descripcionCorta;
-    }
-
-    public void setDescripcionCorta(String descripcionCorta) {
-        this.descripcionCorta = descripcionCorta;
-    }
-
-    public EventoFiltroKind getFiltroKind() {
-        return filtroKind;
-    }
-
-    public void setFiltroKind(EventoFiltroKind filtroKind) {
-        this.filtroKind = filtroKind;
-    }
-
-    public String getFiltroValor() {
-        return filtroValor;
-    }
-
-    public void setFiltroValor(String filtroValor) {
-        this.filtroValor = filtroValor;
-    }
-
-    public LocalDateTime getInicio() {
-        return inicio;
-    }
-
-    public void setInicio(LocalDateTime inicio) {
-        this.inicio = inicio;
-    }
-
-    public LocalDateTime getFin() {
-        return fin;
-    }
-
-    public void setFin(LocalDateTime fin) {
-        this.fin = fin;
-    }
-
-    public String getColor() {
-        return color;
-    }
-
-    public void setColor(String color) {
-        this.color = color;
-    }
-
-    public String getEmoji() {
-        return emoji;
-    }
-
-    public void setEmoji(String emoji) {
-        this.emoji = emoji;
-    }
-
-    public boolean isActivo() {
-        return activo;
-    }
-
-    public void setActivo(boolean activo) {
-        this.activo = activo;
-    }
-
-    public boolean isCupEnabled() {
-        return cupEnabled;
-    }
-
-    public void setCupEnabled(boolean cupEnabled) {
-        this.cupEnabled = cupEnabled;
-    }
-
-    public int getCupSize() {
-        return cupSize;
-    }
-
-    public void setCupSize(int cupSize) {
-        this.cupSize = cupSize;
-    }
-
-    public String getCupNombre() {
-        return cupNombre;
-    }
-
-    public void setCupNombre(String cupNombre) {
-        this.cupNombre = cupNombre;
-    }
-
-    public int getRecompensaMoneda() {
-        return recompensaMoneda;
-    }
-
-    public void setRecompensaMoneda(int recompensaMoneda) {
-        this.recompensaMoneda = recompensaMoneda;
-    }
-
-    public String getRecompensaCartaEspecialSlug() {
-        return recompensaCartaEspecialSlug;
-    }
-
-    public void setRecompensaCartaEspecialSlug(String recompensaCartaEspecialSlug) {
-        this.recompensaCartaEspecialSlug = recompensaCartaEspecialSlug;
-    }
-
-    public String getRecompensaBadgeCodigo() {
-        return recompensaBadgeCodigo;
-    }
-
-    public void setRecompensaBadgeCodigo(String recompensaBadgeCodigo) {
-        this.recompensaBadgeCodigo = recompensaBadgeCodigo;
-    }
-
-    public boolean isRecompensaSobreGratis() {
-        return recompensaSobreGratis;
-    }
-
-    public void setRecompensaSobreGratis(boolean recompensaSobreGratis) {
-        this.recompensaSobreGratis = recompensaSobreGratis;
-    }
-
-    public LocalDateTime getCreatedAt() {
-        return createdAt;
-    }
-
-    public void setCreatedAt(LocalDateTime createdAt) {
-        this.createdAt = createdAt;
-    }
-
-    public LocalDateTime getUpdatedAt() {
-        return updatedAt;
-    }
-
-    public void setUpdatedAt(LocalDateTime updatedAt) {
-        this.updatedAt = updatedAt;
     }
 }
