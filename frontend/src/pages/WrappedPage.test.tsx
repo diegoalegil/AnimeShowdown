@@ -91,12 +91,12 @@ describe('WrappedPage (El santuario del Wrapped)', () => {
     // Cada sala presente tiene su <h2> real (heading accesible).
     expect(screen.getByRole('heading', { level: 2, name: /Tu voz cayó sobre la arena/ })).toBeTruthy()
     expect(screen.getByRole('heading', { level: 2, name: /Tres nombres recibieron tus ofrendas/ })).toBeTruthy()
-    expect(screen.getByRole('heading', { level: 2, name: /8 votos seguidos/ })).toBeTruthy()
+    expect(screen.getByRole('heading', { level: 2, name: /8 días seguidos/ })).toBeTruthy()
 
     // sr-text completo de las cifras (no solo el odómetro decorativo). Robusto
     // al separador de miles del ICU (puede o no agrupar según la versión).
-    expect(screen.getByText(/1[\s., ]?234 votos emitidos en la arena en 2026/)).toBeTruthy()
-    expect(screen.getByText(/73% de tus votos fueron para Dragon Ball/)).toBeTruthy()
+    expect(screen.getByText(/1[\s., ]?234 votos emitidos en la arena/)).toBeTruthy()
+    expect(screen.getByText(/73% de tus personajes favoritos salen de Dragon Ball/)).toBeTruthy()
 
     // El espejo del gusto (universoTop) renderiza su universo.
     expect(screen.getAllByText('Dragon Ball').length).toBeGreaterThanOrEqual(1)
@@ -126,8 +126,8 @@ describe('WrappedPage (El santuario del Wrapped)', () => {
     await waitFor(() => expect(document.querySelectorAll('h1').length).toBe(1))
     expect(screen.queryByRole('heading', { level: 2, name: /Tu voz cayó sobre la arena/ })).toBeNull()
     expect(screen.queryByRole('heading', { level: 2, name: /Tres nombres recibieron tus ofrendas/ })).toBeNull()
-    expect(screen.queryByRole('heading', { level: 2, name: /votos seguidos|toda llama empieza/ })).toBeNull()
-    expect(screen.queryByText(/de tus votos fueron para/)).toBeNull()
+    expect(screen.queryByRole('heading', { level: 2, name: /días seguidos|toda llama empieza/ })).toBeNull()
+    expect(screen.queryByText(/de tus personajes favoritos salen de/)).toBeNull()
     // Solo entrada + emaki.
     expect(document.querySelectorAll('[data-screen-label]').length).toBe(2)
   })

@@ -407,7 +407,7 @@ function PersonajeDetailPage() {
             descripción, cita, historial competitivo, comentarios…) se conservan
             ÍNTEGRAS debajo, crawlables y con sus mismos hooks/props. */}
         <FighterCodex
-          key={slug}
+          key={`codex-${slug}`}
           personaje={personaje}
           stats={stats}
           rankGlobal={rankGlobal}
@@ -430,7 +430,7 @@ function PersonajeDetailPage() {
             como dato estructurado. El nombre/furigana dejó de duplicarse: lo
             pinta el frontispicio del códice. */}
         <motion.section
-          key={slug}
+          key={`detalle-${slug}`}
           className="mt-8 grid grid-cols-1 gap-8 md:grid-cols-[minmax(0,1fr)_minmax(0,1.2fr)] md:items-start md:gap-12"
           variants={containerVariants}
           initial="hidden"

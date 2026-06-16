@@ -121,7 +121,7 @@ function AnimesPage() {
         </p>
 
         <p className="mb-4 text-[11px] text-fg-muted">
-          <strong className="text-fg-strong">{animesCatalogo.length}</strong>{' '}
+          <strong className="text-fg-strong">{filtrados.length}</strong>{' '}
           universos ·{' '}
           <strong className="text-fg-strong">{personajesEnVista}</strong>{' '}
           personajes en vista

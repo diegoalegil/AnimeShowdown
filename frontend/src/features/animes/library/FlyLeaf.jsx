@@ -17,7 +17,8 @@ import PersonajeCutImg from '../../../components/PersonajeCutImg'
  *
  * Keyed por anime abierto (montar/desmontar por slug). Es un `region` con
  * aria-label del universo; Esc lo cierra devolviendo el foco al tomo. El
- * despliegue/colapso lo gobierna el data-state vía CSS (library.css).
+ * despliegue/colapso lo gobiernan los atributos data-open / data-closing vía
+ * CSS (library.css).
  *
  * @param {Object} props
  * @param {import('./library-core').Universo} props.universo  Universo abierto.
@@ -134,6 +135,7 @@ export default function FlyLeaf({
       />
     <section
       ref={rootRef}
+      id={`fly-leaf-${slug}`}
       className="fly-leaf"
       data-anchor={anchor}
       data-open={closing ? '0' : entered ? '1' : '0'}

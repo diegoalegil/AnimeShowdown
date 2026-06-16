@@ -318,7 +318,7 @@
 }
 .lib-book[data-open="1"] { z-index: 41; }
 
-.book-spine {
+.lib-spine {
   position: relative;
   display: flex;
   flex-direction: column;
@@ -358,12 +358,12 @@
 }
 
 /* lacas (asignadas por library-core: variación determinista, paleta sobria) */
-.book-spine[data-laca="carmin"] { --spine-base: linear-gradient(180deg, color-mix(in srgb, var(--color-accent) 82%, var(--color-canvas)), color-mix(in srgb, var(--color-accent) 52%, var(--color-canvas))); }
-.book-spine[data-laca="madera"] { --spine-base: linear-gradient(180deg, var(--lib-wood-edge), color-mix(in srgb, var(--color-canvas) 70%, var(--lib-wood))); }
-.book-spine[data-laca="tinta"]  { --spine-base: linear-gradient(180deg, var(--color-surface-alt), color-mix(in srgb, var(--color-canvas) 60%, var(--color-surface))); }
+.lib-spine[data-laca="carmin"] { --spine-base: linear-gradient(180deg, color-mix(in srgb, var(--color-accent) 82%, var(--color-canvas)), color-mix(in srgb, var(--color-accent) 52%, var(--color-canvas))); }
+.lib-spine[data-laca="madera"] { --spine-base: linear-gradient(180deg, var(--lib-wood-edge), color-mix(in srgb, var(--color-canvas) 70%, var(--lib-wood))); }
+.lib-spine[data-laca="tinta"]  { --spine-base: linear-gradient(180deg, var(--color-surface-alt), color-mix(in srgb, var(--color-canvas) 60%, var(--color-surface))); }
 
-.book-spine:hover,
-.book-spine:focus-visible {
+.lib-spine:hover,
+.lib-spine:focus-visible {
   transform: translateY(-14px);
   outline: none;
   box-shadow:
@@ -371,18 +371,18 @@
     0 26px 30px -16px color-mix(in srgb, var(--color-canvas) 92%, transparent),
     0 0 0 1px color-mix(in srgb, var(--color-gold) 40%, transparent);
 }
-.book-spine:focus-visible {
+.lib-spine:focus-visible {
   box-shadow:
     inset 0 1px 0 color-mix(in srgb, var(--color-fg-strong) 18%, transparent),
     0 26px 30px -16px color-mix(in srgb, var(--color-canvas) 92%, transparent),
     0 0 0 2px var(--color-gold-bright);
 }
-.book-spine[aria-expanded="true"] {
+.lib-spine[aria-expanded="true"] {
   transform: translateY(-14px);
 }
 
 /* kanji de universo grabado en oro (cabeza del lomo) */
-.book-spine__kanji {
+.lib-spine__kanji {
   font-family: var(--font-kanji-serif);
   font-size: clamp(1.05rem, 2.4vw, 1.35rem);
   line-height: 1;
@@ -393,7 +393,7 @@
 }
 
 /* hairline dorada bajo el kanji */
-.book-spine__rule {
+.lib-spine__rule {
   width: 60%;
   height: 1px;
   margin: 0.4rem 0;
@@ -401,7 +401,7 @@
 }
 
 /* título vertical en el lomo */
-.book-spine__title {
+.lib-spine__title {
   flex: 1 1 auto;
   display: flex;
   align-items: center;
@@ -420,7 +420,7 @@
 }
 
 /* tejuelo: franja del arte de marca recortada (pie del lomo) */
-.book-spine__tejuelo {
+.lib-spine__tejuelo {
   position: relative;
   width: calc(100% - 0.2rem);
   height: 2.5rem;
@@ -430,7 +430,7 @@
   border: 1px solid var(--color-border-gold-subtle);
   box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--color-canvas) 50%, transparent);
 }
-.book-spine__tejuelo img {
+.lib-spine__tejuelo img {
   width: 100%;
   height: 100%;
   object-fit: cover;
@@ -438,7 +438,7 @@
   display: block;
 }
 /* degradado elegante del tejuelo SIN arte (lomo tipográfico puro) */
-.book-spine__tejuelo--bare {
+.lib-spine__tejuelo--bare {
   height: 1.5rem;
   border-style: dashed;
   border-color: var(--color-border-gold-subtle);
@@ -447,7 +447,7 @@
       color-mix(in srgb, var(--color-gold) 9%, transparent) 0 3px,
       transparent 3px 7px);
 }
-.book-spine__elo {
+.lib-spine__elo {
   margin-top: 0.35rem;
   font-family: var(--font-mono);
   font-size: var(--text-2xs);
@@ -490,7 +490,7 @@
 }
 
 /* capa ÚNICA reutilizada de barrido de farol por estantería */
-.lantern-sweep {
+.lib-lantern-sweep {
   position: absolute;
   inset: 0;
   z-index: 5;
@@ -498,7 +498,7 @@
   overflow: hidden;
   border-radius: var(--radius-lg);
 }
-.lantern-sweep::before {
+.lib-lantern-sweep::before {
   content: "";
   position: absolute;
   top: 0;
@@ -520,7 +520,7 @@
 @media (prefers-reduced-motion: no-preference) {
   /* will-change SOLO mientras el barrido anima (600ms): así la capa no se
      promueve a compositor en cada estantería en reposo. */
-  .lantern-sweep[data-run="1"]::before {
+  .lib-lantern-sweep[data-run="1"]::before {
     animation: lib-lantern-sweep 600ms var(--ease-lift) both;
     will-change: transform;
   }
@@ -781,11 +781,11 @@
     transform: none !important;
     transition: opacity 150ms ease !important;
   }
-  .book-spine,
+  .lib-spine,
   .lib-book { transition: opacity 150ms ease !important; }
-  .book-spine:hover,
-  .book-spine:focus-visible,
-  .book-spine[aria-expanded="true"] { transform: none; }
+  .lib-spine:hover,
+  .lib-spine:focus-visible,
+  .lib-spine[aria-expanded="true"] { transform: none; }
 }
 
 /* ----------------------------------------------------------- 390px (móvil) */

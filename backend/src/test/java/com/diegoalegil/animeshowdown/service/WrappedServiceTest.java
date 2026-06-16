@@ -132,6 +132,93 @@ class WrappedServiceTest {
         assertThat(dto.mejorRacha()).isZero();
     }
 
+    @Test
+    void fandomEnEmpateGanaElDelPersonajeMejorRankeado() {
+        // Empate REAL de conteo: 2 animes con 2 personajes cada uno. El orden
+        // votos-desc de la query intercala Naruto/Bleach, así que ambos llegan
+        // a count=2. La comparación estrictamente-mayor (>) deja al PRIMERO que
+        // alcanza el máximo, y la inserción en el LinkedHashMap sigue el orden
+        // de aparición = votos-desc → gana Naruto (su personaje mejor rankeado
+        // aparece antes). Pinea el comportamiento: un flip a >= elegiría Bleach.
+        Usuario u = mock(Usuario.class);
+        when(u.getUsername()).thenReturn("empate");
+        when(u.getPvpPartidos()).thenReturn(0);
+        when(votoRepository.countByUsuario(u)).thenReturn(4L);
+        when(prediccionRepository.countByUsuarioAndAcertadaTrue(u)).thenReturn(0L);
+        when(usuarioLogroRepository.countByUsuario(u)).thenReturn(0L);
+        when(votoRepository.topPorUsuario(eq(u), any())).thenReturn(List.of(
+                item("naruto", "Naruto", 40),
+                item("ichigo", "Bleach", 30),
+                item("sasuke", "Naruto", 20),
+                item("rukia", "Bleach", 10)));
+        when(votoRepository.fechasDistintasDeVoto(u)).thenReturn(List.of());
+
+        WrappedDto dto = service().generar(u);
+
+        // 2 vs 2: gana el primero en alcanzar el máximo (Naruto), su slug
+        // representativo es el del personaje mejor rankeado de ese anime.
+        assertThat(dto.fandomPrincipal()).isEqualTo("Naruto");
+        assertThat(dto.universoTop()).isNotNull();
+        assertThat(dto.universoTop().anime()).isEqualTo("Naruto");
+        assertThat(dto.universoTop().slug()).isEqualTo("naruto");
+        // pct = round(100 * 2/4) = 50 (los 4 tienen anime).
+        assertThat(dto.universoTop().pct()).isEqualTo(50);
+    }
+
+    @Test
+    void fandomIgnoraAnimeNullOBlankEnDenominadorYTop() {
+        // Mezcla de personajes con anime null/blank y válidos: solo los válidos
+        // cuentan para totalConAnime (denominador del pct) y para universoTop.
+        Usuario u = mock(Usuario.class);
+        when(u.getUsername()).thenReturn("mixto");
+        when(u.getPvpPartidos()).thenReturn(0);
+        when(votoRepository.countByUsuario(u)).thenReturn(4L);
+        when(prediccionRepository.countByUsuarioAndAcertadaTrue(u)).thenReturn(0L);
+        when(usuarioLogroRepository.countByUsuario(u)).thenReturn(0L);
+        when(votoRepository.topPorUsuario(eq(u), any())).thenReturn(List.of(
+                item("a", "Naruto", 40),
+                item("b", null, 30),
+                item("c", "Naruto", 20),
+                item("d", "   ", 10)));
+        when(votoRepository.fechasDistintasDeVoto(u)).thenReturn(List.of());
+
+        WrappedDto dto = service().generar(u);
+
+        // Solo los 2 de Naruto cuentan: denominador = 2, no 4.
+        assertThat(dto.fandomPrincipal()).isEqualTo("Naruto");
+        assertThat(dto.universoTop()).isNotNull();
+        assertThat(dto.universoTop().anime()).isEqualTo("Naruto");
+        assertThat(dto.universoTop().slug()).isEqualTo("a");
+        // pct = round(100 * 2/2) = 100 (denominador usa solo los válidos).
+        assertThat(dto.universoTop().pct()).isEqualTo(100);
+    }
+
+    @Test
+    void fandomTodoNullOBlankDevuelveUniversoNuloSinDividirPorCero() {
+        // Todos los personajes top sin anime: no hay fandom, universoTop null,
+        // y el cálculo del pct no se ejecuta (return temprano) → sin /0 ni NaN.
+        Usuario u = mock(Usuario.class);
+        when(u.getUsername()).thenReturn("sinanime");
+        when(u.getPvpPartidos()).thenReturn(0);
+        when(votoRepository.countByUsuario(u)).thenReturn(3L);
+        when(prediccionRepository.countByUsuarioAndAcertadaTrue(u)).thenReturn(0L);
+        when(usuarioLogroRepository.countByUsuario(u)).thenReturn(0L);
+        when(votoRepository.topPorUsuario(eq(u), any())).thenReturn(List.of(
+                item("x", null, 30),
+                item("y", "", 20),
+                item("z", "   ", 10)));
+        when(votoRepository.fechasDistintasDeVoto(u)).thenReturn(List.of());
+
+        WrappedDto dto = service().generar(u);
+
+        // Personaje top sí existe (el mejor votado) aunque no tenga anime.
+        assertThat(dto.personajeTop()).isNotNull();
+        assertThat(dto.personajeTop().slug()).isEqualTo("x");
+        // Sin anime en ninguno → fandom y universoTop nulos.
+        assertThat(dto.fandomPrincipal()).isNull();
+        assertThat(dto.universoTop()).isNull();
+    }
+
     // --- Helper de racha (puro, testeable directamente) ---
 
     @Test

@@ -21,11 +21,12 @@ import {
 import { getDailyResetCountdown } from '../lib/games'
 import { shareWithToast } from '../lib/shareWithToast'
 import { useAuth } from '../contexts/AuthContext'
+import { ANON_VOTE_LIMIT as ANON_VOTE_CAP } from '../lib/anonymousVoting'
 
-// Tope de votos de invitado (espejo de ANON_VOTE_LIMIT en VotarPage). Un
-// invitado NO puede llegar al objetivo diario de 10 votos sin registrarse:
-// la barra se quedaría clavada al 50%. La copia para invitados refleja esto.
-const ANON_VOTE_CAP = 5
+// Tope de votos de invitado: única fuente de verdad es ANON_VOTE_LIMIT en
+// lib/anonymousVoting. Un invitado NO puede llegar al objetivo diario de 10 votos sin
+// registrarse: la barra se quedaría clavada al 50%. La copia para invitados
+// refleja esto.
 
 function clamp(value, max) {
   return Math.min(Math.max(0, value), max)

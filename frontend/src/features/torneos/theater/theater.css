@@ -343,14 +343,16 @@
 
 /* ─────────────────────── PAUSA de loops decorativos ───────────────────────
    Honra el contrato del header (línea 16): los dos loops infinitos
-   (faroles/cordón cian) se pausan bajo html.as-calm, html.as-tab-hidden y
-   .is-offscreen. Mismo patrón que index.css (toggle de calma global). */
+   (faroles/cordón cian) se pausan bajo html.as-calm y html.as-tab-hidden
+   (clases globales en <html>). El observer solo marca .is-offscreen en el
+   proscenio, así que .is-offscreen únicamente alcanza al halo del farol (que
+   vive en la cabecera); el cordón cian vive en el overlay de la función y no
+   es descendiente del proscenio. Mismo patrón que index.css. */
 html.as-tab-hidden .teatro-farol__halo,
 html.as-tab-hidden .teatro-cian-glow,
 html.as-calm .teatro-farol__halo,
 html.as-calm .teatro-cian-glow,
-.is-offscreen .teatro-farol__halo,
-.is-offscreen .teatro-cian-glow {
+.is-offscreen .teatro-farol__halo {
   animation-play-state: paused !important;
 }
 

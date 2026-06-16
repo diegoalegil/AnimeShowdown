@@ -9,8 +9,9 @@ import PersonajeCutImg from '../../../components/PersonajeCutImg'
  * Todo color por token (cero hex). Solo se animan transform/opacity/clip; el
  * desenrollado de entrada (scaleY origin-top) y la tacha (scaleX) viven en
  * theater.css. El cordón cian es una capa de glow PRE-PINTADA que cross-fadea
- * opacity (jamás box-shadow vivo). A11y: role="group" focusable con
- * aria-label completo; el voto es un enlace real ≥44px.
+ * opacity (jamás box-shadow vivo). A11y: role="group" con aria-label completo
+ * (sin tabIndex: los <a> internos ya son foco nativo); el voto es un enlace
+ * real ≥44px.
  *
  * @param {object} props
  * @param {object} props.m           Match derivado de deriveBracketState().
@@ -31,7 +32,7 @@ export default function MatchScroll({ m, live = false, playingCut = false, enter
     : resolved ? 'var(--color-border-gold-subtle)' : 'color-mix(in srgb, var(--color-fg) 12%, transparent)'
 
   return (
-    <div role="group" tabIndex={0} aria-label={describeMatch(m, live)}
+    <div role="group" aria-label={describeMatch(m, live)}
       className={`teatro-emaki ${enter ? 'teatro-emaki--play' : ''}`}
       style={{ '--teatro-emaki-delay': `${delay}ms`, position: 'relative', height }}>
       {/* varilla de madera superior del rollo */}

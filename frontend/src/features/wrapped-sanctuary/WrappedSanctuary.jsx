@@ -76,6 +76,7 @@ function Pedestal({ c, pos }) {
         <PersonajeImg
           slug={c.slug}
           nombre={c.nombre}
+          alt=""
           width={124}
           height={186}
           sizes="124px"
@@ -112,6 +113,9 @@ function WrappedSanctuary({ wrapped, onCompartir, onVolverArena, publico = false
   const reduced = useReducedMotion()
   const { play } = useSound()
   const rootRef = useRef(null)
+  // Timers de la coreografia de sonido (setTimeout en onWake). Se limpian al
+  // desmontar para que ningun sonido fantasma suene fuera del santuario.
+  const soundTimers = useRef([])
   const rooms = visibleRooms(wrapped)
   const [active, setActive] = useState(rooms[0]?.id)
   const [awoke, setAwoke] = useState(() => ({}))
@@ -149,23 +153,34 @@ function WrappedSanctuary({ wrapped, onCompartir, onVolverArena, publico = false
     return () => io.disconnect()
   }, [])
 
+  // Limpia los timers de sonido pendientes al desmontar (evita audio fantasma).
+  useEffect(() => () => {
+    soundTimers.current.forEach((t) => window.clearTimeout(t))
+    soundTimers.current = []
+  }, [])
+
+  // setTimeout que se registra para poder cancelarlo en el unmount.
+  const playLater = (sonido, delay) => {
+    soundTimers.current.push(window.setTimeout(() => play(sonido), delay))
+  }
+
   // Coreografia de sonido al despertar cada sala (respeta el mute global del
   // SoundContext). setState dentro de callbacks de IO/timers SI es legal.
   const onWake = (id) => {
     setAwoke((prev) => (prev[id] ? prev : { ...prev, [id]: true }))
     if (reduced) return
-    if (id === 'entrada') window.setTimeout(() => play('playAcunado'), TIMING.stampDelay)
+    if (id === 'entrada') playLater('playAcunado', TIMING.stampDelay)
     else if (id === 'votos') play('playWhoosh')
     else if (id === 'altar') {
       play('playWhoosh')
-      podio(wrapped.top3).forEach((_, i) => window.setTimeout(() => play('playClink'), 200 + i * 120))
+      podio(wrapped.top3).forEach((_, i) => playLater('playClink', 200 + i * 120))
     } else if (id === 'racha') {
       play('playWhoosh')
       const n = Math.min(Number(wrapped.mejorRacha || 0), MAX_LANTERNS)
-      for (let i = 0; i < n; i += 1) window.setTimeout(() => play('playStreakHito'), 220 + i * TIMING.lanternStep)
+      for (let i = 0; i < n; i += 1) playLater('playStreakHito', 220 + i * TIMING.lanternStep)
     } else if (id === 'espejo') {
       play('playWhoosh')
-      window.setTimeout(() => play('playVerdictStamp'), 700)
+      playLater('playVerdictStamp', 700)
     } else if (id === 'emaki') play('playCampanilla')
   }
 
@@ -266,8 +281,8 @@ function WrappedSanctuary({ wrapped, onCompartir, onVolverArena, publico = false
           <div className="mt-3">
             <VotesOdometer value={wrapped.votosTotales} awake={!!awoke.votos} reduced={reduced} />
           </div>
-          <p className="mt-2.5 text-[15px] text-fg-muted">votos emitidos en {wrapped.anio}</p>
-          <span className="sr-only">{`${nfEs(wrapped.votosTotales)} votos emitidos en la arena en ${wrapped.anio}.`}</span>
+          <p className="mt-2.5 text-[15px] text-fg-muted">votos emitidos en la arena</p>
+          <span className="sr-only">{`${nfEs(wrapped.votosTotales)} votos emitidos en la arena.`}</span>
         </SanctuaryRoom>
       ) : null}
 
@@ -298,7 +313,7 @@ function WrappedSanctuary({ wrapped, onCompartir, onVolverArena, publico = false
           titulo={
             wrapped.mejorRacha === 1
               ? 'Una sola chispa — pero toda llama empieza por una'
-              : `${nfEs(wrapped.mejorRacha)} votos seguidos sin fallar a la arena`
+              : `${nfEs(wrapped.mejorRacha)} días seguidos sin fallar a la arena`
           }
           labelScreen="Sala 04 — La Senda de la Racha"
           onWake={() => onWake('racha')}
@@ -315,7 +330,7 @@ function WrappedSanctuary({ wrapped, onCompartir, onVolverArena, publico = false
             {nfEs(wrapped.mejorRacha)}
           </div>
           <p className="mt-2.5 text-[15px] text-fg-muted">
-            {wrapped.mejorRacha === 1 ? 'Vuelve mañana y enciende la segunda.' : 'tu mejor racha de votos consecutivos'}
+            {wrapped.mejorRacha === 1 ? 'Vuelve mañana y enciende la segunda.' : 'tu mejor racha de días consecutivos'}
           </p>
         </SanctuaryRoom>
       ) : null}

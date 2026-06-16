@@ -1,5 +1,11 @@
 const COUNT_KEY = 'animeshowdown.anon_votes_count'
 
+// Tope de votos que un invitado puede emitir antes de que se le pida cuenta.
+// Única fuente de verdad, compartida por VotarPage (gate de voto) y
+// DailyMissionPanel (copy del objetivo). Vive aquí, en el lib de voto
+// anónimo, para no crear un ciclo de imports página<->componente.
+export const ANON_VOTE_LIMIT = 5
+
 function safeStorageGet(key) {
   try {
     return localStorage.getItem(key)

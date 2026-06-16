@@ -24,6 +24,7 @@ function esWrappedVacio(w) {
   return (
     (w?.votosTotales ?? 0) === 0 &&
     (w?.duelosJugados ?? 0) === 0 &&
+    (w?.prediccionesAcertadas ?? 0) === 0 &&
     (w?.badgesDesbloqueados ?? 0) === 0 &&
     !(Array.isArray(w?.top3) && w.top3.length) &&
     !w?.personajeTop
