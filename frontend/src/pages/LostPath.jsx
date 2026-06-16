@@ -52,7 +52,7 @@ function LostPath() {
       </div>
 
       <div className="lost__content">
-        <p className="lost__eyebrow">迷 · senda perdida</p>
+        <p className="lost__eyebrow" aria-hidden="true">迷 · senda perdida</p>
         <h1 id="lost-title" className="lost__title">
           Página no encontrada
         </h1>
