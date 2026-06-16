@@ -2,6 +2,7 @@ import { afterEach, describe, expect, it, vi } from 'vitest'
 import { cleanup, fireEvent, render, screen } from '@testing-library/react'
 
 import ByobuGallery from './ByobuGallery'
+import { SoundProvider } from '../contexts/SoundContext'
 
 // ByobuGallery importa playWhoosh/playClack directamente de lib/sounds; se
 // mockean para no tocar la Web Audio API en jsdom/happy-dom.
@@ -53,7 +54,13 @@ describe('ByobuGallery', () => {
   })
 
   it('abre el visor al pulsar una miniatura (dialog + whoosh + contador)', () => {
-    render(<ByobuGallery images={imgs(3)} title="Luffy" />)
+    // Dentro de un SoundProvider real (no muteado) para que play('playWhoosh')
+    // del gate resuelva sfx.playWhoosh (el spy mockeado) al abrir el visor.
+    render(
+      <SoundProvider>
+        <ByobuGallery images={imgs(3)} title="Luffy" />
+      </SoundProvider>,
+    )
     expect(screen.queryByRole('dialog')).toBeNull()
 
     fireEvent.click(screen.getByRole('button', { name: 'Abrir lámina 1 de 3' }))

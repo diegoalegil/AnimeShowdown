@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState } from 'react'
 import { useReducedMotion } from 'framer-motion'
 import KanjiStroke from '../../../components/KanjiStroke'
-import { playSello, playCampanilla, playAcunado } from '../../../lib/sounds'
+import { useSoundOptional } from '../../../contexts/SoundContext'
 
 /**
  * CoronationRite — la CEREMONIA de coronación del campeón. Debe montarse
@@ -20,6 +20,7 @@ import { playSello, playCampanilla, playAcunado } from '../../../lib/sounds'
  */
 export default function CoronationRite({ campeon }) {
   const reduced = useReducedMotion() ?? false
+  const { play: playSfx } = useSoundOptional()
   const [play, setPlay] = useState(false)
 
   // Coreografía como ESTADO PENDIENTE disparado en effect SOLO con timers
@@ -32,12 +33,15 @@ export default function CoronationRite({ campeon }) {
       return () => clearTimeout(tr)
     }
     const t0 = setTimeout(() => setPlay(true), 30)
-    playCampanilla()
+    playSfx('playCampanilla')
     const ts = [
-      setTimeout(() => playSello(), 560),     // golpe del hanko 王
-      setTimeout(() => playAcunado(), 1500),  // asentado final
+      setTimeout(() => playSfx('playSello'), 560),     // golpe del hanko 王
+      setTimeout(() => playSfx('playAcunado'), 1500),  // asentado final
     ]
     return () => { clearTimeout(t0); ts.forEach(clearTimeout) }
+    // playSfx fuera de deps: ceremonia one-shot; re-ejecutar al togglear mute
+    // repetiria la coronacion. Mute gateado dentro de play().
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [reduced])
 
   // 12 partículas de pan de oro DETERMINISTAS por índice (sin Math.random).

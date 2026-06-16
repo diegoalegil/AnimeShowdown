@@ -25,9 +25,10 @@
  * componentes auxiliares a nivel de módulo.
  */
 import { useEffect, useRef, useState } from 'react';
-// Sonidos ya existentes en lib/sounds.js (respetan el mute global vía
-// SoundContext) — ver notas de handoff, punto «Sonido».
-import { playSello, playWhoosh } from '../lib/sounds';
+// Sonidos ya existentes en lib/sounds.js, enrutados por nombre a través de
+// play() del SoundContext para respetar el mute global (gate único en
+// SoundContext.play) — ver notas de handoff, punto «Sonido».
+import { useSoundOptional } from '../contexts/SoundContext';
 import './consent-scroll.css';
 
 const ENTRY_MS = 350;
@@ -143,6 +144,9 @@ export default function ConsentScroll({
   const [focusArmed, setFocusArmed] = useState(open && autoFocus);
   const [prevOpen, setPrevOpen] = useState(open);
   const rootRef = useRef(null);
+  // Variante tolerante: fuera de <SoundProvider> (tests aislados) play() es
+  // no-op; dentro de la app corre el play() con gate de mute global.
+  const { play } = useSoundOptional();
 
   // Cambio de `open`: ajuste DURANTE el render con guard (patrón canónico
   // React 19 — nada de espejos en effects).
@@ -161,11 +165,14 @@ export default function ConsentScroll({
   // entrada → abierto (setState SOLO dentro del callback del timer)
   useEffect(() => {
     if (phase !== 'entering') return undefined;
-    playWhoosh();
+    play('playWhoosh');
     const t = setTimeout(() => {
       setPhase('open');
     }, prefersReduced() ? REDUCED_MS : ENTRY_MS);
     return () => clearTimeout(t);
+    // play fuera de deps: efecto disparado por phase; re-correrlo al togglear mute
+    // repetiria el whoosh y reprogramaria la transicion. Mute gateado en play().
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [phase]);
 
   // estampado → enrollado
@@ -180,12 +187,14 @@ export default function ConsentScroll({
   // enrollado → cerrado (+ aviso al host)
   useEffect(() => {
     if (phase !== 'rolling') return undefined;
-    playWhoosh();
+    play('playWhoosh');
     const t = setTimeout(() => {
       setPhase('closed');
       if (onDismissed) onDismissed();
     }, prefersReduced() ? REDUCED_MS : ROLL_MS);
     return () => clearTimeout(t);
+    // play fuera de deps (ver nota de arriba): one-shot por phase, mute en play().
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [phase, onDismissed]);
 
   // foco programático SOLO si autoFocus (reapertura desde ajustes);
@@ -203,7 +212,7 @@ export default function ConsentScroll({
   function choose(kind) {
     if (phase !== 'open') return;
     onDecide(kind); // ← gating real, t=0: storage + Sentry/analytics del host
-    playSello();
+    play('playSello');
     setPlaced(kind);
     setPendingKind(kind);
     setPhase('stamping');

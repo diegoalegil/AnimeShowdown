@@ -85,6 +85,7 @@ vi.mock('../hooks/usePersonajesSimilares', () => ({
 // Sonido global de la ficha (cita).
 vi.mock('../contexts/SoundContext', () => ({
   useSound: () => ({ play: vi.fn() }),
+  useSoundOptional: () => ({ play: vi.fn() }),
 }))
 
 // VisualPageShell: passthrough (evita el loop de canvas de AtmosphereEffects,
