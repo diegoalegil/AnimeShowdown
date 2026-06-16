@@ -242,6 +242,13 @@ export default function UniverseLibrary({
           <p className="lib-empty__hint">
             Ningún universo casa con «{search.trim()}».
           </p>
+          <button
+            type="button"
+            className="lib-empty__reset"
+            onClick={() => onSearch('')}
+          >
+            Ver todos los universos
+          </button>
         </div>
       ) : (
         estanterias.map((fila, shelfIndex) => {

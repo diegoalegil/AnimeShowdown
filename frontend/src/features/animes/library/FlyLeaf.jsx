@@ -56,6 +56,20 @@ export default function FlyLeaf({
     return () => cancelAnimationFrame(id)
   }, [])
 
+  // aria-modal SOLO en movil: alli el fly-leaf es un bottom-sheet fixed que tapa
+  // el carrusel (modal real). En escritorio se ancla inline y los tomos siguen
+  // visibles/clicables detras, asi que aria-modal="true" mentiria -> lo omitimos
+  // (el foco igualmente queda atrapado por teclado mas abajo).
+  const [mobile, setMobile] = useState(
+    () => typeof window !== 'undefined' && window.matchMedia('(max-width: 30rem)').matches,
+  )
+  useEffect(() => {
+    const mq = window.matchMedia('(max-width: 30rem)')
+    const on = () => setMobile(mq.matches)
+    mq.addEventListener('change', on)
+    return () => mq.removeEventListener('change', on)
+  }, [])
+
   // Esc cierra y el foco vuelve al tomo (lo gestiona el padre vía onClose).
   // Listener en el documento: el fly-leaf es un overlay, el foco puede estar
   // dentro (CTA/cerrar) o haber vuelto al tomo. addEventListener en effect es
@@ -123,7 +137,7 @@ export default function FlyLeaf({
       data-open={closing ? '0' : entered ? '1' : '0'}
       data-closing={closing ? '1' : '0'}
       role="dialog"
-      aria-modal="true"
+      aria-modal={mobile ? 'true' : undefined}
       aria-label={`Universo ${anime}`}
     >
       <button
