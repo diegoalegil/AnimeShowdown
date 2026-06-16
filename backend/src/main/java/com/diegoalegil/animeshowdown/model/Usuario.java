@@ -14,6 +14,8 @@ import jakarta.persistence.Id;
 import jakarta.persistence.Index;
 import jakarta.persistence.PrePersist;
 import jakarta.persistence.Table;
+import lombok.Getter;
+import lombok.Setter;
 
 @Entity
 @Table(name = "usuarios", indexes = {
@@ -28,19 +30,29 @@ public class Usuario {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Getter
+    @Setter
     private Long id;
 
     @Column(nullable = false, unique = true)
+    @Getter
+    @Setter
     private String username;
 
     @JsonIgnore
     @Column(nullable = false)
+    @Getter
+    @Setter
     private String password;
 
     @Column(nullable = false, unique = true)
+    @Getter
+    @Setter
     private String email;
 
     @Column(columnDefinition = "TEXT")
+    @Getter
+    @Setter
     private String avatarUrl;
 
     /**
@@ -50,6 +62,8 @@ public class Usuario {
      * OG hacen fallback al arte del personaje favorito (nunca queda genérico).
      */
     @Column(name = "banner_url", columnDefinition = "TEXT")
+    @Getter
+    @Setter
     private String bannerUrl;
 
     /**
@@ -58,13 +72,19 @@ public class Usuario {
      * escrito; el frontend pinta el perfil sin romper layout en ese caso.
      */
     @Column(length = 240)
+    @Getter
+    @Setter
     private String bio;
 
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
+    @Getter
+    @Setter
     private Rol rol;
 
     @Column(nullable = false)
+    @Getter
+    @Setter
     private LocalDateTime fechaRegistro;
 
     /**
@@ -85,6 +105,8 @@ public class Usuario {
      * cuando se expira (no necesita unlock manual).
      */
     @Column(name = "bloqueado_hasta")
+    @Getter
+    @Setter
     private LocalDateTime bloqueadoHasta;
 
     /**
@@ -95,6 +117,7 @@ public class Usuario {
      */
     @Enumerated(EnumType.STRING)
     @Column(name = "estado_verificacion", nullable = false, length = 20)
+    @Setter
     private EstadoVerificacion estadoVerificacion = EstadoVerificacion.ACTIVO;
 
     /**
@@ -105,6 +128,8 @@ public class Usuario {
      */
     @JsonIgnore
     @Column(name = "totp_secret")
+    @Getter
+    @Setter
     private String totpSecret;
 
     /**
@@ -115,6 +140,8 @@ public class Usuario {
      */
     @JsonIgnore
     @Column(name = "totp_secret_pendiente")
+    @Getter
+    @Setter
     private String totpSecretPendiente;
 
     /**
@@ -131,6 +158,8 @@ public class Usuario {
      * mostrar "2FA activo desde 12 de marzo".
      */
     @Column(name = "totp_habilitado_en")
+    @Getter
+    @Setter
     private LocalDateTime totpHabilitadoEn;
 
     /**
@@ -139,6 +168,8 @@ public class Usuario {
      * puede reusar dentro de la ventana de drift de la librería.
      */
     @Column(name = "totp_ultimo_step")
+    @Getter
+    @Setter
     private Long totpUltimoStep;
 
     /**
@@ -151,6 +182,8 @@ public class Usuario {
      * el primer arranque está siempre presente para usuarios nuevos.
      */
     @Column(name = "referral_code", length = 8, unique = true)
+    @Getter
+    @Setter
     private String referralCode;
 
     /**
@@ -160,6 +193,8 @@ public class Usuario {
      */
     @jakarta.persistence.ManyToOne(fetch = jakarta.persistence.FetchType.LAZY)
     @jakarta.persistence.JoinColumn(name = "referred_by_user_id")
+    @Getter
+    @Setter
     private Usuario referredBy;
 
     @Column(name = "elo_pvp", nullable = false, columnDefinition = "INTEGER DEFAULT 1000")
@@ -180,6 +215,8 @@ public class Usuario {
 
     /** V64: fecha en que el usuario abrió su sobre de bienvenida. Null = no reclamado. */
     @Column(name = "sobre_bienvenida_reclamado_en")
+    @Getter
+    @Setter
     private java.time.LocalDateTime sobreBienvenidaReclamadoEn;
 
     /**
@@ -188,23 +225,9 @@ public class Usuario {
      * {@code usuario_marco}. Aquí solo se guarda el id del marco activo.
      */
     @Column(name = "marco_avatar", length = 64)
+    @Getter
+    @Setter
     private String marcoAvatar;
-
-    public String getMarcoAvatar() {
-        return marcoAvatar;
-    }
-
-    public void setMarcoAvatar(String marcoAvatar) {
-        this.marcoAvatar = marcoAvatar;
-    }
-
-    public java.time.LocalDateTime getSobreBienvenidaReclamadoEn() {
-        return sobreBienvenidaReclamadoEn;
-    }
-
-    public void setSobreBienvenidaReclamadoEn(java.time.LocalDateTime sobreBienvenidaReclamadoEn) {
-        this.sobreBienvenidaReclamadoEn = sobreBienvenidaReclamadoEn;
-    }
 
     public Usuario() {
     }
@@ -230,78 +253,6 @@ public class Usuario {
         }
     }
 
-    public Long getId() {
-        return id;
-    }
-
-    public void setId(Long id) {
-        this.id = id;
-    }
-
-    public String getUsername() {
-        return username;
-    }
-
-    public void setUsername(String username) {
-        this.username = username;
-    }
-
-    public String getPassword() {
-        return password;
-    }
-
-    public void setPassword(String password) {
-        this.password = password;
-    }
-
-    public String getEmail() {
-        return email;
-    }
-
-    public void setEmail(String email) {
-        this.email = email;
-    }
-
-    public String getAvatarUrl() {
-        return avatarUrl;
-    }
-
-    public void setAvatarUrl(String avatarUrl) {
-        this.avatarUrl = avatarUrl;
-    }
-
-    public String getBannerUrl() {
-        return bannerUrl;
-    }
-
-    public void setBannerUrl(String bannerUrl) {
-        this.bannerUrl = bannerUrl;
-    }
-
-    public String getBio() {
-        return bio;
-    }
-
-    public void setBio(String bio) {
-        this.bio = bio;
-    }
-
-    public Rol getRol() {
-        return rol;
-    }
-
-    public void setRol(Rol rol) {
-        this.rol = rol;
-    }
-
-    public LocalDateTime getFechaRegistro() {
-        return fechaRegistro;
-    }
-
-    public void setFechaRegistro(LocalDateTime fechaRegistro) {
-        this.fechaRegistro = fechaRegistro;
-    }
-
     public Integer getIntentosFallidos() {
         return intentosFallidos == null ? 0 : intentosFallidos;
     }
@@ -322,14 +273,6 @@ public class Usuario {
         this.tokenVersion = getTokenVersion() + 1;
     }
 
-    public LocalDateTime getBloqueadoHasta() {
-        return bloqueadoHasta;
-    }
-
-    public void setBloqueadoHasta(LocalDateTime bloqueadoHasta) {
-        this.bloqueadoHasta = bloqueadoHasta;
-    }
-
     /** True si la cuenta tiene un bloqueo activo (no expirado). */
     public boolean estaBloqueado() {
         return bloqueadoHasta != null && bloqueadoHasta.isAfter(LocalDateTime.now());
@@ -339,69 +282,17 @@ public class Usuario {
         return estadoVerificacion == null ? EstadoVerificacion.PENDIENTE : estadoVerificacion;
     }
 
-    public void setEstadoVerificacion(EstadoVerificacion estadoVerificacion) {
-        this.estadoVerificacion = estadoVerificacion;
-    }
-
     /** True si el usuario verificó email — habilitado para votar/crear torneos. */
     public boolean estaVerificado() {
         return getEstadoVerificacion() == EstadoVerificacion.ACTIVO;
-    }
-
-    public String getTotpSecret() {
-        return totpSecret;
-    }
-
-    public void setTotpSecret(String totpSecret) {
-        this.totpSecret = totpSecret;
-    }
-
-    public String getTotpSecretPendiente() {
-        return totpSecretPendiente;
-    }
-
-    public void setTotpSecretPendiente(String totpSecretPendiente) {
-        this.totpSecretPendiente = totpSecretPendiente;
     }
 
     public boolean isTotpHabilitado() {
         return totpHabilitado != null && totpHabilitado;
     }
 
-    public Long getTotpUltimoStep() {
-        return totpUltimoStep;
-    }
-
-    public void setTotpUltimoStep(Long totpUltimoStep) {
-        this.totpUltimoStep = totpUltimoStep;
-    }
-
     public void setTotpHabilitado(boolean totpHabilitado) {
         this.totpHabilitado = totpHabilitado;
-    }
-
-    public LocalDateTime getTotpHabilitadoEn() {
-        return totpHabilitadoEn;
-    }
-
-    public void setTotpHabilitadoEn(LocalDateTime totpHabilitadoEn) {
-        this.totpHabilitadoEn = totpHabilitadoEn;
-    }
-
-    public String getReferralCode() {
-        return referralCode;
-    }
-
-    public void setReferralCode(String referralCode) {
-        this.referralCode = referralCode;
-    }
-
-    public Usuario getReferredBy() {
-        return referredBy;
-    }
-
-    public void setReferredBy(Usuario referredBy) {
-        this.referredBy = referredBy;
     }
 
     public Integer getEloPvpRaw() {
