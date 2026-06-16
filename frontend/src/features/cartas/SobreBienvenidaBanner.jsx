@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from 'react'
+import { Link } from 'react-router-dom'
 import { toast } from 'sonner'
 import { Gift, Sparkles } from 'lucide-react'
 import Button from '../../components/Button'
@@ -77,7 +78,48 @@ function SobreBienvenidaBanner() {
     }
   }, [introOpen, promptKey])
 
-  if (!user || !disponible) {
+  // Invitado: no puede reclamar el sobre (necesita cuenta), pero esconderlo con
+  // un `return null` desperdiciaba el mejor gancho de conversión de la home. En
+  // vez de ocultarlo le mostramos el regalo con un CTA a registro.
+  if (!user) {
+    return (
+      <section className="mx-auto w-full max-w-6xl px-4 pb-6 sm:px-6">
+        <div
+          data-tour="sobre-bienvenida-invitado"
+          className="relative overflow-hidden rounded-2xl border border-gold/45 bg-gradient-to-br from-accent/15 via-surface/85 to-surface-alt/80 p-5 shadow-aura backdrop-blur-sm sm:p-6"
+        >
+          <Sparkles
+            className="pointer-events-none absolute -right-4 -top-4 h-24 w-24 text-gold/15"
+            aria-hidden="true"
+          />
+          <div className="relative flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+            <div className="flex items-start gap-3">
+              <span className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl border border-gold/40 bg-gold-soft text-gold">
+                <Gift className="h-6 w-6" aria-hidden="true" />
+              </span>
+              <div>
+                <p className="text-[11px] font-black text-gold">
+                  Regalo de bienvenida
+                </p>
+                <h2 className="mt-0.5 text-lg font-black leading-tight text-fg-strong sm:text-xl">
+                  Tu sobre de bienvenida te espera
+                </h2>
+                <p className="mt-1 text-sm leading-6 text-fg-muted">
+                  4 cartas + 1 <span className="font-black text-electric">ESPECIAL</span> garantizada, gratis y una sola vez. Crea tu cuenta y empieza tu colección.
+                </p>
+              </div>
+            </div>
+            <Button as={Link} to="/register" size="lg" className="shrink-0">
+              <Gift className="h-5 w-5" aria-hidden="true" />
+              Crea tu cuenta gratis
+            </Button>
+          </div>
+        </div>
+      </section>
+    )
+  }
+
+  if (!disponible) {
     return null
   }
 
