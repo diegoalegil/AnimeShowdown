@@ -43,13 +43,7 @@ class PersonajeAdminServiceTest {
     }
 
     private static PersonajeCrearRequest crearReq(String slug, String nombre, String anime) {
-        PersonajeCrearRequest r = new PersonajeCrearRequest();
-        r.setSlug(slug);
-        r.setNombre(nombre);
-        r.setAnime(anime);
-        r.setDescripcion("desc");
-        r.setImagenUrl("http://img/x.jpg");
-        return r;
+        return new PersonajeCrearRequest(slug, nombre, anime, "desc", "http://img/x.jpg");
     }
 
     @Test
@@ -86,8 +80,8 @@ class PersonajeAdminServiceTest {
         Personaje existente = new Personaje("luffy", "Luffy", "One Piece", "desc", "http://img/old.jpg");
         when(personajeRepository.findById(3L)).thenReturn(Optional.of(existente));
 
-        PersonajeActualizarRequest datos = new PersonajeActualizarRequest();
-        datos.setNombre("Monkey D. Luffy"); // solo nombre; el resto queda igual
+        // solo nombre; el resto queda igual (null preserva el valor previo)
+        PersonajeActualizarRequest datos = new PersonajeActualizarRequest(null, "Monkey D. Luffy", null, null, null);
 
         Personaje actualizado = service.actualizar(3L, datos);
 
@@ -102,7 +96,7 @@ class PersonajeAdminServiceTest {
     void actualizarInexistenteLanzaEntityNotFound() {
         when(personajeRepository.findById(99L)).thenReturn(Optional.empty());
 
-        assertThatThrownBy(() -> service.actualizar(99L, new PersonajeActualizarRequest()))
+        assertThatThrownBy(() -> service.actualizar(99L, new PersonajeActualizarRequest(null, null, null, null, null)))
                 .isInstanceOf(EntityNotFoundException.class);
         verify(personajeBusquedaService, never()).invalidateIndex();
     }

@@ -19,54 +19,19 @@ import jakarta.validation.constraints.Size;
  *       siempre sea binario completo (sin BYEs).</li>
  * </ul>
  */
-public class TorneoCrearMioRequest {
+public record TorneoCrearMioRequest(
 
-    @NotBlank(message = "El nombre es obligatorio")
-    @Size(min = 5, max = 80, message = "El nombre debe tener entre 5 y 80 caracteres")
-    private String nombre;
+        @NotBlank(message = "El nombre es obligatorio")
+        @Size(min = 5, max = 80, message = "El nombre debe tener entre 5 y 80 caracteres")
+        String nombre,
 
-    @Size(max = 500, message = "La descripción no puede superar 500 caracteres")
-    private String descripcion;
+        @Size(max = 500, message = "La descripción no puede superar 500 caracteres")
+        String descripcion,
 
-    @NotEmpty(message = "Debes elegir los personajes participantes")
-    private List<Long> participantesIds;
+        @NotEmpty(message = "Debes elegir los personajes participantes")
+        List<Long> participantesIds,
 
-    private Boolean publico = true;
-
-    public TorneoCrearMioRequest() {
-    }
-
-    public String getNombre() {
-        return nombre;
-    }
-
-    public void setNombre(String nombre) {
-        this.nombre = nombre;
-    }
-
-    public String getDescripcion() {
-        return descripcion;
-    }
-
-    public void setDescripcion(String descripcion) {
-        this.descripcion = descripcion;
-    }
-
-    public List<Long> getParticipantesIds() {
-        return participantesIds;
-    }
-
-    public void setParticipantesIds(List<Long> participantesIds) {
-        this.participantesIds = participantesIds;
-    }
-
-    public Boolean getPublico() {
-        return publico;
-    }
-
-    public void setPublico(Boolean publico) {
-        this.publico = publico;
-    }
+        Boolean publico) {
 
     public boolean esPublico() {
         return publico == null || publico;
