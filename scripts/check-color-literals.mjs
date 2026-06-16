@@ -33,6 +33,7 @@ const jsxAllowlist = new Map([
   ['frontend/src/features/games/hub/GameCardBackground.jsx', 'fondo de game card con overlays token-driven'],
   ['frontend/src/components/Avatar.jsx', 'color de avatar derivado del hash del usuario en runtime (hsl()); el aro de marco vive en marcos.css con tokens'],
   ['frontend/src/features/animes/UniverseGalaxy.jsx', 'galaxia WebGL procedural: el atlas de symbols y el glow se pintan en canvas 2D con rgba() literal (blanco); los colores de escena salen de var(--color-*)'],
+  ['frontend/src/components/BroadcastInterruption.jsx', 'pantalla de crash de último recurso: el fondo/color del <section> llevan el literal del token (#04070c / #d7dce7) como fallback de var() por si index.css no cargó — única forma de garantizar legibilidad sin la hoja de estilos'],
 ])
 
 function git(args) {

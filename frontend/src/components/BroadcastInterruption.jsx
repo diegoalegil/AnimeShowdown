@@ -141,15 +141,19 @@ function BroadcastInterruption({ eventId, esChunkError = false, onRetry }) {
   return (
     <section
       className="min-h-dvh bg-canvas text-fg"
-      // CRÍTICO: si index.css no cargó, esto mantiene la pantalla legible.
+      // CRÍTICO: si index.css no cargó, esto mantiene la pantalla legible. Por eso
+      // estos var() llevan el literal del token como fallback (canvas #04070c /
+      // fg #d7dce7): sin él, una caída de la hoja de estilos dejaba la pantalla
+      // de crash sin fondo ni color. (BroadcastInterruption.jsx está en la
+      // allowlist del guard de color justamente por estos 2 literales de rescate.)
       style={{
         minHeight: '100vh',
         display: 'grid',
         placeItems: 'center',
         boxSizing: 'border-box',
         padding: 'clamp(48px, 9vw, 84px) clamp(18px, 5vw, 56px)',
-        background: 'var(--color-canvas)',
-        color: 'var(--color-fg)',
+        background: 'var(--color-canvas, #04070c)',
+        color: 'var(--color-fg, #d7dce7)',
         fontFamily: 'var(--font-sans, ui-sans-serif, system-ui, sans-serif)',
         position: 'relative',
         overflow: 'hidden',
