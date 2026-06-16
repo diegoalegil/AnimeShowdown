@@ -189,6 +189,22 @@ function CartasPage() {
           description="Gana moneda jugando, abre sobres y completa tu colección de cartas de anime."
           action={{ to: '/login', label: 'Entrar' }}
         />
+        {/* Transparencia para el invitado: las mismas odds que verá dentro, sin
+            registrarse. Datos del server (público); si no cargan, no se pinta. */}
+        {odds && (
+          <div className="mx-auto mt-6 max-w-xl rounded-xl border border-white/10 bg-black/20 p-4">
+            <p className="text-[11px] font-black text-fg-muted">Probabilidades visibles</p>
+            <p className="mt-1 text-sm leading-6 text-fg">
+              Cada sobre trae {odds.normalesPorSobre ?? 4} normales y 1 clímax. Especial curada:
+              {' '}
+              <span className="font-black text-electric">{Math.round(probEspecial * 100)}%</span>
+              {' '}base, garantizada al sobre {pityDuro} sin especial. Se gana jugando, nunca con dinero real.
+            </p>
+            <p className="mt-2 text-[12px] text-fg-muted">
+              Transparencia total antes de empezar — estas son las odds reales, idénticas a las de dentro.
+            </p>
+          </div>
+        )}
       </Section>
     )
   }

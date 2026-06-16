@@ -113,11 +113,12 @@ export function useColeccionPagina({ rareza, anime, orden } = {}) {
 }
 
 export function useOddsCartas() {
-  const { user } = useAuth()
+  // Odds públicas: GET /api/cartas/odds es permitAll (datos de diseño globales,
+  // no-PII), así el invitado ve la transparencia de probabilidades antes de
+  // registrarse. Por eso NO se gatea con `enabled: Boolean(user)`.
   return useQuery({
     queryKey: queryKeys.oddsCartas(),
     queryFn: endpoints.oddsCartas,
-    enabled: Boolean(user),
     staleTime: 10 * 60 * 1000,
   })
 }
