@@ -56,7 +56,7 @@ public class NewsletterController {
             // suficiente para enumerar la base de suscriptores con un
             // script. Ahora cualquier email válido recibe el mismo mensaje
             // (consulta tu bandeja), y el estado real queda en server logs.
-            newsletterService.suscribir(req.getEmail());
+            newsletterService.suscribir(req.email());
             return ResponseEntity.ok(Map.of(
                     "message", "Si el email es válido, recibirás un correo de confirmación en breve."));
         } catch (IllegalArgumentException e) {

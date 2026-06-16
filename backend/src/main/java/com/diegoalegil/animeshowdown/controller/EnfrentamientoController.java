@@ -284,8 +284,8 @@ public class EnfrentamientoController {
                     .body("Necesitas verificar tu email antes de votar. Revisa tu bandeja de entrada.");
         }
 
-        boolean empate = request.isEmpate();
-        Long ganadorId = request.getPersonajeGanadorId();
+        boolean empate = request.empate();
+        Long ganadorId = request.personajeGanadorId();
         Personaje ganador = null;
         if (!empate) {
             if (ganadorId == null) {
@@ -366,7 +366,7 @@ public class EnfrentamientoController {
         // fromId tolera null/blank/desconocido → null (voto sin intención),
         // jamás rechaza el voto. Lo normal es que llegue null y se fije luego
         // con el PATCH set-once tras ver el resultado.
-        CategoriaVoto categoria = CategoriaVoto.fromId(request.getCategoria());
+        CategoriaVoto categoria = CategoriaVoto.fromId(request.categoria());
         if (categoria != null) {
             voto.setCategoria(categoria.getId());
         }

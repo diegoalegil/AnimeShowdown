@@ -61,8 +61,8 @@ public class ReaccionController {
                     .body(Map.of("message", "Necesitas iniciar sesión para reaccionar."));
         }
         try {
-            reaccionService.aplicar(usuario, request.getTargetType(),
-                    request.getTargetId(), request.getTipo());
+            reaccionService.aplicar(usuario, request.targetType(),
+                    request.targetId(), request.tipo());
         } catch (IllegalArgumentException e) {
             // el service valida que el target exista
             // y lanza IllegalArgumentException si no. Traducimos a 400 con
@@ -72,6 +72,6 @@ public class ReaccionController {
                     .body(Map.of("message", e.getMessage()));
         }
         return ResponseEntity.ok(reaccionService.resumen(
-                request.getTargetType(), request.getTargetId(), usuario));
+                request.targetType(), request.targetId(), usuario));
     }
 }

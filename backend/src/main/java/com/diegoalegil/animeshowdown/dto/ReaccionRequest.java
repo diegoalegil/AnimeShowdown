@@ -12,23 +12,13 @@ import jakarta.validation.constraints.NotNull;
  * case-sensitive match al name() del enum. Si llega un valor inválido
  * salta el GlobalExceptionHandler con 400.
  */
-public class ReaccionRequest {
+public record ReaccionRequest(
+        @NotNull(message = "targetType es obligatorio")
+        ReaccionTargetType targetType,
 
-    @NotNull(message = "targetType es obligatorio")
-    private ReaccionTargetType targetType;
+        @NotNull(message = "targetId es obligatorio")
+        Long targetId,
 
-    @NotNull(message = "targetId es obligatorio")
-    private Long targetId;
-
-    @NotNull(message = "tipo es obligatorio")
-    private ReaccionTipo tipo;
-
-    public ReaccionRequest() {}
-
-    public ReaccionTargetType getTargetType() { return targetType; }
-    public void setTargetType(ReaccionTargetType targetType) { this.targetType = targetType; }
-    public Long getTargetId() { return targetId; }
-    public void setTargetId(Long targetId) { this.targetId = targetId; }
-    public ReaccionTipo getTipo() { return tipo; }
-    public void setTipo(ReaccionTipo tipo) { this.tipo = tipo; }
+        @NotNull(message = "tipo es obligatorio")
+        ReaccionTipo tipo) {
 }

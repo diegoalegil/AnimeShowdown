@@ -9,35 +9,16 @@ import jakarta.validation.constraints.Size;
  * (forgot-password con código por email) en que aquí pides current_password
  * en lugar de código de email — es el flujo "estoy logueado y quiero cambiar".
  */
-public class CambioPasswordRequest {
+public record CambioPasswordRequest(
 
-    @NotBlank(message = "Introduce tu contraseña actual")
-    private String currentPassword;
+        @NotBlank(message = "Introduce tu contraseña actual")
+        String currentPassword,
 
-    // Misma regla que en registro/reset.
-    @NotBlank(message = "Introduce la contraseña nueva")
-    @Size(min = 8, max = 100, message = "La contraseña nueva debe tener entre 8 y 100 caracteres")
-    @Pattern(
-            regexp = "^(?=.*[A-Za-z])(?=.*\\d).{8,100}$",
-            message = "La contraseña debe incluir al menos una letra y un número")
-    private String newPassword;
-
-    public CambioPasswordRequest() {
-    }
-
-    public String getCurrentPassword() {
-        return currentPassword;
-    }
-
-    public void setCurrentPassword(String currentPassword) {
-        this.currentPassword = currentPassword;
-    }
-
-    public String getNewPassword() {
-        return newPassword;
-    }
-
-    public void setNewPassword(String newPassword) {
-        this.newPassword = newPassword;
-    }
+        // Misma regla que en registro/reset.
+        @NotBlank(message = "Introduce la contraseña nueva")
+        @Size(min = 8, max = 100, message = "La contraseña nueva debe tener entre 8 y 100 caracteres")
+        @Pattern(
+                regexp = "^(?=.*[A-Za-z])(?=.*\\d).{8,100}$",
+                message = "La contraseña debe incluir al menos una letra y un número")
+        String newPassword) {
 }

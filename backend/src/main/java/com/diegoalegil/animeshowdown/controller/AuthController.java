@@ -216,10 +216,10 @@ public class AuthController {
 
         // Normaliza email a lowercase + trim para evitar duplicados por capitalización
         // (Gmail, Outlook etc. tratan emails como case-insensitive — la BBDD también debe)
-        String emailNormalizado = request.getEmail() == null ? null : request.getEmail().trim().toLowerCase();
+        String emailNormalizado = request.email() == null ? null : request.email().trim().toLowerCase();
 
-        if (usuarioRepository.findByUsername(request.getUsername()).isPresent()) {
-            log.warn("Intento de registro con username ya existente: {}", request.getUsername());
+        if (usuarioRepository.findByUsername(request.username()).isPresent()) {
+            log.warn("Intento de registro con username ya existente: {}", request.username());
             return ResponseEntity.status(HttpStatus.CONFLICT)
                     .body("El username ya existe");
         }
@@ -230,10 +230,10 @@ public class AuthController {
                     .body("El email ya está registrado");
         }
 
-        String passwordHasheado = passwordEncoder.encode(request.getPassword());
+        String passwordHasheado = passwordEncoder.encode(request.password());
 
         Usuario nuevoUsuario = new Usuario(
-                request.getUsername(),
+                request.username(),
                 passwordHasheado,
                 emailNormalizado);
         // Registros nuevos nacen PENDIENTE hasta verificar email.
@@ -250,8 +250,8 @@ public class AuthController {
 
         // Si el caller envía referralCode, intenta vincular.
         // Sin código o código inválido, el registro sigue normal sin referrer.
-        if (request.getReferralCode() != null && !request.getReferralCode().isBlank()) {
-            referralService.resolverReferrer(request.getReferralCode())
+        if (request.referralCode() != null && !request.referralCode().isBlank()) {
+            referralService.resolverReferrer(request.referralCode())
                     .ifPresent(nuevoUsuario::setReferredBy);
         }
         // Auto-genera su propio código (idempotente, no falla si ya tenía).
@@ -757,7 +757,7 @@ public class AuthController {
         if (usuario == null) {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
         }
-        String nuevo = request.getUsername().trim();
+        String nuevo = request.username().trim();
         // Solo chequeamos colisión si realmente cambia (un confirm idempotente
         // del mismo username no debe dar 409 contra uno mismo). El cambio de
         // solo-mayúsculas ("naruto" -> "Naruto") sí pasa por aquí pero el count
@@ -837,16 +837,16 @@ public class AuthController {
         if (usuario == null) {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
         }
-        if (!passwordEncoder.matches(request.getCurrentPassword(), usuario.getPassword())) {
+        if (!passwordEncoder.matches(request.currentPassword(), usuario.getPassword())) {
             log.warn("Cambio password fallido (current incorrecta): username={}", usuario.getUsername());
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
                     .body(Map.of("message", "La contraseña actual no coincide"));
         }
-        if (request.getNewPassword().equals(request.getCurrentPassword())) {
+        if (request.newPassword().equals(request.currentPassword())) {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST)
                     .body(Map.of("message", "La nueva contraseña debe ser distinta a la actual"));
         }
-        usuario.setPassword(passwordEncoder.encode(request.getNewPassword()));
+        usuario.setPassword(passwordEncoder.encode(request.newPassword()));
         usuario.incrementarTokenVersion();
         usuarioRepository.save(usuario);
         // Invalidar todas las sesiones previas tras cambio de
@@ -866,12 +866,12 @@ public class AuthController {
     @PostMapping("/forgot-password")
     public ResponseEntity<?> forgotPassword(@Valid @RequestBody ForgotPasswordRequest request,
             HttpServletRequest httpRequest) {
-        passwordResetService.solicitarReset(request.getEmail());
+        passwordResetService.solicitarReset(request.email());
         // Loguea siempre con email plano (no usuario): el endpoint es público
         // y no revela si el email existe en el cuerpo, pero el registro de
         // seguridad sí captura el intento para análisis forense.
         auditLogService.registrar(AuditEvento.PASSWORD_RESET_SOLICITADO, null,
-                Map.of("email", LogSanitizer.email(request.getEmail())), httpRequest);
+                Map.of("email", LogSanitizer.email(request.email())), httpRequest);
         return ResponseEntity.ok(Map.of(
                 "message",
                 "Si el email existe, te hemos enviado un código de 6 dígitos."));
@@ -882,11 +882,11 @@ public class AuthController {
             HttpServletRequest httpRequest) {
         try {
             passwordResetService.resetearPassword(
-                    request.getEmail(),
-                    request.getCodigo(),
-                    request.getNewPassword());
+                    request.email(),
+                    request.codigo(),
+                    request.newPassword());
             auditLogService.registrar(AuditEvento.PASSWORD_RESET_OK, null,
-                    Map.of("email", LogSanitizer.email(request.getEmail())), httpRequest);
+                    Map.of("email", LogSanitizer.email(request.email())), httpRequest);
             return ResponseEntity.ok(Map.of("message", "Contraseña actualizada"));
         } catch (IllegalArgumentException e) {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST)
@@ -954,7 +954,7 @@ public class AuthController {
                     "message", "No hay un setup de 2FA pendiente. Llama primero a /2fa/setup."));
         }
         String secretPlano = totpEncryptor.descifrar(secretCifrado);
-        if (!totpService.validarCodigo(secretPlano, request.getCodigo())) {
+        if (!totpService.validarCodigo(secretPlano, request.codigo())) {
             log.warn("2FA enable falló (código incorrecto): username={}", usuario.getUsername());
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(Map.of(
                     "message", "Código incorrecto. Comprueba la hora de tu dispositivo y vuelve a intentarlo."));
@@ -989,13 +989,13 @@ public class AuthController {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(Map.of(
                     "message", "El 2FA no está activado."));
         }
-        if (!passwordEncoder.matches(request.getPassword(), usuario.getPassword())) {
+        if (!passwordEncoder.matches(request.password(), usuario.getPassword())) {
             log.warn("2FA disable falló (password incorrecta): username={}", usuario.getUsername());
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(Map.of(
                     "message", "La contraseña no es correcta."));
         }
         String secretPlano = totpEncryptor.descifrar(usuario.getTotpSecret());
-        if (!totpService.validarCodigo(secretPlano, request.getCodigo())) {
+        if (!totpService.validarCodigo(secretPlano, request.codigo())) {
             log.warn("2FA disable falló (código incorrecto): username={}", usuario.getUsername());
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(Map.of(
                     "message", "El código de la app authenticator no es correcto."));
@@ -1051,14 +1051,14 @@ public class AuthController {
     @PostMapping("/2fa/verify-login")
     public ResponseEntity<?> totpVerifyLogin(@Valid @RequestBody Totp2faVerifyLoginRequest request,
             HttpServletRequest httpRequest) {
-        Optional<Long> usuarioIdOpt = twoFactorChallengeService.peek(request.getChallengeToken());
+        Optional<Long> usuarioIdOpt = twoFactorChallengeService.peek(request.challengeToken());
         if (usuarioIdOpt.isEmpty()) {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(Map.of(
                     "message", "El reto de 2FA ha expirado o no existe. Inicia sesión otra vez."));
         }
         Usuario usuario = usuarioRepository.findById(usuarioIdOpt.get()).orElse(null);
         if (usuario == null || !usuario.isTotpHabilitado()) {
-            twoFactorChallengeService.consumir(request.getChallengeToken());
+            twoFactorChallengeService.consumir(request.challengeToken());
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(Map.of(
                     "message", "Estado inválido."));
         }
@@ -1069,7 +1069,7 @@ public class AuthController {
                     "message", "Demasiados intentos. Espera unos minutos y vuelve a iniciar sesión."));
         }
         String secretPlano = totpEncryptor.descifrar(usuario.getTotpSecret());
-        String codigoBruto = request.getCodigo();
+        String codigoBruto = request.codigo();
         boolean totpOk = validarTotpAntiReplay(usuario, secretPlano, codigoBruto);
         Optional<Long> backupCodeId = Optional.empty();
         if (!totpOk) {
@@ -1077,7 +1077,7 @@ public class AuthController {
         }
         if (!totpOk && backupCodeId.isEmpty()) {
             twoFactorChallengeService.registrarFalloUsuario(usuario.getId());
-            int restantes = twoFactorChallengeService.registrarFallo(request.getChallengeToken());
+            int restantes = twoFactorChallengeService.registrarFallo(request.challengeToken());
             log.warn("2FA login falló: username={} intentosRestantes={}",
                     usuario.getUsername(), restantes);
             auditLogService.registrar(AuditEvento.TOTP_LOGIN_FAIL, usuario,
@@ -1088,7 +1088,7 @@ public class AuthController {
                             : "Código incorrecto.",
                     "intentosRestantes", restantes));
         }
-        Optional<Long> consumido = twoFactorChallengeService.consumir(request.getChallengeToken());
+        Optional<Long> consumido = twoFactorChallengeService.consumir(request.challengeToken());
         if (consumido.isEmpty() || !consumido.get().equals(usuario.getId())) {
             log.warn("2FA login rechazado por challenge ya consumido: username={}", usuario.getUsername());
             auditLogService.registrar(AuditEvento.TOTP_LOGIN_FAIL, usuario,
@@ -1130,7 +1130,7 @@ public class AuthController {
                     "message", "El 2FA no está activado."));
         }
         String secretPlano = totpEncryptor.descifrar(usuario.getTotpSecret());
-        if (!totpService.validarCodigo(secretPlano, request.getCodigo())) {
+        if (!totpService.validarCodigo(secretPlano, request.codigo())) {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(Map.of(
                     "message", "Código incorrecto."));
         }
