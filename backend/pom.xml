@@ -90,6 +90,20 @@
 			<artifactId>bcprov-jdk18on</artifactId>
 			<version>1.84</version>
 		</dependency>
+		<!-- Lombok: @Getter/@Setter en entidades JPA para recortar boilerplate.
+		     scope provided + optional => NO se empaqueta en el jar; solo procesa
+		     anotaciones en compilacion. Version pineada a la cacheada en ~/.m2
+		     para que el build offline (mvn -o) la resuelva. NUNCA @Data en
+		     entidades JPA (equals/hashCode + lazy = stack overflow): solo
+		     @Getter/@Setter, y las entidades con getters de logica propia
+		     conservan su metodo manual (Lombok no duplica el ya existente). -->
+		<dependency>
+			<groupId>org.projectlombok</groupId>
+			<artifactId>lombok</artifactId>
+			<version>1.18.46</version>
+			<scope>provided</scope>
+			<optional>true</optional>
+		</dependency>
 		<!-- Cache (Caffeine in-memory) + Resilience4j para JikanService:
 		     retry, circuit breaker, timeout y caché sobre llamadas a Jikan API.
 		     spring-boot-starter-aop es transitive de resilience4j-spring-boot3
