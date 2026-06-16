@@ -325,7 +325,7 @@ public class AuthController {
             HttpServletRequest httpRequest) {
 
         // Acepta username o email en el campo username (UX: usuario teclea cualquiera)
-        String identificador = request.getUsername();
+        String identificador = request.username();
         // Para el lookup por email normalizamos a lowercase porque la BBDD lo guarda así
         // desde el fix de email-case-sensitivity. Username sigue case-sensitive (es identidad).
         String identificadorLower = identificador == null ? null : identificador.trim().toLowerCase();
@@ -362,7 +362,7 @@ public class AuthController {
                     .body("Credenciales inválidas");
         }
 
-        if (!passwordEncoder.matches(request.getPassword(), usuario.getPassword())) {
+        if (!passwordEncoder.matches(request.password(), usuario.getPassword())) {
             // Incrementa contador. A los 5 fallos consecutivos bloquea 15 min.
             int fallos = usuario.getIntentosFallidos() + 1;
             boolean acabaDeBloquearse = false;

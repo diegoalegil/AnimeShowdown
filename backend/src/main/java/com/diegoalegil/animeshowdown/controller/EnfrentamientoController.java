@@ -504,7 +504,7 @@ public class EnfrentamientoController {
             @AuthenticationPrincipal Usuario usuario,
             HttpServletRequest httpRequest) {
 
-        CategoriaVoto categoria = CategoriaVoto.fromId(request == null ? null : request.getCategoria());
+        CategoriaVoto categoria = CategoriaVoto.fromId(request == null ? null : request.categoria());
         if (categoria == null) {
             // Categoría inválida/blank → no-op idempotente. La intención es
             // opcional: nunca devolvemos error por una categoría vacía.
