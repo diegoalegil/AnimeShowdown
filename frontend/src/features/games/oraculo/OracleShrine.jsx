@@ -188,9 +188,7 @@ export default function OracleShrine({
     status === 'verdict' && verdict?.outcome === false
       ? 'sorry'
       : status === 'verdict' && verdictStage !== 'idle'
-        ? verdictStage === 'bow'
-          ? 'bow'
-          : 'bow'
+        ? 'bow'
         : uncertainTilt
           ? 'uncertain'
           : 'idle'
