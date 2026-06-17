@@ -153,6 +153,74 @@
   animation: constelacion-trazo 450ms var(--ease-brush) both;
 }
 
+/* --- escrutador de mareas (slider temporal) ------------------------------- */
+.tide-scrubber {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  padding: 0.75rem 1rem;
+  background-color: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+}
+.tide-scrubber--off {
+  align-items: flex-start;
+}
+.tide-scrubber__titulo {
+  font-size: var(--text-2xs);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--color-fg-muted);
+}
+.tide-scrubber__nota {
+  font-size: var(--text-2xs);
+  color: var(--color-fg-muted);
+}
+.tide-scrubber__input {
+  width: 100%;
+  accent-color: var(--color-gold);
+  cursor: pointer;
+}
+.tide-scrubber__input:focus-visible {
+  outline: 2px solid var(--color-gold-bright);
+  outline-offset: 4px;
+}
+.tide-scrubber__escala {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+}
+.tide-scrubber__marca {
+  display: flex;
+  flex: 1 1 0;
+  min-width: 0;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+}
+.tide-scrubber__tick {
+  width: 1px;
+  height: 6px;
+  background-color: var(--color-border-gold-subtle);
+}
+.tide-scrubber__marca.is-activa .tide-scrubber__tick {
+  height: 9px;
+  background-color: var(--color-gold-bright);
+}
+.tide-scrubber__dia {
+  font-size: var(--text-2xs);
+  color: var(--color-fg-muted);
+  white-space: nowrap;
+}
+.tide-scrubber__marca.is-activa .tide-scrubber__dia {
+  color: var(--color-gold-bright);
+}
+.tide-scrubber__resumen {
+  min-height: 1.2em;
+  font-size: var(--text-2xs);
+  color: var(--color-fg);
+}
+
 /* --- keyframes ------------------------------------------------------------ */
 @keyframes constelacion-trazo {
   to {
