@@ -167,7 +167,6 @@ export default function TournamentTheater({ torneo, enfrentamientos, children, h
   // Solo abrimos la función si hay algo que representar (cuadro + ≥1 duelo).
   const puedeVerFuncion = finished && hasRounds && total > 0
   const verLaFuncion = () => {
-    prevFocusRef.current = typeof document !== 'undefined' ? document.activeElement : null
     setModo('funcion'); setStep(0); setPlaying(true); play('playClack')
   }
   const salir = () => {
