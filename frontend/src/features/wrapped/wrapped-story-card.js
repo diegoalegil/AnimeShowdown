@@ -4,8 +4,8 @@
 // rasterizar DOM (html-to-image & co. están prohibidos aquí: pesan, tienen
 // bugs de fuentes en WebKit y rompen el presupuesto de bundle).
 //
-// ESM puro, cero dependencias. Lo importa WrappedCinematic.jsx con import()
-// dinámico cuando el capítulo final entra en viewport — fuera del bundle
+// ESM puro, cero dependencias. Lo importa WrappedPage.jsx (santuario del
+// Wrapped) con import() diferido desde onCompartir() — fuera del bundle
 // inicial.
 //
 // Colores: se leen de los tokens CSS del proyecto en runtime
