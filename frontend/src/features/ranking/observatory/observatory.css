@@ -131,7 +131,34 @@
   animation: sky-estela 800ms var(--ease-lift) both;
 }
 
+/* --- capa de constelaciones (SVG decorativo, detrás de las estrellas) ------ */
+.constellation-layer {
+  position: absolute;
+  top: 0;
+  left: 0;
+  pointer-events: none;
+  overflow: visible;
+}
+.constellation-layer__trazo {
+  fill: none;
+  stroke: color-mix(in srgb, var(--color-gold) 38%, transparent);
+  stroke-width: 1;
+  stroke-linecap: round;
+  /* hairline real aunque el lienzo escale en el zoom */
+  vector-effect: non-scaling-stroke;
+}
+.constellation-layer__trazo.is-dibujando {
+  stroke-dasharray: 1;
+  stroke-dashoffset: 1;
+  animation: constelacion-trazo 450ms var(--ease-brush) both;
+}
+
 /* --- keyframes ------------------------------------------------------------ */
+@keyframes constelacion-trazo {
+  to {
+    stroke-dashoffset: 0;
+  }
+}
 @keyframes sky-encender {
   from {
     opacity: 0;
@@ -169,6 +196,10 @@
   }
   .sky-star__estela {
     display: none;
+  }
+  .constellation-layer__trazo.is-dibujando {
+    animation: none;
+    stroke-dashoffset: 0;
   }
 }
 

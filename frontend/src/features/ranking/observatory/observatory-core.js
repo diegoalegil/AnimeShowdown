@@ -214,6 +214,21 @@ export function enlazarConstelacion(miembros) {
   return seg
 }
 
+/**
+ * Atributo `d` de un trazo de constelación a partir de su cadena de segmentos
+ * (consecutivos: el x2/y2 de uno es el x1/y1 del siguiente). Null si no hay
+ * segmentos (constelación de una sola estrella → nada que unir).
+ * @param {{x1:number,y1:number,x2:number,y2:number}[]} segmentos
+ * @returns {string|null}
+ */
+export function pathDeConstelacion(segmentos) {
+  if (!Array.isArray(segmentos) || segmentos.length === 0) return null
+  const inicio = segmentos[0]
+  let d = `M ${inicio.x1} ${inicio.y1}`
+  for (const s of segmentos) d += ` L ${s.x2} ${s.y2}`
+  return d
+}
+
 // --- escrutador de mareas (temporal) ----------------------------------------
 
 /**
