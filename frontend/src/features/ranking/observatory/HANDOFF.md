@@ -33,6 +33,19 @@ Pieza ULTRA (#118): el ranking como cielo nocturno. Vive como pestaña
 - `fecha`: fecha local formateada.
 - `onVolverTabla`: vuelve a la pestaña ELO.
 
+### Navegación de las estrellas (decisión de producto)
+
+`SkyStar` usa `<a href>` (prop `hrefPersonaje`), desacoplado y testeable
+standalone. Hoy navega con **recarga completa**. Para navegación client-side +
+el morph personaje-hero (view transitions same-document, `lib/viewTransitions.js`),
+sustituir/envolver el ancla por `AppLink` con `onViewTransitionStart={markPersonajeHero}`
+en la integración (patrón de `CategoriaCard`). No bloquea: la ficha carga igual.
+
+### Carga en frío
+
+Deep-link a `/ranking?tab=observatorio` con el catálogo sin hidratar muestra
+un skeleton (no un cielo vacío), coherente con el resto de pestañas.
+
 ### Props opcionales aún sin cablear (decisión de producto)
 
 - **`movimientos`** (escrutador de mareas): el endpoint actual

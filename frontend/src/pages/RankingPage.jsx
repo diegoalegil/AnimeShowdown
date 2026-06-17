@@ -339,16 +339,21 @@ function RankingPage() {
               initialAnimeFilter={initialAnimeFilter}
             />
           )}
-          {tab === 'observatorio' && (
-            <Suspense fallback={<RankingSkeletonGrid />}>
-              <MetaObservatory
-                ranking={observatorioRanking}
-                hrefPersonaje={(slug) => `/personajes/${slug}`}
-                fecha={fechaCielo}
-                onVolverTabla={() => setTab('elo')}
-              />
-            </Suspense>
-          )}
+          {tab === 'observatorio' &&
+            (isCatalogLoading && observatorioRanking.length === 0 ? (
+              // Deep-link en frío a ?tab=observatorio: el catálogo aún hidrata.
+              // Skeleton en vez de un cielo vacío (coherente con las otras pestañas).
+              <RankingSkeletonGrid />
+            ) : (
+              <Suspense fallback={<RankingSkeletonGrid />}>
+                <MetaObservatory
+                  ranking={observatorioRanking}
+                  hrefPersonaje={(slug) => `/personajes/${slug}`}
+                  fecha={fechaCielo}
+                  onVolverTabla={() => setTab('elo')}
+                />
+              </Suspense>
+            ))}
           {tab === 'categorias' && (
             <CategoriasYIntencionTab
               catalogoIndex={catalogoIndex}
