@@ -29,7 +29,8 @@ public record WrappedDto(
         String fandomPrincipal,
         long mejorRacha,
         List<TopPersonajeItem> top3,
-        UniversoTop universoTop) {
+        UniversoTop universoTop,
+        boolean publico) {
 
     /** Personaje más votado por el usuario (null si aún no ha votado). */
     public record PersonajeTop(String slug, String nombre, String anime, String imagenUrl) {
