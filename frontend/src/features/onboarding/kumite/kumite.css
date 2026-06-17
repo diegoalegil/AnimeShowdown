@@ -214,7 +214,122 @@
   font-weight: 700;
 }
 
-/* reduced-motion: el concepto aparece escrito; sin corte, sin asentir, sin sello animado. */
+/* ── La búsqueda simulada (PracticeSearch) ────────────────────────────────
+   Botón que abre una paleta de práctica (input + resultado del objetivo). */
+.kumite-search {
+  display: flex;
+  justify-content: center;
+  width: 100%;
+}
+
+.kumite-search__abrir {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  min-height: 44px;
+  padding: 0 1rem;
+  border-radius: 10px;
+  border: 1px solid var(--color-border-gold-subtle);
+  background: var(--color-surface-alt);
+  font-size: 0.9rem;
+  font-weight: 700;
+  color: var(--color-fg);
+  cursor: pointer;
+  transition: border-color 0.18s var(--ease-lift);
+}
+
+.kumite-search__abrir:hover,
+.kumite-search__abrir:focus-visible {
+  border-color: var(--color-border-gold);
+}
+
+.kumite-search__kbd {
+  font-family: ui-monospace, monospace;
+  font-size: 0.72rem;
+  padding: 0.1rem 0.35rem;
+  border-radius: 5px;
+  border: 1px solid var(--color-border);
+  background: var(--color-surface);
+  color: var(--color-fg-muted);
+}
+
+.kumite-search__panel {
+  width: 100%;
+  max-width: 22rem;
+  padding: 0.6rem;
+  border-radius: 12px;
+  border: 1px solid var(--color-border-gold);
+  background: var(--color-surface);
+  transform-origin: top center;
+  animation: kumite-search-in 0.22s var(--ease-lift);
+}
+
+@keyframes kumite-search-in {
+  from { opacity: 0; transform: translateY(-6px) scale(0.98); }
+  to { opacity: 1; transform: translateY(0) scale(1); }
+}
+
+.kumite-search__input {
+  width: 100%;
+  box-sizing: border-box;
+  min-height: 44px;
+  padding: 0 0.75rem;
+  border-radius: 8px;
+  border: 1px solid var(--color-border);
+  background: var(--color-bg);
+  font-size: 0.9rem;
+  color: var(--color-fg-strong);
+}
+
+.kumite-search__input:focus-visible {
+  outline: 2px solid var(--color-gold);
+  outline-offset: 1px;
+}
+
+.kumite-search__res {
+  list-style: none;
+  margin: 0.5rem 0 0;
+  padding: 0;
+}
+
+.kumite-search__hit {
+  display: flex;
+  align-items: baseline;
+  gap: 0.5rem;
+  width: 100%;
+  min-height: 44px;
+  padding: 0 0.6rem;
+  border-radius: 8px;
+  border: 1px solid var(--color-border-gold-subtle);
+  background: color-mix(in srgb, var(--color-gold) 10%, transparent);
+  cursor: pointer;
+  text-align: left;
+}
+
+.kumite-search__hit:hover,
+.kumite-search__hit:focus-visible {
+  border-color: var(--color-border-gold);
+}
+
+.kumite-search__hit-nombre {
+  font-size: 0.9rem;
+  font-weight: 700;
+  color: var(--color-fg-strong);
+}
+
+.kumite-search__hit-anime {
+  font-size: 0.76rem;
+  color: var(--color-fg-muted);
+}
+
+.kumite-search__vacio {
+  padding: 0.5rem 0.6rem;
+  font-size: 0.82rem;
+  color: var(--color-fg-muted);
+}
+
+/* reduced-motion: el concepto aparece escrito; sin corte, sin asentir, sin sello
+   ni entrada de paleta animados. */
 @media (prefers-reduced-motion: reduce) {
   .kumite-sensei__cut {
     display: none;
@@ -224,5 +339,8 @@
   }
   .kumite-bout__carta {
     transition: none;
+  }
+  .kumite-search__panel {
+    animation: none;
   }
 }
