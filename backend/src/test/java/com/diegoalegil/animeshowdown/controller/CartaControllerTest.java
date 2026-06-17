@@ -116,6 +116,17 @@ class CartaControllerTest {
     }
 
     @Test
+    void oddsSonPublicasParaInvitado() throws Exception {
+        // Sin Authorization: un invitado debe ver las odds (datos de diseño
+        // globales) — transparencia antes de registrarse. Antes daba 401.
+        mvc.perform(get("/api/cartas/odds"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.precioSobre").value(100))
+                .andExpect(jsonPath("$.rarezas[0].rareza").value("SSR"))
+                .andExpect(jsonPath("$.rarezas[0].probabilidad").value(1.0));
+    }
+
+    @Test
     void monederoArrancaEnCeroYRequiereAuth() throws Exception {
         mvc.perform(get("/api/me/monedero")).andExpect(status().isForbidden());
 

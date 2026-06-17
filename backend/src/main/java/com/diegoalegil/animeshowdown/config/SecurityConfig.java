@@ -240,6 +240,10 @@ public class SecurityConfig {
                         // Salón Legendario: galería pública de cartas especiales
                         // (cualquiera ve los teasers; el dueño las tiene/usa).
                         .requestMatchers(HttpMethod.GET, "/api/cartas/especiales").permitAll()
+                        // Odds del sobre: datos de diseño globales (precio, pool,
+                        // prob. por rareza). Públicos para que el invitado vea la
+                        // transparencia antes de registrarse (gancho de conversión).
+                        .requestMatchers(HttpMethod.GET, "/api/cartas/odds").permitAll()
                         // Datos para sitemap dinámico. Consumido por
                         // el script generate-sitemap.mjs en build de Cloudflare
                         // Pages; público porque sitemaps son públicos por definición.
