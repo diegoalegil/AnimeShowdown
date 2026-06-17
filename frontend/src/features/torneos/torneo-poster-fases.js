@@ -6,7 +6,9 @@ import { getTournamentVisual } from '../../data/visual-assets'
  */
 
 export const FASES = [
-  { id: 'inscripcion', label: 'Inscripción' },
+  // No hay flujo de inscribirse a un torneo (el roster lo fija el seed), así
+  // que la primera fase es el CARTEL/Roster anunciado, no una "Inscripción".
+  { id: 'cartel', label: 'Cartel' },
   { id: 'grupos', label: 'Grupos' },
   { id: 'eliminatorias', label: 'Eliminatorias' },
   { id: 'final', label: 'Final' },
@@ -15,8 +17,10 @@ export const FASES = [
 /** Sello hanko por estado: kanji real con significado, no decoración. */
 export const SELLOS = {
   SCHEDULED: {
-    kanji: '募',
-    titulo: 'Inscripción abierta',
+    // 近 = "próximo, cercano". No prometemos inscripción: el torneo arranca
+    // pronto con un roster ya fijado.
+    kanji: '近',
+    titulo: 'Arranca pronto',
     chip: 'border-gold/70 text-gold-bright',
     fondo: 'var(--color-gold-soft)',
   },
@@ -35,7 +39,7 @@ export const SELLOS = {
 }
 
 /**
- * Índice de fase actual. SCHEDULED siempre está en inscripción; FINISHED ya
+ * Índice de fase actual. SCHEDULED siempre está en el cartel; FINISHED ya
  * recorrió todo el camino. En juego: lo deriva de rondaActual/totalRondas
  * (última ronda = final, penúltima = eliminatorias, resto = grupos).
  */

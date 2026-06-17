@@ -17,11 +17,13 @@ import PersonajeCutImg from '../../../components/PersonajeCutImg'
  *
  * Keyed por anime abierto (montar/desmontar por slug). Es un `region` con
  * aria-label del universo; Esc lo cierra devolviendo el foco al tomo. El
- * despliegue/colapso lo gobierna el data-state vía CSS (library.css).
+ * despliegue/colapso lo gobiernan los atributos data-open / data-closing vía
+ * CSS (library.css).
  *
  * @param {Object} props
  * @param {import('./library-core').Universo} props.universo  Universo abierto.
  * @param {string} props.kanji        Kanji de universo (marca de la escena).
+ * @param {string} [props.kanjiSignificado]  Significado editorial del kanji (caption bajo la marca).
  * @param {'left'|'right'} props.anchor  Lado de anclaje (evita desbordes a la derecha).
  * @param {boolean} props.closing     ¿Está animando el cierre? (timing 250ms).
  * @param {(slug:string)=>string} props.hrefUniverso  /animes/:slug del universo.
@@ -36,6 +38,7 @@ import PersonajeCutImg from '../../../components/PersonajeCutImg'
 export default function FlyLeaf({
   universo,
   kanji,
+  kanjiSignificado,
   anchor = 'left',
   closing = false,
   hrefUniverso,
@@ -132,6 +135,7 @@ export default function FlyLeaf({
       />
     <section
       ref={rootRef}
+      id={`fly-leaf-${slug}`}
       className="fly-leaf"
       data-anchor={anchor}
       data-open={closing ? '0' : entered ? '1' : '0'}
@@ -188,6 +192,14 @@ export default function FlyLeaf({
       </div>
 
       <div className="fly-leaf__body">
+        {kanjiSignificado && (
+          <p className="fly-leaf__kanji-caption">
+            <span className="fly-leaf__kanji-caption-glyph" lang="ja" aria-hidden="true">
+              {kanji}
+            </span>
+            {kanjiSignificado}
+          </p>
+        )}
         <dl className="fly-leaf__stats">
           <div className="fly-leaf__stat fly-leaf__stat--chars">
             <dt>Personajes</dt>

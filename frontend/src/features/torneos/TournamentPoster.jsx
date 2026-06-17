@@ -13,7 +13,7 @@ import './torneo-poster.css'
  * legibilidad SOLO donde hay texto, título grande y — la pieza clave — la fase
  * como CAMINO DE NODOS horizontal donde el nodo actual late en oro
  * (solo opacity, halo pre-renderizado) y los completados quedan entintados.
- * Sello hanko de estado en la esquina con kanji real: 募 inscripción abierta ·
+ * Sello hanko de estado en la esquina con kanji real: 近 arranca pronto ·
  * 戦 en juego · 終 cerrado.
  *
  * Tres variantes derivadas de torneo.estado (TorneoResumenDto):
@@ -153,7 +153,7 @@ function CaminoDeFase({ faseActual, compacto = false, className = '' }) {
       <span
         className={`inline-flex items-center gap-1 ${className}`}
         role="img"
-        aria-label="Camino completado: inscripción, grupos, eliminatorias y final"
+        aria-label="Camino completado: cartel, grupos, eliminatorias y final"
       >
         {FASES.map((fase, i) => (
           <span key={fase.id} className="inline-flex items-center gap-1">
@@ -412,7 +412,7 @@ function PosterInscripcion({ torneo }) {
       <div className="relative flex min-h-[320px] flex-col justify-between gap-6 p-5 sm:p-6">
         <div className="flex items-start justify-between gap-3">
           <p className="font-mono text-[11px] font-bold tabular-nums text-gold">
-            Inscripción abierta
+            Arranca pronto
           </p>
           <SelloEstado estado="SCHEDULED" />
         </div>
@@ -423,7 +423,7 @@ function PosterInscripcion({ torneo }) {
           </h3>
 
           <MetaMono>
-            <span>{ocupadas} inscritos</span>
+            <span>{ocupadas} luchadores en el cartel</span>
           </MetaMono>
 
           <CaminoDeFase faseActual={0} className="mt-5 max-w-xl" />
@@ -555,7 +555,7 @@ function CarteleraTorneos({ enCurso = [], proximos = [], historial = [] }) {
       {inscripcion.length > 0 && (
         <section aria-label={t('torneos.carteleraInscripcion')}>
           <CabeceraSeccion
-            kanji="募"
+            kanji="近"
             titulo={t('torneos.carteleraInscripcion')}
             count={inscripcion.length}
             tono="text-gold"

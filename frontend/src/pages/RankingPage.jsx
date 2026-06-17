@@ -690,6 +690,16 @@ function ListaEloLocal({
     return filtrarRankingElo(rankedElo, { normalizedSearch, animeFilter })
   }, [rankedElo, normalizedSearch, animeFilter])
 
+  // Honestidad de cold-start: mientras el ELO canónico del backend no ha
+  // llegado, el orden es la SEMILLA por popularidad (1500 + popularidad·7,
+  // _sintetico:true), no votos reales. Si los primeros puestos son sintéticos
+  // lo rotulamos sin esconder el ranking. En cuanto entra el ELO del backend
+  // (_sintetico:false) la nota desaparece sola.
+  const esSembrado = useMemo(
+    () => rankedElo.slice(0, 10).some((p) => p?._sintetico),
+    [rankedElo],
+  )
+
   const rankingSlices = useMemo(() => {
     const top100 = filtered.slice(0, 100)
     return {
@@ -771,6 +781,13 @@ function ListaEloLocal({
         </Link>
         .
       </p>
+      {esSembrado && (
+        <p className="rounded-lg border border-gold/30 bg-gold/10 px-4 py-3 text-[12px] leading-5 text-gold">
+          <strong className="font-bold">Ranking inicial.</strong>{' '}
+          Todavía sembrado por popularidad del catálogo, no por votos reales —
+          tus votos empiezan a moverlo en cuanto entras a la arena.
+        </p>
+      )}
       <div className="as-panel flex flex-col gap-3 rounded-2xl p-3 sm:flex-row sm:items-center">
         <div className="relative min-w-0 flex-1">
           <Search className="pointer-events-none absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-fg-muted" />

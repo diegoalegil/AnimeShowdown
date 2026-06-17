@@ -77,7 +77,7 @@ function TasteMirror({ universoTop, awake, reduced = false }) {
             {pct}%
           </span>
           <span className="max-w-[22ch] text-[15px] text-fg-muted">
-            de todos tus votos cayeron en este universo
+            de tus personajes favoritos salen de este universo
           </span>
         </div>
         <div className="mt-[18px] h-2 max-w-[420px] overflow-hidden rounded-full bg-white/[0.08]" aria-hidden="true">
@@ -86,7 +86,7 @@ function TasteMirror({ universoTop, awake, reduced = false }) {
             style={{ '--pd': '0.3s', width: `${Math.max(0, Math.min(100, pct))}%` }}
           />
         </div>
-        <span className="sr-only">{`${pct}% de tus votos fueron para ${universoTop?.anime}.`}</span>
+        <span className="sr-only">{`${pct}% de tus personajes favoritos salen de ${universoTop?.anime}.`}</span>
     </div>
   )
 }

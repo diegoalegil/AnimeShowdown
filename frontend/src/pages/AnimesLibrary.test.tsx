@@ -94,6 +94,8 @@ describe('AnimesPage · Biblioteca de los universos', () => {
       // anclado en escritorio, con contención de foco y Escape.
       const region = screen.getByRole('dialog', { name: /Universo One Piece/i })
       expect(region).toBeInTheDocument()
+      // Caption del kanji: el micro-momento de descubrimiento (significado real).
+      expect(within(region).getByText(/Grand Line/i)).toBeInTheDocument()
       // El CTA "entrar al universo" enlaza a la ficha del universo.
       expect(within(region).getByRole('link', { name: /entrar al universo/i })).toHaveAttribute(
         'href',
@@ -155,7 +157,7 @@ describe('AnimesPage · Biblioteca de los universos', () => {
     expect(onePiece.closest('li')).toHaveAttribute('data-match', '0')
   })
 
-  it('búsqueda sin resultados muestra la estantería vacía con kanji 空', () => {
+  it('búsqueda sin resultados muestra la estantería vacía con kanji 空 y rampa de recuperación', () => {
     renderPage()
     fireEvent.change(screen.getByRole('searchbox', { name: /Buscar universo/i }), {
       target: { value: 'zzzznada' },
@@ -166,8 +168,46 @@ describe('AnimesPage · Biblioteca de los universos', () => {
     expect(vacio).toBeTruthy()
     expect(vacio).toHaveTextContent('空')
     expect(screen.getByText('0 universos')).toBeInTheDocument()
-    // Ningún tomo se renderiza en la estantería vacía.
-    expect(screen.queryByRole('button', { name: /One Piece/i })).not.toBeInTheDocument()
+    // Ningún TOMO (button con aria-expanded) se renderiza en la sala vacía…
+    expect(
+      screen.queryByRole('button', { name: /One Piece/i, expanded: false }),
+    ).not.toBeInTheDocument()
+    // …pero la rampa de recuperación sí: "ver todos" + universos populares.
+    expect(
+      screen.getByRole('button', { name: /Ver todos los universos/i }),
+    ).toBeInTheDocument()
+    expect(
+      screen.getByRole('button', { name: /One Piece/i }),
+    ).toBeInTheDocument()
+  })
+
+  it('la rampa de recuperación: "ver todos" limpia la búsqueda y reaparecen los tomos', () => {
+    renderPage()
+    const buscador = screen.getByRole('searchbox', { name: /Buscar universo/i })
+    fireEvent.change(buscador, { target: { value: 'zzzznada' } })
+    expect(screen.getByText(/Estantería vacía/i)).toBeInTheDocument()
+
+    fireEvent.click(screen.getByRole('button', { name: /Ver todos los universos/i }))
+    // La búsqueda quedó limpia y los tomos vuelven (el tomo es aria-expanded).
+    expect(buscador).toHaveValue('')
+    expect(
+      screen.getByRole('button', { name: /One Piece/i, expanded: false }),
+    ).toBeInTheDocument()
+    expect(screen.queryByText(/Estantería vacía/i)).not.toBeInTheDocument()
+  })
+
+  it('la rampa de recuperación: un universo popular rellena la búsqueda y casa', () => {
+    renderPage()
+    const buscador = screen.getByRole('searchbox', { name: /Buscar universo/i })
+    fireEvent.change(buscador, { target: { value: 'zzzznada' } })
+
+    // Clicar un chip popular rellena la búsqueda con su nombre → casa solo él.
+    fireEvent.click(
+      within(screen.getByText(/Estantería vacía/i).closest('.lib-empty') as HTMLElement)
+        .getByRole('button', { name: /One Piece/i }),
+    )
+    expect(buscador).toHaveValue('One Piece')
+    expect(screen.getByText('1 universo')).toBeInTheDocument()
   })
 
   it('el orden es un radiogroup y cambiar de tablilla reordena (destacados→A–Z)', () => {

@@ -27,7 +27,7 @@ import { useReducedMotionPref } from '../../hooks/useReducedMotionPref'
  * - prefers-reduced-motion: escena estática — sello puesto, interferencia
  *   congelada (franja central a -2px, copia cian fija al 15%).
  * - Sin blur/backdrop-blur/SVG filters nuevos; cero libs nuevas (el sello es
- *   un keyframe play-once, sin framer). Keyframes mf-* en index.css (CSP).
+ *   un keyframe play-once, sin framer). Keyframes msf-* en index.css (CSP).
  */
 
 // Bandas (% de alto) de cada capa. Juntas suman 0–100: en reposo la silueta
@@ -183,16 +183,16 @@ function MissingFighter({ username = '' }) {
             <Silueta
               style={{
                 clipPath: poligonoFranjas(BANDAS_BASE),
-                '--mf-amp': '3px',
-                animation: rafaga ? 'mf-jit 260ms steps(2, end) 1 both' : 'none',
+                '--msf-amp': '3px',
+                animation: rafaga ? 'msf-jit 260ms steps(2, end) 1 both' : 'none',
               }}
             />
             <Silueta
               style={{
                 clipPath: poligonoFranjas(BANDAS_MEDIA),
-                '--mf-amp': '-4px',
+                '--msf-amp': '-4px',
                 animation: rafaga
-                  ? 'mf-jit 220ms steps(2, end) 60ms 1 both'
+                  ? 'msf-jit 220ms steps(2, end) 60ms 1 both'
                   : 'none',
                 transform: reducido ? 'translateX(-2px)' : undefined,
               }}
@@ -200,9 +200,9 @@ function MissingFighter({ username = '' }) {
             <Silueta
               style={{
                 clipPath: poligonoFranjas(BANDAS_BAJA),
-                '--mf-amp': '2.5px',
+                '--msf-amp': '2.5px',
                 animation: rafaga
-                  ? 'mf-jit 240ms steps(2, end) 30ms 1 both'
+                  ? 'msf-jit 240ms steps(2, end) 30ms 1 both'
                   : 'none',
               }}
             />
@@ -215,7 +215,7 @@ function MissingFighter({ username = '' }) {
           {/* Sello 不明: cae con overshoot, una sola vez */}
           <div
             aria-hidden="true"
-            className="mf-stamp absolute -right-4 top-5 flex flex-col gap-0.5 rounded-[10px] border-[3px] border-hanko bg-hanko/5 px-2.5 py-3 text-hanko opacity-0 drop-shadow-scrim-sm"
+            className="msf-stamp absolute -right-4 top-5 flex flex-col gap-0.5 rounded-[10px] border-[3px] border-hanko bg-hanko/5 px-2.5 py-3 text-hanko opacity-0 drop-shadow-scrim-sm"
           >
             <span lang="ja" className="font-kanji-serif text-[34px] font-bold leading-none">不</span>
             <span lang="ja" className="font-kanji-serif text-[34px] font-bold leading-none">明</span>
@@ -237,7 +237,7 @@ function MissingFighter({ username = '' }) {
               <span className="text-fg-strong">&quot;{textoEscrito}&quot;</span>
               <span
                 aria-hidden="true"
-                className="mf-caret ml-1 inline-block h-[1em] w-[0.55em] translate-y-[0.12em] bg-fg"
+                className="msf-caret ml-1 inline-block h-[1em] w-[0.55em] translate-y-[0.12em] bg-fg"
                 style={{ animationPlayState: activo ? 'running' : 'paused' }}
               />
             </p>

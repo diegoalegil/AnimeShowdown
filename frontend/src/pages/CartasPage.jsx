@@ -1,5 +1,6 @@
-import { useEffect, useMemo, useState } from 'react'
+import { useCallback, useEffect, useMemo, useState } from 'react'
 import { Filter, Gift, PackageOpen, Sparkles, Ticket } from 'lucide-react'
+import { shareWithToast } from '../lib/shareWithToast'
 import Section from '../components/Section'
 import Button from '../components/Button'
 import EmptyState from '../components/EmptyState'
@@ -179,6 +180,29 @@ function CartasPage() {
     if (!carta?.poseida) return
     descargarCarta.mutate(carta)
   }
+
+  // Compartir una carta: reusa el pipeline existente (shareWithToast →
+  // shareOrCopy: native share / portapapeles + recordDailyShare). No inventa un
+  // pintor de canvas — el especial es el pico de viralidad y aterriza en la
+  // ficha del personaje (que ya tiene su card OG /api/og/personaje/:slug.png).
+  const compartirCarta = useCallback((carta) => {
+    if (!carta?.poseida) return undefined
+    const esEspecial = carta.rareza === 'ESPECIAL'
+    return shareWithToast(
+      {
+        title: `${carta.personajeNombre} · carta ${esEspecial ? 'ESPECIAL' : carta.rareza} · AnimeShowdown`,
+        text: esEspecial
+          ? `¡Saqué la carta ESPECIAL de ${carta.personajeNombre} (${carta.anime}) en AnimeShowdown! Abre sobres y completa tu álbum.`
+          : `Tengo la carta de ${carta.personajeNombre} (${carta.anime}) en mi álbum de AnimeShowdown.`,
+        url: `/personajes/${carta.personajeSlug}`,
+      },
+      {
+        nativeSuccess: 'Carta compartida',
+        clipboardSuccess: 'Enlace de la carta copiado',
+        errorTitle: 'No se pudo compartir la carta',
+      },
+    )
+  }, [])
 
   if (!user) {
     return (
@@ -369,7 +393,12 @@ function CartasPage() {
       ) : (
         <>
           {usaVitrina ? (
-            <CardShowcase cartas={cartas} onDownload={descargar} descargandoId={descargandoId} />
+            <CardShowcase
+              cartas={cartas}
+              onDownload={descargar}
+              onShare={compartirCarta}
+              descargandoId={descargandoId}
+            />
           ) : (
             <div className="as-card-grid-stagger grid grid-cols-2 gap-3 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6">
               {cartas.map((carta) => (
@@ -377,6 +406,7 @@ function CartasPage() {
                   key={carta.id}
                   carta={carta}
                   onDownload={descargar}
+                  onShare={compartirCarta}
                   downloading={descargandoId === carta.id}
                 />
               ))}
@@ -419,6 +449,7 @@ function CartasPage() {
             onAbrirOtro={abrir}
             onCerrar={() => setReveal(null)}
             onDownload={descargar}
+            onShare={compartirCarta}
             descargandoId={descargandoId}
           />
         )}

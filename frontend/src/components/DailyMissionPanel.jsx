@@ -20,6 +20,13 @@ import {
 } from '../lib/dailyProgress'
 import { getDailyResetCountdown } from '../lib/games'
 import { shareWithToast } from '../lib/shareWithToast'
+import { useAuth } from '../contexts/AuthContext'
+import { ANON_VOTE_LIMIT as ANON_VOTE_CAP } from '../lib/anonymousVoting'
+
+// Tope de votos de invitado: única fuente de verdad es ANON_VOTE_LIMIT en
+// lib/anonymousVoting. Un invitado NO puede llegar al objetivo diario de 10 votos sin
+// registrarse: la barra se quedaría clavada al 50%. La copia para invitados
+// refleja esto.
 
 function clamp(value, max) {
   return Math.min(Math.max(0, value), max)
@@ -98,6 +105,7 @@ function MissionItem({ icon: Icon, label, detail, done, to }) {
 }
 
 function DailyMissionPanel({ compact = false, className = '' }) {
+  const { user } = useAuth()
   const [progress, setProgress] = useState(() => readDailyProgress())
   const [streak, setStreak] = useState(() => readDailyStreak())
   const [resetCountdown, setResetCountdown] = useState(getDailyResetCountdown)
@@ -180,8 +188,9 @@ function DailyMissionPanel({ compact = false, className = '' }) {
           </p>
           {!compact && (
             <p className="mt-2 text-sm leading-6 text-fg-muted">
-              Completa el loop diario de AnimeShowdown sin registrarte: 10 duelos,
-              un daily trial y una visita al ranking que acabas de empujar.
+              {user
+                ? `Completa el loop diario de AnimeShowdown: ${DAILY_VOTE_TARGET} duelos, un daily trial y una visita al ranking que acabas de empujar.`
+                : `Empieza sin registrarte: ${ANON_VOTE_CAP} duelos de invitado, un daily trial y una visita al ranking. Entra para subir a ${DAILY_VOTE_TARGET} votos y guardar tu racha.`}
             </p>
           )}
         </div>
@@ -211,8 +220,14 @@ function DailyMissionPanel({ compact = false, className = '' }) {
       <div className="mt-5 grid gap-3 md:grid-cols-3">
         <MissionItem
           icon={Swords}
-          label="Vota 10 duelos"
-          detail={votes >= DAILY_VOTE_TARGET ? 'Listo por hoy' : `Te faltan ${DAILY_VOTE_TARGET - votes}`}
+          label={`Vota ${DAILY_VOTE_TARGET} duelos`}
+          detail={
+            votes >= DAILY_VOTE_TARGET
+              ? 'Listo por hoy'
+              : !user && votes >= ANON_VOTE_CAP
+                ? `Tope de invitado (${ANON_VOTE_CAP}) — entra para seguir`
+                : `Te faltan ${DAILY_VOTE_TARGET - votes}`
+          }
           done={votes >= DAILY_VOTE_TARGET}
           to="/votar"
         />

@@ -35,44 +35,88 @@ import { getCategoriasPersonaje } from './personajes-tags'
  *     de días/semanas, no para algo segundo-preciso.
  */
 
+/**
+ * Ancla rodante: el lunes 00:00 UTC de la SEMANA en curso, calculado UNA vez
+ * al cargar el módulo. Los eventos se fechan relativos a este ancla por
+ * semanas, así que la cartelera SIEMPRE tiene ≥1 ACTIVO y ≥1 PROXIMO sin
+ * depender de fechas fijas que caducan. Esto es cálculo de DATOS en
+ * module-load (determinista para todo el árbol de un mismo render); el RENDER
+ * sigue sin tocar `Date.now()` — usa `getEstadoEvento(evento, now)` con el
+ * `now` que le pasa el caller.
+ *
+ * Trade-off frente a fechas ISO fijas: ganamos "nunca caduca" a cambio de que
+ * dos cargas en semanas distintas vean fechas distintas (irrelevante para una
+ * vitrina narrativa; los tests pasan un `now` explícito).
+ */
+const DIA_MS = 24 * 60 * 60 * 1000
+const SEMANA_MS = 7 * DIA_MS
+
+function lunesDeEstaSemanaUTC() {
+  const ahora = new Date()
+  const base = Date.UTC(
+    ahora.getUTCFullYear(),
+    ahora.getUTCMonth(),
+    ahora.getUTCDate(),
+  )
+  // getUTCDay: 0=domingo … 6=sábado. Retrocede al lunes (1) de la semana.
+  const offsetALunes = (new Date(base).getUTCDay() + 6) % 7
+  return base - offsetALunes * DIA_MS
+}
+
+const LUNES = lunesDeEstaSemanaUTC()
+
+/** ISO de un instante a `semanas` del lunes ancla, con offset de días/horas. */
+function isoSemana(semanas, { dia = 0, finDeDia = false } = {}) {
+  const t = LUNES + semanas * SEMANA_MS + dia * DIA_MS
+  const d = new Date(t)
+  // 999ms (no 0): el evento siguiente arranca el lunes 00:00:00.000, así no queda
+  // un hueco sin ACTIVO en la franja domingo 23:59:59.x (ni con pestaña abierta).
+  if (finDeDia) d.setUTCHours(23, 59, 59, 999)
+  return d.toISOString()
+}
+
 export const EVENTOS = [
   {
+    // ACTIVO: arrancó al inicio de esta semana, termina al final.
     slug: 'arco-husbandos',
     titulo: 'Arco Husbandos',
     descripcionCorta: 'Los personajes masculinos más adorados de la fandom',
     tipo: { kind: 'categoria', valor: 'husbando' },
-    inicioISO: '2026-05-25T00:00:00Z',
-    finISO: '2026-06-01T23:59:59Z',
+    inicioISO: isoSemana(0),
+    finISO: isoSemana(0, { dia: 6, finDeDia: true }),
     color: 'violet',
     emoji: '🗡️',
   },
   {
+    // PROXIMO: empieza el lunes que viene.
     slug: 'copa-villanos',
     titulo: 'Copa Villanos',
     descripcionCorta: 'Los antagonistas más temidos del anime cara a cara',
     tipo: { kind: 'categoria', valor: 'villain' },
-    inicioISO: '2026-05-18T00:00:00Z',
-    finISO: '2026-05-25T23:59:59Z',
+    inicioISO: isoSemana(1),
+    finISO: isoSemana(1, { dia: 6, finDeDia: true }),
     color: 'rose',
     emoji: '😈',
   },
   {
+    // PROXIMO: dentro de dos semanas.
     slug: 'semana-one-piece',
     titulo: 'Semana de One Piece',
     descripcionCorta: 'Los Sombrero de Paja conquistan AnimeShowdown',
     tipo: { kind: 'anime', valor: 'One Piece' },
-    inicioISO: '2026-05-13T00:00:00Z',
-    finISO: '2026-05-20T23:59:59Z',
+    inicioISO: isoSemana(2),
+    finISO: isoSemana(2, { dia: 6, finDeDia: true }),
     color: 'amber',
     emoji: '🏴‍☠️',
   },
   {
+    // PASADO: terminó la semana anterior (la cartelera necesita historial).
     slug: 'top-waifus',
     titulo: 'Top Waifus',
     descripcionCorta: 'Las personajes femeninas más icónicas del anime',
     tipo: { kind: 'categoria', valor: 'waifu' },
-    inicioISO: '2026-05-05T00:00:00Z',
-    finISO: '2026-05-12T23:59:59Z',
+    inicioISO: isoSemana(-1),
+    finISO: isoSemana(-1, { dia: 6, finDeDia: true }),
     color: 'pink',
     emoji: '💖',
   },

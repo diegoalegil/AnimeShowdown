@@ -23,10 +23,11 @@ function FeaturedDuelCard({ personaje, rank }) {
             {personaje.nombre}
           </h3>
           <p className="mt-1 text-sm text-fg-muted">{personaje.anime}</p>
-          <div className="mt-4 grid grid-cols-3 gap-2">
-            <MiniDuelStat label="ELO" value={personaje.elo} accent />
-            <MiniDuelStat label="V" value={personaje.wins} />
-            <MiniDuelStat label="D" value={personaje.losses} />
+          {/* Solo ELO base (estimado). Las W/D eran sintéticas: se ocultan,
+              igual que en AnimeRosterSections, para no presentarlas como
+              resultados reales de combate. */}
+          <div className="mt-4">
+            <MiniDuelStat label="ELO base" value={personaje.elo} accent />
           </div>
         </div>
       </div>

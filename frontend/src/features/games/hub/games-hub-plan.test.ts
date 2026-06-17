@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 
-import { buildGamesHubPlan, shouldShowDailyHistory } from './games-hub-plan'
+import { buildGamesHubPlan } from './games-hub-plan'
 
 const games = [
   {
@@ -71,17 +71,5 @@ describe('buildGamesHubPlan', () => {
     ])
     expect(plan.pendingDailyCount).toBe(0)
     expect(plan.completedDailyCount).toBe(2)
-  })
-})
-
-describe('shouldShowDailyHistory', () => {
-  it('oculta el calendario en cuentas sin actividad', () => {
-    expect(shouldShowDailyHistory({ current: 0, longest: 0 }, 0)).toBe(false)
-  })
-
-  it('muestra el calendario con racha actual, record o completados hoy', () => {
-    expect(shouldShowDailyHistory({ current: 2, longest: 2 }, 0)).toBe(true)
-    expect(shouldShowDailyHistory({ current: 0, longest: 5 }, 0)).toBe(true)
-    expect(shouldShowDailyHistory({ current: 0, longest: 0 }, 1)).toBe(true)
   })
 })

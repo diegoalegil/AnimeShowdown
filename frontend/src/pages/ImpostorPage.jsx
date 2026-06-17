@@ -212,7 +212,7 @@ function ImpostorGame({ todayKey, catalogoPersonajes, rondasDaily }) {
             <span lang="ja">裏</span> · Impostor Trial · Daily
           </span>
           <h1 className="text-[clamp(2.4rem,6vw,4.6rem)] font-extrabold leading-tight tracking-tight">
-            4 cartas. 1 traidor.
+            5 cartas. 1 traidor.
           </h1>
           {finalizadoDia ? (
             <p className="text-[13px] text-fg-muted">

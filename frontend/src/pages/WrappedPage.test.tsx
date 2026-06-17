@@ -1,6 +1,6 @@
 import { cleanup, fireEvent, render, screen, waitFor } from '@testing-library/react'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
-import { MemoryRouter } from 'react-router-dom'
+import { MemoryRouter, Route, Routes, useLocation } from 'react-router-dom'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 
 const h = vi.hoisted(() => ({
@@ -91,12 +91,12 @@ describe('WrappedPage (El santuario del Wrapped)', () => {
     // Cada sala presente tiene su <h2> real (heading accesible).
     expect(screen.getByRole('heading', { level: 2, name: /Tu voz cayó sobre la arena/ })).toBeTruthy()
     expect(screen.getByRole('heading', { level: 2, name: /Tres nombres recibieron tus ofrendas/ })).toBeTruthy()
-    expect(screen.getByRole('heading', { level: 2, name: /8 votos seguidos/ })).toBeTruthy()
+    expect(screen.getByRole('heading', { level: 2, name: /8 días seguidos/ })).toBeTruthy()
 
     // sr-text completo de las cifras (no solo el odómetro decorativo). Robusto
     // al separador de miles del ICU (puede o no agrupar según la versión).
-    expect(screen.getByText(/1[\s., ]?234 votos emitidos en la arena en 2026/)).toBeTruthy()
-    expect(screen.getByText(/73% de tus votos fueron para Dragon Ball/)).toBeTruthy()
+    expect(screen.getByText(/1[\s., ]?234 votos emitidos en la arena/)).toBeTruthy()
+    expect(screen.getByText(/73% de tus personajes favoritos salen de Dragon Ball/)).toBeTruthy()
 
     // El espejo del gusto (universoTop) renderiza su universo.
     expect(screen.getAllByText('Dragon Ball').length).toBeGreaterThanOrEqual(1)
@@ -106,12 +106,14 @@ describe('WrappedPage (El santuario del Wrapped)', () => {
   })
 
   it('OMITE las salas sin dato (top3 vacío → sin altar; racha 0 → sin senda; universoTop null → sin espejo)', async () => {
+    // No es el estado vacío (hay duelos jugados), pero faltan las cifras
+    // opcionales → entrada + emaki, sin huecos por las salas ausentes.
     h.miWrapped.mockResolvedValue({
       username: 'novato',
       votosTotales: 0,
-      duelosJugados: 0,
+      duelosJugados: 5,
       prediccionesAcertadas: 0,
-      badgesDesbloqueados: 0,
+      badgesDesbloqueados: 2,
       personajeTop: null,
       fandomPrincipal: null,
       mejorRacha: 0,
@@ -124,8 +126,8 @@ describe('WrappedPage (El santuario del Wrapped)', () => {
     await waitFor(() => expect(document.querySelectorAll('h1').length).toBe(1))
     expect(screen.queryByRole('heading', { level: 2, name: /Tu voz cayó sobre la arena/ })).toBeNull()
     expect(screen.queryByRole('heading', { level: 2, name: /Tres nombres recibieron tus ofrendas/ })).toBeNull()
-    expect(screen.queryByRole('heading', { level: 2, name: /votos seguidos|toda llama empieza/ })).toBeNull()
-    expect(screen.queryByText(/de tus votos fueron para/)).toBeNull()
+    expect(screen.queryByRole('heading', { level: 2, name: /días seguidos|toda llama empieza/ })).toBeNull()
+    expect(screen.queryByText(/de tus personajes favoritos salen de/)).toBeNull()
     // Solo entrada + emaki.
     expect(document.querySelectorAll('[data-screen-label]').length).toBe(2)
   })
@@ -148,6 +150,12 @@ describe('WrappedPage (El santuario del Wrapped)', () => {
     // cardData con el mapeo del DTO real.
     const cardData = h.paint.mock.calls[0][1]
     expect(cardData).toMatchObject({ username: 'goku', votosTotales: 1234, fandomPrincipal: 'Dragon Ball' })
+    // shareText identity-first: abre con el oshi/fandom, NO con la cifra fría.
+    const shareText = h.share.mock.calls[0][1].text as string
+    expect(shareText.startsWith('Mi oshi Nº1 es Gohan')).toBe(true)
+    expect(shareText).toContain('mi fandom Nº1 es Dragon Ball')
+    expect(shareText).toContain('1234 votos')
+    expect(shareText.indexOf('Gohan')).toBeLessThan(shareText.indexOf('1234'))
   })
 
   it('navega a la arena (/votar) desde "Volver a la arena"', async () => {
@@ -158,10 +166,51 @@ describe('WrappedPage (El santuario del Wrapped)', () => {
     expect(h.navigate).toHaveBeenCalledWith('/votar')
   })
 
-  it('redirige a /login si no hay usuario', () => {
+  it('redirige a /login conservando next=/wrapped si no hay usuario (link viral)', () => {
     h.user = null
+    const LoginProbe = () => {
+      const loc = useLocation()
+      return <div data-testid="login-stub" data-search={loc.search} />
+    }
+    const { container } = render(
+      <QueryClientProvider client={new QueryClient({ defaultOptions: { queries: { retry: false } } })}>
+        <MemoryRouter initialEntries={['/wrapped']}>
+          <Routes>
+            <Route path="/wrapped" element={<WrappedPage />} />
+            <Route path="/login" element={<LoginProbe />} />
+          </Routes>
+        </MemoryRouter>
+      </QueryClientProvider>,
+    )
+    // El guard NO monta el santuario…
+    expect(container.querySelector('[data-screen-label]')).not.toBeInTheDocument()
+    // …y aterriza en /login arrastrando el next (LoginPage ya honra ?next=).
+    const stub = screen.getByTestId('login-stub')
+    expect(stub).toBeInTheDocument()
+    expect(decodeURIComponent(stub.getAttribute('data-search') || '')).toBe('?next=/wrapped')
+  })
+
+  it('muestra el onboarding (no el santuario vacío) cuando el wrapped está a cero', async () => {
+    h.miWrapped.mockResolvedValue({
+      username: 'novato',
+      votosTotales: 0,
+      duelosJugados: 0,
+      prediccionesAcertadas: 0,
+      badgesDesbloqueados: 0,
+      personajeTop: null,
+      fandomPrincipal: null,
+      mejorRacha: 0,
+      top3: [],
+      universoTop: null,
+    })
     renderPage()
+    // Onboarding alentador con CTA a /votar; SIN salas del santuario.
+    expect(await screen.findByText(/Tu temporada acaba de empezar/)).toBeInTheDocument()
+    const cta = screen.getByRole('link', { name: /Vota tu primer duelo/ })
+    expect(cta).toHaveAttribute('href', '/votar')
     expect(document.querySelector('[data-screen-label]')).not.toBeInTheDocument()
+    // Sigue habiendo un único h1 (el del onboarding, no dos).
+    expect(document.querySelectorAll('h1').length).toBe(1)
   })
 
   it('muestra el estado de carga y el de error con reintento', async () => {

@@ -75,7 +75,6 @@ export default function FestivalProcession({ estado, header, milestones, childre
   const proximo = estado === ESTADO_EVENTO.PROXIMO
   const pasado = estado === ESTADO_EVENTO.PASADO
 
-  const stageRef = useRef(null)
   const backRef = useRef(null)
   const midRef = useRef(null)
   const frontRef = useRef(null)
@@ -128,7 +127,7 @@ export default function FestivalProcession({ estado, header, milestones, childre
   const stageClass = `fest${pasado ? ' fest--terminado' : proximo ? ' fest--proximo' : ' fest--activo'}`
 
   return (
-    <div ref={stageRef} className={stageClass} data-reduce={reduce ? '' : undefined}>
+    <div className={stageClass} data-reduce={reduce ? '' : undefined}>
       {/* Escenografia FIJA, decorativa */}
       <div className="fest-backdrop" aria-hidden="true">
         <div className="fest-sky" />

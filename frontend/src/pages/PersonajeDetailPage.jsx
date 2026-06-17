@@ -70,6 +70,7 @@ import {
 import RetoRecomendado from '../features/personajes/components/RetoRecomendado'
 import { getRetoRecomendado } from '../features/personajes/reto-recomendado'
 import { buildPersonajeDetailContext } from '../features/personajes/personaje-detail-data'
+import { getCategoriasPersonaje, CATEGORIAS } from '../data/personajes-tags'
 
 const loadPersonaje3D = () => import('../components/Personaje3D')
 const Personaje3D = lazy(loadPersonaje3D)
@@ -266,6 +267,12 @@ function PersonajeDetailPage() {
   } = detailContext
   const total = stats.wins + stats.losses
   const winRate = total > 0 ? Math.round((stats.wins / total) * 100) : 0
+  // Categorías otaku curadas (personajes-tags.js): chips clicables que llevan
+  // al catálogo ya filtrado por ese rasgo (/personajes?tag=<id>, que la página
+  // entiende nativamente). Sin tags curados → no se pinta nada (dato real).
+  const categoriasPersonaje = getCategoriasPersonaje(slug)
+    .map((id) => CATEGORIAS.find((c) => c.id === id))
+    .filter(Boolean)
   const personalRankIndex = personalLocalStats.top.findIndex((item) => item.slug === slug)
   const personalSignal = personalRankIndex >= 0
     ? {
@@ -400,7 +407,7 @@ function PersonajeDetailPage() {
             descripción, cita, historial competitivo, comentarios…) se conservan
             ÍNTEGRAS debajo, crawlables y con sus mismos hooks/props. */}
         <FighterCodex
-          key={slug}
+          key={`codex-${slug}`}
           personaje={personaje}
           stats={stats}
           rankGlobal={rankGlobal}
@@ -423,7 +430,7 @@ function PersonajeDetailPage() {
             como dato estructurado. El nombre/furigana dejó de duplicarse: lo
             pinta el frontispicio del códice. */}
         <motion.section
-          key={slug}
+          key={`detalle-${slug}`}
           className="mt-8 grid grid-cols-1 gap-8 md:grid-cols-[minmax(0,1fr)_minmax(0,1.2fr)] md:items-start md:gap-12"
           variants={containerVariants}
           initial="hidden"
@@ -519,6 +526,27 @@ function PersonajeDetailPage() {
                 </span>
               )}
             </motion.div>
+            {categoriasPersonaje.length > 0 && (
+              <motion.div variants={itemVariants} className="w-full">
+                <p className="mb-1.5 text-[11px] font-semibold text-fg-muted">
+                  Rasgos otaku
+                </p>
+                <ul className="flex flex-wrap gap-1.5">
+                  {categoriasPersonaje.map((cat) => (
+                    <li key={cat.id}>
+                      <Link
+                        to={`/personajes?tag=${encodeURIComponent(cat.id)}`}
+                        title={`Ver personajes con el rasgo ${cat.label}`}
+                        className="inline-flex items-center gap-1 rounded-full border border-border bg-surface px-2.5 py-1 text-[11px] font-semibold text-fg-strong transition-all hover:-translate-y-0.5 hover:border-gold/50 hover:text-gold"
+                      >
+                        <span aria-hidden="true">{cat.emoji}</span>
+                        {cat.label}
+                      </Link>
+                    </li>
+                  ))}
+                </ul>
+              </motion.div>
+            )}
             {/* La identidad (anime furigana + nombre H1 + hairline) y la
                 Microdata schema.org/Person viven ahora en el frontispicio del
                 FighterCodex de arriba; no se duplican aquí para no emitir un

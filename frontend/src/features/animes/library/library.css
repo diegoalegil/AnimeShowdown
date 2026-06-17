@@ -242,6 +242,73 @@
 .lib-empty__reset:hover { border-color: var(--color-gold-bright); color: var(--color-gold-bright); }
 .lib-empty__reset:focus-visible { outline: 2px solid var(--color-gold); outline-offset: 2px; }
 
+/* rampa de recuperación: salir del callejón sin salida (ver todos + populares) */
+.lib-empty__actions {
+  margin-top: 0.6rem;
+}
+.lib-empty__reset {
+  display: inline-flex;
+  align-items: center;
+  min-height: 2.5rem;
+  padding: 0.4rem 0.95rem;
+  border: 1px solid var(--color-border-gold);
+  border-radius: var(--radius-lg);
+  background: var(--color-gold-soft);
+  font-size: 0.85rem;
+  font-weight: 700;
+  color: var(--color-fg-strong);
+  cursor: pointer;
+  transition: border-color 0.18s ease, color 0.18s ease, transform 0.18s ease;
+}
+.lib-empty__reset:hover {
+  color: var(--color-gold);
+  transform: translateY(-1px);
+}
+.lib-empty__popular {
+  margin-top: 0.9rem;
+}
+.lib-empty__popular-label {
+  display: block;
+  margin-bottom: 0.45rem;
+  font-size: var(--text-2xs);
+  color: var(--color-fg-muted);
+}
+.lib-empty__popular-list {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 0.45rem;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.lib-empty__chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  min-height: 2.5rem;
+  padding: 0.35rem 0.8rem;
+  border: 1px solid var(--color-border);
+  border-radius: 999px;
+  background: var(--color-surface);
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: var(--color-fg-strong);
+  cursor: pointer;
+  transition: border-color 0.18s ease, color 0.18s ease, transform 0.18s ease;
+}
+.lib-empty__chip:hover {
+  border-color: color-mix(in srgb, var(--color-gold) 50%, transparent);
+  color: var(--color-gold);
+  transform: translateY(-1px);
+}
+.lib-empty__chip-kanji {
+  font-family: var(--font-kanji-serif);
+  font-size: 1rem;
+  line-height: 1;
+  color: var(--color-gold);
+}
+
 /* ------------------------------------------------------------------ el tomo */
 .lib-book {
   position: relative;
@@ -251,7 +318,7 @@
 }
 .lib-book[data-open="1"] { z-index: 41; }
 
-.book-spine {
+.lib-spine {
   position: relative;
   display: flex;
   flex-direction: column;
@@ -291,12 +358,12 @@
 }
 
 /* lacas (asignadas por library-core: variación determinista, paleta sobria) */
-.book-spine[data-laca="carmin"] { --spine-base: linear-gradient(180deg, color-mix(in srgb, var(--color-accent) 82%, var(--color-canvas)), color-mix(in srgb, var(--color-accent) 52%, var(--color-canvas))); }
-.book-spine[data-laca="madera"] { --spine-base: linear-gradient(180deg, var(--lib-wood-edge), color-mix(in srgb, var(--color-canvas) 70%, var(--lib-wood))); }
-.book-spine[data-laca="tinta"]  { --spine-base: linear-gradient(180deg, var(--color-surface-alt), color-mix(in srgb, var(--color-canvas) 60%, var(--color-surface))); }
+.lib-spine[data-laca="carmin"] { --spine-base: linear-gradient(180deg, color-mix(in srgb, var(--color-accent) 82%, var(--color-canvas)), color-mix(in srgb, var(--color-accent) 52%, var(--color-canvas))); }
+.lib-spine[data-laca="madera"] { --spine-base: linear-gradient(180deg, var(--lib-wood-edge), color-mix(in srgb, var(--color-canvas) 70%, var(--lib-wood))); }
+.lib-spine[data-laca="tinta"]  { --spine-base: linear-gradient(180deg, var(--color-surface-alt), color-mix(in srgb, var(--color-canvas) 60%, var(--color-surface))); }
 
-.book-spine:hover,
-.book-spine:focus-visible {
+.lib-spine:hover,
+.lib-spine:focus-visible {
   transform: translateY(-14px);
   outline: none;
   box-shadow:
@@ -304,18 +371,18 @@
     0 26px 30px -16px color-mix(in srgb, var(--color-canvas) 92%, transparent),
     0 0 0 1px color-mix(in srgb, var(--color-gold) 40%, transparent);
 }
-.book-spine:focus-visible {
+.lib-spine:focus-visible {
   box-shadow:
     inset 0 1px 0 color-mix(in srgb, var(--color-fg-strong) 18%, transparent),
     0 26px 30px -16px color-mix(in srgb, var(--color-canvas) 92%, transparent),
     0 0 0 2px var(--color-gold-bright);
 }
-.book-spine[aria-expanded="true"] {
+.lib-spine[aria-expanded="true"] {
   transform: translateY(-14px);
 }
 
 /* kanji de universo grabado en oro (cabeza del lomo) */
-.book-spine__kanji {
+.lib-spine__kanji {
   font-family: var(--font-kanji-serif);
   font-size: clamp(1.05rem, 2.4vw, 1.35rem);
   line-height: 1;
@@ -326,7 +393,7 @@
 }
 
 /* hairline dorada bajo el kanji */
-.book-spine__rule {
+.lib-spine__rule {
   width: 60%;
   height: 1px;
   margin: 0.4rem 0;
@@ -334,7 +401,7 @@
 }
 
 /* título vertical en el lomo */
-.book-spine__title {
+.lib-spine__title {
   flex: 1 1 auto;
   display: flex;
   align-items: center;
@@ -353,7 +420,7 @@
 }
 
 /* tejuelo: franja del arte de marca recortada (pie del lomo) */
-.book-spine__tejuelo {
+.lib-spine__tejuelo {
   position: relative;
   width: calc(100% - 0.2rem);
   height: 2.5rem;
@@ -363,7 +430,7 @@
   border: 1px solid var(--color-border-gold-subtle);
   box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--color-canvas) 50%, transparent);
 }
-.book-spine__tejuelo img {
+.lib-spine__tejuelo img {
   width: 100%;
   height: 100%;
   object-fit: cover;
@@ -371,7 +438,7 @@
   display: block;
 }
 /* degradado elegante del tejuelo SIN arte (lomo tipográfico puro) */
-.book-spine__tejuelo--bare {
+.lib-spine__tejuelo--bare {
   height: 1.5rem;
   border-style: dashed;
   border-color: var(--color-border-gold-subtle);
@@ -380,7 +447,7 @@
       color-mix(in srgb, var(--color-gold) 9%, transparent) 0 3px,
       transparent 3px 7px);
 }
-.book-spine__elo {
+.lib-spine__elo {
   margin-top: 0.35rem;
   font-family: var(--font-mono);
   font-size: var(--text-2xs);
@@ -423,7 +490,7 @@
 }
 
 /* capa ÚNICA reutilizada de barrido de farol por estantería */
-.lantern-sweep {
+.lib-lantern-sweep {
   position: absolute;
   inset: 0;
   z-index: 5;
@@ -431,7 +498,7 @@
   overflow: hidden;
   border-radius: var(--radius-lg);
 }
-.lantern-sweep::before {
+.lib-lantern-sweep::before {
   content: "";
   position: absolute;
   top: 0;
@@ -453,7 +520,7 @@
 @media (prefers-reduced-motion: no-preference) {
   /* will-change SOLO mientras el barrido anima (600ms): así la capa no se
      promueve a compositor en cada estantería en reposo. */
-  .lantern-sweep[data-run="1"]::before {
+  .lib-lantern-sweep[data-run="1"]::before {
     animation: lib-lantern-sweep 600ms var(--ease-lift) both;
     will-change: transform;
   }
@@ -563,6 +630,26 @@
 
 .fly-leaf__body {
   padding: 0.85rem 0.95rem 1rem;
+}
+
+/* Caption editorial del kanji: el micro-momento de descubrimiento — el glifo
+   del universo y su significado real, una sola línea bajo la guarda. */
+.fly-leaf__kanji-caption {
+  display: flex;
+  align-items: baseline;
+  gap: 0.45rem;
+  margin: 0 0 0.7rem;
+  font-size: var(--text-2xs);
+  line-height: 1.35;
+  color: var(--color-fg-muted);
+  text-wrap: balance;
+}
+.fly-leaf__kanji-caption-glyph {
+  flex: 0 0 auto;
+  font-family: var(--font-kanji-serif);
+  font-size: 1.05rem;
+  line-height: 1;
+  color: var(--color-gold);
 }
 
 /* stats del universo en mono */
@@ -694,11 +781,11 @@
     transform: none !important;
     transition: opacity 150ms ease !important;
   }
-  .book-spine,
+  .lib-spine,
   .lib-book { transition: opacity 150ms ease !important; }
-  .book-spine:hover,
-  .book-spine:focus-visible,
-  .book-spine[aria-expanded="true"] { transform: none; }
+  .lib-spine:hover,
+  .lib-spine:focus-visible,
+  .lib-spine[aria-expanded="true"] { transform: none; }
 }
 
 /* ----------------------------------------------------------- 390px (móvil) */

@@ -159,7 +159,7 @@ function FacingPage({ nombre, anime, slug, src, color, side }) {
       <PersonajeImg
         slug={slug}
         src={src}
-        alt={nombre}
+        alt=""
         loading="lazy"
         sizes="(min-width: 640px) 320px, 45vw"
         className="absolute inset-0 h-full w-full object-cover object-top"

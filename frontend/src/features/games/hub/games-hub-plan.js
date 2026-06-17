@@ -43,11 +43,3 @@ export function buildGamesHubPlan(games, estadosJuegos = {}) {
     completedDailyCount: completedDaily.length,
   }
 }
-
-export function shouldShowDailyHistory(streak, completadosHoy) {
-  return (
-    Number(completadosHoy) > 0 ||
-    Number(streak?.current) > 0 ||
-    Number(streak?.longest) > 0
-  )
-}

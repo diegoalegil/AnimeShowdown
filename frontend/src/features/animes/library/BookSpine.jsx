@@ -16,6 +16,7 @@ import { lacaPorIndice } from './library-core'
  * @param {Object} props
  * @param {import('./library-core').Universo} props.universo  Datos del universo.
  * @param {string} props.kanji         Kanji de universo (1 glifo) grabado en el lomo.
+ * @param {string} [props.kanjiSignificado]  Significado editorial del kanji (tooltip nativo del lomo).
  * @param {number} props.indiceGlobal  Índice global (stagger de la caída de canto).
  * @param {boolean} props.expanded     ¿Su fly-leaf está abierto?
  * @param {boolean} props.match        ¿Casa con la búsqueda activa? (atenúa si no).
@@ -26,6 +27,7 @@ import { lacaPorIndice } from './library-core'
 function BookSpineImpl({
   universo,
   kanji,
+  kanjiSignificado,
   indiceGlobal,
   expanded,
   match,
@@ -71,18 +73,25 @@ function BookSpineImpl({
       <button
         ref={handleButtonRef}
         type="button"
-        className="book-spine"
+        className="lib-spine"
         data-laca={laca}
         aria-expanded={expanded}
+        aria-haspopup="dialog"
+        aria-controls={`fly-leaf-${slug}`}
         onClick={() => onToggle(slug)}
       >
-        <span className="book-spine__kanji" aria-hidden="true" lang="ja">
+        <span
+          className="lib-spine__kanji"
+          aria-hidden="true"
+          lang="ja"
+          title={kanjiSignificado ? `${kanji} — ${kanjiSignificado}` : undefined}
+        >
           {kanji}
         </span>
-        <span className="book-spine__rule" aria-hidden="true" />
-        <span className="book-spine__title">{anime}</span>
+        <span className="lib-spine__rule" aria-hidden="true" />
+        <span className="lib-spine__title">{anime}</span>
         {scene ? (
-          <span ref={tejueloRef} className="book-spine__tejuelo" aria-hidden="true">
+          <span ref={tejueloRef} className="lib-spine__tejuelo" aria-hidden="true">
             <img
               src={scene.src}
               srcSet={scene.srcSet}
@@ -94,11 +103,11 @@ function BookSpineImpl({
           </span>
         ) : (
           <span
-            className="book-spine__tejuelo book-spine__tejuelo--bare"
+            className="lib-spine__tejuelo lib-spine__tejuelo--bare"
             aria-hidden="true"
           />
         )}
-        <span className="book-spine__elo" aria-hidden="true">
+        <span className="lib-spine__elo" aria-hidden="true">
           {eloMedio}
           {eloSintetico ? '·b' : ''}
         </span>

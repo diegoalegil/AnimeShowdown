@@ -8,7 +8,7 @@ import {
   useSpring,
   useTransform,
 } from 'framer-motion'
-import { Download, Lock, X } from 'lucide-react'
+import { Download, Lock, Share2, X } from 'lucide-react'
 import CartaFace from './CartaFace'
 import PersonajeImg from '../../components/PersonajeImg'
 import { FOCUSABLE_SELECTOR } from '../../lib/focusables'
@@ -55,7 +55,7 @@ const P3D = { transformStyle: 'preserve-3d', WebkitTransformStyle: 'preserve-3d'
 const RESORTE = { stiffness: 300, damping: 30, mass: 0.4 }
 const VUELO = { type: 'spring', stiffness: 160, damping: 24 }
 
-function CardShowcase({ cartas, onDownload, descargandoId = null, perShelf = 5 }) {
+function CardShowcase({ cartas, onDownload, onShare, descargandoId = null, perShelf = 5 }) {
   const [activa, setActiva] = useState(null) // { carta, origen: DOMRect, el }
   const ultimaRef = useRef(null)
 
@@ -131,6 +131,7 @@ function CardShowcase({ cartas, onDownload, descargandoId = null, perShelf = 5 }
             carta={activa.carta}
             origen={activa.origen}
             onDownload={onDownload}
+            onShare={onShare}
             descargando={descargandoId === activa.carta.id}
             onClose={cerrar}
           />
@@ -269,7 +270,7 @@ function SlotEsmerilado({ carta }) {
 
 /* ─────────────────────── detalle: vuelo al centro ─────────────────────── */
 
-function CartaDetalle({ carta, origen, onDownload, descargando, onClose }) {
+function CartaDetalle({ carta, origen, onDownload, onShare, descargando, onClose }) {
   const dialogRef = useRef(null)
   const figRef = useRef(null)
   const cerrarRef = useRef(null)
@@ -388,6 +389,16 @@ function CartaDetalle({ carta, origen, onDownload, descargando, onClose }) {
             >
               <Download className="h-4 w-4" aria-hidden="true" />
               {descargando ? 'Descargando...' : 'Descargar'}
+            </button>
+          )}
+          {typeof onShare === 'function' && (
+            <button
+              type="button"
+              onClick={() => onShare(carta)}
+              className="inline-flex items-center gap-2 rounded-lg border border-white/15 bg-black/70 px-3 py-2 text-sm font-semibold text-fg-strong transition-colors hover:border-gold/55 hover:text-gold"
+            >
+              <Share2 className="h-4 w-4" aria-hidden="true" />
+              Compartir
             </button>
           )}
           <button

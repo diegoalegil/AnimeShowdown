@@ -138,7 +138,6 @@ export default function TournamentTheater({ torneo, enfrentamientos, children, h
   // Observamos el HEADER del proscenio (donde viven los halos de los faroles),
   // no la raíz .teatro que enmarca toda la página: si observáramos la raíz,
   // siempre intersectaría y `.is-offscreen` nunca se activaría al scrollear.
-  const rootRef = useRef(null)
   const prosceniioRef = useRef(null)
   useEffect(() => {
     const el = prosceniioRef.current
@@ -177,7 +176,7 @@ export default function TournamentTheater({ torneo, enfrentamientos, children, h
   const onStep = (v) => { setPlaying(false); setStep(v) }
 
   return (
-    <div className="teatro" ref={rootRef} itemScope itemType="https://schema.org/SportsEvent" style={{ position: 'relative' }}>
+    <div className="teatro" itemScope itemType="https://schema.org/SportsEvent" style={{ position: 'relative' }}>
       <span className="teatro-watermark" aria-hidden="true" lang="ja"
         style={{ position: 'absolute', right: '3%', top: 80, fontSize: 'clamp(8rem, 22vw, 20rem)', fontWeight: 900, zIndex: 0, lineHeight: 1 }}>戦</span>
 
