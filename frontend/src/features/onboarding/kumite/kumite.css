@@ -1,11 +1,11 @@
 /* ============================================================================
-   kumite.css — CSS de feature del KUMITE DE INICIACION (#122).
+   kumite.css — CSS de feature del KUMITE DE INICIACION (pieza 122).
    Lo importa el componente raiz (TrainingKumite); aqui viven TODOS los
    @keyframes (CSP por hash: cero estilos en runtime). Reglas de la casa:
    solo transform/opacity se animan (60fps), cero blur/backdrop-blur nuevos,
-   cero hex/rgb()/hsl() literal (ni en comentarios) — solo tokens var(--color-*)
-   y color-mix(in srgb, var(--token) N%, transparent) para alphas. Easings de la
-   casa: var(--ease-lift), var(--ease-brush).
+   cero literales de color (ni en comentarios, que el guard tambien lee) — solo
+   tokens var(--color-*) y color-mix(in srgb, var(--token) N%, transparent) para
+   alphas. Easings de la casa: var(--ease-lift), var(--ease-brush).
    ============================================================================ */
 
 /* ── El pergamino del sensei ──────────────────────────────────────────────
@@ -102,9 +102,127 @@
   }
 }
 
-/* reduced-motion: el concepto aparece escrito; sin corte, sin asentir. */
+/* ── El duelo de práctica (PracticeBout) ──────────────────────────────────
+   Dos cartas + balanza central. El control del gesto activo va resaltado; el
+   resto deshabilitado (sin interacción inválida posible). */
+.kumite-bout {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.75rem;
+}
+
+.kumite-bout__carta {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.4rem;
+  width: clamp(5.5rem, 28vw, 7.5rem);
+  padding: 0.4rem;
+  border-radius: 12px;
+  border: 1px solid var(--color-border);
+  background: var(--color-surface-alt);
+  cursor: pointer;
+  transition: border-color 0.18s var(--ease-lift), transform 0.18s var(--ease-lift);
+}
+
+.kumite-bout__carta:not(:disabled):hover,
+.kumite-bout__carta:not(:disabled):focus-visible {
+  border-color: var(--color-border-gold);
+  transform: translateY(-2px);
+}
+
+.kumite-bout__carta:disabled {
+  cursor: default;
+  opacity: 0.55;
+}
+
+.kumite-bout__art {
+  aspect-ratio: 2 / 3;
+  width: 100%;
+  border-radius: 8px;
+  overflow: hidden;
+}
+
+.kumite-bout__nombre {
+  font-size: 0.78rem;
+  font-weight: 700;
+  line-height: 1.2;
+  text-align: center;
+  color: var(--color-fg);
+}
+
+/* Sello 票 al votar: hanko que cae con overshoot (ease-stamp). transform/opacity. */
+.kumite-bout__sello {
+  position: absolute;
+  top: 38%;
+  left: 50%;
+  transform: translate(-50%, -50%) rotate(-8deg);
+  font-size: clamp(2rem, 9vw, 2.75rem);
+  font-weight: 900;
+  color: var(--color-hanko);
+  pointer-events: none;
+}
+
+.kumite-bout__sello--stamp {
+  animation: kumite-stamp 0.42s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+@keyframes kumite-stamp {
+  0% { opacity: 0; transform: translate(-50%, -50%) rotate(-8deg) scale(1.8); }
+  60% { opacity: 1; }
+  100% { opacity: 1; transform: translate(-50%, -50%) rotate(-8deg) scale(1); }
+}
+
+/* La balanza del empate (同). Botón central; resaltado solo en su ejercicio. */
+.kumite-bout__balanza {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.15rem;
+  min-width: 44px;
+  min-height: 44px;
+  padding: 0.5rem 0.7rem;
+  border-radius: 10px;
+  border: 1px solid var(--color-border-gold-subtle);
+  background: color-mix(in srgb, var(--color-surface) 80%, transparent);
+  color: var(--color-fg-muted);
+  cursor: pointer;
+  transition: border-color 0.18s var(--ease-lift), color 0.18s var(--ease-lift);
+}
+
+.kumite-bout__balanza:not(:disabled):hover,
+.kumite-bout__balanza:not(:disabled):focus-visible {
+  border-color: var(--color-border-gold);
+  color: var(--color-gold-bright);
+}
+
+.kumite-bout__balanza:disabled {
+  cursor: default;
+  opacity: 0.5;
+}
+
+.kumite-bout__balanza-kanji {
+  font-size: 1.4rem;
+  line-height: 1;
+  color: var(--color-gold);
+}
+
+.kumite-bout__balanza-txt {
+  font-size: 0.7rem;
+  font-weight: 700;
+}
+
+/* reduced-motion: el concepto aparece escrito; sin corte, sin asentir, sin sello animado. */
 @media (prefers-reduced-motion: reduce) {
   .kumite-sensei__cut {
     display: none;
+  }
+  .kumite-bout__sello--stamp {
+    animation: none;
+  }
+  .kumite-bout__carta {
+    transition: none;
   }
 }
