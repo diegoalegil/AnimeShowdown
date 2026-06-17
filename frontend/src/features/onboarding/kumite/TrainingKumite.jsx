@@ -13,7 +13,7 @@ import {
 import './kumite.css'
 
 /**
- * TrainingKumite — orquestador del KUMITE DE INICIACIÓN (#122): convierte el
+ * TrainingKumite — orquestador del KUMITE DE INICIACIÓN (pieza 122): convierte el
  * onboarding en 4 ejercicios reales sobre una maqueta SIN red, guiados por el
  * SenseiScroll. Cada ejercicio superado anuda un cordón; los 4 → ceremonia del
  * cinturón (lazo SVG + sello 誓 + campanilla) y onComplete().
