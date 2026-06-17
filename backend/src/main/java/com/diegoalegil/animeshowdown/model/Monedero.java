@@ -13,6 +13,8 @@ import jakarta.persistence.OneToOne;
 import jakarta.persistence.PrePersist;
 import jakarta.persistence.PreUpdate;
 import jakarta.persistence.Table;
+import lombok.Getter;
+import lombok.Setter;
 
 /**
  * Saldo de moneda blanda de un usuario. Una fila por usuario (UNIQUE). El
@@ -22,6 +24,8 @@ import jakarta.persistence.Table;
  */
 @Entity
 @Table(name = "monedero")
+@Getter
+@Setter
 public class Monedero {
 
     @Id
@@ -57,13 +61,4 @@ public class Monedero {
     void onUpdate() {
         actualizadoEn = LocalDateTime.now();
     }
-
-    public Long getId() { return id; }
-    public void setId(Long id) { this.id = id; }
-    public Usuario getUsuario() { return usuario; }
-    public void setUsuario(Usuario usuario) { this.usuario = usuario; }
-    public long getSaldo() { return saldo; }
-    public void setSaldo(long saldo) { this.saldo = saldo; }
-    public LocalDateTime getActualizadoEn() { return actualizadoEn; }
-    public void setActualizadoEn(LocalDateTime actualizadoEn) { this.actualizadoEn = actualizadoEn; }
 }

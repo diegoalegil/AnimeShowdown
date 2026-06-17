@@ -17,7 +17,12 @@ import jakarta.persistence.PrePersist;
 import jakarta.persistence.PreUpdate;
 import jakarta.persistence.Table;
 
+import lombok.Getter;
+import lombok.Setter;
+
 @Entity
+@Getter
+@Setter
 @Table(name = "carta_trade", indexes = {
         @Index(name = "idx_carta_trade_solicitante", columnList = "solicitante_id, creado_en"),
         @Index(name = "idx_carta_trade_destinatario", columnList = "destinatario_id, creado_en"),
@@ -84,25 +89,4 @@ public class CartaTrade {
     void onUpdate() {
         actualizadoEn = LocalDateTime.now();
     }
-
-    public Long getId() { return id; }
-    public void setId(Long id) { this.id = id; }
-    public Usuario getSolicitante() { return solicitante; }
-    public void setSolicitante(Usuario solicitante) { this.solicitante = solicitante; }
-    public Usuario getDestinatario() { return destinatario; }
-    public void setDestinatario(Usuario destinatario) { this.destinatario = destinatario; }
-    public Carta getCartaOfrecida() { return cartaOfrecida; }
-    public void setCartaOfrecida(Carta cartaOfrecida) { this.cartaOfrecida = cartaOfrecida; }
-    public Carta getCartaSolicitada() { return cartaSolicitada; }
-    public void setCartaSolicitada(Carta cartaSolicitada) { this.cartaSolicitada = cartaSolicitada; }
-    public CartaTradeEstado getEstado() { return estado; }
-    public void setEstado(CartaTradeEstado estado) { this.estado = estado; }
-    public String getIdempotencyKey() { return idempotencyKey; }
-    public void setIdempotencyKey(String idempotencyKey) { this.idempotencyKey = idempotencyKey; }
-    public LocalDateTime getCreadoEn() { return creadoEn; }
-    public void setCreadoEn(LocalDateTime creadoEn) { this.creadoEn = creadoEn; }
-    public LocalDateTime getActualizadoEn() { return actualizadoEn; }
-    public void setActualizadoEn(LocalDateTime actualizadoEn) { this.actualizadoEn = actualizadoEn; }
-    public LocalDateTime getRespondidoEn() { return respondidoEn; }
-    public void setRespondidoEn(LocalDateTime respondidoEn) { this.respondidoEn = respondidoEn; }
 }

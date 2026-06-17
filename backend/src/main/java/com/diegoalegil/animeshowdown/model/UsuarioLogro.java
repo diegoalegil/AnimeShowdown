@@ -13,6 +13,7 @@ import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
 import jakarta.persistence.UniqueConstraint;
+import lombok.Getter;
 
 /**
  * Join entre {@link Usuario} y {@link Logro}.
@@ -33,6 +34,7 @@ import jakarta.persistence.UniqueConstraint;
         @Index(name = "idx_usuario_logros_logro", columnList = "logro_id"),
     }
 )
+@Getter
 public class UsuarioLogro {
 
     @Id
@@ -61,9 +63,4 @@ public class UsuarioLogro {
         this.logro = logro;
         this.desbloqueadoEn = desbloqueadoEn;
     }
-
-    public Long getId() { return id; }
-    public Usuario getUsuario() { return usuario; }
-    public Logro getLogro() { return logro; }
-    public LocalDateTime getDesbloqueadoEn() { return desbloqueadoEn; }
 }

@@ -44,11 +44,11 @@ public class PersonajeAdminService {
     })
     public Personaje crear(PersonajeCrearRequest request) {
         Personaje p = new Personaje(
-                request.getSlug(),
-                request.getNombre(),
-                request.getAnime(),
-                request.getDescripcion(),
-                request.getImagenUrl());
+                request.slug(),
+                request.nombre(),
+                request.anime(),
+                request.descripcion(),
+                request.imagenUrl());
         Personaje guardado = personajeRepository.save(p);
         personajeBusquedaService.invalidateIndex();
         return guardado;
@@ -86,11 +86,11 @@ public class PersonajeAdminService {
     public Personaje actualizar(Long id, PersonajeActualizarRequest datos) {
         Personaje p = personajeRepository.findById(id)
                 .orElseThrow(() -> new EntityNotFoundException("Personaje no encontrado: id=" + id));
-        if (datos.getSlug() != null) p.setSlug(datos.getSlug());
-        if (datos.getNombre() != null) p.setNombre(datos.getNombre());
-        if (datos.getAnime() != null) p.setAnime(datos.getAnime());
-        if (datos.getDescripcion() != null) p.setDescripcion(datos.getDescripcion());
-        if (datos.getImagenUrl() != null) p.setImagenUrl(datos.getImagenUrl());
+        if (datos.slug() != null) p.setSlug(datos.slug());
+        if (datos.nombre() != null) p.setNombre(datos.nombre());
+        if (datos.anime() != null) p.setAnime(datos.anime());
+        if (datos.descripcion() != null) p.setDescripcion(datos.descripcion());
+        if (datos.imagenUrl() != null) p.setImagenUrl(datos.imagenUrl());
         Personaje guardado = personajeRepository.save(p);
         personajeBusquedaService.invalidateIndex();
         return guardado;
@@ -105,8 +105,8 @@ public class PersonajeAdminService {
     public List<Personaje> crearBatch(List<PersonajeCrearRequest> personajes) {
         List<Personaje> guardados = personajes.stream()
                 .map(r -> personajeRepository.save(new Personaje(
-                        r.getSlug(), r.getNombre(), r.getAnime(),
-                        r.getDescripcion(), r.getImagenUrl())))
+                        r.slug(), r.nombre(), r.anime(),
+                        r.descripcion(), r.imagenUrl())))
                 .toList();
         personajeBusquedaService.invalidateIndex();
         return guardados;

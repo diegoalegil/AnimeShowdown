@@ -12,6 +12,9 @@ import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
 
+import lombok.Getter;
+import lombok.Setter;
+
 /**
  * Token de verificación de email tras signup.
  *
@@ -32,6 +35,8 @@ import jakarta.persistence.Table;
  *     activos a la vez.
  */
 @Entity
+@Getter
+@Setter
 @Table(name = "email_verifications", indexes = {
         @Index(name = "idx_email_verif_usuario", columnList = "usuario_id"),
         @Index(name = "idx_email_verif_expira", columnList = "expira_en")
@@ -76,17 +81,4 @@ public class EmailVerification {
     public void marcarComoUsado() {
         this.usadoEn = LocalDateTime.now();
     }
-
-    public Long getId() { return id; }
-    public void setId(Long id) { this.id = id; }
-    public Usuario getUsuario() { return usuario; }
-    public void setUsuario(Usuario usuario) { this.usuario = usuario; }
-    public String getToken() { return token; }
-    public void setToken(String token) { this.token = token; }
-    public LocalDateTime getCreadoEn() { return creadoEn; }
-    public void setCreadoEn(LocalDateTime creadoEn) { this.creadoEn = creadoEn; }
-    public LocalDateTime getExpiraEn() { return expiraEn; }
-    public void setExpiraEn(LocalDateTime expiraEn) { this.expiraEn = expiraEn; }
-    public LocalDateTime getUsadoEn() { return usadoEn; }
-    public void setUsadoEn(LocalDateTime usadoEn) { this.usadoEn = usadoEn; }
 }

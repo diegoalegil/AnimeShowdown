@@ -12,15 +12,19 @@ import jakarta.persistence.OneToOne;
 import jakarta.persistence.PrePersist;
 import jakarta.persistence.PreUpdate;
 import jakarta.persistence.Table;
+import lombok.Getter;
+import lombok.Setter;
 
 @Entity
 @Table(name = "usuario_carta_pity")
+@Getter
 public class UsuarioCartaPity {
 
     @Id
     @Column(name = "usuario_id")
     private Long usuarioId;
 
+    @Setter
     @OneToOne(fetch = FetchType.LAZY, optional = false)
     @MapsId
     @JoinColumn(name = "usuario_id")
@@ -29,6 +33,7 @@ public class UsuarioCartaPity {
     @Column(name = "sobres_sin_especial", nullable = false)
     private int sobresSinEspecial = 0;
 
+    @Setter
     @Column(name = "actualizado_en", nullable = false)
     private LocalDateTime actualizadoEn;
 
@@ -48,13 +53,7 @@ public class UsuarioCartaPity {
         }
     }
 
-    public Long getUsuarioId() { return usuarioId; }
-    public Usuario getUsuario() { return usuario; }
-    public void setUsuario(Usuario usuario) { this.usuario = usuario; }
-    public int getSobresSinEspecial() { return sobresSinEspecial; }
     public void setSobresSinEspecial(int sobresSinEspecial) {
         this.sobresSinEspecial = Math.max(0, sobresSinEspecial);
     }
-    public LocalDateTime getActualizadoEn() { return actualizadoEn; }
-    public void setActualizadoEn(LocalDateTime actualizadoEn) { this.actualizadoEn = actualizadoEn; }
 }

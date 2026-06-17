@@ -11,6 +11,8 @@ import jakarta.persistence.Index;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
+import lombok.Getter;
+import lombok.Setter;
 
 /**
  * Token de refresco persistido en BBDD. 3.
@@ -30,6 +32,8 @@ import jakarta.persistence.Table;
  * (capa correspondiente expone esta info).
  */
 @Entity
+@Getter
+@Setter
 @Table(name = "refresh_tokens", indexes = {
         @Index(name = "idx_refresh_tokenhash", columnList = "token_hash", unique = true),
         @Index(name = "idx_refresh_usuario", columnList = "usuario_id"),
@@ -90,69 +94,5 @@ public class RefreshToken {
 
     public void revocar() {
         this.revocadoEn = LocalDateTime.now();
-    }
-
-    public Long getId() {
-        return id;
-    }
-
-    public void setId(Long id) {
-        this.id = id;
-    }
-
-    public Usuario getUsuario() {
-        return usuario;
-    }
-
-    public void setUsuario(Usuario usuario) {
-        this.usuario = usuario;
-    }
-
-    public String getTokenHash() {
-        return tokenHash;
-    }
-
-    public void setTokenHash(String tokenHash) {
-        this.tokenHash = tokenHash;
-    }
-
-    public LocalDateTime getCreadoEn() {
-        return creadoEn;
-    }
-
-    public void setCreadoEn(LocalDateTime creadoEn) {
-        this.creadoEn = creadoEn;
-    }
-
-    public LocalDateTime getExpiraEn() {
-        return expiraEn;
-    }
-
-    public void setExpiraEn(LocalDateTime expiraEn) {
-        this.expiraEn = expiraEn;
-    }
-
-    public LocalDateTime getRevocadoEn() {
-        return revocadoEn;
-    }
-
-    public void setRevocadoEn(LocalDateTime revocadoEn) {
-        this.revocadoEn = revocadoEn;
-    }
-
-    public String getUserAgent() {
-        return userAgent;
-    }
-
-    public void setUserAgent(String userAgent) {
-        this.userAgent = userAgent;
-    }
-
-    public String getIpAddr() {
-        return ipAddr;
-    }
-
-    public void setIpAddr(String ipAddr) {
-        this.ipAddr = ipAddr;
     }
 }

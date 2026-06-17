@@ -7,14 +7,8 @@ import jakarta.validation.constraints.NotBlank;
  * Body de POST /api/newsletter. El backend además normaliza
  * a lowercase + trim antes de buscar/insertar.
  */
-public class NewsletterSubRequest {
-
-    @NotBlank(message = "email es obligatorio")
-    @Email(message = "email no válido")
-    private String email;
-
-    public NewsletterSubRequest() {}
-
-    public String getEmail() { return email; }
-    public void setEmail(String email) { this.email = email; }
-}
+public record NewsletterSubRequest(
+        @NotBlank(message = "email es obligatorio")
+        @Email(message = "email no válido")
+        String email
+) { }

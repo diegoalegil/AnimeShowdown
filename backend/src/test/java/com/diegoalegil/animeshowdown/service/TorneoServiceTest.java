@@ -132,9 +132,7 @@ class TorneoServiceTest {
 
         @Test
         void creaPublicoConNombreYDescripcion() {
-            var req = new TorneoCrearRequest();
-            req.setNombre("Naruto Best Girl");
-            req.setDescripcion("Who is the best?");
+            var req = new TorneoCrearRequest("Naruto Best Girl", "Who is the best?");
             when(torneoRepository.existsBySlug("naruto-best-girl")).thenReturn(false);
             stubSave(torneoRepository);
 
@@ -148,8 +146,7 @@ class TorneoServiceTest {
 
         @Test
         void serializaAntesDeElegirSlug() {
-            var req = new TorneoCrearRequest();
-            req.setNombre("Slug Race");
+            var req = new TorneoCrearRequest("Slug Race", null);
             when(torneoRepository.existsBySlug("slug-race")).thenReturn(false);
             stubSave(torneoRepository);
 
@@ -240,8 +237,8 @@ class TorneoServiceTest {
                 Torneo r = inv.<Torneo>getArgument(0); r.setId(99L); return r;
             });
 
-            var req = makeCrearMioRequest("Test 8", list(1L,2L,3L,4L,5L,6L,7L,8L));
-            req.setDescripcion("Desc");
+            var req = new TorneoCrearMioRequest("Test 8", "Desc",
+                    list(1L,2L,3L,4L,5L,6L,7L,8L), null);
             var result = service.crearPorUsuario(u, req);
 
             assertThat(result.getCreadoPor()).isEqualTo(u);
@@ -253,10 +250,7 @@ class TorneoServiceTest {
     }
 
     private static TorneoCrearMioRequest makeCrearMioRequest(String nombre, List<Long> ids) {
-        var req = new TorneoCrearMioRequest();
-        req.setNombre(nombre);
-        req.setParticipantesIds(ids);
-        return req;
+        return new TorneoCrearMioRequest(nombre, null, ids, null);
     }
 
     // ─── aprobar / rechazar ──────────────────────────────────────────────────
@@ -489,10 +483,7 @@ class TorneoServiceTest {
     }
 
     private static com.diegoalegil.animeshowdown.dto.EnfrentamientoCrearRequest makeEnfrentamientoRequest(Long p1Id, Long p2Id) {
-        var req = new com.diegoalegil.animeshowdown.dto.EnfrentamientoCrearRequest();
-        req.setPersonaje1Id(p1Id);
-        req.setPersonaje2Id(p2Id);
-        return req;
+        return new com.diegoalegil.animeshowdown.dto.EnfrentamientoCrearRequest(p1Id, p2Id);
     }
 
     // ─── generarSlugUnico ───────────────────────────────────────────────────

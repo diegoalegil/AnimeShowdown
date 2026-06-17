@@ -10,6 +10,7 @@ import jakarta.persistence.Id;
 import jakarta.persistence.PrePersist;
 import jakarta.persistence.Table;
 import jakarta.persistence.UniqueConstraint;
+import lombok.Getter;
 
 /**
  * Ledger del reparto de recompensas de una copa de evento. Una fila por
@@ -22,6 +23,7 @@ import jakarta.persistence.UniqueConstraint;
         uniqueConstraints = @UniqueConstraint(
                 name = "uk_evento_recompensa_torneo_usuario",
                 columnNames = {"torneo_id", "usuario_id"}))
+@Getter
 public class EventoRecompensaEntregada {
 
     @Id
@@ -69,41 +71,5 @@ public class EventoRecompensaEntregada {
     @PrePersist
     protected void onCreate() {
         if (createdAt == null) createdAt = LocalDateTime.now();
-    }
-
-    public Long getId() {
-        return id;
-    }
-
-    public Long getTorneoId() {
-        return torneoId;
-    }
-
-    public Long getUsuarioId() {
-        return usuarioId;
-    }
-
-    public String getEventoSlug() {
-        return eventoSlug;
-    }
-
-    public int getMoneda() {
-        return moneda;
-    }
-
-    public Long getCartaEspecialId() {
-        return cartaEspecialId;
-    }
-
-    public String getBadgeCodigo() {
-        return badgeCodigo;
-    }
-
-    public boolean isSobreGratis() {
-        return sobreGratis;
-    }
-
-    public LocalDateTime getCreatedAt() {
-        return createdAt;
     }
 }

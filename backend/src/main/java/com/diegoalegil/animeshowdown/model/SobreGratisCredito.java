@@ -10,6 +10,8 @@ import jakarta.persistence.Id;
 import jakarta.persistence.PrePersist;
 import jakarta.persistence.Table;
 import jakarta.persistence.UniqueConstraint;
+import lombok.Getter;
+import lombok.Setter;
 
 /**
  * Crédito de un sobre gratis pendiente de abrir. El "sobre temático" de las
@@ -24,6 +26,7 @@ import jakarta.persistence.UniqueConstraint;
         uniqueConstraints = @UniqueConstraint(
                 name = "uk_sobre_gratis_referencia",
                 columnNames = "referencia"))
+@Getter
 public class SobreGratisCredito {
 
     @Id
@@ -42,6 +45,7 @@ public class SobreGratisCredito {
     @Column(length = 120)
     private String etiqueta;
 
+    @Setter
     @Column(name = "consumido_en")
     private LocalDateTime consumidoEn;
 
@@ -61,37 +65,5 @@ public class SobreGratisCredito {
     @PrePersist
     protected void onCreate() {
         if (createdAt == null) createdAt = LocalDateTime.now();
-    }
-
-    public Long getId() {
-        return id;
-    }
-
-    public Long getUsuarioId() {
-        return usuarioId;
-    }
-
-    public String getOrigen() {
-        return origen;
-    }
-
-    public String getReferencia() {
-        return referencia;
-    }
-
-    public String getEtiqueta() {
-        return etiqueta;
-    }
-
-    public LocalDateTime getConsumidoEn() {
-        return consumidoEn;
-    }
-
-    public void setConsumidoEn(LocalDateTime consumidoEn) {
-        this.consumidoEn = consumidoEn;
-    }
-
-    public LocalDateTime getCreatedAt() {
-        return createdAt;
     }
 }

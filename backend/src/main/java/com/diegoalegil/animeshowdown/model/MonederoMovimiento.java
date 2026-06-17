@@ -15,6 +15,8 @@ import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.PrePersist;
 import jakarta.persistence.Table;
+import lombok.Getter;
+import lombok.Setter;
 
 /**
  * Movimiento de moneda — el ledger es la fuente de verdad de cada cambio de
@@ -26,6 +28,8 @@ import jakarta.persistence.Table;
  * hito de drop o compra no se aplica dos veces aunque el listener se reintente.
  */
 @Entity
+@Getter
+@Setter
 @Table(name = "monedero_movimiento", indexes = {
         @Index(name = "idx_mon_mov_usuario_fecha", columnList = "usuario_id, creado_en")
 })
@@ -74,18 +78,4 @@ public class MonederoMovimiento {
         }
     }
 
-    public Long getId() { return id; }
-    public void setId(Long id) { this.id = id; }
-    public Usuario getUsuario() { return usuario; }
-    public void setUsuario(Usuario usuario) { this.usuario = usuario; }
-    public long getDelta() { return delta; }
-    public void setDelta(long delta) { this.delta = delta; }
-    public MotivoMovimiento getMotivo() { return motivo; }
-    public void setMotivo(MotivoMovimiento motivo) { this.motivo = motivo; }
-    public String getReferencia() { return referencia; }
-    public void setReferencia(String referencia) { this.referencia = referencia; }
-    public long getSaldoResultante() { return saldoResultante; }
-    public void setSaldoResultante(long saldoResultante) { this.saldoResultante = saldoResultante; }
-    public LocalDateTime getCreadoEn() { return creadoEn; }
-    public void setCreadoEn(LocalDateTime creadoEn) { this.creadoEn = creadoEn; }
 }

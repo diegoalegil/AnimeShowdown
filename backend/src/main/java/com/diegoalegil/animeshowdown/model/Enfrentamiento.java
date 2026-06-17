@@ -12,8 +12,12 @@ import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.PrePersist;
 import jakarta.persistence.Table;
+import lombok.Getter;
+import lombok.Setter;
 
 @Entity
+@Getter
+@Setter
 @Table(name = "enfrentamientos", indexes = {
         // Queries hot path: findByTorneo (listado del bracket), las cascadas
         // del DataSeeder por personaje1/2, y los join al cerrar torneos.
@@ -86,61 +90,5 @@ public class Enfrentamiento {
         if (this.ronda == null) {
             this.ronda = 1;
         }
-    }
-
-    public Long getId() {
-        return id;
-    }
-
-    public void setId(Long id) {
-        this.id = id;
-    }
-
-    public Torneo getTorneo() {
-        return torneo;
-    }
-
-    public void setTorneo(Torneo torneo) {
-        this.torneo = torneo;
-    }
-
-    public Personaje getPersonaje1() {
-        return personaje1;
-    }
-
-    public void setPersonaje1(Personaje personaje1) {
-        this.personaje1 = personaje1;
-    }
-
-    public Personaje getPersonaje2() {
-        return personaje2;
-    }
-
-    public void setPersonaje2(Personaje personaje2) {
-        this.personaje2 = personaje2;
-    }
-
-    public Personaje getGanador() {
-        return ganador;
-    }
-
-    public void setGanador(Personaje ganador) {
-        this.ganador = ganador;
-    }
-
-    public Integer getRonda() {
-        return ronda;
-    }
-
-    public void setRonda(Integer ronda) {
-        this.ronda = ronda;
-    }
-
-    public LocalDateTime getFechaCreacion() {
-        return fechaCreacion;
-    }
-
-    public void setFechaCreacion(LocalDateTime fechaCreacion) {
-        this.fechaCreacion = fechaCreacion;
     }
 }

@@ -6,6 +6,7 @@ import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
+import lombok.Getter;
 
 /**
  * Catálogo de logros/badges. Los registros base vienen del seed inicial y de
@@ -18,6 +19,7 @@ import jakarta.persistence.Table;
  */
 @Entity
 @Table(name = "logros")
+@Getter
 public class Logro {
 
     @Id
@@ -54,11 +56,4 @@ public class Logro {
         this.icono = icono;
         this.rareza = rareza;
     }
-
-    public Long getId() { return id; }
-    public String getCodigo() { return codigo; }
-    public String getNombre() { return nombre; }
-    public String getDescripcion() { return descripcion; }
-    public String getIcono() { return icono; }
-    public Short getRareza() { return rareza; }
 }

@@ -89,8 +89,8 @@ public class TorneoService {
     @CacheEvict(value = "torneos-resumen", allEntries = true)
     public Torneo crear(TorneoCrearRequest request) {
         torneoCreationLock.bloquearCreacionTorneos();
-        String slug = generarSlugUnico(request.getNombre());
-        Torneo torneo = new Torneo(slug, request.getNombre(), request.getDescripcion());
+        String slug = generarSlugUnico(request.nombre());
+        Torneo torneo = new Torneo(slug, request.nombre(), request.descripcion());
         torneo.setPublico(true);
         return torneoRepository.saveAndFlush(torneo);
     }
@@ -130,7 +130,7 @@ public class TorneoService {
             throw new ResponseStatusException(HttpStatus.FORBIDDEN,
                     "Necesitas verificar tu email antes de crear torneos");
         }
-        List<Long> ids = request.getParticipantesIds();
+        List<Long> ids = request.participantesIds();
         if (ids == null || (ids.size() != 8 && ids.size() != 16)) {
             throw new IllegalArgumentException(
                     "El torneo debe tener exactamente 8 o 16 personajes (recibido: "
@@ -151,8 +151,8 @@ public class TorneoService {
         }
 
         torneoCreationLock.bloquearCreacionTorneos();
-        String slug = generarSlugUnico(request.getNombre());
-        Torneo torneo = new Torneo(slug, request.getNombre(), request.getDescripcion());
+        String slug = generarSlugUnico(request.nombre());
+        Torneo torneo = new Torneo(slug, request.nombre(), request.descripcion());
         torneo.setCreadoPor(creador);
         torneo.setEstadoRevision(EstadoRevision.PENDIENTE);
         torneo.setPublico(request.esPublico());
@@ -342,7 +342,7 @@ public class TorneoService {
         torneo.setFechaInicio(LocalDateTime.now());
         Torneo guardado = torneoRepository.save(torneo);
 
-        if (request != null && request.getParticipantesIds() != null && !request.getParticipantesIds().isEmpty()) {
+        if (request != null && request.participantesIds() != null && !request.participantesIds().isEmpty()) {
             // La ruta admin valida tamaño y duplicados igual que crearPorUsuario,
             // evitando brackets con estructura rota o personajes repetidos.
             //
@@ -351,7 +351,7 @@ public class TorneoService {
             // requiere potencia de 2 para que el bracket cuadre, asi que validar
             // aqui antes da error claro en lugar de NPE/IllegalState dentro del
             // service.
-            List<Long> ids = request.getParticipantesIds();
+            List<Long> ids = request.participantesIds();
             int n = ids.size();
             boolean potenciaDe2 = n >= 2 && n <= 64 && (n & (n - 1)) == 0;
             if (!potenciaDe2) {
@@ -389,17 +389,17 @@ public class TorneoService {
         List<Enfrentamiento> creados = new ArrayList<>();
         for (EnfrentamientoCrearRequest req : requests) {
             // Validación de regla de negocio: un personaje no puede luchar contra sí mismo.
-            if (req.getPersonaje1Id() != null && req.getPersonaje1Id().equals(req.getPersonaje2Id())) {
+            if (req.personaje1Id() != null && req.personaje1Id().equals(req.personaje2Id())) {
                 throw new IllegalArgumentException(
-                        "Un personaje no puede enfrentarse a sí mismo (id=" + req.getPersonaje1Id() + ")");
+                        "Un personaje no puede enfrentarse a sí mismo (id=" + req.personaje1Id() + ")");
             }
 
-            Personaje p1 = personajeRepository.findById(req.getPersonaje1Id())
+            Personaje p1 = personajeRepository.findById(req.personaje1Id())
                     .orElseThrow(() -> new EntityNotFoundException(
-                            "Personaje no encontrado: id=" + req.getPersonaje1Id()));
-            Personaje p2 = personajeRepository.findById(req.getPersonaje2Id())
+                            "Personaje no encontrado: id=" + req.personaje1Id()));
+            Personaje p2 = personajeRepository.findById(req.personaje2Id())
                     .orElseThrow(() -> new EntityNotFoundException(
-                            "Personaje no encontrado: id=" + req.getPersonaje2Id()));
+                            "Personaje no encontrado: id=" + req.personaje2Id()));
 
             Enfrentamiento e = new Enfrentamiento(torneo, p1, p2);
             creados.add(enfrentamientoRepository.save(e));

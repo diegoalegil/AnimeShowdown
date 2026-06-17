@@ -17,6 +17,9 @@ import jakarta.persistence.PrePersist;
 import jakarta.persistence.PreUpdate;
 import jakarta.persistence.Table;
 
+import lombok.Getter;
+import lombok.Setter;
+
 @Entity
 @Table(name = "comentarios_personaje", indexes = {
         @Index(name = "idx_comentarios_personaje_estado_fecha", columnList = "personaje_slug, estado, creado_en"),
@@ -27,29 +30,38 @@ public class Comentario {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Getter
     private Long id;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "autor_id", nullable = false)
+    @Getter
     private Usuario autor;
 
     @Column(name = "personaje_slug", nullable = false, length = 120)
+    @Getter
     private String personajeSlug;
 
     @Column(nullable = false, columnDefinition = "TEXT")
+    @Getter
+    @Setter
     private String contenido;
 
     @Enumerated(EnumType.STRING)
     @Column(nullable = false, length = 32)
+    @Getter
+    @Setter
     private ComentarioEstado estado = ComentarioEstado.VISIBLE;
 
     @Column(nullable = false)
     private Integer reportes = 0;
 
     @Column(name = "creado_en", nullable = false)
+    @Getter
     private LocalDateTime creadoEn;
 
     @Column(name = "actualizado_en", nullable = false)
+    @Getter
     private LocalDateTime actualizadoEn;
 
     public Comentario() {
@@ -82,22 +94,7 @@ public class Comentario {
         actualizadoEn = LocalDateTime.now();
     }
 
-    public Long getId() { return id; }
-    public Usuario getAutor() { return autor; }
-    public String getPersonajeSlug() { return personajeSlug; }
-    public String getContenido() { return contenido; }
-    public ComentarioEstado getEstado() { return estado; }
     public Integer getReportes() { return reportes == null ? 0 : reportes; }
-    public LocalDateTime getCreadoEn() { return creadoEn; }
-    public LocalDateTime getActualizadoEn() { return actualizadoEn; }
-
-    public void setContenido(String contenido) {
-        this.contenido = contenido;
-    }
-
-    public void setEstado(ComentarioEstado estado) {
-        this.estado = estado;
-    }
 
     public void incrementarReportes() {
         this.reportes = getReportes() + 1;

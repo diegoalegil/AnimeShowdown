@@ -11,20 +11,9 @@ import jakarta.validation.constraints.Pattern;
  * valide contra el secret pendiente. Si OK, el secret pendiente se
  * promueve a activo y el 2FA queda habilitado.
  */
-public class Totp2faEnableRequest {
+public record Totp2faEnableRequest(
 
-    @NotBlank(message = "El código es obligatorio")
-    @Pattern(regexp = "\\d{6}", message = "El código debe ser de 6 dígitos")
-    private String codigo;
-
-    public Totp2faEnableRequest() {
-    }
-
-    public String getCodigo() {
-        return codigo;
-    }
-
-    public void setCodigo(String codigo) {
-        this.codigo = codigo;
-    }
+        @NotBlank(message = "El código es obligatorio")
+        @Pattern(regexp = "\\d{6}", message = "El código debe ser de 6 dígitos")
+        String codigo) {
 }

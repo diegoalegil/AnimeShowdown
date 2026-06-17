@@ -16,30 +16,11 @@ import jakarta.validation.constraints.NotBlank;
  * <p>Si el usuario perdió el authenticator, debe entrar con backup code y
  * desde dentro generar set nuevo o desactivar 2FA por otro flow.
  */
-public class Totp2faDisableRequest {
+public record Totp2faDisableRequest(
 
-    @NotBlank(message = "La contraseña es obligatoria")
-    private String password;
+        @NotBlank(message = "La contraseña es obligatoria")
+        String password,
 
-    @NotBlank(message = "El código es obligatorio")
-    private String codigo;
-
-    public Totp2faDisableRequest() {
-    }
-
-    public String getPassword() {
-        return password;
-    }
-
-    public void setPassword(String password) {
-        this.password = password;
-    }
-
-    public String getCodigo() {
-        return codigo;
-    }
-
-    public void setCodigo(String codigo) {
-        this.codigo = codigo;
-    }
+        @NotBlank(message = "El código es obligatorio")
+        String codigo) {
 }

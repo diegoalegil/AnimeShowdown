@@ -10,7 +10,11 @@ import jakarta.persistence.Id;
 import jakarta.persistence.Index;
 import jakarta.persistence.Table;
 
+import lombok.Getter;
+import lombok.Setter;
+
 @Entity
+@Getter
 @Table(name = "uptime_log", indexes = {
         @Index(name = "idx_uptime_log_checked_at", columnList = "checked_at"),
         @Index(name = "idx_uptime_log_status_checked_at", columnList = "status, checked_at")
@@ -21,15 +25,19 @@ public class UptimeLog {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
+    @Setter
     @Column(name = "checked_at", nullable = false)
     private LocalDateTime checkedAt;
 
+    @Setter
     @Column(nullable = false, length = 16)
     private String status;
 
+    @Setter
     @Column(name = "latency_ms", nullable = false)
     private Long latencyMs;
 
+    @Setter
     @Column(length = 255)
     private String detail;
 
@@ -40,42 +48,6 @@ public class UptimeLog {
         this.checkedAt = checkedAt;
         this.status = status;
         this.latencyMs = latencyMs;
-        this.detail = detail;
-    }
-
-    public Long getId() {
-        return id;
-    }
-
-    public LocalDateTime getCheckedAt() {
-        return checkedAt;
-    }
-
-    public void setCheckedAt(LocalDateTime checkedAt) {
-        this.checkedAt = checkedAt;
-    }
-
-    public String getStatus() {
-        return status;
-    }
-
-    public void setStatus(String status) {
-        this.status = status;
-    }
-
-    public Long getLatencyMs() {
-        return latencyMs;
-    }
-
-    public void setLatencyMs(Long latencyMs) {
-        this.latencyMs = latencyMs;
-    }
-
-    public String getDetail() {
-        return detail;
-    }
-
-    public void setDetail(String detail) {
         this.detail = detail;
     }
 }

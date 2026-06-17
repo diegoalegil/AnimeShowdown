@@ -20,7 +20,12 @@ import jakarta.persistence.PreUpdate;
 import jakarta.persistence.Table;
 import jakarta.persistence.UniqueConstraint;
 
+import lombok.Getter;
+import lombok.Setter;
+
 @Entity
+@Getter
+@Setter
 @Table(name = "fantasy_equipo",
         uniqueConstraints = @UniqueConstraint(
                 name = "uk_fantasy_equipo_usuario_semana",
@@ -78,27 +83,6 @@ public class FantasyEquipo {
     void preUpdate() {
         updatedAt = LocalDateTime.now();
     }
-
-    public Long getId() { return id; }
-    public void setId(Long id) { this.id = id; }
-    public Usuario getUsuario() { return usuario; }
-    public void setUsuario(Usuario usuario) { this.usuario = usuario; }
-    public String getSemanaIso() { return semanaIso; }
-    public void setSemanaIso(String semanaIso) { this.semanaIso = semanaIso; }
-    public LocalDateTime getLockedAt() { return lockedAt; }
-    public void setLockedAt(LocalDateTime lockedAt) { this.lockedAt = lockedAt; }
-    public Integer getPuntos() { return puntos; }
-    public void setPuntos(Integer puntos) { this.puntos = puntos; }
-    public LocalDateTime getPuntosCalculadosAt() { return puntosCalculadosAt; }
-    public void setPuntosCalculadosAt(LocalDateTime puntosCalculadosAt) {
-        this.puntosCalculadosAt = puntosCalculadosAt;
-    }
-    public LocalDateTime getCreatedAt() { return createdAt; }
-    public void setCreatedAt(LocalDateTime createdAt) { this.createdAt = createdAt; }
-    public LocalDateTime getUpdatedAt() { return updatedAt; }
-    public void setUpdatedAt(LocalDateTime updatedAt) { this.updatedAt = updatedAt; }
-    public List<FantasyEquipoItem> getItems() { return items; }
-    public void setItems(List<FantasyEquipoItem> items) { this.items = items; }
 
     public boolean isLocked() {
         return lockedAt != null;

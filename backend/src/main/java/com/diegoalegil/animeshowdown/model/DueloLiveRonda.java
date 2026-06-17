@@ -2,6 +2,9 @@ package com.diegoalegil.animeshowdown.model;
 
 import java.time.LocalDateTime;
 
+import lombok.Getter;
+import lombok.Setter;
+
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
@@ -24,34 +27,42 @@ import jakarta.persistence.UniqueConstraint;
                 @Index(name = "idx_duelos_live_rondas_estado", columnList = "estado"),
                 @Index(name = "idx_duelos_live_rondas_cierra", columnList = "cierra_en")
         })
+@Getter
 public class DueloLiveRonda {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
+    @Setter
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "duelo_id", nullable = false)
     private DueloLive duelo;
 
+    @Setter
     @Column(nullable = false)
     private int numero;
 
+    @Setter
     @Enumerated(EnumType.STRING)
     @Column(nullable = false, length = 20)
     private DueloLiveRondaEstado estado = DueloLiveRondaEstado.IN_PROGRESS;
 
+    @Setter
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "personaje_a_id", nullable = false)
     private Personaje personajeA;
 
+    @Setter
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "personaje_b_id", nullable = false)
     private Personaje personajeB;
 
+    @Setter
     @Column(name = "abre_en", nullable = false)
     private LocalDateTime abreEn;
 
+    @Setter
     @Column(name = "cierra_en", nullable = false)
     private LocalDateTime cierraEn;
 
@@ -62,33 +73,42 @@ public class DueloLiveRonda {
     // ese tipo necesita una columna capaz de almacenar el valor más largo.
     // V25 dejó la columna VARCHAR(1) -> Hibernate ddl-auto=validate fallaba
     // contra Postgres real. V29 amplía a VARCHAR(10) y aquí alineamos.
+    @Setter
     @Enumerated(EnumType.STRING)
     @Column(name = "voto_jugador1", length = 10)
     private DueloLiveChoice votoJugador1;
 
+    @Setter
     @Enumerated(EnumType.STRING)
     @Column(name = "voto_jugador2", length = 10)
     private DueloLiveChoice votoJugador2;
 
+    @Setter
     @Column(name = "voto_jugador1_en")
     private LocalDateTime votoJugador1En;
 
+    @Setter
     @Column(name = "voto_jugador2_en")
     private LocalDateTime votoJugador2En;
 
+    @Setter
     @Enumerated(EnumType.STRING)
     @Column(name = "eleccion_correcta", length = 8)
     private DueloLiveChoice eleccionCorrecta;
 
+    @Setter
     @Column(name = "jugador1_acerto")
     private Boolean jugador1Acerto;
 
+    @Setter
     @Column(name = "jugador2_acerto")
     private Boolean jugador2Acerto;
 
+    @Setter
     @Column(name = "decision_ms")
     private Long decisionMs;
 
+    @Setter
     @Column(name = "cerrada_en")
     private LocalDateTime cerradaEn;
 
@@ -107,38 +127,4 @@ public class DueloLiveRonda {
     public boolean ambosVotaron(boolean bot) {
         return votoJugador1 != null && (bot || votoJugador2 != null);
     }
-
-    public Long getId() { return id; }
-    public DueloLive getDuelo() { return duelo; }
-    public void setDuelo(DueloLive duelo) { this.duelo = duelo; }
-    public int getNumero() { return numero; }
-    public void setNumero(int numero) { this.numero = numero; }
-    public DueloLiveRondaEstado getEstado() { return estado; }
-    public void setEstado(DueloLiveRondaEstado estado) { this.estado = estado; }
-    public Personaje getPersonajeA() { return personajeA; }
-    public void setPersonajeA(Personaje personajeA) { this.personajeA = personajeA; }
-    public Personaje getPersonajeB() { return personajeB; }
-    public void setPersonajeB(Personaje personajeB) { this.personajeB = personajeB; }
-    public LocalDateTime getAbreEn() { return abreEn; }
-    public void setAbreEn(LocalDateTime abreEn) { this.abreEn = abreEn; }
-    public LocalDateTime getCierraEn() { return cierraEn; }
-    public void setCierraEn(LocalDateTime cierraEn) { this.cierraEn = cierraEn; }
-    public DueloLiveChoice getVotoJugador1() { return votoJugador1; }
-    public void setVotoJugador1(DueloLiveChoice votoJugador1) { this.votoJugador1 = votoJugador1; }
-    public DueloLiveChoice getVotoJugador2() { return votoJugador2; }
-    public void setVotoJugador2(DueloLiveChoice votoJugador2) { this.votoJugador2 = votoJugador2; }
-    public LocalDateTime getVotoJugador1En() { return votoJugador1En; }
-    public void setVotoJugador1En(LocalDateTime votoJugador1En) { this.votoJugador1En = votoJugador1En; }
-    public LocalDateTime getVotoJugador2En() { return votoJugador2En; }
-    public void setVotoJugador2En(LocalDateTime votoJugador2En) { this.votoJugador2En = votoJugador2En; }
-    public DueloLiveChoice getEleccionCorrecta() { return eleccionCorrecta; }
-    public void setEleccionCorrecta(DueloLiveChoice eleccionCorrecta) { this.eleccionCorrecta = eleccionCorrecta; }
-    public Boolean getJugador1Acerto() { return jugador1Acerto; }
-    public void setJugador1Acerto(Boolean jugador1Acerto) { this.jugador1Acerto = jugador1Acerto; }
-    public Boolean getJugador2Acerto() { return jugador2Acerto; }
-    public void setJugador2Acerto(Boolean jugador2Acerto) { this.jugador2Acerto = jugador2Acerto; }
-    public Long getDecisionMs() { return decisionMs; }
-    public void setDecisionMs(Long decisionMs) { this.decisionMs = decisionMs; }
-    public LocalDateTime getCerradaEn() { return cerradaEn; }
-    public void setCerradaEn(LocalDateTime cerradaEn) { this.cerradaEn = cerradaEn; }
 }
