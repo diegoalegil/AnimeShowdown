@@ -1,0 +1,182 @@
+/*
+ * observatory.css — estilos de feature del Observatorio del meta. Todos los
+ * @keyframes viven aqui (CSP por hash: cero estilos inyectados en runtime).
+ * Cero literales de color: solo tokens var(--color-*) y color-mix para alfas.
+ * Cero blur()/backdrop-blur ni filtros SVG vivos: el halo es un degradado
+ * pre-horneado y el latido es cross-fade de opacity (WebKit lo compone bien).
+ */
+
+.observatory {
+  position: relative;
+  width: 100%;
+  overflow: hidden;
+  background-color: var(--color-canvas);
+  border-radius: var(--radius-card);
+  border: 1px solid var(--color-border);
+}
+
+/* --- lienzo desplazable: el pan escribe el transform por ref (cero estado) --- */
+.observatory__viewport {
+  position: relative;
+  width: 100%;
+  height: clamp(420px, 64vh, 680px);
+  overflow: hidden;
+  touch-action: pan-y;
+  cursor: grab;
+}
+.observatory__viewport.is-grabbing {
+  cursor: grabbing;
+}
+.observatory__lienzo {
+  position: absolute;
+  inset: 0;
+  transform-origin: 0 0;
+  will-change: transform;
+}
+
+/* --- estrella ------------------------------------------------------------- */
+.sky-star {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: var(--tam, 24px);
+  height: var(--tam, 24px);
+  display: block;
+  border-radius: var(--radius-pill);
+  transform: translate(var(--x, 0), var(--y, 0)) translate(-50%, -50%);
+  /* La deriva del escrutador (cambio de --x/--y) transiciona; el pan NO toca
+     este transform (va en el lienzo padre), asi que no compite. */
+  transition: transform 600ms var(--ease-lift);
+  outline: none;
+}
+.sky-star:focus-visible {
+  outline: 2px solid var(--color-gold-bright);
+  outline-offset: 3px;
+}
+
+/* Cuerpo: lo que se enciende al entrar (fade + scale). El delay lo fija el
+   padre via --delay para el stagger por constelacion. */
+.sky-star__cuerpo {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  border-radius: var(--radius-pill);
+  animation: sky-encender 350ms var(--ease-lift) both;
+  animation-delay: var(--delay, 0ms);
+}
+
+/* Halo pre-horneado: degradado radial, opacity por brillo (ELO). Sin blur. */
+.sky-star__halo {
+  position: absolute;
+  inset: -55%;
+  border-radius: var(--radius-pill);
+  pointer-events: none;
+  opacity: calc(0.35 + var(--brillo, 0.7) * 0.45);
+  background: radial-gradient(
+    circle at center,
+    color-mix(in srgb, var(--color-gold-bright) 55%, transparent) 0%,
+    color-mix(in srgb, var(--color-gold) 22%, transparent) 38%,
+    transparent 70%
+  );
+}
+
+/* Disco: retrato circular del personaje con aro fino. */
+.sky-star__disco {
+  position: absolute;
+  inset: 0;
+  border-radius: var(--radius-pill);
+  overflow: hidden;
+  border: 1px solid var(--color-border-gold-subtle);
+  box-shadow: var(--shadow-elev-2);
+}
+.sky-star__img {
+  width: 100%;
+  height: 100%;
+}
+
+/* Estrella del propio usuario: aro oro vivo + etiqueta. */
+.sky-star--tu .sky-star__disco {
+  border-color: var(--color-gold-bright);
+  border-width: 2px;
+}
+.sky-star__tu {
+  position: absolute;
+  left: 50%;
+  bottom: calc(var(--tam, 24px) * -0.05);
+  transform: translate(-50%, 100%);
+  font-family: var(--font-mono);
+  font-size: var(--text-2xs);
+  color: var(--color-gold-bright);
+  letter-spacing: 0.04em;
+  pointer-events: none;
+}
+
+/* Estela fugaz: solo en scrub real (cuando el padre monta el nodo). Un degradado
+   que apunta al origen del movimiento y se desvanece en una pasada. */
+.sky-star__estela {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: var(--largo, 0px);
+  height: 2px;
+  transform-origin: 0 50%;
+  transform: rotate(var(--angulo, 0rad));
+  pointer-events: none;
+  border-radius: var(--radius-pill);
+  background: linear-gradient(
+    90deg,
+    color-mix(in srgb, var(--color-gold-bright) 70%, transparent) 0%,
+    transparent 100%
+  );
+  animation: sky-estela 800ms var(--ease-lift) both;
+}
+
+/* --- keyframes ------------------------------------------------------------ */
+@keyframes sky-encender {
+  from {
+    opacity: 0;
+    transform: scale(0.6);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+@keyframes sky-estela {
+  0% {
+    opacity: 0;
+    transform: rotate(var(--angulo, 0rad)) scaleX(0.2);
+  }
+  35% {
+    opacity: 0.7;
+    transform: rotate(var(--angulo, 0rad)) scaleX(1);
+  }
+  100% {
+    opacity: 0;
+    transform: rotate(var(--angulo, 0rad)) scaleX(1);
+  }
+}
+
+/* --- reduced-motion / pausa fuera de viewport ----------------------------- */
+@media (prefers-reduced-motion: reduce) {
+  .sky-star {
+    transition: none;
+  }
+  .sky-star__cuerpo {
+    animation: sky-aparecer 220ms linear both;
+    animation-delay: var(--delay, 0ms);
+  }
+  .sky-star__estela {
+    display: none;
+  }
+}
+
+@keyframes sky-aparecer {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
