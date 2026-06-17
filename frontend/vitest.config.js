@@ -21,11 +21,10 @@ const __dirname = dirname(fileURLToPath(import.meta.url))
 //   quedan fuera de la métrica.
 
 export default defineConfig({
-  // Runtime JSX automático en los tests, igual que el build de la app
-  // (@vitejs/plugin-react). Sin esto, esbuild transforma el JSX con el runtime
-  // clásico y los tests de componente (.test.tsx) fallan con "React is not
-  // defined" al renderizar componentes que no importan React explícitamente.
-  esbuild: { jsx: 'automatic' },
+  // vitest 4 transforma el JSX con oxc (runtime automático por defecto), así que
+  // ya NO hace falta el antiguo `esbuild: { jsx: 'automatic' }` — v4 lo ignoraba
+  // con warning ("Both esbuild and oxc options were set"). Los tests de
+  // componente (.test.tsx) siguen renderizando sin importar React explícito.
   // Espejo del alias de vite.config.js: 'sonner' resuelve a DispatchToast.
   // Los tests con vi.mock('sonner') siguen interceptando por especificador.
   resolve: {
@@ -63,17 +62,18 @@ export default defineConfig({
         'src/test/**',
         'src/lib/types.ts',
       ],
-      // Thresholds calibrados contra la cobertura real medida tras los tests
-      // de api.ts:
-      // Global real: lines 85.76% / statements 85.76% / branches 88.25% / functions 49.71%.
-      // api.ts: lines 78.59% / branches 84.74% / functions 30.83% (many small endpoint-factory
-      // functions that need a full React context tree to exercise).
-      // Thresholds = real minus 5-point defensive margin.
+      // Thresholds calibrados contra la cobertura real medida — misma
+      // metodología de siempre (real menos ~5 puntos de margen defensivo),
+      // RECALIBRADA para vitest 4: v4 mide con oxc una superficie más amplia que
+      // v3 (cuenta más ficheros de coverage.include aunque no estén importados),
+      // así que las cifras globales bajan respecto a v3. Medición real v4:
+      // lines 77.74% / statements 76.96% / branches 69.07% / functions 59.38%.
+      // El gate sigue protegiendo regresiones, ahora sobre la superficie real.
       thresholds: {
-        lines: 80,
-        statements: 80,
-        branches: 83,
-        functions: 44,
+        lines: 72,
+        statements: 72,
+        branches: 64,
+        functions: 54,
       },
     },
   },
