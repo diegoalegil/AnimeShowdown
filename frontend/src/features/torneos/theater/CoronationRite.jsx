@@ -74,7 +74,7 @@ export default function CoronationRite({ campeon }) {
         <div aria-hidden="true" style={{ height: 6, background: 'color-mix(in srgb,var(--color-gold) 40%, var(--color-canvas))', borderRadius: 3 }} />
         <div className="teatro-estandarte__tela" style={{ padding: '22px 18px 26px', textAlign: 'center', position: 'relative',
           clipPath: 'polygon(0 0, 100% 0, 100% 92%, 50% 100%, 0 92%)', border: '1px solid var(--color-border-gold-subtle)', borderTop: 'none' }}>
-          <p className="font-mono" style={{ margin: 0, fontSize: 10.5, letterSpacing: 1, color: 'var(--color-gold-pale)' }}>CAMPEÓN · 番付 第一位</p>
+          <p className="font-mono" style={{ margin: 0, fontSize: 10.5, letterSpacing: 1, color: 'var(--color-gold-pale)' }}>CAMPEÓN · <span lang="ja">番付 第一位</span></p>
 
           <div style={{ position: 'relative', width: 120, height: 120, margin: '10px auto 6px' }}>
             <span aria-hidden="true" className={play && !reduced ? 'teatro-sangrado teatro-sangrado--play' : ''}

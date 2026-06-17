@@ -45,6 +45,15 @@ export default function HanabiBurst({ celebrar = false, layout, reduce = false }
       b.classList.remove('is-firing')
       void b.offsetWidth // reflow -> reinicia la animacion de una pasada (pool reusado)
       b.classList.add('is-firing')
+      // Retira is-firing al terminar el viaje de la particula (la animacion mas
+      // larga del burst), para que el will-change de festival.css no deje capas
+      // de compositor colgadas en reposo. Las particulas de un burst comparten
+      // delay+duracion -> terminan a la vez; { once } limpia tras el primer fly.
+      b.addEventListener(
+        'animationend',
+        (e) => { if (e.animationName === 'fest-hanabi-fly') b.classList.remove('is-firing') },
+        { once: true },
+      )
     })
   }, [celebrar, reduce])
 

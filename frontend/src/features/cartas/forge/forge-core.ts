@@ -101,7 +101,6 @@ export function intensityForStrike(next: number): number {
 export interface SparkVector {
   x: number
   y: number
-  size: number
   delay: number
   spin: number
 }
@@ -120,7 +119,6 @@ export function sparkVectors(): SparkVector[] {
     out.push({
       x: Math.cos(rad) * dist,
       y: Math.sin(rad) * dist, // negativo = sube
-      size: 4 + (i % 4),
       delay: (i % 8) * 9,
       spin: (i % 2 ? 1 : -1) * (120 + ((i * 23) % 160)),
     })

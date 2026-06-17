@@ -13,8 +13,8 @@
      hanko (ease-stamp) NO es token global -> se declara local abajo.
    · Velocidad global escalable por el panel de director: --fest-speed (1 = real,
      5 = camara lenta). Toda duracion se multiplica por el.
-   · Loops decorativos se pausan con: html.as-calm, html.as-tab-hidden (global),
-     .fest[data-reduce] y .fest-lantern-row.is-offscreen (IntersectionObserver).
+   · Loops decorativos se pausan con: html.as-calm, html.as-tab-hidden (global) y
+     .fest[data-reduce]. No hay pausa por scroll: la escenografia es position:fixed.
    ============================================================================= */
 
 .fest {
@@ -323,13 +323,6 @@
     opacity calc(var(--fest-speed) * 350ms) var(--ease-lift),
     transform calc(var(--fest-speed) * 350ms) var(--ease-lift);
 }
-/* Ya revelado (re-render posterior): visible al instante, sin re-animar. */
-.fest-stall.is-shown { opacity: 1; transform: none; transition: none; }
-@keyframes fest-rise {
-  from { opacity: 0; transform: translate3d(0, 22px, 0); }
-  to   { opacity: 1; transform: translate3d(0, 0, 0); }
-}
-
 /* Toldo (awning): franjas. Carmesi y oro ALTERNADOS por el componente. */
 .fest-stall__toldo {
   position: relative;
@@ -501,7 +494,7 @@
   box-shadow: var(--shadow-aura-sm);
   --aura-color: color-mix(in srgb, var(--color-gold) 60%, transparent);
   /* Sin transicion en reposo: las piedras YA alcanzadas estan encendidas al
-     montar (sin ceremonia). SOLO el hito nuevo anima, via .is-igniting. */
+     montar (sin ceremonia). */
   opacity: 0;
 }
 .fest-stone__num {
@@ -512,15 +505,6 @@
 .fest-stone.is-on .fest-stone__num {
   color: color-mix(in srgb, var(--color-canvas) 70%, var(--color-gold));
   font-weight: 700;
-}
-/* Encendido NUEVO: pequeño overshoot del brillo (una pasada). */
-.fest-stone.is-igniting .fest-stone__lit {
-  animation: fest-stone-ignite calc(var(--fest-speed) * 500ms) var(--ease-stamp) both;
-}
-@keyframes fest-stone-ignite {
-  0%   { opacity: 0; transform: scale(0.9); }
-  60%  { opacity: 1; transform: scale(1.08); }
-  100% { opacity: 1; transform: scale(1); }
 }
 
 /* ====================================================== HANABI (fuegos) pool */
@@ -800,12 +784,6 @@
   .fest-moon { width: 7rem; top: 1.5rem; right: 1rem; }
   .fest-path::before { width: 2.4rem; }
 }
-/* Cuando el director fuerza 390px, el contenedor lleva [data-w390]. */
-.fest[data-w390] .fest-lantern-row--back,
-.fest[data-w390] .fest-lantern-row--mid { display: none; }
-.fest[data-w390] .fest-lantern-row--front { justify-content: space-between; padding: 0 1rem; }
-.fest[data-w390] .fest-scroll { padding-top: clamp(9rem, 24vh, 12rem); }
-.fest[data-w390] .fest-moon { width: 7rem; top: 1.5rem; right: 1rem; }
 
 /* ================================================ REDUCED-MOTION / CALMA */
 
@@ -829,13 +807,8 @@ html.as-calm .fest-lantern-row.is-lit .fest-lantern__glow {
   transition: none !important;
 }
 .fest[data-reduce] .fest-stall { animation: none !important; transition: none !important; opacity: 1; transform: none; }
-.fest[data-reduce] .fest-stone.is-igniting .fest-stone__lit { animation: none !important; opacity: 1; }
 .fest[data-reduce] .fest-burst .fest-particle,
 .fest[data-reduce] .fest-burst__core { animation: none !important; opacity: 0 !important; }
-
-/* Loops pausados fuera de viewport (IntersectionObserver propio). */
-.fest-lantern-row.is-offscreen .fest-lantern__glow { animation-play-state: paused; }
-.fest-moon.is-offscreen .fest-moon__halo { animation-play-state: paused; }
 
 @media (prefers-reduced-motion: reduce) {
   .fest-moon__halo,
@@ -845,7 +818,6 @@ html.as-calm .fest-lantern-row.is-lit .fest-lantern__glow {
   .fest-lantern__glow { transition: none !important; }
   .fest-stone__lit,
   .fest-stone__num { transition: none !important; }
-  .fest-stone.is-igniting .fest-stone__lit { animation: none !important; opacity: 1; }
   .fest-burst .fest-particle,
   .fest-burst__core { animation: none !important; opacity: 0 !important; }
   .fest-cta { transition: none !important; }

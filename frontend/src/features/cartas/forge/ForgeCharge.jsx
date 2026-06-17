@@ -26,13 +26,11 @@ import './forge.css'
  *
  * @param {Object} props
  * @param {number} props.blows   Golpes necesarios para romper (2..5, de forge-core).
- * @param {('special'|'top')} props.level  Nivel del sobre (afecta el flash/heat final).
  * @param {boolean} props.reduceMotion  Camino "seco": grietas instantáneas, sin
  *        chispas/sacudida, brasas estáticas, aterriza rápido en el revelado.
  * @param {() => void} props.onBreak  Se invoca UNA vez al romper -> startReveal.
- * @param {() => void} [props.onAnnounce]  Opcional: aria-live extra del padre.
  */
-export default function ForgeCharge({ blows, level = 'top', reduceMotion = false, onBreak }) {
+export default function ForgeCharge({ blows, reduceMotion = false, onBreak }) {
   const { play, warm } = useSound()
 
   const [phase, setPhase] = useState(reduceMotion ? 'striking' : 'arrival')
@@ -163,7 +161,7 @@ export default function ForgeCharge({ blows, level = 'top', reduceMotion = false
   return (
     <div
       ref={rootRef}
-      className={`forge${reduceMotion ? ' as-calm' : ''}${offscreen ? ' is-offscreen' : ''} forge--${level}`}
+      className={`forge${reduceMotion ? ' as-calm' : ''}${offscreen ? ' is-offscreen' : ''}`}
       data-phase={phase}
       data-heat={heat}
     >
@@ -180,7 +178,7 @@ export default function ForgeCharge({ blows, level = 'top', reduceMotion = false
       <div className="forge__stage">
         {/* 火 canónico en el kicker (la canvas usaba un kanji "forjar" fuera del subset). */}
         <div className="forge__kicker">
-          La forja de sobres <span className="forge__kicker-jp">火</span>
+          La forja de sobres <span className="forge__kicker-jp" lang="ja" aria-hidden="true">火</span>
         </div>
 
         <div className="forge__anvil" aria-hidden="true">

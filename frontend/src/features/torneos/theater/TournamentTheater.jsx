@@ -78,7 +78,7 @@ export default function TournamentTheater({ torneo, enfrentamientos, children, h
   const [speed, setSpeed] = useState(1)
   const [cut, setCut] = useState(false)
   const overlayRef = useRef(null)
-  const prevFocusRef = useRef(null)
+  const ctrlBtnRef = useRef(null)
 
   // ── Acto 0 al montar. SIEMPRE vía callbacks de setTimeout (jamás setState
   // síncrono en el cuerpo del effect — lo prohíbe react-hooks/set-state-in-effect
@@ -122,8 +122,10 @@ export default function TournamentTheater({ torneo, enfrentamientos, children, h
   }, [playing, step, modo, speed, reduced, total])
 
   // ── Foco del overlay (WCAG 2.4.3): al abrir la función movemos el foco a la
-  // región; al salir lo restaura el handler `salir`. rAF para no enfocar de
-  // forma síncrona en el cuerpo del effect. ──
+  // región; al salir lo restaura `salir` enfocando el botón "ver la función"
+  // RECIÉN REMONTADO (no el nodo viejo, que el desmontaje del ControlBar deja
+  // detached → el foco caería al <body>). rAF para no enfocar de forma síncrona
+  // en el cuerpo del effect. ──
   useEffect(() => {
     if (modo !== 'funcion') return undefined
     const el = overlayRef.current
@@ -133,9 +135,13 @@ export default function TournamentTheater({ torneo, enfrentamientos, children, h
   }, [modo])
 
   // ── Pausa de loops decorativos fuera del viewport (faroles/cian) ──
+  // Observamos el HEADER del proscenio (donde viven los halos de los faroles),
+  // no la raíz .teatro que enmarca toda la página: si observáramos la raíz,
+  // siempre intersectaría y `.is-offscreen` nunca se activaría al scrollear.
   const rootRef = useRef(null)
+  const prosceniioRef = useRef(null)
   useEffect(() => {
-    const el = rootRef.current
+    const el = prosceniioRef.current
     if (!el || typeof IntersectionObserver !== 'function') return undefined
     const io = new IntersectionObserver(([e]) => el.classList.toggle('is-offscreen', !e.isIntersecting), { threshold: 0 })
     io.observe(el)
@@ -161,13 +167,12 @@ export default function TournamentTheater({ torneo, enfrentamientos, children, h
   // Solo abrimos la función si hay algo que representar (cuadro + ≥1 duelo).
   const puedeVerFuncion = finished && hasRounds && total > 0
   const verLaFuncion = () => {
-    prevFocusRef.current = typeof document !== 'undefined' ? document.activeElement : null
     setModo('funcion'); setStep(0); setPlaying(true); play('playClack')
   }
   const salir = () => {
     setModo('bracket'); setPlaying(false)
-    const el = prevFocusRef.current
-    if (el && typeof el.focus === 'function') requestAnimationFrame(() => el.focus())
+    // rAF corre tras el commit del remount del ControlBar → el botón existe.
+    requestAnimationFrame(() => ctrlBtnRef.current?.focus())
   }
   const onStep = (v) => { setPlaying(false); setStep(v) }
 
@@ -176,7 +181,7 @@ export default function TournamentTheater({ torneo, enfrentamientos, children, h
       <span className="teatro-watermark" aria-hidden="true" lang="ja"
         style={{ position: 'absolute', right: '3%', top: 80, fontSize: 'clamp(8rem, 22vw, 20rem)', fontWeight: 900, zIndex: 0, lineHeight: 1 }}>戦</span>
 
-      <Proscenio torneo={torneo} lanterns={lanterns} title={title} reduced={reduced} scheduled={scheduled} mobile={mobile} />
+      <Proscenio torneo={torneo} lanterns={lanterns} title={title} reduced={reduced} scheduled={scheduled} mobile={mobile} headerRef={prosceniioRef} />
 
       {scheduled && (
         <div style={{ position: 'relative', zIndex: 1, overflow: 'hidden', marginTop: 14, borderRadius: 'var(--radius-card)',
@@ -190,7 +195,7 @@ export default function TournamentTheater({ torneo, enfrentamientos, children, h
       {/* Control de la función (solo FINISHED con cuadro representable). */}
       {puedeVerFuncion && (
         <div style={{ position: 'relative', zIndex: 3, margin: mobile ? '14px 0' : '16px 0 18px' }}>
-          {modo === 'bracket' && <ControlBar onPlay={verLaFuncion} />}
+          {modo === 'bracket' && <ControlBar onPlay={verLaFuncion} btnRef={ctrlBtnRef} />}
         </div>
       )}
 
@@ -244,7 +249,7 @@ function FuncionOverlay({ overlayRef, derived, layout, guion, step, playing, spe
             de accesibilidad los rollos tapados (WCAG 2.4.3 / 1.3.2). */}
         <div inert={showCoronation || undefined} style={{ position: 'relative', zIndex: 1, overflow: mobile ? 'visible' : 'auto', paddingBottom: 8 }}>
           <ActRail derived={derived} layout={layout} modo="funcion" enter={false} act1Key={0}
-            cutId={cutId} cutActive={cut} liveRoundIdx={-1}
+            cutId={cutId} cutActive={cut && playing} liveRoundIdx={-1}
             reduced={reduced} mobile={mobile} hrefPersonaje={hrefPersonaje} />
         </div>
         {showCoronation && (
@@ -261,7 +266,7 @@ function FuncionOverlay({ overlayRef, derived, layout, guion, step, playing, spe
 }
 
 /** Proscenio = cabecera de la página. Contiene el ÚNICO <h1> y el microdata. */
-function Proscenio({ torneo, lanterns, title, reduced, scheduled, mobile }) {
+function Proscenio({ torneo, lanterns, title, reduced, scheduled, mobile, headerRef }) {
   const corteCls = (title && !reduced && !scheduled) ? 'teatro-corte teatro-corte--play' : 'teatro-corte'
   const badge = getEstadoBadge(torneo.estado)
   const fechaInicioDate = parseDateSafe(torneo.fechaInicio)
@@ -270,7 +275,7 @@ function Proscenio({ torneo, lanterns, title, reduced, scheduled, mobile }) {
   const fechaFinFmt = formatDateSafe(torneo.fechaFinalizacion, { day: 'numeric', month: 'short', year: 'numeric' })
   const canonical = `https://animeshowdown.dev/torneos/${torneo.slug}`
   return (
-    <header style={{ position: 'relative', zIndex: 2, padding: mobile ? '12px 14px 16px' : '16px 26px 22px',
+    <header ref={headerRef} style={{ position: 'relative', zIndex: 2, padding: mobile ? '12px 14px 16px' : '16px 26px 22px',
       borderRadius: 'var(--radius-card) var(--radius-card) 0 0',
       background: 'linear-gradient(180deg, color-mix(in srgb,var(--color-gold) 16%, var(--color-canvas)), color-mix(in srgb,var(--color-accent) 24%, var(--color-canvas)) 60%, var(--color-canvas))',
       borderBottom: '2px solid color-mix(in srgb,var(--color-gold) 40%, transparent)',
@@ -282,7 +287,7 @@ function Proscenio({ torneo, lanterns, title, reduced, scheduled, mobile }) {
       <div style={{ display: 'flex', alignItems: 'center', gap: mobile ? 10 : 22 }}>
         {!mobile && <Lantern on={lanterns} offset={0} />}
         <div style={{ flex: 1, textAlign: 'center', position: 'relative', minWidth: 0 }}>
-          <p className="font-mono" style={{ margin: 0, fontSize: mobile ? 9 : 10.5, letterSpacing: 2, color: 'var(--color-gold-pale)' }}>番付 · la función del torneo</p>
+          <p className="font-mono" style={{ margin: 0, fontSize: mobile ? 9 : 10.5, letterSpacing: 2, color: 'var(--color-gold-pale)' }}><span lang="ja">番付</span> · la función del torneo</p>
           <div style={{ position: 'relative', display: 'inline-block', maxWidth: '100%' }}>
             <h1 itemProp="name" className="font-display" style={{ margin: '2px 0 0', fontSize: mobile ? 22 : 'clamp(26px, 4vw, 42px)', fontWeight: 900, lineHeight: 1.05,
               color: 'var(--color-gold-bright)', textShadow: '0 1px 0 color-mix(in srgb,var(--color-canvas) 80%,transparent), 0 -1px 1px color-mix(in srgb,var(--color-canvas) 60%,transparent)' }}>
@@ -363,7 +368,7 @@ function Telon({ abre, overBody = false }) {
 }
 
 /** Barra de control "遊 ver la función" (solo FINISHED, fuera del overlay). */
-function ControlBar({ onPlay }) {
+function ControlBar({ onPlay, btnRef }) {
   return (
     <div style={{ display: 'flex', alignItems: 'center', gap: 12, flexWrap: 'wrap', justifyContent: 'space-between', padding: '12px 16px',
       borderRadius: 'var(--radius-card)', border: '1px solid color-mix(in srgb,var(--color-gold) 14%,transparent)', background: 'var(--color-surface)' }}>
@@ -373,7 +378,7 @@ function ControlBar({ onPlay }) {
           Torneo terminado · la obra puede representarse de principio a fin.
         </span>
       </div>
-      <button type="button" onClick={onPlay}
+      <button type="button" ref={btnRef} onClick={onPlay}
         style={{ display: 'inline-flex', alignItems: 'center', gap: 8, minHeight: 44, padding: '0 18px', borderRadius: 'var(--radius-lg)', cursor: 'pointer',
           fontSize: 14, fontWeight: 800, color: 'var(--color-fg-strong)', border: '1px solid color-mix(in srgb,var(--color-gold) 30%,transparent)',
           background: 'linear-gradient(180deg, var(--color-accent-hover), var(--color-accent))',

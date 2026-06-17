@@ -62,7 +62,7 @@ const PLEAT_META = {
  * @param {{votosPeriodoActual:number, votosPeriodoAnterior:number, delta:number}} [props.votosPeriodo]
  * @param {boolean} [props.skipEntrance]  Forzar abierto sin coreografía. Si se
  *   omite, se decide con el gate de sesión (consumirSkipEntrance).
- * @param {(rivalSlug?:string)=>void} [props.onRetar]  CTA "retar" (→ /votar).
+ * @param {()=>void} [props.onRetar]  CTA "retar" (→ /votar).
  * @returns {JSX.Element}
  */
 export default function FighterCodex({
@@ -256,7 +256,11 @@ export default function FighterCodex({
       }
       const key = PLIEGOS[i]
       selectPleat(key, { focusPanel: false })
-      window.setTimeout(() => bookmarkRefs.current[key]?.focus(), 20)
+      // Registrar el timer en switchTimers para que el cleanup del effect de
+      // desmontaje (más abajo) lo cancele y no se ejecute sobre un ref ya nulo.
+      switchTimers.current.push(
+        window.setTimeout(() => bookmarkRefs.current[key]?.focus(), 20),
+      )
     },
     [activePleat, selectPleat],
   )
@@ -382,10 +386,17 @@ export default function FighterCodex({
               key={key}
               ref={(el) => (bookmarkRefs.current[key] = el)}
               id={`codex-tab-${key}-${uid}`}
-              controls={`codex-panel-${key}-${uid}`}
+              // aria-controls SOLO en el tab seleccionado: es el único cuyo
+              // tabpanel se renderiza (panel perezoso, patrón APG). Apuntar a
+              // paneles inexistentes desde los tabs inactivos dejaba 3 IDREF
+              // colgantes que los lectores de pantalla no podían resolver.
+              controls={activePleat === key ? `codex-panel-${key}-${uid}` : undefined}
               kanji={PLEAT_META[key].kanji}
               title={PLEAT_META[key].title}
               selected={activePleat === key}
+              // Móvil (orientación horizontal, <640px): tabs solo-kanji para no
+              // desbordar las etiquetas bajo `.codex{overflow:hidden}`.
+              compact={tabOrientation === 'horizontal'}
               enterIndex={i}
               onKeyDown={onTabKey}
               onSelect={() => selectPleat(key)}

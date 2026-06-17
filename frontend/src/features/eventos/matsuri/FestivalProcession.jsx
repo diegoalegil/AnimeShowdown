@@ -54,8 +54,10 @@ function LanternRow({ tier, count, rowRef }) {
  * lo emite un nodo aria-live de aqui, una sola vez.
  *
  * Perf/Safari: solo transform/opacity; cero blur/backdrop-filter; loops pausados
- * con reduced-motion, html.as-calm/as-tab-hidden y fuera de viewport
- * (IntersectionObserver propio). La luna es un gradiente.
+ * con reduced-motion y html.as-calm/as-tab-hidden (global). No hay pausa propia
+ * por scroll: la escenografia vive en un backdrop position:fixed que nunca sale
+ * del viewport, asi que un IntersectionObserver sobre la pieza seria inoperante.
+ * La luna es un gradiente.
  *
  * @param {object} props
  * @param {'ACTIVO'|'PROXIMO'|'PASADO'} props.estado  estado REAL del evento
@@ -106,23 +108,6 @@ export default function FestivalProcession({ estado, header, milestones, childre
       if (raf) cancelAnimationFrame(raf)
     }
   }, [reduce])
-
-  /* ---- Pausa de loops decorativos fuera de viewport (IntersectionObserver
-       propio). html.as-calm/as-tab-hidden ya los pausan globalmente. ---- */
-  useEffect(() => {
-    const el = stageRef.current
-    if (!el || typeof IntersectionObserver !== 'function') return undefined
-    const io = new IntersectionObserver(
-      (entries) => {
-        const off = !entries[0]?.isIntersecting
-        el.querySelectorAll('.fest-lantern-row').forEach((r) => r.classList.toggle('is-offscreen', off))
-        el.querySelector('.fest-moon')?.classList.toggle('is-offscreen', off)
-      },
-      { rootMargin: '0px' },
-    )
-    io.observe(el)
-    return () => io.disconnect()
-  }, [])
 
   /* ---- Anuncio AT + campanilla de la hanabi de entrada: una sola vez si esta
        ACTIVO. El texto entra DESPUES del montaje (effect), para que aria-live

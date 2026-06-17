@@ -11,7 +11,9 @@ import './codex.css'
  *
  * @param {object} props
  * @param {string} props.id        id del tab (`aria-controls` apunta al panel).
- * @param {string} props.controls  id del tabpanel asociado.
+ * @param {string} [props.controls]  id del tabpanel asociado. Solo el tab
+ *   seleccionado lo pasa (su panel es el único renderizado, patrón APG); en los
+ *   inactivos es `undefined` y React omite el atributo `aria-controls`.
  * @param {string} props.kanji     Glifo del marcapáginas (戦 / 史 / 対 / 炎).
  * @param {string} props.title     Etiqueta de texto (oculta en 390px).
  * @param {boolean} props.selected

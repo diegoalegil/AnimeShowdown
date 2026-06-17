@@ -22,7 +22,7 @@ import PersonajeImg from '../../../components/PersonajeImg'
  *   imagenColorDominante?:string}, wins:number, losses:number}>} [props.matchups]
  *   Agregado de /api/personajes/:slug/matchups (mismas claves wins/losses que
  *   HistorialCompetitivo). Vacío ⇒ páginas en blanco.
- * @param {(rivalSlug?:string)=>void} [props.onRetar]  Click del CTA / "retar".
+ * @param {()=>void} [props.onRetar]  Click del CTA / "retar".
  * @returns {JSX.Element}
  */
 export default function FacingPages({ personaje, matchups = [], onRetar }) {
@@ -122,6 +122,12 @@ export default function FacingPages({ personaje, matchups = [], onRetar }) {
           Siguiente ›
         </button>
       </div>
+      {/* Feedback de lector de pantalla: el par de retratos y los puntos son
+          aria-hidden, así que sin esta región el cambio de rival no se anuncia.
+          Se recalcula por render → el SR lee el rival actual al navegar. */}
+      <span className="sr-only" role="status" aria-live="polite">
+        {`${cur.rival.nombre}, rival ${safe + 1} de ${total}`}
+      </span>
     </div>
   )
 }

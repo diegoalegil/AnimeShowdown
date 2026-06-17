@@ -15,7 +15,6 @@ import { useEffect, useRef, useState } from 'react'
  * propio). Solo transform/opacity. prefers-reduced-motion -> aparece sin rise.
  *
  * @param {object} props
- * @param {'regla'|'actividad'|'recompensa'|'texto'} props.tipo
  * @param {string} props.titulo  rotulo decorativo de la tablilla
  * @param {string} props.kanji  glifo de la tablilla (de festival-core KANJI_TIPO)
  * @param {string} props.etiqueta  etiqueta mono del tipo
@@ -77,7 +76,11 @@ export default function YataiStall({
         <span className="fest-stall__titulo">{titulo}</span>
         <span className="fest-stall__tipo">{etiqueta}</span>
       </div>
-      <div className="fest-stall__body">{children}</div>
+      {/* Puesto CERRADO (estado PROXIMO): el cuerpo real queda tras la persiana.
+          `inert` lo saca del orden de Tab y del arbol accesible para que los
+          <Link> ocultos no atrapen el foco ni sean activables (coherente con el
+          estado visual). El stall de Mision no tiene focusables: inocuo alli. */}
+      <div className="fest-stall__body" {...(cerrado ? { inert: true } : {})}>{children}</div>
       {cerrado && (
         <div className="fest-stall__shutter" aria-hidden="true">
           <span className="fest-stall__shutter-kanji">{'祭'}</span>

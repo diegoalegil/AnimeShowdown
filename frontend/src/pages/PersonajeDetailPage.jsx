@@ -400,6 +400,7 @@ function PersonajeDetailPage() {
             descripción, cita, historial competitivo, comentarios…) se conservan
             ÍNTEGRAS debajo, crawlables y con sus mismos hooks/props. */}
         <FighterCodex
+          key={slug}
           personaje={personaje}
           stats={stats}
           rankGlobal={rankGlobal}
@@ -410,12 +411,8 @@ function PersonajeDetailPage() {
           historial={codexHistorial}
           matchups={codexMatchups}
           votosPeriodo={votosPeriodo}
-          onRetar={(rivalSlug) =>
-            navigate(
-              rivalSlug
-                ? `/duelos/${personaje.slug}-vs-${rivalSlug}`
-                : `/votar?personaje=${encodeURIComponent(personaje.slug)}`,
-            )
+          onRetar={() =>
+            navigate(`/votar?personaje=${encodeURIComponent(personaje.slug)}`)
           }
         />
         {/* Detalle y acciones de la ficha: layout preexistente conservado al

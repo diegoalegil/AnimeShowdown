@@ -225,14 +225,6 @@
 .teatro-tacha--play { animation: teatro-tacha 420ms var(--ease-brush) forwards; }
 .teatro-tacha--set  { transform: scaleX(1); }
 
-/* Cortinilla lateral entre rondas (300ms). */
-@keyframes teatro-cortinilla {
-  0%   { transform: translateX(-101%); }
-  50%  { transform: translateX(0); }
-  100% { transform: translateX(101%); }
-}
-.teatro-cortinilla--play { animation: teatro-cortinilla 300ms var(--ease-brush) forwards; }
-
 /* ───────────────────────── CORONACIÓN ─────────────────────────────────────
    estandarte cae 550ms → sello 王 ease-stamp 380ms + sangrado →
    pan de oro 900ms (una pasada) → nombre trazado 800ms. */
@@ -280,6 +272,10 @@
   100% { transform: translate3d(var(--gx, 0), 92vh, 0) rotate(var(--gr, 220deg)) scale(var(--gs, 1)); opacity: 0; }
 }
 .teatro-panoro {
+  /* Sin will-change permanente: el pan de oro es UNA pasada corta de 900ms; el
+     navegador promueve y libera la capa solo (igual que .teatro-telon__hoja,
+     documentado arriba). Un hint estático dejaría 12 capas de compositor
+     colgadas en reposo durante toda la coronación. */
   position: absolute;
   top: 0;
   width: 10px;
@@ -287,7 +283,6 @@
   background: linear-gradient(135deg, var(--color-gold-pale), var(--color-gold-bright) 55%, var(--color-gold));
   opacity: 0;
   pointer-events: none;
-  will-change: transform, opacity;
 }
 .teatro-panoro--play {
   animation: teatro-panoro 900ms var(--teatro-panoro-ease, cubic-bezier(0.45, 0, 0.7, 1)) var(--gd, 0ms) forwards;
@@ -301,16 +296,9 @@
 }
 .teatro-nombre--play { animation: teatro-nombre-traza 800ms var(--ease-brush) var(--teatro-nombre-delay, 0ms) both; }
 
-/* 王 trazado trazo a trazo (KanjiStroke-style) — dash escalonado por path. */
-@keyframes teatro-stroke-draw {
-  from { stroke-dashoffset: 1; }
-  to   { stroke-dashoffset: 0; }
-}
-.teatro-kstroke path {
-  stroke-dasharray: 1;
-  stroke-dashoffset: 1;
-  animation: teatro-stroke-draw var(--teatro-stroke-ms, 420ms) var(--ease-brush) both;
-}
+/* El 王 lo traza el componente KanjiStroke (clases kanji-stroke /
+   kanji-stroke__path, con su propio @keyframes y reduced-motion). NO se traza
+   aquí: ningún nodo del teatro usa .teatro-kstroke. */
 
 /* ───────────────── Scrubber nativo de la función (slider) ─────────────────*/
 .teatro-scrub {
@@ -353,9 +341,14 @@
   pointer-events: none;
 }
 
-/* ─────────────────────── PAUSA de loops decorativos ───────────────────────*/
+/* ─────────────────────── PAUSA de loops decorativos ───────────────────────
+   Honra el contrato del header (línea 16): los dos loops infinitos
+   (faroles/cordón cian) se pausan bajo html.as-calm, html.as-tab-hidden y
+   .is-offscreen. Mismo patrón que index.css (toggle de calma global). */
 html.as-tab-hidden .teatro-farol__halo,
 html.as-tab-hidden .teatro-cian-glow,
+html.as-calm .teatro-farol__halo,
+html.as-calm .teatro-cian-glow,
 .is-offscreen .teatro-farol__halo,
 .is-offscreen .teatro-cian-glow {
   animation-play-state: paused !important;
@@ -375,13 +368,11 @@ html.as-tab-hidden .teatro-cian-glow,
   .teatro-cuerda, .teatro-cuerda--play { animation: none !important; stroke-dashoffset: 0 !important; }
   .teatro-cian-glow { animation: none !important; opacity: 0.7 !important; }
   .teatro-tacha--play { animation: none !important; transform: scaleX(1) !important; }
-  .teatro-cortinilla--play { animation: none !important; transform: translateX(101%) !important; }
   .teatro-estandarte--play { animation: none !important; transform: translateY(0) !important; }
   .teatro-sello--play { animation: none !important; opacity: 1 !important; transform: rotate(-8deg) !important; }
   .teatro-sangrado--play { animation: none !important; opacity: 0 !important; }
   .teatro-panoro--play { animation: none !important; opacity: 0 !important; }
   .teatro-nombre--play { animation: none !important; clip-path: inset(0 0 0 0) !important; }
-  .teatro-kstroke path { animation: none !important; stroke-dashoffset: 0 !important; }
 }
 /* Espejo del media query para el toggle "reduced-motion simulado" del director. */
 html.force-reduced .teatro-telon__hoja--izq { transform: translateX(-102%) !important; animation: none !important; }
@@ -393,10 +384,8 @@ html.force-reduced .teatro-emaki, html.force-reduced .teatro-emaki--play { anima
 html.force-reduced .teatro-cuerda, html.force-reduced .teatro-cuerda--play { animation: none !important; stroke-dashoffset: 0 !important; }
 html.force-reduced .teatro-cian-glow { animation: none !important; opacity: 0.7 !important; }
 html.force-reduced .teatro-tacha--play { animation: none !important; transform: scaleX(1) !important; }
-html.force-reduced .teatro-cortinilla--play { animation: none !important; transform: translateX(101%) !important; }
 html.force-reduced .teatro-estandarte--play { animation: none !important; transform: translateY(0) !important; }
 html.force-reduced .teatro-sello--play { animation: none !important; opacity: 1 !important; transform: rotate(-8deg) !important; }
 html.force-reduced .teatro-sangrado--play { animation: none !important; opacity: 0 !important; }
 html.force-reduced .teatro-panoro--play { animation: none !important; opacity: 0 !important; }
 html.force-reduced .teatro-nombre--play { animation: none !important; clip-path: inset(0 0 0 0) !important; }
-html.force-reduced .teatro-kstroke path { animation: none !important; stroke-dashoffset: 0 !important; }
