@@ -1,0 +1,110 @@
+/* ============================================================================
+   kumite.css — CSS de feature del KUMITE DE INICIACION (#122).
+   Lo importa el componente raiz (TrainingKumite); aqui viven TODOS los
+   @keyframes (CSP por hash: cero estilos en runtime). Reglas de la casa:
+   solo transform/opacity se animan (60fps), cero blur/backdrop-blur nuevos,
+   cero hex/rgb()/hsl() literal (ni en comentarios) — solo tokens var(--color-*)
+   y color-mix(in srgb, var(--token) N%, transparent) para alphas. Easings de la
+   casa: var(--ease-lift), var(--ease-brush).
+   ============================================================================ */
+
+/* ── El pergamino del sensei ──────────────────────────────────────────────
+   Lamina de superficie con canto dorado; en >=sm vive a un lado, a 390px se
+   vuelve banda superior. La entrada (corte + asiento) la disparan re-keys. */
+.kumite-sensei {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  padding: 1.25rem;
+  border-radius: 14px;
+  border: 1px solid var(--color-border-gold-subtle);
+  background:
+    linear-gradient(
+      180deg,
+      var(--color-surface-alt),
+      color-mix(in srgb, var(--color-surface) 92%, var(--color-gold) 8%)
+    );
+  transform-origin: 50% 100%;
+}
+
+.kumite-sensei__ordinal {
+  margin: 0;
+  font-size: 0.72rem;
+  letter-spacing: 0.04em;
+  color: color-mix(in srgb, var(--color-gold) 70%, transparent);
+}
+
+/* Contenedor del trazo: el kanji debajo, la tapa de tinta encima. */
+.kumite-sensei__trazo {
+  position: relative;
+  overflow: hidden;
+  align-self: flex-start;
+  line-height: 1;
+}
+
+.kumite-sensei__kanji {
+  display: block;
+  font-size: clamp(3.25rem, 11vw, 4.5rem);
+  font-weight: 800;
+  color: var(--color-gold-bright);
+}
+
+/* Corte de tinta: tapa que cubre el kanji y se retira hacia la derecha
+   (translateX, nitido), dejando ver el glifo de izquierda a derecha. Su canto
+   izquierdo es el filo dorado de la pincelada (borde, no sombra: no se escala).
+   Re-key por ejercicio => se reproduce una vez al cambiar de paso. */
+.kumite-sensei__cut {
+  position: absolute;
+  inset: 0;
+  background: var(--color-surface-alt);
+  border-left: 3px solid var(--color-gold-bright);
+  transform: translateX(0);
+  animation: kumite-cut 0.8s var(--ease-brush) forwards;
+}
+
+@keyframes kumite-cut {
+  from { transform: translateX(0); }
+  to { transform: translateX(105%); }
+}
+
+.kumite-sensei__titulo {
+  margin: 0.35rem 0 0;
+  font-size: 0.95rem;
+  font-weight: 800;
+  color: var(--color-fg-strong);
+}
+
+.kumite-sensei__concepto {
+  margin: 0;
+  font-size: 0.9rem;
+  line-height: 1.5;
+  color: var(--color-fg);
+}
+
+.kumite-sensei__instruccion {
+  margin: 0.15rem 0 0;
+  font-size: 0.84rem;
+  line-height: 1.45;
+  color: var(--color-fg-muted);
+}
+
+/* El sensei asiente (rota 2° y vuelve) con WAAPI desde SenseiScroll — gesto
+   one-shot por acierto, no un loop ni una clase CSS (evita setState en effect). */
+
+/* A 390px el pergamino es una banda superior compacta. */
+@media (max-width: 30rem) {
+  .kumite-sensei {
+    padding: 0.85rem 1rem;
+  }
+  .kumite-sensei__kanji {
+    font-size: clamp(2.5rem, 14vw, 3.25rem);
+  }
+}
+
+/* reduced-motion: el concepto aparece escrito; sin corte, sin asentir. */
+@media (prefers-reduced-motion: reduce) {
+  .kumite-sensei__cut {
+    display: none;
+  }
+}
