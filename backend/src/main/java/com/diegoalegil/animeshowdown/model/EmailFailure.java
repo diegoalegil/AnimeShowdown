@@ -11,6 +11,8 @@ import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.Index;
 import jakarta.persistence.Table;
+import lombok.Getter;
+import lombok.Setter;
 
 /**
  * Entrada en la dead letter queue cuando un email falló tras los 3
@@ -22,6 +24,8 @@ import jakarta.persistence.Table;
  * de esta iteración — por ahora solo listamos y observamos.
  */
 @Entity
+@Getter
+@Setter
 @Table(name = "email_failed_queue", indexes = {
         @Index(name = "idx_email_failed_ts", columnList = "ts"),
         @Index(name = "idx_email_failed_tipo", columnList = "tipo")
@@ -67,21 +71,4 @@ public class EmailFailure {
                 : errorMsg;
         this.ts = LocalDateTime.now();
     }
-
-    public Long getId() { return id; }
-    public void setId(Long id) { this.id = id; }
-    public LocalDateTime getTs() { return ts; }
-    public void setTs(LocalDateTime ts) { this.ts = ts; }
-    public String getDestinatario() { return destinatario; }
-    public void setDestinatario(String destinatario) { this.destinatario = destinatario; }
-    public String getAsunto() { return asunto; }
-    public void setAsunto(String asunto) { this.asunto = asunto; }
-    public String getContenido() { return contenido; }
-    public void setContenido(String contenido) { this.contenido = contenido; }
-    public String getErrorMsg() { return errorMsg; }
-    public void setErrorMsg(String errorMsg) { this.errorMsg = errorMsg; }
-    public EmailTipo getTipo() { return tipo; }
-    public void setTipo(EmailTipo tipo) { this.tipo = tipo; }
-    public boolean isReintentado() { return reintentado; }
-    public void setReintentado(boolean reintentado) { this.reintentado = reintentado; }
 }

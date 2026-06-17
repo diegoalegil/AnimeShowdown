@@ -42,7 +42,9 @@ function tierOf(streak) {
 /* ─── Llama SVG: gradiente carmesí→oro, flicker por framer-motion ─── */
 function FlameSvg({ tier, reduce }) {
   const isEmber = tier === "ember" || tier === "none";
-  const glowOpacity = { none: 0.15, ember: 0.35, flame: 0.55, double: 0.7 }[tier];
+  // A racha 0 la brasa aspiracional sube su brillo respecto a una pavesa
+  // muerta: visible y viva, pero por debajo de una racha real (ember 0.35).
+  const glowOpacity = { none: 0.28, ember: 0.35, flame: 0.55, double: 0.7 }[tier];
   const origin = { transformBox: "fill-box", originX: 0.5, originY: 1 };
 
   const flicker = (dur, dir = 1) =>
@@ -56,9 +58,10 @@ function FlameSvg({ tier, reduce }) {
           transition: { duration: dur, repeat: Infinity, ease: "easeInOut" },
         };
 
-  // La brasa no parpadea: respira lento
+  // La brasa respira lento — también a racha 0 (estado aspiracional: una
+  // brasa viva que invita a encenderla, no un pavesa muerta).
   const emberPulse =
-    reduce || !isEmber || tier === "none"
+    reduce || !isEmber
       ? {}
       : {
           animate: { scale: [1, 1.05, 1], opacity: [0.85, 1, 0.85] },
@@ -106,7 +109,7 @@ function FlameSvg({ tier, reduce }) {
         </g>
       )}
 
-      <g transform={TIER_TRANSFORM[tier]} opacity={tier === "none" ? 0.22 : 1}>
+      <g transform={TIER_TRANSFORM[tier]} opacity={tier === "none" ? 0.55 : 1}>
         <motion.g style={origin} {...flicker(1.9)} {...emberPulse}>
           <path d={OUTER} fill="url(#sf-flame)" />
           {isEmber ? (
@@ -158,6 +161,9 @@ export default function StreakFlame({
   const streak = Math.max(0, Math.round(streakDays));
   const tier = tierOf(streak);
   const danger = !playedToday && hoursLeft < 6 && streak > 0;
+  // Racha 0 → estado aspiracional (cuenta nueva o racha rota): la brasa
+  // invita a encender la primera llama hoy en vez de mostrar un hito frío.
+  const aspirational = streak === 0;
 
   // Onda de hito: una sola vez, al CRUZAR 3/7/14/30
   const prev = useRef(streak);
@@ -201,7 +207,9 @@ export default function StreakFlame({
           >
             続
           </span>
-          <span className="text-sm text-white/55">Racha actual</span>
+          <span className="text-sm text-white/55">
+            {aspirational ? "Tu racha" : "Racha actual"}
+          </span>
         </div>
         {danger && (
           <span className="font-mono text-xs" style={{ color: AMBER }}>
@@ -276,23 +284,34 @@ export default function StreakFlame({
         })}
       </div>
 
-      {/* Próximo hito */}
+      {/* Próximo hito · o, a racha 0, la invitación a encender la primera llama */}
       <footer className="mt-4">
-        <div className="flex items-center justify-between gap-3 font-mono text-xs">
-          <span className="text-white/55">
-            {next ? `Siguiente hito · ${next} días` : "Hito máximo alcanzado"}
-          </span>
-          <span className="text-gold">{next ? `faltan ${next - streak}` : "30+"}</span>
-        </div>
-        <div className="mt-2 h-[3px] overflow-hidden rounded-full bg-white/5">
-          <div
-            className="h-full rounded-full"
-            style={{
-              width: `${Math.max(streak > 0 ? 4 : 0, pct)}%`,
-              background: "linear-gradient(90deg, var(--color-accent), var(--color-gold))",
-            }}
-          />
-        </div>
+        {aspirational ? (
+          <p className="flex items-center justify-center gap-1.5 text-center font-mono text-xs text-gold">
+            <span aria-hidden="true" style={{ fontFamily: "var(--font-kanji-serif)" }}>
+              火
+            </span>
+            Empieza tu racha hoy · enciende la llama
+          </p>
+        ) : (
+          <>
+            <div className="flex items-center justify-between gap-3 font-mono text-xs">
+              <span className="text-white/55">
+                {next ? `Siguiente hito · ${next} días` : "Hito máximo alcanzado"}
+              </span>
+              <span className="text-gold">{next ? `faltan ${next - streak}` : "30+"}</span>
+            </div>
+            <div className="mt-2 h-[3px] overflow-hidden rounded-full bg-white/5">
+              <div
+                className="h-full rounded-full"
+                style={{
+                  width: `${Math.max(4, pct)}%`,
+                  background: "linear-gradient(90deg, var(--color-accent), var(--color-gold))",
+                }}
+              />
+            </div>
+          </>
+        )}
       </footer>
     </section>
   );

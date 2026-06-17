@@ -14,8 +14,9 @@ import { useSound } from '../../contexts/SoundContext'
  * @property {string} kanji         Kanji CON significado del tipo de misión (票 voto · 戦 juego · 覧 ver).
  * @property {string} label         Copy de la misión (p. ej. «Vota 10 duelos»).
  * @property {string} progress      Progreso ya formateado en mono («7/10 votos»). Lo formatea el caller.
- * @property {string} reward        Recompensa ya formateada en mono. ⚠ El catálogo de recompensas
- *                                  NO existe en el repo: este componente no lo inventa, lo recibe.
+ * @property {string} reward        Recompensa ya formateada en mono (p. ej. «+monedas»). La misión
+ *                                  diaria acredita monedas vía DropService; este componente no la
+ *                                  calcula: la recibe ya formateada y solo la muestra.
  * @property {'pending'|'claimable'|'completed'} state
  *                                  pending = sin lograr · claimable = lograda, botón-sello listo ·
  *                                  completed = reclamada (sello puesto).

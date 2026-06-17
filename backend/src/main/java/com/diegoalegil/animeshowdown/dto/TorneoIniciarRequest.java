@@ -14,22 +14,5 @@ import java.util.List;
  *
  * Sin @NotNull/@NotEmpty deliberadamente: el body entero es opcional.
  */
-public class TorneoIniciarRequest {
-
-    private List<Long> participantesIds;
-
-    public TorneoIniciarRequest() {
-    }
-
-    public TorneoIniciarRequest(List<Long> participantesIds) {
-        this.participantesIds = participantesIds;
-    }
-
-    public List<Long> getParticipantesIds() {
-        return participantesIds;
-    }
-
-    public void setParticipantesIds(List<Long> participantesIds) {
-        this.participantesIds = participantesIds;
-    }
+public record TorneoIniciarRequest(List<Long> participantesIds) {
 }

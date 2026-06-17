@@ -11,32 +11,41 @@ import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
+import lombok.Getter;
+import lombok.Setter;
 
 @Entity
 @Table(name = "sobre_apertura_item")
+@Getter
 public class SobreAperturaItem {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
+    @Setter
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
     @JoinColumn(name = "sobre_apertura_id", nullable = false)
     private SobreApertura sobre;
 
+    @Setter
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
     @JoinColumn(name = "carta_id", nullable = false)
     private Carta carta;
 
+    @Setter
     @Column(nullable = false)
     private int posicion;
 
+    @Setter
     @Column(nullable = false)
     private boolean nueva;
 
+    @Setter
     @Column(name = "recompensa_duplicado", nullable = false)
     private long recompensaDuplicado;
 
+    @Setter
     @Enumerated(EnumType.STRING)
     @Column(nullable = false, length = 16)
     private CartaClimax climax;
@@ -52,20 +61,4 @@ public class SobreAperturaItem {
         this.recompensaDuplicado = recompensaDuplicado;
         this.climax = climax;
     }
-
-    public Long getId() { return id; }
-    public SobreApertura getSobre() { return sobre; }
-    public void setSobre(SobreApertura sobre) { this.sobre = sobre; }
-    public Carta getCarta() { return carta; }
-    public void setCarta(Carta carta) { this.carta = carta; }
-    public int getPosicion() { return posicion; }
-    public void setPosicion(int posicion) { this.posicion = posicion; }
-    public boolean isNueva() { return nueva; }
-    public void setNueva(boolean nueva) { this.nueva = nueva; }
-    public long getRecompensaDuplicado() { return recompensaDuplicado; }
-    public void setRecompensaDuplicado(long recompensaDuplicado) {
-        this.recompensaDuplicado = recompensaDuplicado;
-    }
-    public CartaClimax getClimax() { return climax; }
-    public void setClimax(CartaClimax climax) { this.climax = climax; }
 }

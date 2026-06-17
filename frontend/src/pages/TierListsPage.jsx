@@ -800,7 +800,10 @@ function TierCard({ personaje, readOnly, isDragSource, landing, onPointerDown, o
       }
       transition={{ duration: 0.34, ease: EASE_LIFT }}
       style={{ transformOrigin: '50% 85%' }}
-      className={`group relative aspect-[2/3] w-[4.25rem] shrink-0 cursor-grab touch-pan-y overflow-hidden rounded-lg border border-white/10 bg-surface-alt transition-colors will-change-transform hover:border-gold/50 sm:w-[4.75rem] ${
+      // touch-none (no touch-pan-y): el motor de drag es 2D — mover una carta de
+      // un tier a otro es un gesto VERTICAL. Con pan-y el navegador reclama el
+      // eje Y para scroll y dispara pointercancel, rompiendo el arrastre en táctil.
+      className={`group relative aspect-[2/3] w-[4.25rem] shrink-0 cursor-grab touch-none overflow-hidden rounded-lg border border-white/10 bg-surface-alt transition-colors will-change-transform hover:border-gold/50 sm:w-[4.75rem] ${
         isDragSource ? 'opacity-25 grayscale' : ''
       }`}
     >

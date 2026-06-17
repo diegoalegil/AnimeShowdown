@@ -90,6 +90,9 @@ function HigherOrLowerGame() {
   const [picked, setPicked] = useState(null)
   const mountedRef = useRef(false)
   const revealTimerRef = useRef(null)
+  // Si el último acierto superó el récord previo. Se calcula en el handler (con
+  // el `best` anterior al bump) porque en render `best` ya está actualizado.
+  const [recordBeaten, setRecordBeaten] = useState(false)
   const round = roundOverride ?? initialRoundQuery.data ?? null
   const loadError = manualError || (initialRoundQuery.isError ? describeLoadError(initialRoundQuery.error) : '')
   const isLoading = isManualLoading || (!round && initialRoundQuery.isLoading)
@@ -100,6 +103,7 @@ function HigherOrLowerGame() {
       if (!mountedRef.current) return
       setRoundOverride(nextRound)
       setResult(null)
+      setRecordBeaten(false)
       setPicked(null)
       setGameOver(false)
       if (resetScore) setScore(0)
@@ -152,6 +156,7 @@ function HigherOrLowerGame() {
 
     if (guessResult.correct) {
       const newScore = score + 1
+      setRecordBeaten(newScore > best)
       setScore(newScore)
       if (newScore > best) {
         setBest(newScore)
@@ -164,6 +169,7 @@ function HigherOrLowerGame() {
         if (guessResult.nextRound) {
           setRoundOverride(guessResult.nextRound)
           setResult(null)
+          setRecordBeaten(false)
           setPicked(null)
         } else {
           loadRound()
@@ -311,6 +317,10 @@ function HigherOrLowerGame() {
                         outcome: result.correct ? 'win' : 'lose',
                         leftElo: result.referenceElo ?? round.referenceElo,
                         rightElo: result.challengerElo,
+                        // score ya es el valor post-acierto en este render.
+                        streakAfter: score,
+                        recordBeaten: result.correct && recordBeaten,
+                        recordAfter: Math.max(score, best),
                         resultId: round.roundToken,
                       }
                     : null
@@ -319,7 +329,7 @@ function HigherOrLowerGame() {
                   setPicked(side)
                   handleGuess(side === 'right')
                 }}
-                streak={score}
+                streak={result?.correct ? score - 1 : score}
                 disabled={isSubmitting || gameOver}
               />
             </motion.div>

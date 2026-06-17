@@ -9,6 +9,7 @@ import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
+import lombok.Getter;
 
 /**
  * Suscripción a newsletter. Double opt-in:
@@ -21,28 +22,35 @@ import jakarta.persistence.Table;
 @Table(name = "newsletter_subs")
 public class NewsletterSub {
 
+    @Getter
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
+    @Getter
     @Column(nullable = false, unique = true, length = 255)
     private String email;
 
     @Column(nullable = false)
     private Boolean confirmado = false;
 
+    @Getter
     @Column(name = "token_confirm", length = 64)
     private String tokenConfirm;
 
+    @Getter
     @Column(name = "token_unsubscribe", nullable = false, length = 64)
     private String tokenUnsubscribe;
 
+    @Getter
     @Column(name = "confirm_expira_en")
     private LocalDateTime confirmExpiraEn;
 
+    @Getter
     @Column(name = "fecha_alta", nullable = false)
     private LocalDateTime fechaAlta;
 
+    @Getter
     @Column(name = "fecha_confirmacion")
     private LocalDateTime fechaConfirmacion;
 
@@ -70,12 +78,5 @@ public class NewsletterSub {
         this.fechaConfirmacion = LocalDateTime.now();
     }
 
-    public Long getId() { return id; }
-    public String getEmail() { return email; }
     public boolean isConfirmado() { return Boolean.TRUE.equals(confirmado); }
-    public String getTokenConfirm() { return tokenConfirm; }
-    public String getTokenUnsubscribe() { return tokenUnsubscribe; }
-    public LocalDateTime getConfirmExpiraEn() { return confirmExpiraEn; }
-    public LocalDateTime getFechaAlta() { return fechaAlta; }
-    public LocalDateTime getFechaConfirmacion() { return fechaConfirmacion; }
 }

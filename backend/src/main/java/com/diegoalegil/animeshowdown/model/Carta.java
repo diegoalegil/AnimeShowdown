@@ -15,6 +15,8 @@ import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.PrePersist;
 import jakarta.persistence.Table;
+import lombok.Getter;
+import lombok.Setter;
 
 /**
  * Carta del catálogo coleccionable. Cada carta deriva de un {@link Personaje}
@@ -30,31 +32,38 @@ import jakarta.persistence.Table;
 @Table(name = "carta", indexes = {
         @Index(name = "idx_carta_rareza", columnList = "rareza")
 })
+@Getter
 public class Carta {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Setter
     private Long id;
 
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
     @JoinColumn(name = "personaje_id", nullable = false)
+    @Setter
     private Personaje personaje;
 
     @Enumerated(EnumType.STRING)
     @Column(nullable = false, length = 16)
+    @Setter
     private RarezaCarta rareza;
 
     /** True sólo para las ESPECIAL curadas a mano por el owner. */
     @Column(name = "especial_curada", nullable = false)
+    @Setter
     private boolean especialCurada = false;
 
     @Column(nullable = false, length = 64)
     private String variante = "";
 
     @Column(name = "arte_url", length = 500)
+    @Setter
     private String arteUrl;
 
     @Column(name = "creado_en", nullable = false)
+    @Setter
     private LocalDateTime creadoEn;
 
     public Carta() {
@@ -75,18 +84,5 @@ public class Carta {
         }
     }
 
-    public Long getId() { return id; }
-    public void setId(Long id) { this.id = id; }
-    public Personaje getPersonaje() { return personaje; }
-    public void setPersonaje(Personaje personaje) { this.personaje = personaje; }
-    public RarezaCarta getRareza() { return rareza; }
-    public void setRareza(RarezaCarta rareza) { this.rareza = rareza; }
-    public boolean isEspecialCurada() { return especialCurada; }
-    public void setEspecialCurada(boolean especialCurada) { this.especialCurada = especialCurada; }
-    public String getVariante() { return variante; }
     public void setVariante(String variante) { this.variante = variante != null ? variante : ""; }
-    public String getArteUrl() { return arteUrl; }
-    public void setArteUrl(String arteUrl) { this.arteUrl = arteUrl; }
-    public LocalDateTime getCreadoEn() { return creadoEn; }
-    public void setCreadoEn(LocalDateTime creadoEn) { this.creadoEn = creadoEn; }
 }

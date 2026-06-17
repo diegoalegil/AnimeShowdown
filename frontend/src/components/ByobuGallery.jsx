@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
-import { playClack, playWhoosh } from '../lib/sounds';
+import { useSoundOptional } from '../contexts/SoundContext';
 import './byobu-gallery.css';
 
 /* Tiempos exactos de la coreografía (ver notas de handoff). */
@@ -61,8 +61,9 @@ function SkeletonStrip({ count, note }) {
  * bisagras, teclado y swipe. Hotlink-protection: referrerPolicy="no-referrer"
  * en miniaturas, visor y prefetch; si una lámina falla, panel en papel.
  *
- * Sonido: playWhoosh (abrir/cerrar) y playClack (navegar) de lib/sounds —
- * respetan el mute global vía SoundContext.
+ * Sonido: playWhoosh (abrir/cerrar) y playClack (navegar) de lib/sounds,
+ * disparados vía SoundContext.play() (useSoundOptional) para respetar el mute
+ * global; fuera del provider el play() es no-op y no truena.
  *
  * @param {object} props
  * @param {Array<{url: string, alt?: string}>} props.images
@@ -85,6 +86,7 @@ export default function ByobuGallery({
   guestLabel = 'La galería se abre al iniciar sesión.',
   skeletonCount = 5,
 }) {
+  const { play } = useSoundOptional();
   const [view, setView] = useState(null); // { index, ox, oy } | null
   const [anim, setAnim] = useState({ phase: 'closed', dir: 0, next: 0 });
   const [failed, setFailed] = useState({}); // url -> true
@@ -116,13 +118,13 @@ export default function ByobuGallery({
     const btn = ev.currentTarget;
     triggerRef.current = btn;
     const r = btn.getBoundingClientRect();
-    playWhoosh();
+    play('playWhoosh');
     setView({ index: i, ox: Math.round(r.left + r.width / 2), oy: Math.round(r.top + r.height / 2) });
     setAnim({ phase: 'opening', dir: 0, next: i });
   }
 
   function close() {
-    playWhoosh();
+    play('playWhoosh');
     setAnim((a) => (a.phase === 'closing' ? a : { ...a, phase: 'closing' }));
   }
 
@@ -130,7 +132,7 @@ export default function ByobuGallery({
     if (!view || anim.phase !== 'idle') return;
     const next = view.index + dir;
     if (next < 0 || next >= n) return;
-    playClack();
+    play('playClack');
     setAnim({ phase: 'out', dir, next });
   }
 

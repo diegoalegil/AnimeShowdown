@@ -16,6 +16,8 @@ import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
 import jakarta.persistence.UniqueConstraint;
 
+import lombok.Getter;
+
 /**
  * Reaction emoji de un usuario sobre un target.
  *
@@ -23,6 +25,7 @@ import jakarta.persistence.UniqueConstraint;
  * Para "cambiar" reaction el {@code ReaccionService} hace UPDATE; para
  * "quitar" hace DELETE. Nunca hay dos filas para el mismo par.
  */
+@Getter
 @Entity
 @Table(
     name = "reacciones",
@@ -69,11 +72,5 @@ public class Reaccion {
         this.fecha = LocalDateTime.now();
     }
 
-    public Long getId() { return id; }
-    public Usuario getUsuario() { return usuario; }
-    public ReaccionTipo getTipo() { return tipo; }
     public void setTipo(ReaccionTipo tipo) { this.tipo = tipo; this.fecha = LocalDateTime.now(); }
-    public ReaccionTargetType getTargetType() { return targetType; }
-    public Long getTargetId() { return targetId; }
-    public LocalDateTime getFecha() { return fecha; }
 }

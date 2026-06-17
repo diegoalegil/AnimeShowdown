@@ -14,8 +14,10 @@ import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
 import jakarta.persistence.UniqueConstraint;
+import lombok.Getter;
 
 @Entity
+@Getter
 @Table(
     name = "madrugadores_dia",
     uniqueConstraints = @UniqueConstraint(
@@ -54,25 +56,5 @@ public class MadrugadorDia {
         this.fecha = fecha;
         this.primerUser = primerUser;
         this.hora = hora;
-    }
-
-    public Long getId() {
-        return id;
-    }
-
-    public String getPersonajeSlug() {
-        return personajeSlug;
-    }
-
-    public LocalDate getFecha() {
-        return fecha;
-    }
-
-    public Usuario getPrimerUser() {
-        return primerUser;
-    }
-
-    public LocalDateTime getHora() {
-        return hora;
     }
 }

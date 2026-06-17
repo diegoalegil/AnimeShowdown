@@ -14,8 +14,35 @@ import { useTranslation } from 'react-i18next'
 function FooterSlim() {
   const { t } = useTranslation()
 
+  // Atajos de PRODUCTO de vuelta al loop: un visitante SEO que aterriza en una
+  // página interna necesita un camino claro a votar / explorar / jugar, no solo
+  // los enlaces legales. Reutilizan las claves nav.* ya existentes.
+  const producto = [
+    { to: '/votar', label: t('nav.votar') },
+    { to: '/personajes', label: t('nav.personajes') },
+    { to: '/ranking', label: t('nav.ranking') },
+    { to: '/games', label: t('nav.games') },
+  ]
+
   return (
     <footer className="border-t border-white/10 bg-bg/95">
+      <div className="mx-auto flex max-w-7xl flex-col items-center gap-4 px-5 py-5 sm:px-8">
+        <nav
+          aria-label={t('footer.producto')}
+          className="-mx-2 flex flex-wrap items-center justify-center gap-y-1 text-[13px]"
+        >
+          {producto.map((item) => (
+            <Link
+              key={item.to}
+              to={item.to}
+              className="inline-flex min-h-11 items-center px-3 font-semibold text-fg-muted transition-colors hover:text-gold"
+            >
+              {item.label}
+            </Link>
+          ))}
+        </nav>
+      </div>
+      <div className="border-t border-white/5">
       <div className="mx-auto flex max-w-7xl flex-col items-center justify-between gap-3 px-5 py-6 text-[12px] text-fg-muted sm:flex-row sm:px-8">
         <Link to="/" className="inline-flex items-center gap-2">
           <img
@@ -54,6 +81,7 @@ function FooterSlim() {
           </li>
         </ul>
         <p>{t('footer.copyright')}</p>
+      </div>
       </div>
     </footer>
   )

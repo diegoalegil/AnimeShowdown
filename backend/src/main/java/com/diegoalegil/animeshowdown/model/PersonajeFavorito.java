@@ -14,6 +14,8 @@ import jakarta.persistence.ManyToOne;
 import jakarta.persistence.MapsId;
 import jakarta.persistence.Table;
 
+import lombok.Getter;
+
 /**
  * Relación de "seguir personaje" entre Usuario y Personaje (Plan
  * producto 2026-05-18 — "Mi roster").
@@ -25,6 +27,7 @@ import jakarta.persistence.Table;
  */
 @Entity
 @Table(name = "personajes_favoritos")
+@Getter
 public class PersonajeFavorito {
 
     @EmbeddedId
@@ -52,12 +55,8 @@ public class PersonajeFavorito {
         this.createdAt = LocalDateTime.now();
     }
 
-    public PersonajeFavoritoId getId() { return id; }
-    public Usuario getUsuario() { return usuario; }
-    public Personaje getPersonaje() { return personaje; }
-    public LocalDateTime getCreatedAt() { return createdAt; }
-
     @Embeddable
+    @Getter
     public static class PersonajeFavoritoId implements Serializable {
 
         @Column(name = "usuario_id")
@@ -72,9 +71,6 @@ public class PersonajeFavorito {
             this.usuarioId = usuarioId;
             this.personajeId = personajeId;
         }
-
-        public Long getUsuarioId() { return usuarioId; }
-        public Long getPersonajeId() { return personajeId; }
 
         @Override
         public boolean equals(Object o) {

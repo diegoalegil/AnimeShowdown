@@ -290,41 +290,6 @@ function scheduleTone(ctx, {
   osc.stop(now + duration + 0.03)
 }
 
-export async function playPackCharge() {
-  const ctx = await ensureRunning()
-  if (!ctx) return
-  const now = ctx.currentTime
-  const duration = 1.25
-  const src = ctx.createBufferSource()
-  src.buffer = makeNoise(ctx, duration)
-  const filter = ctx.createBiquadFilter()
-  filter.type = 'bandpass'
-  filter.Q.value = 1.2
-  filter.frequency.setValueAtTime(280, now)
-  filter.frequency.exponentialRampToValueAtTime(6200, now + duration)
-  const gain = ctx.createGain()
-  gain.gain.setValueAtTime(0.0001, now)
-  gain.gain.exponentialRampToValueAtTime(0.2, now + duration * 0.82)
-  gain.gain.exponentialRampToValueAtTime(0.0001, now + duration + 0.05)
-  src.connect(filter)
-  filter.connect(gain)
-  gain.connect(ctx.destination)
-  src.start(now)
-  src.stop(now + duration + 0.08)
-
-  ;[0, 4, 7].forEach((semi, index) => {
-    const f0 = 196 * Math.pow(2, semi / 12)
-    scheduleTone(ctx, {
-      freq: f0,
-      rampTo: f0 * 3.8,
-      duration,
-      type: 'sine',
-      volume: 0.045,
-      when: index * 0.015,
-    })
-  })
-}
-
 export async function playPackTear() {
   const ctx = await ensureRunning()
   if (!ctx) return

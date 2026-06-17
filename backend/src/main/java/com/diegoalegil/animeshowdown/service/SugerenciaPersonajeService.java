@@ -69,7 +69,7 @@ public class SugerenciaPersonajeService {
 
     @Transactional
     public SugerenciaPersonajeDto crear(SugerirPersonajeRequest req, Usuario autor) {
-        String identidad = req.getIdentidad() == null ? "" : req.getIdentidad().trim();
+        String identidad = req.identidad() == null ? "" : req.identidad().trim();
         if (identidad.length() < 3 || IDENTIDAD_GENERICA.contains(identidad.toLowerCase(Locale.ROOT))) {
             throw new ResponseStatusException(HttpStatus.UNPROCESSABLE_ENTITY,
                     "La identidad debe ser concreta (kanji, emblema o referencia real), no genérica.");
@@ -81,11 +81,11 @@ public class SugerenciaPersonajeService {
         }
         SugerenciaPersonaje s = new SugerenciaPersonaje();
         s.setUsuario(autor);
-        s.setNombre(req.getNombre().trim());
-        s.setAnime(req.getAnime().trim());
-        s.setMotivo(blankToNull(req.getMotivo()));
+        s.setNombre(req.nombre().trim());
+        s.setAnime(req.anime().trim());
+        s.setMotivo(blankToNull(req.motivo()));
         s.setIdentidad(identidad);
-        s.setUrlReferencia(blankToNull(req.getUrlReferencia()));
+        s.setUrlReferencia(blankToNull(req.urlReferencia()));
         s.setEstado(SugerenciaEstado.PENDIENTE);
         s.setCreadoEn(ahora);
         SugerenciaPersonaje guardada = repository.save(s);

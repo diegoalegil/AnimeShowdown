@@ -33,7 +33,7 @@ const SUERTES = [
     nombre: 'Gran fortuna',
     desc: 'El cosmos sonríe. Todo lo que toques este día sale bien — vota, predice y crea torneos sin miedo.',
     color: 'amber',
-    perk: 'Pista gratis disponible en cualquier juego del día.',
+    perk: 'Día propicio para arriesgar: lánzate a los duelos difíciles.',
     weight: 31,
     etimologia: '大 es la persona con los brazos extendidos al máximo — el carácter de "grande, enorme". 吉 muestra a un sabio (士) sobre su boca (口): las palabras del erudito traen buen augurio. Juntos: el mayor de los presagios.',
   },
@@ -43,7 +43,7 @@ const SUERTES = [
     nombre: 'Fortuna media',
     desc: 'Vientos favorables. Tus elecciones serán acertadas si confías en tu instinto otaku.',
     color: 'emerald',
-    perk: 'Buen día para predecir el bracket de un torneo activo.',
+    perk: 'Confía en tu instinto: hoy aciertas más de lo que crees.',
     weight: 17,
     etimologia: '中 es una flecha clavada en el centro de la diana — el carácter de "medio, centrado, equilibrio". Combinado con 吉 (buen augurio) da una fortuna justa: sin excesos, certera al blanco.',
   },
@@ -53,7 +53,7 @@ const SUERTES = [
     nombre: 'Pequeña fortuna',
     desc: 'Suerte discreta pero constante. Las pequeñas victorias hoy plantan árboles mañana.',
     color: 'cyan',
-    perk: 'Tu primer voto del día tendrá doble peso visual.',
+    perk: 'Las pequeñas victorias de hoy plantan la racha de mañana.',
     weight: 18,
     etimologia: '小 son tres partículas diminutas cayendo — "pequeño, menor". Con 吉 forma "buen augurio en lo pequeño": no cambia el mundo, pero acompaña.',
   },
@@ -63,7 +63,7 @@ const SUERTES = [
     nombre: 'Fortuna tardía',
     desc: 'Empieza despacio, termina fuerte. Reserva tus mejores votos para la tarde.',
     color: 'purple',
-    perk: 'Buen día para mirar el ranking ELO y planear estrategia.',
+    perk: 'Empieza despacio: tu mejor momento llega al caer la tarde.',
     weight: 17,
     etimologia: '末 es el carácter de árbol (木) con una línea horizontal marcando la punta más alta — "el extremo, el final". Con 吉 significa que la buena suerte llega tarde: aguanta el principio del día y cosecha al final.',
   },
@@ -73,7 +73,7 @@ const SUERTES = [
     nombre: 'Mala suerte',
     desc: 'Las cosas se tuercen pero no se rompen. Por tradición japonesa: ata tu omikuji a un árbol y déjalo allí (o ciérralo y vuelve mañana).',
     color: 'rose',
-    perk: 'Día perfecto para descubrir un anime que no conocías.',
+    perk: 'Las cosas se tuercen sin romperse: paso firme y sin prisa.',
     weight: 17,
     etimologia: '凶 es un pozo (凵) con un aspa (✕) clavada en el fondo — el pictograma de "caer en una trampa, calamidad". Es un kanji solo, sin compañía: la ausencia del 吉 ya lo dice todo.',
   },
@@ -370,7 +370,7 @@ function SuerteRevelada({ suerte, onCompartir }) {
       </p>
       <div className="mb-4 rounded-lg border border-border bg-bg p-3 text-center text-[12px]">
         <p className="text-[10px] font-semibold text-fg-muted">
-          Bono del día
+          Consejo del día
         </p>
         <p className="mt-1 text-fg-strong">{suerte.perk}</p>
       </div>

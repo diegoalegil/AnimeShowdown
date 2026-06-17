@@ -17,7 +17,8 @@
    ========================================================================== */
 
 .codex {
-  /* ease-stamp NO es token global (overshoot de hanko): se declara local. */
+  /* --ease-stamp: el global vive en index.css (@theme); se redeclara LOCAL
+     para autocontener el bundle de la feature (overshoot del hanko). */
   --ease-stamp: cubic-bezier(0.34, 1.56, 0.64, 1);
   position: relative;
   border-radius: var(--radius-card);

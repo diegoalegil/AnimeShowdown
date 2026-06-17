@@ -7,8 +7,12 @@ import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.Index;
 import jakarta.persistence.Table;
+import lombok.Getter;
+import lombok.Setter;
 
 
+@Getter
+@Setter
 @Entity
 @Table(name = "personajes", indexes = {
         // El UNIQUE de slug ya crea índice implícito; lo declaramos explícito
@@ -59,86 +63,6 @@ public class Personaje {
         this.anime = anime;
         this.descripcion = descripcion;
         this.imagenUrl = imagen;
-    }
-
-    public String getSlug() {
-        return slug;
-    }
-
-    public void setSlug(String slug) {
-        this.slug = slug;
-    }
-
-    public Long getId() {
-        return id;
-    }
-
-    public void setId(Long id) {
-        this.id = id;
-    }
-
-    public String getNombre() {
-        return nombre;
-    }
-
-    public void setNombre(String nombre) {
-        this.nombre = nombre;
-    }
-
-    public String getAnime() {
-        return anime;
-    }
-
-    public void setAnime(String anime) {
-        this.anime = anime;
-    }
-
-    public String getDescripcion() {
-        return descripcion;
-    }
-
-    public void setDescripcion(String descripcion) {
-        this.descripcion = descripcion;
-    }
-
-    public String getImagenUrl() {
-        return imagenUrl;
-    }
-
-    public void setImagenUrl(String imagen) {
-        this.imagenUrl = imagen;
-    }
-
-    public String getImagenColorDominante() {
-        return imagenColorDominante;
-    }
-
-    public void setImagenColorDominante(String imagenColorDominante) {
-        this.imagenColorDominante = imagenColorDominante;
-    }
-
-    public String getGenero() {
-        return genero;
-    }
-
-    public void setGenero(String genero) {
-        this.genero = genero;
-    }
-
-    public Integer getEloSemilla() {
-        return eloSemilla;
-    }
-
-    public void setEloSemilla(Integer eloSemilla) {
-        this.eloSemilla = eloSemilla;
-    }
-
-    public Integer getPopularidadFuente() {
-        return popularidadFuente;
-    }
-
-    public void setPopularidadFuente(Integer popularidadFuente) {
-        this.popularidadFuente = popularidadFuente;
     }
 
 }

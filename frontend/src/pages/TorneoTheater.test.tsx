@@ -249,4 +249,38 @@ describe('TorneoDetailPage — integración El Teatro del Torneo', () => {
     fireEvent.click(screen.getByRole('button', { name: /volver al cuadro/i }))
     await waitFor(() => expect(screen.queryByRole('slider')).not.toBeInTheDocument())
   })
+
+  it('al salir del overlay restaura el foco al botón "ver la función" (no cae al <body>)', async () => {
+    renderPage()
+    const verBtn = await screen.findByRole('button', { name: /ver la función/i })
+    fireEvent.click(verBtn)
+
+    // Salir con "volver al cuadro" → el botón se remonta y recibe el foco.
+    fireEvent.click(await screen.findByRole('button', { name: /volver al cuadro/i }))
+    await waitFor(() => expect(screen.queryByRole('slider')).not.toBeInTheDocument())
+    const remontado = await screen.findByRole('button', { name: /ver la función/i })
+    await waitFor(() => {
+      expect(remontado).toHaveFocus()
+      expect(document.activeElement).not.toBe(document.body)
+    })
+  })
+
+  it('aria-label del duelo NO adelanta finalistas mientras el asiento está vacío durante el scrub', async () => {
+    renderPage()
+    fireEvent.click(await screen.findByRole('button', { name: /ver la función/i }))
+    const slider = await screen.findByRole('slider', { name: /línea temporal de la función/i })
+    fireEvent.click(await screen.findByRole('button', { name: /pausar la función/i }))
+
+    // Paso 0: la final (ronda 2) aún no tiene finalistas sentados → su rollo se
+    // anuncia "por definir contra por definir", nunca adelantando a los reales.
+    fireEvent.change(slider, { target: { value: '0' } })
+    await waitFor(() => expect(slider).toHaveValue('0'))
+    const labels = screen.getAllByRole('group').map((d) => d.getAttribute('aria-label') ?? '')
+    // La final con asientos vacíos se anuncia honesta (ambos lados "por definir").
+    expect(labels.some((l) => /por definir contra por definir/i.test(l))).toBe(true)
+    // La final (Goku vs Luffy en los datos) NO debe anunciarse por nombre en el
+    // paso 0: sus asientos están vacíos en la vista. Antes del fix el aria-label
+    // los adelantaba ("Duelo: Goku contra Luffy") pese al "asiento vacío".
+    expect(labels.some((l) => /goku contra luffy|luffy contra goku/i.test(l))).toBe(false)
+  })
 })

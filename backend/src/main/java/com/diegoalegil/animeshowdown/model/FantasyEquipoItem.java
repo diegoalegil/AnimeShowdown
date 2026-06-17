@@ -12,6 +12,9 @@ import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
 import jakarta.persistence.UniqueConstraint;
 
+import lombok.Getter;
+import lombok.Setter;
+
 @Entity
 @Table(name = "fantasy_equipo_item",
         uniqueConstraints = @UniqueConstraint(
@@ -21,6 +24,8 @@ import jakarta.persistence.UniqueConstraint;
                 @Index(name = "idx_fantasy_item_equipo", columnList = "fantasy_equipo_id"),
                 @Index(name = "idx_fantasy_item_personaje", columnList = "personaje_id")
         })
+@Getter
+@Setter
 public class FantasyEquipoItem {
 
     @Id
@@ -45,13 +50,4 @@ public class FantasyEquipoItem {
         this.personaje = personaje;
         this.coste = coste;
     }
-
-    public Long getId() { return id; }
-    public void setId(Long id) { this.id = id; }
-    public FantasyEquipo getEquipo() { return equipo; }
-    public void setEquipo(FantasyEquipo equipo) { this.equipo = equipo; }
-    public Personaje getPersonaje() { return personaje; }
-    public void setPersonaje(Personaje personaje) { this.personaje = personaje; }
-    public Integer getCoste() { return coste; }
-    public void setCoste(Integer coste) { this.coste = coste; }
 }

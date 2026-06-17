@@ -15,6 +15,9 @@ import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
 
+import lombok.Getter;
+import lombok.Setter;
+
 /**
  * Notificación in-app persistente. El usuario la ve en la
  * campanita del header. Si está conectado al WS cuando se crea, recibe push
@@ -31,20 +34,29 @@ public class Notificacion {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Getter
     private Long id;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "usuario_id", nullable = false)
+    @Getter
+    @Setter
     private Usuario usuario;
 
     @Enumerated(EnumType.STRING)
     @Column(nullable = false, length = 50)
+    @Getter
+    @Setter
     private NotificacionTipo tipo;
 
     @Column(nullable = false, length = 200)
+    @Getter
+    @Setter
     private String titulo;
 
     @Column(length = 500)
+    @Getter
+    @Setter
     private String mensaje;
 
     /**
@@ -53,15 +65,21 @@ public class Notificacion {
      * parsea para construir links — el backend no lo interpreta.
      */
     @Column(columnDefinition = "TEXT")
+    @Getter
+    @Setter
     private String payload;
 
     @Column(name = "evento_key", length = 768)
+    @Getter
+    @Setter
     private String eventoKey;
 
     @Column(nullable = false)
     private Boolean leida = false;
 
     @Column(name = "creado_en", nullable = false)
+    @Getter
+    @Setter
     private LocalDateTime creadoEn;
 
     public Notificacion() {
@@ -84,21 +102,6 @@ public class Notificacion {
         this.eventoKey = eventoKey;
     }
 
-    public Long getId() { return id; }
-    public Usuario getUsuario() { return usuario; }
-    public void setUsuario(Usuario usuario) { this.usuario = usuario; }
-    public NotificacionTipo getTipo() { return tipo; }
-    public void setTipo(NotificacionTipo tipo) { this.tipo = tipo; }
-    public String getTitulo() { return titulo; }
-    public void setTitulo(String titulo) { this.titulo = titulo; }
-    public String getMensaje() { return mensaje; }
-    public void setMensaje(String mensaje) { this.mensaje = mensaje; }
-    public String getPayload() { return payload; }
-    public void setPayload(String payload) { this.payload = payload; }
-    public String getEventoKey() { return eventoKey; }
-    public void setEventoKey(String eventoKey) { this.eventoKey = eventoKey; }
     public boolean isLeida() { return leida != null && leida; }
     public void setLeida(boolean leida) { this.leida = leida; }
-    public LocalDateTime getCreadoEn() { return creadoEn; }
-    public void setCreadoEn(LocalDateTime creadoEn) { this.creadoEn = creadoEn; }
 }

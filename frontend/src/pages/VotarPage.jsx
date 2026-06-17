@@ -4,6 +4,7 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { toast } from 'sonner'
 import { endpoints, ApiError } from '../lib/api'
 import {
+  ANON_VOTE_LIMIT,
   getAnonymousVotesCount,
   incrementAnonymousVotesCount,
 } from '../lib/anonymousVoting'
@@ -176,7 +177,6 @@ const CaptchaModal = lazy(() => import('../components/CaptchaModal'))
  * con pares random local si no).
  */
 
-const ANON_VOTE_LIMIT = 5
 const TIE_VOTE_KEY = '__empate__'
 // Pausa breve entre voto y siguiente duelo. En una pantalla de juego, 1.8s
 // se percibía como bloqueo; ~0.9s conserva feedback y mantiene ritmo.

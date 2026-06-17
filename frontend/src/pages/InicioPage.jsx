@@ -334,7 +334,7 @@ function SectionTop10Ranking({ top10 }) {
         <SectionGate
           kanji="位"
           kanjiMeaning="rango, posición"
-          eyebrow="Top 10 · ELO base ·b"
+          eyebrow="Top 10 · ELO base"
           title="Coliseo de Leyendas"
           viewAllTo="/ranking"
           viewAllLabel="Ver ranking completo"
@@ -400,7 +400,7 @@ const RETOS_DIARIOS = [
     to: '/games/impostor-trial',
     kanji: '裏',
     titulo: 'Impostor Trial',
-    desc: '4 cartas · 1 traidor',
+    desc: '5 cartas · 1 traidor',
     color: 'purple',
   },
   {

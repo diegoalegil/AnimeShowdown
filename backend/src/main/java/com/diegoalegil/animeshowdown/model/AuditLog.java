@@ -13,6 +13,8 @@ import jakarta.persistence.Index;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
+import lombok.Getter;
+import lombok.Setter;
 
 /**
  * Una entrada del audit log. Se inserta vía AuditLogService
@@ -35,6 +37,8 @@ import jakarta.persistence.Table;
         @Index(name = "idx_audit_usuario", columnList = "usuario_id"),
         @Index(name = "idx_audit_evento", columnList = "evento")
 })
+@Getter
+@Setter
 public class AuditLog {
 
     @Id
@@ -72,19 +76,4 @@ public class AuditLog {
         this.userAgent = userAgent;
         this.ts = LocalDateTime.now();
     }
-
-    public Long getId() { return id; }
-    public void setId(Long id) { this.id = id; }
-    public LocalDateTime getTs() { return ts; }
-    public void setTs(LocalDateTime ts) { this.ts = ts; }
-    public Usuario getUsuario() { return usuario; }
-    public void setUsuario(Usuario usuario) { this.usuario = usuario; }
-    public AuditEvento getEvento() { return evento; }
-    public void setEvento(AuditEvento evento) { this.evento = evento; }
-    public String getDetalles() { return detalles; }
-    public void setDetalles(String detalles) { this.detalles = detalles; }
-    public String getIpAddr() { return ipAddr; }
-    public void setIpAddr(String ipAddr) { this.ipAddr = ipAddr; }
-    public String getUserAgent() { return userAgent; }
-    public void setUserAgent(String userAgent) { this.userAgent = userAgent; }
 }

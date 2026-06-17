@@ -17,42 +17,56 @@ import jakarta.persistence.OneToMany;
 import jakarta.persistence.PrePersist;
 import jakarta.persistence.Table;
 
+import lombok.Getter;
+import lombok.Setter;
+
 @Entity
 @Table(name = "sobre_apertura")
+@Getter
 public class SobreApertura {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
+    @Setter
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
     @JoinColumn(name = "usuario_id", nullable = false)
     private Usuario usuario;
 
+    @Setter
     @Column(name = "idempotency_key", nullable = false, length = 96)
     private String idempotencyKey;
 
+    @Setter
     @Column(nullable = false)
     private long precio;
 
+    @Setter
     @Column(name = "saldo_restante", nullable = false)
     private long saldoRestante;
 
+    @Setter
     @Column(nullable = false)
     private boolean especial;
 
+    @Setter
     @Column(name = "pity_antes", nullable = false)
     private int pityAntes;
 
+    @Setter
     @Column(name = "pity_despues", nullable = false)
     private int pityDespues;
 
+    @Setter
     @Column(name = "monedas_duplicados", nullable = false)
     private long monedasDuplicados;
 
+    @Setter
     @Column(name = "creado_en", nullable = false)
     private LocalDateTime creadoEn;
 
+    @Setter
     @OneToMany(mappedBy = "sobre", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<SobreAperturaItem> items = new ArrayList<>();
 
@@ -75,26 +89,4 @@ public class SobreApertura {
         item.setSobre(this);
         items.add(item);
     }
-
-    public Long getId() { return id; }
-    public Usuario getUsuario() { return usuario; }
-    public void setUsuario(Usuario usuario) { this.usuario = usuario; }
-    public String getIdempotencyKey() { return idempotencyKey; }
-    public void setIdempotencyKey(String idempotencyKey) { this.idempotencyKey = idempotencyKey; }
-    public long getPrecio() { return precio; }
-    public void setPrecio(long precio) { this.precio = precio; }
-    public long getSaldoRestante() { return saldoRestante; }
-    public void setSaldoRestante(long saldoRestante) { this.saldoRestante = saldoRestante; }
-    public boolean isEspecial() { return especial; }
-    public void setEspecial(boolean especial) { this.especial = especial; }
-    public int getPityAntes() { return pityAntes; }
-    public void setPityAntes(int pityAntes) { this.pityAntes = pityAntes; }
-    public int getPityDespues() { return pityDespues; }
-    public void setPityDespues(int pityDespues) { this.pityDespues = pityDespues; }
-    public long getMonedasDuplicados() { return monedasDuplicados; }
-    public void setMonedasDuplicados(long monedasDuplicados) { this.monedasDuplicados = monedasDuplicados; }
-    public LocalDateTime getCreadoEn() { return creadoEn; }
-    public void setCreadoEn(LocalDateTime creadoEn) { this.creadoEn = creadoEn; }
-    public List<SobreAperturaItem> getItems() { return items; }
-    public void setItems(List<SobreAperturaItem> items) { this.items = items; }
 }

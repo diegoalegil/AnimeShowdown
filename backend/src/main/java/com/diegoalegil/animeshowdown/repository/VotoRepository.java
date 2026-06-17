@@ -583,6 +583,25 @@ public interface VotoRepository extends JpaRepository<Voto, Long> {
             org.springframework.data.domain.Pageable pageable);
 
     /**
+     * Fechas-calendario DISTINTAS en las que el usuario votó, ascendentes. La
+     * consume {@code WrappedService} para calcular la racha más larga de días
+     * consecutivos votando (la lógica de racha vive en un helper puro y testeable,
+     * aquí solo entregamos las fechas reales).
+     *
+     * <p>Usamos {@code CAST(v.fecha AS java.time.LocalDate)} — la misma sintaxis
+     * estándar JPA 3.0+ / Hibernate 6 que {@link #votosPorDiaDesde} — porque
+     * ambos dialectos configurados (Postgres en prod, H2 en MODE=PostgreSQL en
+     * tests) la resuelven correctamente, a diferencia de {@code FUNCTION('DATE')}.
+     */
+    @Query("""
+            SELECT DISTINCT CAST(v.fecha AS java.time.LocalDate)
+            FROM Voto v
+            WHERE v.usuario = :usuario
+            ORDER BY CAST(v.fecha AS java.time.LocalDate) ASC
+            """)
+    List<java.time.LocalDate> fechasDistintasDeVoto(@Param("usuario") Usuario usuario);
+
+    /**
      * Conteo agrupado por enfrentamiento dentro de un torneo. Evita N+1
      * cuando TorneoQueryService rellena `totalVotos` en cada match del
      * bracket: una sola query bulk en lugar de countByEnfrentamiento(e)

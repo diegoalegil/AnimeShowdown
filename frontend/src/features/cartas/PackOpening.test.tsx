@@ -214,7 +214,7 @@ describe('ForgeCharge — camino seco (reduced-motion) en aislamiento', () => {
 
   it('en seco arranca golpeable (sin fase de llegada) y los golpes rompen -> onBreak', async () => {
     const onBreak = vi.fn()
-    render(<ForgeCharge blows={2} level="top" reduceMotion onBreak={onBreak} />)
+    render(<ForgeCharge blows={2} reduceMotion onBreak={onBreak} />)
 
     // En seco no hay "el lingote llega al yunque…"; está ya golpeable y sin
     // lock entre golpes (lock = now + 0), así que los golpes encadenan al vuelo.

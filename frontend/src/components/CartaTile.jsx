@@ -1,4 +1,4 @@
-import { Download, Lock } from 'lucide-react'
+import { Download, Lock, Share2 } from 'lucide-react'
 import CartaFace from '../features/cartas/CartaFace'
 import TiltCard from '../features/cartas/TiltCard'
 import PersonajeImg from './PersonajeImg'
@@ -15,9 +15,10 @@ import PersonajeImg from './PersonajeImg'
  *   finito (usa la imagen del personaje, no el arteUrl). `loading="lazy"`
  *   acota el coste: solo cargan las cartas que entran en viewport.
  */
-function CartaTile({ carta, eager = false, onDownload, downloading = false }) {
+function CartaTile({ carta, eager = false, onDownload, onShare, downloading = false }) {
   const { poseida, personajeNombre } = carta
   const puedeDescargar = poseida && typeof onDownload === 'function'
+  const puedeCompartir = poseida && typeof onShare === 'function'
 
   if (!poseida) {
     return (
@@ -47,17 +48,32 @@ function CartaTile({ carta, eager = false, onDownload, downloading = false }) {
   return (
     <TiltCard foil={carta.rareza === 'ESPECIAL' ? 'especial' : 'ssr'}>
       <CartaFace carta={carta} eager={eager} />
-      {puedeDescargar && (
-        <button
-          type="button"
-          onClick={() => onDownload(carta)}
-          disabled={downloading}
-          aria-label={`Descargar carta de ${personajeNombre}`}
-          title="Descargar"
-          className="absolute left-2 top-2 z-10 inline-flex h-11 w-11 items-center justify-center rounded-lg border border-white/15 bg-black/80 text-fg-strong transition-colors hover:border-gold/55 hover:text-gold disabled:cursor-wait disabled:opacity-60"
-        >
-          <Download className="h-4 w-4" aria-hidden="true" />
-        </button>
+      {(puedeDescargar || puedeCompartir) && (
+        <div className="absolute left-2 top-2 z-10 flex flex-col gap-1.5">
+          {puedeDescargar && (
+            <button
+              type="button"
+              onClick={() => onDownload(carta)}
+              disabled={downloading}
+              aria-label={`Descargar carta de ${personajeNombre}`}
+              title="Descargar"
+              className="inline-flex h-11 w-11 items-center justify-center rounded-lg border border-white/15 bg-black/80 text-fg-strong transition-colors hover:border-gold/55 hover:text-gold disabled:cursor-wait disabled:opacity-60"
+            >
+              <Download className="h-4 w-4" aria-hidden="true" />
+            </button>
+          )}
+          {puedeCompartir && (
+            <button
+              type="button"
+              onClick={() => onShare(carta)}
+              aria-label={`Compartir carta de ${personajeNombre}`}
+              title="Compartir"
+              className="inline-flex h-11 w-11 items-center justify-center rounded-lg border border-white/15 bg-black/80 text-fg-strong transition-colors hover:border-gold/55 hover:text-gold"
+            >
+              <Share2 className="h-4 w-4" aria-hidden="true" />
+            </button>
+          )}
+        </div>
       )}
     </TiltCard>
   )

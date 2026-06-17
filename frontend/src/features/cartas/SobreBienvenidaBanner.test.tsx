@@ -1,11 +1,13 @@
 import { cleanup, fireEvent, render, screen, waitFor } from '@testing-library/react'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
+import { MemoryRouter } from 'react-router-dom'
 
 import { ApiError } from '../../lib/api'
 import { SOBRE_ABIERTO_EVENT } from '../../lib/app-events'
 
 // Refs mutables disponibles dentro de las factories hoisted de vi.mock.
 const h = vi.hoisted(() => ({
+  user: { current: { id: 1, username: 'goku' } as Record<string, unknown> | null },
   coleccion: { current: { sobreBienvenidaDisponible: true } as Record<string, unknown> },
   mutateAsync: vi.fn(),
   refetch: vi.fn(),
@@ -15,7 +17,7 @@ const h = vi.hoisted(() => ({
 vi.mock('sonner', () => ({ toast: h.toast }))
 
 vi.mock('../../contexts/AuthContext', () => ({
-  useAuth: () => ({ user: { id: 1, username: 'goku' } }),
+  useAuth: () => ({ user: h.user.current }),
 }))
 
 vi.mock('../../hooks/useCartas', () => ({
@@ -32,6 +34,7 @@ import SobreBienvenidaBanner from './SobreBienvenidaBanner'
 describe('SobreBienvenidaBanner', () => {
   beforeEach(() => {
     localStorage.clear()
+    h.user.current = { id: 1, username: 'goku' }
     h.coleccion.current = { sobreBienvenidaDisponible: true }
     h.mutateAsync.mockReset()
     h.refetch.mockReset()
@@ -104,5 +107,20 @@ describe('SobreBienvenidaBanner', () => {
     } finally {
       window.removeEventListener(SOBRE_ABIERTO_EVENT, onEvento)
     }
+  })
+
+  it('invitado (sin sesión): muestra el regalo con CTA a registro en vez de esconderlo', () => {
+    h.user.current = null
+    render(
+      <MemoryRouter>
+        <SobreBienvenidaBanner />
+      </MemoryRouter>,
+    )
+    // El sobre es visible (gancho de conversión), con su copy.
+    expect(screen.getByText(/Tu sobre de bienvenida te espera/i)).toBeInTheDocument()
+    // El CTA lleva a /register; no intenta reclamar nada (no hay botón "Ábrelo").
+    const cta = screen.getByRole('link', { name: /Crea tu cuenta gratis/i })
+    expect(cta).toHaveAttribute('href', '/register')
+    expect(screen.queryByRole('button', { name: /Ábrelo gratis/i })).not.toBeInTheDocument()
   })
 })

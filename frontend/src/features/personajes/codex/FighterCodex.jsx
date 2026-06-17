@@ -3,7 +3,7 @@ import { useCallback, useEffect, useId, useLayoutEffect, useRef, useState } from
 // Asumido: src/features/personajes/codex/FighterCodex.jsx
 import PersonajeImg from '../../../components/PersonajeImg'
 import { adoptPersonajeHero, releasePersonajeHero } from '../../../lib/viewTransitions'
-import { playVerdictStamp, playSello, playWhoosh, playClack } from '../../../lib/sounds'
+import { useSoundOptional } from '../../../contexts/SoundContext'
 import CodexPleat, { CodexBookmark } from './CodexPleat'
 import InkRiver from './InkRiver'
 import FacingPages from './FacingPages'
@@ -62,7 +62,7 @@ const PLEAT_META = {
  * @param {{votosPeriodoActual:number, votosPeriodoAnterior:number, delta:number}} [props.votosPeriodo]
  * @param {boolean} [props.skipEntrance]  Forzar abierto sin coreografía. Si se
  *   omite, se decide con el gate de sesión (consumirSkipEntrance).
- * @param {(rivalSlug?:string)=>void} [props.onRetar]  CTA "retar" (→ /votar).
+ * @param {()=>void} [props.onRetar]  CTA "retar" (→ /votar).
  * @returns {JSX.Element}
  */
 export default function FighterCodex({
@@ -81,6 +81,7 @@ export default function FighterCodex({
   onRetar,
 }) {
   const uid = useId().replace(/:/g, '')
+  const { play } = useSoundOptional()
   const [activePleat, setActivePleat] = useState('stats')
   // Orientación real del tablist: vertical en ≥sm (marcapáginas en columna),
   // horizontal en móvil (fila arriba). aria-orientation debe coincidir con el
@@ -141,7 +142,7 @@ export default function FighterCodex({
     // 1) el morph asienta, luego gira la cubierta (650ms ease-lift).
     push(GUION.morphSettle, () => {
       if (coverRef.current) coverRef.current.dataset.open = 'true'
-      playWhoosh()
+      play('playWhoosh')
     })
     // 2) frontispicio: nombre + líneas (tras abrir).
     push(GUION.morphSettle + GUION.cover, () => {
@@ -161,8 +162,8 @@ export default function FighterCodex({
           el.style.setProperty('--codex-seal-delay', '0ms')
           el.dataset.stamp = 'true'
         }
-        if (verdict) playVerdictStamp()
-        else playSello()
+        if (verdict) play('playVerdictStamp')
+        else play('playSello')
       })
     })
     // 4) marcapáginas entran con stagger 60ms.
@@ -177,6 +178,10 @@ export default function FighterCodex({
     })
 
     return () => timers.forEach(clearTimeout)
+    // play fuera de deps a proposito: efecto one-shot de la ceremonia de apertura;
+    // re-ejecutarlo al togglear mute repetiria la animacion. El mute se gatea
+    // dentro de play().
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [personaje.slug, skipEntrance])
 
   // -- cambio de pliego: cierre hacia el marcapáginas + apertura del nuevo,
@@ -188,7 +193,7 @@ export default function FighterCodex({
       switchTimers.current = []
       const reduced = prefiereCalma()
       const { closeOrigin, openOrigin } = direccionPliego(activePleat, key)
-      playClack()
+      play('playClack')
       const panel = panelRef.current
 
       if (reduced || !panel) {
@@ -226,7 +231,7 @@ export default function FighterCodex({
         }, GUION.pleatClose),
       )
     },
-    [activePleat],
+    [activePleat, play],
   )
 
   useEffect(() => () => switchTimers.current.forEach(clearTimeout), [])
@@ -251,7 +256,11 @@ export default function FighterCodex({
       }
       const key = PLIEGOS[i]
       selectPleat(key, { focusPanel: false })
-      window.setTimeout(() => bookmarkRefs.current[key]?.focus(), 20)
+      // Registrar el timer en switchTimers para que el cleanup del effect de
+      // desmontaje (más abajo) lo cancele y no se ejecute sobre un ref ya nulo.
+      switchTimers.current.push(
+        window.setTimeout(() => bookmarkRefs.current[key]?.focus(), 20),
+      )
     },
     [activePleat, selectPleat],
   )
@@ -377,10 +386,17 @@ export default function FighterCodex({
               key={key}
               ref={(el) => (bookmarkRefs.current[key] = el)}
               id={`codex-tab-${key}-${uid}`}
-              controls={`codex-panel-${key}-${uid}`}
+              // aria-controls SOLO en el tab seleccionado: es el único cuyo
+              // tabpanel se renderiza (panel perezoso, patrón APG). Apuntar a
+              // paneles inexistentes desde los tabs inactivos dejaba 3 IDREF
+              // colgantes que los lectores de pantalla no podían resolver.
+              controls={activePleat === key ? `codex-panel-${key}-${uid}` : undefined}
               kanji={PLEAT_META[key].kanji}
               title={PLEAT_META[key].title}
               selected={activePleat === key}
+              // Móvil (orientación horizontal, <640px): tabs solo-kanji para no
+              // desbordar las etiquetas bajo `.codex{overflow:hidden}`.
+              compact={tabOrientation === 'horizontal'}
               enterIndex={i}
               onKeyDown={onTabKey}
               onSelect={() => selectPleat(key)}

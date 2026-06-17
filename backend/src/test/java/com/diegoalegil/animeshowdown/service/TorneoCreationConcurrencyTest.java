@@ -51,9 +51,7 @@ class TorneoCreationConcurrencyTest {
 
         for (int i = 0; i < total; i++) {
             futures.add(pool.submit(() -> {
-                TorneoCrearRequest request = new TorneoCrearRequest();
-                request.setNombre(nombre);
-                request.setDescripcion("Prueba de carrera de slug");
+                TorneoCrearRequest request = new TorneoCrearRequest(nombre, "Prueba de carrera de slug");
                 preparados.countDown();
                 salida.await(5, TimeUnit.SECONDS);
                 return torneoService.crear(request);

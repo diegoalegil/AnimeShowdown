@@ -102,6 +102,7 @@ function PackOpening({
   onAbrirOtro,
   onCerrar,
   onDownload,
+  onShare,
   descargandoId = null,
   permitirAbrirOtro = true,
   hook = null,
@@ -327,7 +328,6 @@ function PackOpening({
             >
               <ForgeCharge
                 blows={blows}
-                level={level}
                 reduceMotion={reduceMotion}
                 onBreak={handleForgeBreak}
               />
@@ -356,6 +356,7 @@ function PackOpening({
               onAbrirOtro={onAbrirOtro}
               onCerrar={onCerrar}
               onDownload={onDownload}
+              onShare={onShare}
               descargandoId={descargandoId}
               permitirAbrirOtro={permitirAbrirOtro}
               hook={hook}
@@ -627,6 +628,7 @@ function SummaryStage({
   onAbrirOtro,
   onCerrar,
   onDownload,
+  onShare,
   descargandoId,
   permitirAbrirOtro,
   hook,
@@ -650,6 +652,7 @@ function SummaryStage({
               carta={item.carta}
               eager={item.posicion === 1}
               onDownload={onDownload}
+              onShare={onShare}
               downloading={descargandoId === item.carta.id}
             />
             <span className="pack-opening__summary-chip">

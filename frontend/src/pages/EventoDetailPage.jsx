@@ -1,6 +1,5 @@
 import { useEffect, useMemo, useState } from 'react'
 import { Link, useParams } from 'react-router-dom'
-import { motion } from 'framer-motion'
 import {
   ArrowLeft,
   ArrowRight,
@@ -21,34 +20,49 @@ import {
   getPersonajesEvento,
 } from '../data/eventos'
 import { useEventos } from '../hooks/useEventos'
+import { useReducedMotionPref } from '../hooks/useReducedMotionPref'
 import { getStatsPersonaje } from '../lib/personajes-core'
 import PersonajeCutImg from '../components/PersonajeCutImg'
 import PersonajeImg from '../components/PersonajeImg'
 import EditorialCover from '../components/EditorialCover'
 import { BRAND_VISUALS, getEventVisual } from '../data/visual-assets'
-import { VisualPageShell } from '../components/VisualSystem'
+import FestivalProcession from '../features/eventos/matsuri/FestivalProcession'
+import EventCountdown from '../features/eventos/matsuri/EventCountdown'
+import MilestonePath from '../features/eventos/matsuri/MilestonePath'
+import YataiStall from '../features/eventos/matsuri/YataiStall'
+import { deriveHitosEvento, KANJI_TIPO, ETIQUETA_TIPO } from '../features/eventos/matsuri/festival-core'
 import NotFoundPage from './NotFoundPage'
 
 /**
- * Página detalle de un evento temporal.
+ * Página detalle de un evento temporal — takeover "Matsuri nocturno".
  *
- * <p>Estructura:
+ * <p>La pieza FestivalProcession ENMARCA el contenido REAL como una calle de
+ * festival nocturna (cielo + luna con 祭 + faroles en parallax). El contenido del
+ * dominio se conserva intacto dentro de puestos (YataiStall):
  * <ul>
- *   <li>Header con emoji + título + countdown + estado.</li>
- *   <li>Ranking del evento — personajes participantes ordenados por ELO
- *       local. Es la "competencia" del evento sin tocar el ranking
- *       global ELO base.</li>
- *   <li>CTAs: votar duelos abiertos (lleva a /votar; v1 no filtra al
- *       backend por evento, eso queda para futura iteración).</li>
+ *   <li>Cabecera: kicker de estado + emoji + h1 (único) = título + descripción +
+ *       countdown REAL (EventCountdown sobre inicioISO/finISO).</li>
+ *   <li>Senda de hitos (MilestonePath) = fases de fecha derivadas de la línea
+ *       temporal real (deriveHitosEvento): Apertura / Ecuador / Recta final /
+ *       Cierre. Piedras encendidas para fases pasadas, sin ceremonia.</li>
+ *   <li>Misión + mini-stats (Participantes / Top 100 / ELO base máx).</li>
+ *   <li>Ranking: PodioEvento (#1/#2/#3) + grid de ParticipanteCard ordenados por
+ *       ELO base estimado del catálogo (sintético; el ranking competitivo real
+ *       vive en /ranking, no se mueve con los votos del evento).</li>
  * </ul>
  *
- * <p>El countdown se refresca cada 60s para que "termina en 3h" baje a
- * "2h" sin reload. SEO: noindex en eventos pasados, normal en activos
- * y próximos para que Google los descubra durante su ventana.
+ * <p>Estados reales (getEstadoEvento): ACTIVO (calle viva + hanabi de entrada),
+ * PROXIMO (penumbra, countdown protagonista, puestos con persiana), PASADO
+ * (faroles apagándose + despedida).
+ *
+ * <p>El `now` se refresca cada 60s para que el estado/hitos pasen de "próximo" a
+ * "activo" sin reload (el countdown vivo lo lleva EventCountdown por su cuenta).
+ * SEO: noindex en eventos pasados, normal en activos/próximos.
  */
 function EventoDetailPage() {
   const { slug } = useParams()
   const eventos = useEventos()
+  const reduce = useReducedMotionPref()
   const evento = useMemo(() => getEventoPorSlug(slug, eventos), [slug, eventos])
 
   const [now, setNow] = useState(() => new Date())
@@ -71,29 +85,16 @@ function EventoDetailPage() {
   if (!evento) return <NotFoundPage />
 
   const estado = getEstadoEvento(evento, now)
-  const msRestantes = getMsRestantes(evento, now)
-  const restante = formatRestante(msRestantes)
+  const restante = formatRestante(getMsRestantes(evento, now))
+  // Hitos de fecha-fase derivados de la línea temporal REAL (cero fabricación).
+  const hitos = deriveHitosEvento(evento, now)
+  const proximo = estado === ESTADO_EVENTO.PROXIMO
+  const pasado = estado === ESTADO_EVENTO.PASADO
 
   const participantes = getPersonajesEvento(evento)
     .map((p) => ({ ...p, ...getStatsPersonaje(p.slug) }))
     .sort((a, b) => b.elo - a.elo)
 
-  const tonosBg = {
-    rose: 'border-danger/30 bg-gradient-to-br from-danger/15 via-danger/5 to-transparent',
-    violet: 'border-rarity-epic/30 bg-gradient-to-br from-rarity-epic/15 via-rarity-epic/5 to-transparent',
-    amber: 'border-gold/30 bg-gradient-to-br from-gold/15 via-gold/5 to-transparent',
-    pink: 'border-arc-waifu/30 bg-gradient-to-br from-arc-waifu/15 via-arc-waifu/5 to-transparent',
-    cyan: 'border-electric/30 bg-gradient-to-br from-electric/15 via-electric/5 to-transparent',
-  }
-  const tonosTexto = {
-    rose: 'text-danger',
-    violet: 'text-rarity-epic',
-    amber: 'text-gold',
-    pink: 'text-arc-waifu',
-    cyan: 'text-electric',
-  }
-  const tonoBg = tonosBg[evento.color] ?? tonosBg.amber
-  const tonoTexto = tonosTexto[evento.color] ?? tonosTexto.amber
   const visual = getEventVisual(evento.slug, evento.titulo)
 
   const estadoLabel =
@@ -103,27 +104,95 @@ function EventoDetailPage() {
         ? `Empieza en ${restante}`
         : 'Finalizado'
 
-  // mini-stats agregadas + "Misión del evento"
-  // — la página antes era header + grid plano. Falta sentido competitivo.
-  // Calculamos en cliente desde el catálogo (sin tocar backend) para
-  // dar contexto rápido: cuántos top 100 globales hay, cuántos top 25,
-  // ELO máximo. Lo bastante para hacer del evento "una temporada con
-  // tier list" en vez de "una lista de personajes".
+  // mini-stats agregadas + "Misión del evento" — la página se siente como una
+  // temporada con métricas propias. Cálculo en cliente desde el catálogo (sin
+  // backend): top 100 globales, top 25, ELO máximo.
   const top100 = participantes.filter((p) => p.elo >= 1750).length
   const top25 = participantes.filter((p) => p.elo >= 1950).length
   const eloMax = participantes[0]?.elo ?? 0
+  // Copy honesto: el orden es por ELO base estimado del catálogo (sintético, no
+  // se mueve con los votos del evento). El ranking competitivo real vive en
+  // /ranking; aquí solo encuadramos el roster del evento.
   const misionPorEstado = {
     [ESTADO_EVENTO.ACTIVO]:
-      'Vota duelos entre estos personajes para mover su ELO durante la ventana del evento. El podio final se cierra cuando termine el countdown.',
+      'Roster ordenado por ELO base estimado del catálogo (no se mueve con los votos del evento). El ranking competitivo real vive en /ranking.',
     [ESTADO_EVENTO.PROXIMO]:
-      'Aún no está abierto. Elige tus favoritos del roster y vuelve cuando empiece el countdown — el ranking del evento se calculará desde el momento del start.',
+      'Aún no está abierto. Explora el roster del evento; el ranking competitivo real vive en /ranking.',
     [ESTADO_EVENTO.PASADO]:
-      'Evento cerrado. El podio que ves es el resultado final acumulado durante su ventana activa.',
+      'Evento cerrado. El orden que ves es por ELO base estimado del catálogo; el ranking competitivo vive en /ranking.',
   }
   const misionEvento = misionPorEstado[estado]
 
+  const rankingTitulo =
+    participantes.length === 0
+      ? 'Participantes'
+      : top25 > 0
+        ? `Podio interno · ${top25} entre top 25 global`
+        : 'Participantes ordenados por ELO'
+
+  // Cabecera del matsuri: kicker de estado + emoji + h1 (único) + descripción +
+  // countdown real. En PROXIMO el countdown es protagonista (hero).
+  const header = (
+    <>
+      <Link
+        to="/eventos"
+        className="fest-back-link inline-flex items-center gap-1.5 text-sm text-fg-muted transition-colors hover:text-fg-strong"
+      >
+        <ArrowLeft className="h-4 w-4" />
+        Ver todos los eventos
+      </Link>
+      <span className="fest-head__kicker">
+        <CalendarClock className="h-3.5 w-3.5" aria-hidden="true" />
+        {estadoLabel}
+      </span>
+      <h1 className="fest-head__title">
+        <span aria-hidden="true" className="fest-head__emoji">{evento.emoji}</span>{' '}
+        {evento.titulo}
+      </h1>
+      <p className="fest-head__desc">{evento.descripcionCorta}</p>
+      {/* Sin odómetro en eventos PASADOS: un timer a 00:00:00 bajo "Finalizado"
+          parece roto. El kicker de estado ya comunica el cierre. */}
+      {!pasado && <EventCountdown evento={evento} hero={proximo} />}
+      {estado === ESTADO_EVENTO.ACTIVO && (
+        <div className="fest-head__ctas">
+          <Link
+            to="/votar"
+            className="group inline-flex items-center gap-1.5 rounded-lg bg-accent px-4 py-2 text-sm font-semibold text-bg transition-colors hover:bg-accent-hover"
+          >
+            <Swords className="h-4 w-4" />
+            Vota duelos abiertos
+            <ArrowRight className="h-3.5 w-3.5 transition-transform group-hover:translate-x-0.5" />
+          </Link>
+          <Link
+            to="/ranking"
+            className="inline-flex items-center gap-1.5 rounded-lg border border-border bg-surface px-4 py-2 text-sm font-semibold text-fg-strong transition-colors hover:border-accent hover:text-gold"
+          >
+            Ver ranking global
+          </Link>
+        </div>
+      )}
+    </>
+  )
+
+  const farewell = (
+    <section className="fest-farewell" aria-label="Cierre del festival">
+      <span className="fest-head__kicker" style={{ justifyContent: 'center' }}>
+        <span aria-hidden="true">{'灯 '}</span>El matsuri ha cerrado sus puertas
+      </span>
+      <p className="fest-farewell__copy">
+        Los faroles se apagan y la calle se recoge. El podio que ves quedó sellado
+        como resultado final de la ventana del evento.
+      </p>
+    </section>
+  )
+
   return (
-    <VisualPageShell visual={visual} contentClassName="mx-auto max-w-5xl" density="low" lateralKanji={{left: visual?.kanji ?? "祭", right: "祭"}}>
+    <FestivalProcession
+      estado={estado}
+      header={header}
+      milestones={hitos.length > 0 ? <MilestonePath hitos={hitos} /> : null}
+      farewell={farewell}
+    >
       <JsonLd
         id="evento"
         schema={eventoSchema(evento, participantes, {
@@ -139,64 +208,20 @@ function EventoDetailPage() {
           { label: evento.titulo, path: `/eventos/${evento.slug}` },
         ])}
       />
-        <Link
-          to="/eventos"
-          className="mb-6 inline-flex items-center gap-1.5 text-sm text-fg-muted transition-colors hover:text-fg-strong"
-        >
-          <ArrowLeft className="h-4 w-4" />
-          Ver todos los eventos
-        </Link>
 
-        <motion.header
-          initial={{ opacity: 0, y: 16 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.5, ease: 'easeOut' }}
-          className={`relative mb-10 flex min-h-80 flex-col justify-end gap-4 overflow-hidden rounded-2xl border p-6 sm:p-8 ${tonoBg}`}
+      {/* Puesto: Misión + mini-stats (aviso 御). Datos reales intactos. */}
+      {participantes.length > 0 && (
+        <YataiStall
+          titulo="Misión del evento"
+          kanji={KANJI_TIPO.texto}
+          etiqueta={ETIQUETA_TIPO.texto}
+          toldo="carmin"
+          ariaLabel="Misión del evento"
+          cerrado={proximo}
+          reduce={reduce}
         >
-          <EditorialCover
-            visual={visual}
-            className="absolute inset-0 rounded-none border-0 opacity-90"
-            imageClassName="saturate-110 contrast-105"
-          />
-          <span className={`relative inline-flex w-fit items-center gap-1.5 text-[11px] font-semibold ${tonoTexto}`}>
-            <CalendarClock className="h-3 w-3" />
-            {estadoLabel}
-          </span>
-          <div className="relative flex items-center gap-3">
-            <span aria-hidden="true" className="text-3xl sm:text-4xl">
-              {evento.emoji}
-            </span>
-            <h1 className="text-[clamp(1.75rem,4vw,2.75rem)] leading-tight tracking-tight">
-              {evento.titulo}
-            </h1>
-          </div>
-          <p className="relative max-w-2xl text-fg-muted">{evento.descripcionCorta}</p>
-          {estado === ESTADO_EVENTO.ACTIVO && (
-            <div className="relative flex flex-wrap items-center gap-2 pt-2">
-              <Link
-                to="/votar"
-                className="group inline-flex items-center gap-1.5 rounded-lg bg-accent px-4 py-2 text-sm font-semibold text-bg transition-colors hover:bg-accent-hover"
-              >
-                <Swords className="h-4 w-4" />
-                Vota duelos abiertos
-                <ArrowRight className="h-3.5 w-3.5 transition-transform group-hover:translate-x-0.5" />
-              </Link>
-              <Link
-                to="/ranking"
-                className="inline-flex items-center gap-1.5 rounded-lg border border-border bg-surface px-4 py-2 text-sm font-semibold text-fg-strong transition-colors hover:border-accent hover:text-gold"
-              >
-                Ver ranking global
-              </Link>
-            </div>
-          )}
-        </motion.header>
-
-        {/* bloque de "Misión del evento" + stats
-            agregadas para que la página se sienta como una temporada
-            con métricas propias, no un grid plano. */}
-        {participantes.length > 0 && (
-          <div className="mb-6 grid grid-cols-1 gap-3 sm:grid-cols-[2fr_1fr] sm:gap-4">
-            <div className="flex flex-col gap-2 rounded-2xl border border-border bg-surface p-4 sm:p-5">
+          <div className="fest-stall-grid">
+            <div className="flex flex-col gap-2">
               <span className="inline-flex w-fit items-center gap-1.5 text-[11px] font-semibold text-gold">
                 <Sparkles className="h-3 w-3" />
                 Misión del evento
@@ -208,11 +233,22 @@ function EventoDetailPage() {
             <div className="grid grid-cols-3 gap-2 rounded-xl border border-border bg-surface p-3 sm:p-4">
               <MiniStat label="Participantes" value={participantes.length} />
               <MiniStat label="Top 100" value={top100} tone="amber" />
-              <MiniStat label="ELO máx" value={eloMax || '—'} mono />
+              <MiniStat label="ELO base máx" value={eloMax || '—'} mono />
             </div>
           </div>
-        )}
+        </YataiStall>
+      )}
 
+      {/* Puesto: Ranking del evento (recompensa 王). Podio + roster intactos. */}
+      <YataiStall
+        titulo="Ranking del evento"
+        kanji={KANJI_TIPO.recompensa}
+        etiqueta={ETIQUETA_TIPO.recompensa}
+        toldo="oro"
+        ariaLabel="Ranking del evento"
+        cerrado={proximo && participantes.length > 0}
+        reduce={reduce}
+      >
         <div className="mb-4 flex items-end justify-between gap-3 border-b border-border pb-3">
           <div className="flex flex-col gap-1">
             <span className="inline-flex items-center gap-1.5 text-[11px] font-semibold text-fg-muted">
@@ -220,11 +256,7 @@ function EventoDetailPage() {
               Ranking del evento
             </span>
             <h2 className="text-xl font-bold text-fg-strong sm:text-2xl">
-              {participantes.length === 0
-                ? 'Participantes'
-                : top25 > 0
-                  ? `Podio interno · ${top25} entre top 25 global`
-                  : 'Participantes ordenados por ELO'}
+              {rankingTitulo}
             </h2>
           </div>
           <span className="font-mono text-[12px] text-fg-muted tabular-nums">
@@ -249,7 +281,20 @@ function EventoDetailPage() {
             </ol>
           </>
         )}
-    </VisualPageShell>
+      </YataiStall>
+
+      {!pasado && (
+        <p className="fest-back-foot">
+          <Link
+            to="/eventos"
+            className="inline-flex items-center gap-1.5 text-sm text-fg-muted transition-colors hover:text-fg-strong"
+          >
+            <ArrowLeft className="h-4 w-4" />
+            Ver todos los eventos
+          </Link>
+        </p>
+      )}
+    </FestivalProcession>
   )
 }
 
@@ -288,7 +333,7 @@ function PodioEvento({ participantes, tono }) {
           </h3>
           <p className="mt-1 text-sm text-fg-muted">{primero.anime}</p>
           <p className="mt-4 font-mono text-sm font-bold text-gold">
-            ELO {primero.elo}
+            ELO base {primero.elo}
           </p>
         </div>
       </Link>
@@ -314,7 +359,7 @@ function PodioEvento({ participantes, tono }) {
               </p>
               <p className="line-clamp-1 text-[12px] text-fg-muted">{p.anime}</p>
               <p className="mt-2 font-mono text-[12px] font-bold text-gold">
-                ELO {p.elo}
+                ELO base {p.elo}
               </p>
             </div>
           </Link>
@@ -348,7 +393,14 @@ function ParticipanteCard({ rank, personaje, tono }) {
           <span
             className={`absolute left-1.5 top-1.5 inline-flex h-5 min-w-[20px] items-center justify-center rounded-md px-1 font-mono text-[10px] font-extrabold ${tonoRank}`}
           >
-            {rank === 1 ? <Crown className="h-3 w-3" /> : `#${rank}`}
+            {rank === 1 ? (
+              <>
+                <Crown className="h-3 w-3" />
+                <span className="sr-only">#1</span>
+              </>
+            ) : (
+              `#${rank}`
+            )}
           </span>
         </div>
         <div className="min-w-0">
@@ -360,7 +412,7 @@ function ParticipanteCard({ rank, personaje, tono }) {
           </p>
         </div>
         <p className="font-mono text-[11px] font-bold text-gold">
-          ELO {personaje.elo}
+          ELO base {personaje.elo}
         </p>
       </Link>
     </li>

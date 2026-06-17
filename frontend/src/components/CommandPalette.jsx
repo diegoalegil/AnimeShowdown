@@ -90,6 +90,18 @@ const rutasInvitado = [
   { to: '/forgot-password', label: 'Recuperar contraseña', icon: HelpCircle, searchTerms: 'reset password contraseña' },
 ]
 
+// Destinos sugeridos cuando el campo está vacío: aceleran el descubrimiento
+// para quien abre el palette por primera vez sin saber qué teclear. Solo rutas
+// SIEMPRE válidas (sin depender de la hidratación del catálogo): el loop de
+// producto (votar/ranking), un juego destacado y un personaje aleatorio real
+// (la ruta /descubre-personaje lo resuelve, sin inventar nombres aquí).
+const sugerencias = [
+  { to: '/votar', label: 'Votar un duelo', icon: Swords, hint: 'el bucle principal' },
+  { to: '/ranking', label: 'Ranking ELO', icon: TrendingUp, hint: 'quién manda hoy' },
+  { to: '/descubre-personaje', label: 'Descubre un personaje', icon: Sparkles, hint: 'aleatorio' },
+  { to: '/games/shadow-guess', label: 'Shadow Guess', icon: Eye, hint: 'juego diario' },
+]
+
 const rutasUsuario = [
   { to: '/perfil', label: 'Mi perfil', icon: UserCircle, searchTerms: 'cuenta ajustes usuario' },
   { to: '/torneos/crear', label: 'Crear torneo', icon: PlusCircle, searchTerms: 'nuevo bracket campeonato' },
@@ -379,6 +391,25 @@ function CommandPalette({ initialOpen = false } = {}) {
               Nada en los archivos
             </span>
           </Command.Empty>
+          {search.trim() === '' && (
+            <Command.Group
+              heading="Sugerencias"
+              className="font-mono text-[11px] text-gold/55"
+            >
+              {sugerencias.map(({ to, label, icon: Icon, hint }) => (
+                <Command.Item
+                  key={`sug-${to}`}
+                  value={`sugerencia ${label} ${to}`}
+                  onSelect={() => go(to)}
+                  className="flex cursor-pointer items-center gap-3 rounded-lg border border-border-gold-subtle bg-gold/[0.04] px-3 py-2 text-sm text-fg-strong aria-selected:border-border-gold aria-selected:bg-gold/[0.08]"
+                >
+                  <Icon className="h-4 w-4 text-gold" />
+                  <span className="flex-1">{label}</span>
+                  <span className="text-[11px] normal-case tracking-normal text-fg-muted">{hint}</span>
+                </Command.Item>
+              ))}
+            </Command.Group>
+          )}
           {queryPersonajes.length >= 2 && (
             <PersonajesCommandGroup
               personajesPalette={personajesPalette}

@@ -117,10 +117,14 @@ public class CartaController {
         return new MonederoDto(monederoService.saldoDe(exigirUsuario(usuario)));
     }
 
-    /** Probabilidades transparentes del sobre (precio, pool, prob. por rareza). */
+    /**
+     * Probabilidades transparentes del sobre (precio, pool, prob. por rareza).
+     * PÚBLICO: son datos de diseño globales (no dependen del usuario), así que
+     * un invitado puede verlas antes de registrarse — transparencia y gancho de
+     * conversión. Ver SecurityConfig (GET /api/cartas/odds permitAll).
+     */
     @GetMapping("/cartas/odds")
-    public OddsDto odds(@AuthenticationPrincipal Usuario usuario) {
-        exigirUsuario(usuario);
+    public OddsDto odds() {
         return rarezaService.odds();
     }
 

@@ -64,7 +64,7 @@ function LiveMatchSpectator({ torneo }) {
           </span>
           <div>
             <p className="text-[11px] font-semibold text-success">
-              Spectator live
+              En directo
             </p>
             <h2 className="text-lg font-extrabold text-fg-strong">
               Ronda {liveMatch.ronda ?? torneo?.rondaActual ?? '?'} en directo

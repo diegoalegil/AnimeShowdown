@@ -7,18 +7,5 @@ package com.diegoalegil.animeshowdown.dto;
  * opcional). El valor es el id de wire de {@link
  * com.diegoalegil.animeshowdown.model.CategoriaVoto}.
  */
-public class CategoriaVotoRequest {
-
-    private String categoria;
-
-    public CategoriaVotoRequest() {
-    }
-
-    public String getCategoria() {
-        return categoria;
-    }
-
-    public void setCategoria(String categoria) {
-        this.categoria = categoria;
-    }
+public record CategoriaVotoRequest(String categoria) {
 }

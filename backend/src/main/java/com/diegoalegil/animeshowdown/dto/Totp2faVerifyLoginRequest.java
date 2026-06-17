@@ -18,30 +18,11 @@ import jakarta.validation.constraints.NotBlank;
  * en {@link com.diegoalegil.animeshowdown.service.TotpService#validarCodigo}
  * y en {@link com.diegoalegil.animeshowdown.service.TotpBackupCodeService#consumirSiCoincide}.
  */
-public class Totp2faVerifyLoginRequest {
+public record Totp2faVerifyLoginRequest(
 
-    @NotBlank(message = "El challenge token es obligatorio")
-    private String challengeToken;
+        @NotBlank(message = "El challenge token es obligatorio")
+        String challengeToken,
 
-    @NotBlank(message = "El código es obligatorio")
-    private String codigo;
-
-    public Totp2faVerifyLoginRequest() {
-    }
-
-    public String getChallengeToken() {
-        return challengeToken;
-    }
-
-    public void setChallengeToken(String challengeToken) {
-        this.challengeToken = challengeToken;
-    }
-
-    public String getCodigo() {
-        return codigo;
-    }
-
-    public void setCodigo(String codigo) {
-        this.codigo = codigo;
-    }
+        @NotBlank(message = "El código es obligatorio")
+        String codigo) {
 }

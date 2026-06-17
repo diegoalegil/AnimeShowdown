@@ -61,7 +61,7 @@ public class PrediccionController {
         }
         try {
             Prediccion p = prediccionService.aplicar(usuario,
-                    req.getEnfrentamientoId(), req.getPersonajePredichoId());
+                    req.enfrentamientoId(), req.personajePredichoId());
             return ResponseEntity.ok(PrediccionDto.from(p));
         } catch (IllegalArgumentException e) {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST)
@@ -77,7 +77,7 @@ public class PrediccionController {
         }
         try {
             Prediccion p = prediccionService.aplicarCampeon(usuario,
-                    req.getTorneoId(), req.getPersonajePredichoId());
+                    req.torneoId(), req.personajePredichoId());
             return ResponseEntity.ok(PrediccionDto.from(p));
         } catch (IllegalArgumentException e) {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST)

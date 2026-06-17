@@ -127,9 +127,18 @@ function computeAnimesCatalogo(catalogo) {
       (a, b) => b.popularidad - a.popularidad,
     )
     const topElo = porElo[0]
-    const eloPromedio = Math.round(
-      stats.reduce((a, p) => a + p.elo, 0) / stats.length,
-    )
+    const eloPromedio = stats.length
+      ? Math.round(stats.reduce((a, p) => a + p.elo, 0) / stats.length)
+      : 0
+    // eloMedio: alias semántico de eloPromedio para la Biblioteca de los
+    // Universos (UniverseLibrary). Es el MISMO número; se expone con el nombre
+    // que pide el contrato de la pieza sin tocar a los consumers de
+    // eloPromedio (RankingPage, sort 'promedio'). top3: los 3 personajes de
+    // mayor ELO base como {slug, nombre} para los retratos del fly-leaf.
+    // Ambos derivan de getStatsPersonaje (ELO SINTÉTICO, _sintetico:true), así
+    // que la UI los rotula "·b"/"ELO base" — convención de honestidad existente.
+    const eloMedio = eloPromedio
+    const top3 = porElo.slice(0, 3).map((p) => ({ slug: p.slug, nombre: p.nombre }))
     const slug = slugifyAnime(anime)
     const aliases = getAnimeAliases(anime)
     const destacadoScore = list.length * 8 + (topElo?.elo ?? 0)
@@ -149,6 +158,8 @@ function computeAnimesCatalogo(catalogo) {
       total: list.length,
       topElo,
       eloPromedio,
+      eloMedio,
+      top3,
       porElo,
       porPopularidad,
       aliases,

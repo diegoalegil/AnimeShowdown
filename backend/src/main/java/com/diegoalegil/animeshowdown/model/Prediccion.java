@@ -15,6 +15,8 @@ import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
 import jakarta.persistence.UniqueConstraint;
+import lombok.Getter;
+import lombok.Setter;
 
 /**
  * Predicción de un usuario sobre quién ganará un enfrentamiento.
@@ -45,6 +47,7 @@ import jakarta.persistence.UniqueConstraint;
         @Index(name = "idx_pred_acertada_fecha", columnList = "acertada, fecha"),
     }
 )
+@Getter
 public class Prediccion {
 
     @Id
@@ -75,6 +78,7 @@ public class Prediccion {
     private LocalDateTime fecha;
 
     /** null = pendiente; true/false = ya resuelta tras finalizar el torneo. */
+    @Setter
     @Column
     private Boolean acertada;
 
@@ -100,19 +104,10 @@ public class Prediccion {
         this.acertada = null;
     }
 
-    public Long getId() { return id; }
-    public Usuario getUsuario() { return usuario; }
-    public Enfrentamiento getEnfrentamiento() { return enfrentamiento; }
-    public Torneo getTorneo() { return torneo; }
-    public Personaje getPersonajePredicho() { return personajePredicho; }
     public void setPersonajePredicho(Personaje personajePredicho) {
         this.personajePredicho = personajePredicho;
         this.fecha = LocalDateTime.now();
     }
-    public TipoPrediccion getTipo() { return tipo; }
-    public LocalDateTime getFecha() { return fecha; }
-    public Boolean getAcertada() { return acertada; }
-    public void setAcertada(Boolean acertada) { this.acertada = acertada; }
 
     public boolean estaResuelta() { return acertada != null; }
 }

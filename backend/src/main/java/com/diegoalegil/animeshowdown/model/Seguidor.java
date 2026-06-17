@@ -14,6 +14,8 @@ import jakarta.persistence.ManyToOne;
 import jakarta.persistence.MapsId;
 import jakarta.persistence.Table;
 
+import lombok.Getter;
+
 /**
  * Relación de seguimiento entre dos usuarios.
  *
@@ -23,6 +25,7 @@ import jakarta.persistence.Table;
  */
 @Entity
 @Table(name = "seguidores")
+@Getter
 public class Seguidor {
 
     @EmbeddedId
@@ -50,13 +53,9 @@ public class Seguidor {
         this.fechaInicio = LocalDateTime.now();
     }
 
-    public SeguidorId getId() { return id; }
-    public Usuario getSeguidor() { return seguidor; }
-    public Usuario getSeguido() { return seguido; }
-    public LocalDateTime getFechaInicio() { return fechaInicio; }
-
     /** Clave compuesta del join. Embeddable para usarse con @EmbeddedId. */
     @Embeddable
+    @Getter
     public static class SeguidorId implements Serializable {
 
         @Column(name = "seguidor_id")
@@ -71,9 +70,6 @@ public class Seguidor {
             this.seguidorId = seguidorId;
             this.seguidoId = seguidoId;
         }
-
-        public Long getSeguidorId() { return seguidorId; }
-        public Long getSeguidoId() { return seguidoId; }
 
         @Override
         public boolean equals(Object o) {

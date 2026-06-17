@@ -14,6 +14,8 @@ import jakarta.persistence.ManyToOne;
 import jakarta.persistence.PrePersist;
 import jakarta.persistence.PreUpdate;
 import jakarta.persistence.Table;
+import lombok.Getter;
+import lombok.Setter;
 
 /**
  * Una carta poseída por un usuario. Server-authoritative: el cliente nunca
@@ -21,6 +23,8 @@ import jakarta.persistence.Table;
  * crear filas nuevas (UNIQUE usuario+carta).
  */
 @Entity
+@Getter
+@Setter
 @Table(name = "usuario_carta", indexes = {
         @Index(name = "idx_usuario_carta_usuario", columnList = "usuario_id")
 })
@@ -85,19 +89,4 @@ public class UsuarioCarta {
     public void incrementar() {
         this.cantidad += 1;
     }
-
-    public Long getId() { return id; }
-    public void setId(Long id) { this.id = id; }
-    public Usuario getUsuario() { return usuario; }
-    public void setUsuario(Usuario usuario) { this.usuario = usuario; }
-    public Carta getCarta() { return carta; }
-    public void setCarta(Carta carta) { this.carta = carta; }
-    public int getCantidad() { return cantidad; }
-    public void setCantidad(int cantidad) { this.cantidad = cantidad; }
-    public LocalDateTime getObtenidaEn() { return obtenidaEn; }
-    public void setObtenidaEn(LocalDateTime obtenidaEn) { this.obtenidaEn = obtenidaEn; }
-    public LocalDateTime getActualizadaEn() { return actualizadaEn; }
-    public void setActualizadaEn(LocalDateTime actualizadaEn) { this.actualizadaEn = actualizadaEn; }
-    public boolean isDestacada() { return destacada; }
-    public void setDestacada(boolean destacada) { this.destacada = destacada; }
 }

@@ -183,7 +183,7 @@ public class PerfilController {
             HttpServletRequest httpRequest) {
         if (usuario == null) return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
         Usuario actualizado = perfilService.actualizarBio(usuario,
-                body == null ? null : body.getBio(), httpRequest);
+                body == null ? null : body.bio(), httpRequest);
         return ResponseEntity.ok(new UsuarioRespuesta(actualizado));
     }
 
@@ -218,7 +218,7 @@ public class PerfilController {
         // falso. Además el @Async podía persistir tras el delete con FK
         // violation porque el usuario_id ya no existía.
         try {
-            perfilService.eliminarCuenta(usuario, body.getPassword(), httpRequest);
+            perfilService.eliminarCuenta(usuario, body.password(), httpRequest);
         } catch (IllegalArgumentException e) {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST)
                     .body(Map.of("message", e.getMessage()));

@@ -1,0 +1,201 @@
+/* ============================================================================
+   sanctuary.css — CSS DE FEATURE de WrappedSanctuary (El santuario del Wrapped).
+   El componente raiz lo importa con `import './sanctuary.css'`. TODOS los
+   @keyframes viven aqui (CSP por hash: cero estilos en runtime, cero
+   style-jsx). CERO literales de color: solo tokens var(--color-*) del
+   index.css del proyecto y color-mix() para las mezclas con transparencia.
+
+   PATRON CANON (igual que totb-* / mf-* del index.css): el ESTADO BASE de
+   cada elemento ES su estado FINAL visible. Los @keyframes solo definen el
+   "from". Con animation-fill-mode: both el navegador aplica el "from" al
+   arrancar y vuelve al base al terminar. Consecuencia: si la animacion NUNCA
+   corre (prefers-reduced-motion, pestania throttled, sin JS) el contenido
+   queda en su estado final VISIBLE. reduced-motion sale gratis.
+
+   60fps: SOLO se animan transform y opacity. Cero blur(), cero backdrop-blur,
+   cero filtros SVG vivos (jank real de WebKit en este proyecto). El glow es
+   box-shadow estatica pre-pintada; el "latido" seria cross-fade de opacity.
+
+   La clase .is-awake la pone SanctuaryRoom cuando la sala alcanza el 40% de
+   visibilidad (una sola vez por visita). El re-scroll NO re-dispara.
+   ============================================================================ */
+
+.sanctuary {
+  --ease-stamp: cubic-bezier(0.34, 1.56, 0.64, 1); /* overshoot del hanko; no es token global */
+  --sanctuary-speed: 1; /* el director multiplica esto para camara lenta */
+  background-color: var(--color-canvas);
+  color: var(--color-fg);
+}
+
+/* ── Niebla en deriva (2 capas tileables; el elemento mide 200% y cada tile
+      el 50% -> desplazar -50% recorre exactamente un tile, loop sin costura) ── */
+@keyframes sanctuary-mist {
+  to { transform: translate3d(-50%, 0, 0); }
+}
+.sanctuary-mist {
+  position: absolute;
+  inset: 0;
+  width: 200%;
+  background-repeat: repeat-x;
+  background-size: 50% 100%;
+  will-change: transform;
+  pointer-events: none;
+  animation: sanctuary-mist calc(var(--mist-dur, 34s) * var(--sanctuary-speed)) linear infinite;
+}
+/* Loops decorativos pausados: modo calma, pestania oculta y fuera de viewport
+   (la clase .is-offscreen la pone WrappedSanctuary con su IntersectionObserver). */
+html.as-calm .sanctuary-mist,
+html.as-tab-hidden .sanctuary-mist,
+.sanctuary.is-offscreen .sanctuary-mist {
+  animation-play-state: paused !important;
+}
+
+/* ── Corte de tinta del titular (cover scaleX origin-left con filo dorado de
+      3px que se retira). Base: cover retraido (scaleX 0) -> titular visible. ── */
+@keyframes sanctuary-ink-cut {
+  from { transform: scaleX(1); }
+}
+.sanctuary-ink-wrap { position: relative; display: inline-block; overflow: hidden; }
+.sanctuary-ink-cut {
+  position: absolute;
+  inset: 0;
+  z-index: 2;
+  transform-origin: left center;
+  transform: scaleX(0);
+  pointer-events: none;
+  background: linear-gradient(
+    90deg,
+    var(--color-surface) 0 calc(100% - 3px),
+    var(--color-gold) calc(100% - 3px)
+  );
+}
+.is-awake .sanctuary-ink-cut {
+  animation: sanctuary-ink-cut calc(420ms * var(--sanctuary-speed)) var(--ease-brush) both;
+}
+
+/* ── Entrada suave (rise). Stagger por --pd inline desde el componente. ── */
+@keyframes sanctuary-fade-up {
+  from { opacity: 0; transform: translateY(18px); }
+}
+.is-awake .sanctuary-rise {
+  animation: sanctuary-fade-up calc(560ms * var(--sanctuary-speed)) var(--ease-lift)
+    calc(var(--pd, 0s) * var(--sanctuary-speed)) both;
+}
+
+/* ── Sello hanko (caida + overshoot + posado a -7deg). Base: posado. ── */
+@keyframes sanctuary-stamp {
+  0% { opacity: 0; transform: translateY(-46px) scale(1.7) rotate(-18deg); }
+  52% { opacity: 1; transform: translateY(3px) scale(0.9) rotate(-6deg); }
+  72% { transform: translateY(-2px) scale(1.07) rotate(-9deg); }
+  100% { opacity: 1; transform: translateY(0) scale(1) rotate(-7deg); }
+}
+.sanctuary-stamp { transform: rotate(-7deg); }
+.is-awake .sanctuary-stamp {
+  animation: sanctuary-stamp calc(620ms * var(--sanctuary-speed)) var(--ease-stamp)
+    calc(320ms * var(--sanctuary-speed)) both;
+}
+
+/* ── Lluvia de votos: una pasada por entrada. Decorativa -> base oculta. ── */
+@keyframes sanctuary-ballot {
+  0% { transform: translate3d(0, -14vh, 0) rotate(var(--r, 0deg)); opacity: 0; }
+  9% { opacity: 0.95; }
+  90% { opacity: 0.95; }
+  100% { transform: translate3d(0, 108vh, 0) rotate(calc(var(--r, 0deg) * -1.4)); opacity: 0; }
+}
+.sanctuary-ballot {
+  position: absolute;
+  top: 0;
+  width: 14px;
+  height: 20px;
+  border-radius: 2px;
+  opacity: 0;
+}
+.is-awake .sanctuary-ballot {
+  will-change: transform;
+  animation: sanctuary-ballot calc(var(--bd, 1.8s) * var(--sanctuary-speed)) linear
+    calc(var(--bdelay, 0s) * var(--sanctuary-speed)) 1 both;
+}
+
+/* ── Odometro SLAM (aterriza con overshoot). Base: posado. ── */
+@keyframes sanctuary-slam {
+  0% { opacity: 0; transform: scale(2.3); }
+  55% { opacity: 1; }
+  76% { transform: scale(0.95); }
+  90% { transform: scale(1.035); }
+}
+.sanctuary-odo { transform-origin: left center; }
+.is-awake .sanctuary-odo {
+  animation: sanctuary-slam calc(900ms * var(--sanctuary-speed)) var(--ease-lift)
+    calc(260ms * var(--sanctuary-speed)) both;
+}
+
+/* ── Pedestales (rise stagger 100ms). Base: posado. ── */
+@keyframes sanctuary-pedestal {
+  from { opacity: 0; transform: translateY(34px); }
+}
+.is-awake .sanctuary-pedestal {
+  animation: sanctuary-pedestal calc(350ms * var(--sanctuary-speed)) var(--ease-lift)
+    calc(var(--pd, 0s) * var(--sanctuary-speed)) both;
+}
+
+/* ── Faroles: el ember cruza de apagado a encendido (cross-fade de opacity,
+      stagger 80ms). Base: encendido. ── */
+@keyframes sanctuary-ember {
+  from { opacity: 0; }
+}
+.is-awake .sanctuary-ember {
+  animation: sanctuary-ember calc(420ms * var(--sanctuary-speed)) var(--ease-lift)
+    calc(var(--ld, 0s) * var(--sanctuary-speed)) both;
+}
+.is-awake .sanctuary-lantern-num {
+  animation: sanctuary-slam calc(760ms * var(--sanctuary-speed)) var(--ease-lift)
+    calc(var(--lnd, 0s) * var(--sanctuary-speed)) both;
+  transform-origin: center;
+}
+
+/* ── Espejo: la escena a sangre entra con leve zoom. Base: a sangre. ── */
+@keyframes sanctuary-scene {
+  from { opacity: 0; transform: scale(1.06); }
+}
+.is-awake .sanctuary-scene {
+  animation: sanctuary-scene calc(1100ms * var(--sanctuary-speed)) var(--ease-lift) both;
+}
+
+/* ── Emaki: el rollo se desenrolla (cover retrae a la derecha, 800ms). Base:
+      rollo abierto (cover retraido). ── */
+@keyframes sanctuary-unroll {
+  from { transform: scaleX(1); }
+}
+.sanctuary-emaki-cover {
+  position: absolute;
+  inset: 0;
+  z-index: 5;
+  transform-origin: right center;
+  transform: scaleX(0);
+  pointer-events: none;
+  background: linear-gradient(90deg, var(--color-gold) 0 3px, var(--color-surface) 3px);
+}
+.is-awake .sanctuary-emaki-cover {
+  animation: sanctuary-unroll calc(800ms * var(--sanctuary-speed)) var(--ease-brush)
+    calc(120ms * var(--sanctuary-speed)) both;
+}
+
+/* ── reduced-motion: el base YA es el final, asi que basta con apagar todo
+      (incluida la niebla) y ocultar la lluvia decorativa. ── */
+@media (prefers-reduced-motion: reduce) {
+  .sanctuary-mist { animation: none !important; }
+  .is-awake .sanctuary-ink-cut,
+  .is-awake .sanctuary-rise,
+  .is-awake .sanctuary-stamp,
+  .is-awake .sanctuary-pedestal,
+  .is-awake .sanctuary-odo,
+  .is-awake .sanctuary-ember,
+  .is-awake .sanctuary-lantern-num,
+  .is-awake .sanctuary-scene,
+  .is-awake .sanctuary-emaki-cover { animation: none !important; }
+  .sanctuary-ballot { display: none !important; }
+}
+
+/* Scrollbar del rollo emaki oculto (afford-scroll horizontal). */
+.sanctuary-emaki-strip { scrollbar-width: none; }
+.sanctuary-emaki-strip::-webkit-scrollbar { display: none; }

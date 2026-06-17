@@ -48,7 +48,7 @@ export default function ShowTimeline({ guion, step, playing, speed, narrator, on
           style={{ display: 'flex', gap: 2, padding: 3, borderRadius: 'var(--radius-pill)', background: 'var(--color-surface-alt)', border: '1px solid color-mix(in srgb,var(--color-fg) 12%,transparent)' }}>
           {[0.5, 1, 2].map((s) => (
             <button key={s} type="button" onClick={() => onSpeed(s)} aria-pressed={speed === s}
-              style={{ minHeight: 30, padding: '0 11px', borderRadius: 'var(--radius-pill)', border: 'none', cursor: 'pointer',
+              style={{ minHeight: 44, padding: '0 11px', borderRadius: 'var(--radius-pill)', border: 'none', cursor: 'pointer',
                 fontFamily: 'var(--font-mono)', fontSize: 12, fontWeight: 700,
                 color: speed === s ? 'var(--color-canvas)' : 'var(--color-fg-muted)',
                 background: speed === s ? 'var(--color-gold-bright)' : 'transparent' }}>{s}×</button>
@@ -74,7 +74,7 @@ export default function ShowTimeline({ guion, step, playing, speed, narrator, on
 }
 
 const primaryBtn = {
-  display: 'inline-flex', alignItems: 'center', gap: 7, minHeight: 40, padding: '0 16px', borderRadius: 'var(--radius-lg)',
+  display: 'inline-flex', alignItems: 'center', gap: 7, minHeight: 44, padding: '0 16px', borderRadius: 'var(--radius-lg)',
   cursor: 'pointer', fontSize: 13.5, fontWeight: 700, color: 'var(--color-fg-strong)',
   border: '1px solid color-mix(in srgb,var(--color-gold) 28%,transparent)',
   background: 'linear-gradient(180deg, var(--color-accent-hover), var(--color-accent))',

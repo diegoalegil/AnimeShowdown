@@ -36,11 +36,7 @@ class SugerenciaPersonajeServiceTest {
     }
 
     private SugerirPersonajeRequest req(String nombre, String anime, String identidad) {
-        SugerirPersonajeRequest r = new SugerirPersonajeRequest();
-        r.setNombre(nombre);
-        r.setAnime(anime);
-        r.setIdentidad(identidad);
-        return r;
+        return new SugerirPersonajeRequest(nombre, anime, null, identidad, null);
     }
 
     @Test

@@ -67,13 +67,17 @@ function MisionesPage() {
       isPast: i < arr.length - 1,
     }
   })
+  // Recompensa: completar la misi\u00f3n diaria acredita monedas (el backend la
+  // paga v\u00eda DropService -> DROP_MISION_DIARIA, idempotente por d\u00eda) adem\u00e1s
+  // de sellar la racha. La copia lo refleja sin clavar un n\u00famero exacto,
+  // porque el importe es configurable (app.cartas.drop.mision-diaria).
   const cartillaMissions = [
     {
       id: 'votos',
       kanji: '\u7968',
       label: 'Vota ' + DAILY_VOTE_TARGET + ' duelos',
       progress: Math.min(progress.votes, DAILY_VOTE_TARGET) + '/' + DAILY_VOTE_TARGET + ' votos',
-      reward: 'monedas al completar',
+      reward: '+monedas',
       state: progress.votes >= DAILY_VOTE_TARGET ? 'completed' : 'pending',
     },
     {
@@ -81,7 +85,7 @@ function MisionesPage() {
       kanji: '\u6226',
       label: 'Juega un daily trial',
       progress: Math.min(progress.gamesCompleted, DAILY_GAME_TARGET) + '/' + DAILY_GAME_TARGET + ' juego',
-      reward: 'monedas al completar',
+      reward: '+monedas',
       state: progress.gamesCompleted >= DAILY_GAME_TARGET ? 'completed' : 'pending',
     },
     {
@@ -89,7 +93,7 @@ function MisionesPage() {
       kanji: '\u89a7',
       label: 'Revisa el ranking',
       progress: progress.rankingViewed ? 'visto' : 'pendiente',
-      reward: 'monedas al completar',
+      reward: '+monedas',
       state: progress.rankingViewed ? 'completed' : 'pending',
     },
   ]

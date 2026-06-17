@@ -14,6 +14,7 @@ import jakarta.persistence.ManyToOne;
 import jakarta.persistence.PrePersist;
 import jakarta.persistence.Table;
 import jakarta.persistence.UniqueConstraint;
+import lombok.Getter;
 
 /**
  * Posesión de un marco de avatar desbloqueado por un usuario (cosmético
@@ -29,6 +30,7 @@ import jakarta.persistence.UniqueConstraint;
         uniqueConstraints = @UniqueConstraint(name = "uk_usuario_marco_unico",
                 columnNames = {"usuario_id", "marco_id"}),
         indexes = @Index(name = "idx_usuario_marco_usuario", columnList = "usuario_id"))
+@Getter
 public class UsuarioMarco {
 
     @Id
@@ -58,21 +60,5 @@ public class UsuarioMarco {
         if (adquiridoEn == null) {
             adquiridoEn = LocalDateTime.now();
         }
-    }
-
-    public Long getId() {
-        return id;
-    }
-
-    public Usuario getUsuario() {
-        return usuario;
-    }
-
-    public String getMarcoId() {
-        return marcoId;
-    }
-
-    public LocalDateTime getAdquiridoEn() {
-        return adquiridoEn;
     }
 }

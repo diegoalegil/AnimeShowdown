@@ -94,7 +94,7 @@
   line-height: 1;
   border-radius: var(--radius-lg);
   transform: rotate(-3deg);
-  animation: mf-stamp 420ms var(--ease-stamp) both;
+  animation: mf-hanko-stamp 420ms var(--ease-stamp) both;
 }
 .mf-hanko::after {
   /* sangrado: capa pre-renderizada que se funde por opacity (sin blur) */
@@ -107,7 +107,7 @@
   transform: rotate(2.5deg);
   animation: mf-bleed 620ms linear both;
 }
-@keyframes mf-stamp {
+@keyframes mf-hanko-stamp {
   0%   { transform: scale(1.9) rotate(-11deg); opacity: 0; }
   62%  { transform: scale(0.94) rotate(-2deg); opacity: 1; }
   100% { transform: scale(1) rotate(-3deg); opacity: 1; }

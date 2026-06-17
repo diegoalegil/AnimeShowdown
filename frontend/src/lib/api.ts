@@ -684,6 +684,10 @@ export const endpoints = {
   miMonedero: () => api.get('/api/me/monedero'),
   // Wrapped: resumen de actividad del usuario autenticado (privado).
   miWrapped: () => api.get('/api/wrapped/me'),
+  // Opt-in público del Wrapped: el dueño activa/desactiva compartirlo por URL.
+  setWrappedPublico: (publico: boolean) => api.patch('/api/wrapped/me/publico', { publico }),
+  // Wrapped público de un usuario por username (404 si privado o no existe).
+  wrappedPublico: (username: string) => api.get(`/api/wrapped/u/${encodeURIComponent(username)}`),
   // Marcos de avatar (cosmético coin-sink). Catálogo + estado (saldo, poseído,
   // equipado); comprar (débito) y equipar/desequipar devuelven el mismo estado.
   misMarcos: () => api.get('/api/me/marcos'),
