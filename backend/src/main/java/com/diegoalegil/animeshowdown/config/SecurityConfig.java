@@ -244,6 +244,11 @@ public class SecurityConfig {
                         // prob. por rareza). Públicos para que el invitado vea la
                         // transparencia antes de registrarse (gancho de conversión).
                         .requestMatchers(HttpMethod.GET, "/api/cartas/odds").permitAll()
+                        // Wrapped PÚBLICO por opt-in: SOLO la ruta /u/{username}.
+                        // El controller devuelve 404 salvo que el dueño haya hecho
+                        // opt-in (wrapped_publico=true). /api/wrapped/me sigue
+                        // autenticado por el fallback anyRequest().authenticated().
+                        .requestMatchers(HttpMethod.GET, "/api/wrapped/u/**").permitAll()
                         // Datos para sitemap dinámico. Consumido por
                         // el script generate-sitemap.mjs en build de Cloudflare
                         // Pages; público porque sitemaps son públicos por definición.

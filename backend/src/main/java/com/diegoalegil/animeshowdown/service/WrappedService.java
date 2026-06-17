@@ -78,7 +78,8 @@ public class WrappedService {
                 fandomNombre,
                 mejorRacha,
                 top3,
-                universoTop);
+                universoTop,
+                usuario.isWrappedPublico());
     }
 
     /**

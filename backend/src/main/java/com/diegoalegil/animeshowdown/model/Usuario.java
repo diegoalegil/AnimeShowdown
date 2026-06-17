@@ -213,6 +213,14 @@ public class Usuario {
     @Column(name = "onboarding_completado", nullable = false)
     private Boolean onboardingCompletado = false;
 
+    /**
+     * V75: opt-in del Wrapped PÚBLICO (oportunidad b). false = privado (defecto);
+     * true = el dueño lo hizo compartible por URL. Gate del endpoint público
+     * GET /api/wrapped/u/{username} (404 si es false, sin filtrar existencia).
+     */
+    @Column(name = "wrapped_publico", nullable = false)
+    private Boolean wrappedPublico = false;
+
     /** V64: fecha en que el usuario abrió su sobre de bienvenida. Null = no reclamado. */
     @Column(name = "sobre_bienvenida_reclamado_en")
     @Getter
@@ -325,6 +333,14 @@ public class Usuario {
 
     public void setOnboardingCompletado(boolean onboardingCompletado) {
         this.onboardingCompletado = onboardingCompletado;
+    }
+
+    public boolean isWrappedPublico() {
+        return wrappedPublico != null && wrappedPublico;
+    }
+
+    public void setWrappedPublico(boolean wrappedPublico) {
+        this.wrappedPublico = wrappedPublico;
     }
 
 }

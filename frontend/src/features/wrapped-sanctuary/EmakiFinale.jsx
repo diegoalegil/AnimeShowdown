@@ -36,13 +36,16 @@ function componerTiles(w) {
  * @property {()=>void} [onCompartir] handler de compartir (lo cablea el padre)
  * @property {()=>void} [onVolver] handler de "volver a la arena"
  * @property {string} [feedback] mensaje de estado (aria-live) tras compartir
+ * @property {boolean} [publico] estado opt-in del Wrapped (solo vista del dueño)
+ * @property {()=>void} [onTogglePublico] alterna público/privado. Si no se pasa
+ *   (vista pública de otro usuario), NO se muestra el toggle.
  */
 
 /**
  * Rollo final compartible.
  * @param {EmakiFinaleProps} props
  */
-function EmakiFinale({ wrapped, onCompartir, onVolver, feedback = '' }) {
+function EmakiFinale({ wrapped, onCompartir, onVolver, feedback = '', publico = false, onTogglePublico }) {
   const tiles = componerTiles(wrapped)
   const alt =
     `Resumen de la temporada ${wrapped?.anio} de @${wrapped?.username}: ` +
@@ -119,7 +122,23 @@ function EmakiFinale({ wrapped, onCompartir, onVolver, feedback = '' }) {
         >
           Volver a la arena
         </button>
+        {onTogglePublico && (
+          <button
+            type="button"
+            onClick={onTogglePublico}
+            aria-pressed={publico}
+            className="as-button-ghost inline-flex min-h-11 items-center gap-2 rounded-lg px-[22px] text-[15px] font-semibold"
+          >
+            {publico ? 'Wrapped público · sí' : 'Hacer mi Wrapped público'}
+          </button>
+        )}
       </div>
+      {onTogglePublico && publico && wrapped?.username && (
+        <p className="sanctuary-rise m-0 mt-3 text-[13px] text-fg-muted" style={{ '--pd': '0.32s' }}>
+          Tu enlace:{' '}
+          <span className="font-mono text-gold-bright">animeshowdown.dev/wrapped/{wrapped.username}</span>
+        </p>
+      )}
       <p role="status" aria-live="polite" className="m-0 mt-3 min-h-[18px] text-[13px] text-gold-bright">
         {feedback}
       </p>

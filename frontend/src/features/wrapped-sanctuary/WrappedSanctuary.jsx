@@ -100,13 +100,15 @@ function Pedestal({ c, pos }) {
  * @property {object} wrapped datos del endpoint /api/wrapped/me (ver cabecera)
  * @property {()=>void} [onCompartir] handler de compartir del emaki
  * @property {()=>void} [onVolverArena] handler de "volver a la arena"
+ * @property {boolean} [publico] estado opt-in (solo vista del dueño)
+ * @property {()=>void} [onTogglePublico] alterna público/privado (solo dueño)
  */
 
 /**
  * El santuario del Wrapped.
  * @param {WrappedSanctuaryProps} props
  */
-function WrappedSanctuary({ wrapped, onCompartir, onVolverArena }) {
+function WrappedSanctuary({ wrapped, onCompartir, onVolverArena, publico = false, onTogglePublico }) {
   const reduced = useReducedMotion()
   const { play } = useSound()
   const rootRef = useRef(null)
@@ -350,6 +352,8 @@ function WrappedSanctuary({ wrapped, onCompartir, onVolverArena }) {
           feedback={feedback}
           onCompartir={onCompartirInner}
           onVolver={onVolverArena}
+          publico={publico}
+          onTogglePublico={onTogglePublico}
         />
       </SanctuaryRoom>
     </div>

@@ -1,4 +1,4 @@
-import { useQuery } from '@tanstack/react-query'
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { Navigate, useNavigate } from 'react-router-dom'
 import { useAuth } from '../contexts/AuthContext'
 import { useSeo } from '../hooks/useSeo'
@@ -32,11 +32,19 @@ function WrappedPage() {
   const { user } = useAuth()
   const navigate = useNavigate()
 
+  const queryClient = useQueryClient()
   const { data, isPending, isError, refetch } = useQuery({
     queryKey: ['wrapped'],
     queryFn: endpoints.miWrapped,
     enabled: Boolean(user),
     staleTime: 5 * 60_000,
+  })
+
+  // Opt-in público: persiste el flag y refresca la caché con el DTO devuelto
+  // (trae `publico` ya actualizado), así el toggle refleja el nuevo estado.
+  const togglePublico = useMutation({
+    mutationFn: (next) => endpoints.setWrappedPublico(next),
+    onSuccess: (actualizado) => queryClient.setQueryData(['wrapped'], actualizado),
   })
 
   if (!user) return <Navigate to="/login" replace />
@@ -85,6 +93,8 @@ function WrappedPage() {
         wrapped={wrapped}
         onCompartir={compartir}
         onVolverArena={() => navigate('/votar')}
+        publico={Boolean(data.publico)}
+        onTogglePublico={() => togglePublico.mutate(!data.publico)}
       />
     )
   }
