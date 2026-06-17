@@ -16,6 +16,7 @@ import './observatory.css'
  * @param {boolean} [props.destacada=false]         estrella del propio usuario (aro oro + "tu")
  * @param {boolean} [props.titila=false]            subida del dia → titilar una vez al entrar
  * @param {{x:number,y:number}|null} [props.estelaDesde=null]  origen de la estela (scrub real)
+ * @param {boolean} [props.atenuada=false]          la leyenda filtra otra constelación
  * @param {boolean} [props.reducedMotion=false]
  * @param {(slug:string)=>void} [props.onFocoEstrella]
  */
@@ -26,6 +27,7 @@ function SkyStarBase({
   destacada = false,
   titila = false,
   estelaDesde = null,
+  atenuada = false,
   reducedMotion = false,
   onFocoEstrella,
 }) {
@@ -84,7 +86,7 @@ function SkyStarBase({
     <a
       ref={ref}
       href={href}
-      className={`sky-star${destacada ? ' sky-star--tu' : ''}`}
+      className={`sky-star${destacada ? ' sky-star--tu' : ''}${atenuada ? ' sky-star--atenuada' : ''}`}
       style={estilo}
       data-slug={estrella.slug}
       aria-label={`${estrella.posicion}º: ${estrella.nombre}, ${estrella.anime}, ELO ${estrella.elo}`}

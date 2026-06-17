@@ -15,6 +15,78 @@
   border: 1px solid var(--color-border);
 }
 
+/* --- cabecera ------------------------------------------------------------- */
+.observatory__cabecera {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 0.75rem;
+  padding: 1rem 1.25rem 0.75rem;
+}
+.observatory__fecha {
+  font-size: var(--text-2xs);
+  letter-spacing: 0.08em;
+  color: var(--color-gold);
+}
+.observatory__titulo {
+  margin: 0;
+  font-size: 1.25rem;
+  font-weight: 600;
+  color: var(--color-fg-strong);
+}
+.observatory__acciones {
+  display: flex;
+  gap: 0.5rem;
+}
+.observatory__zoom,
+.observatory__volver {
+  padding: 0.4rem 0.85rem;
+  font-size: var(--text-2xs);
+  letter-spacing: 0.04em;
+  color: var(--color-fg);
+  background-color: var(--color-surface);
+  border: 1px solid var(--color-border-gold-subtle);
+  border-radius: var(--radius-pill);
+  cursor: pointer;
+}
+.observatory__zoom:hover,
+.observatory__volver:hover {
+  border-color: var(--color-gold);
+  color: var(--color-gold-bright);
+}
+.observatory__zoom:focus-visible,
+.observatory__volver:focus-visible,
+.observatory__chip:focus-visible {
+  outline: 2px solid var(--color-gold-bright);
+  outline-offset: 2px;
+}
+
+/* --- leyenda (chips por anime, filtran) ----------------------------------- */
+.observatory__leyenda {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+  padding: 0 1.25rem 0.75rem;
+}
+.observatory__chip {
+  padding: 0.25rem 0.7rem;
+  font-size: var(--text-2xs);
+  color: var(--color-fg-muted);
+  background-color: color-mix(in srgb, var(--color-surface) 70%, transparent);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-pill);
+  cursor: pointer;
+  transition: color 200ms ease, border-color 200ms ease;
+}
+.observatory__chip:hover {
+  color: var(--color-fg);
+}
+.observatory__chip.is-activa {
+  color: var(--color-gold-bright);
+  border-color: var(--color-gold);
+}
+
 /* --- lienzo desplazable: el pan escribe el transform por ref (cero estado) --- */
 .observatory__viewport {
   position: relative;
@@ -29,7 +101,8 @@
 }
 .observatory__lienzo {
   position: absolute;
-  inset: 0;
+  top: 0;
+  left: 0;
   transform-origin: 0 0;
   will-change: transform;
 }
@@ -46,12 +119,15 @@
   transform: translate(var(--x, 0), var(--y, 0)) translate(-50%, -50%);
   /* La deriva del escrutador (cambio de --x/--y) transiciona; el pan NO toca
      este transform (va en el lienzo padre), asi que no compite. */
-  transition: transform 600ms var(--ease-lift);
+  transition: transform 600ms var(--ease-lift), opacity 300ms ease;
   outline: none;
 }
 .sky-star:focus-visible {
   outline: 2px solid var(--color-gold-bright);
   outline-offset: 3px;
+}
+.sky-star--atenuada {
+  opacity: 0.12;
 }
 
 /* Cuerpo: lo que se enciende al entrar (fade + scale). El delay lo fija el
@@ -146,6 +222,10 @@
   stroke-linecap: round;
   /* hairline real aunque el lienzo escale en el zoom */
   vector-effect: non-scaling-stroke;
+  transition: opacity 300ms ease;
+}
+.constellation-layer__trazo.is-atenuado {
+  opacity: 0.12;
 }
 .constellation-layer__trazo.is-dibujando {
   stroke-dasharray: 1;

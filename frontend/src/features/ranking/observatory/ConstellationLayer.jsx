@@ -19,6 +19,7 @@ import './observatory.css'
  * @param {boolean} [props.reducedMotion=false]
  * @param {number} [props.staggerMs=90]         separación de encendido por constelación
  * @param {number} [props.retardoBaseMs=0]
+ * @param {string|null} [props.animeFiltrado=null]  atenúa los trazos de los demás animes
  */
 function ConstellationLayerBase({
   constelaciones,
@@ -28,6 +29,7 @@ function ConstellationLayerBase({
   reducedMotion = false,
   staggerMs = 90,
   retardoBaseMs = 0,
+  animeFiltrado = null,
 }) {
   const dibuja = animado && !reducedMotion
   return (
@@ -43,12 +45,13 @@ function ConstellationLayerBase({
         const d = pathDeConstelacion(c.segmentos)
         if (!d) return null
         const retardo = retardoBaseMs + c.indice * staggerMs + 200
+        const atenuado = animeFiltrado != null && c.anime !== animeFiltrado
         return (
           <path
             key={c.anime}
             d={d}
             pathLength="1"
-            className={`constellation-layer__trazo${dibuja ? ' is-dibujando' : ''}`}
+            className={`constellation-layer__trazo${dibuja ? ' is-dibujando' : ''}${atenuado ? ' is-atenuado' : ''}`}
             style={dibuja ? { animationDelay: `${retardo}ms` } : undefined}
           />
         )
