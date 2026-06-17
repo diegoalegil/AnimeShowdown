@@ -1,4 +1,4 @@
-import { useDeferredValue, useEffect, useMemo, useRef, useState } from 'react'
+import { lazy, Suspense, useDeferredValue, useEffect, useMemo, useRef, useState } from 'react'
 import { useQuery } from '@tanstack/react-query'
 import { Link, useSearchParams } from 'react-router-dom'
 import {
@@ -64,6 +64,13 @@ import {
 } from '../features/personajes/CatalogoPersonajes/catalogo-index'
 
 const RANKING_BACKEND_LIMIT = 100
+const OBSERVATORIO_TOP = 60
+
+// El Observatorio es una pieza de lienzo pesada (pan/zoom, 60 estrellas memo +
+// SVG): carga diferida en su propio chunk para no tocar el bundle inicial.
+const MetaObservatory = lazy(() =>
+  import('../features/ranking/observatory/MetaObservatory'),
+)
 
 /**
  * RankingPage rebranded.
@@ -181,6 +188,30 @@ function RankingPage() {
       new Date().toLocaleTimeString('es-ES', {
         hour: '2-digit',
         minute: '2-digit',
+      }),
+    [],
+  )
+
+  // Observatorio (pestaña 'observatorio'): proyecta el top del ELO canónico como
+  // cielo nocturno. Adaptamos rankedElo al contrato de la pieza {slug, nombre,
+  // anime, elo, posicion}. La posición es el orden por ELO (1 = top).
+  const observatorioRanking = useMemo(
+    () =>
+      rankedElo.slice(0, OBSERVATORIO_TOP).map((p, i) => ({
+        slug: p.slug,
+        nombre: p.nombre,
+        anime: p.anime,
+        elo: p.elo,
+        posicion: i + 1,
+      })),
+    [rankedElo],
+  )
+  const fechaCielo = useMemo(
+    () =>
+      new Date().toLocaleDateString('es-ES', {
+        day: '2-digit',
+        month: 'short',
+        year: 'numeric',
       }),
     [],
   )
@@ -307,6 +338,16 @@ function RankingPage() {
               initialSearch={initialSearch}
               initialAnimeFilter={initialAnimeFilter}
             />
+          )}
+          {tab === 'observatorio' && (
+            <Suspense fallback={<RankingSkeletonGrid />}>
+              <MetaObservatory
+                ranking={observatorioRanking}
+                hrefPersonaje={(slug) => `/personajes/${slug}`}
+                fecha={fechaCielo}
+                onVolverTabla={() => setTab('elo')}
+              />
+            </Suspense>
           )}
           {tab === 'categorias' && (
             <CategoriasYIntencionTab

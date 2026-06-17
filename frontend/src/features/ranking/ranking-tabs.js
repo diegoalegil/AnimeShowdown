@@ -1,6 +1,7 @@
 import {
   Calendar,
   Sparkles,
+  Telescope,
   Trophy,
   Tv,
   Vote,
@@ -16,6 +17,7 @@ export const RANKING_TABS = [
   { id: 'mes', label: 'Este mes', icon: Calendar },
   { id: 'arena', label: 'Sala de mando', icon: Waves },
   { id: 'elo', label: 'ELO', icon: Trophy },
+  { id: 'observatorio', label: 'Observatorio', icon: Telescope },
   { id: 'categorias', label: 'Categorías', icon: Sparkles },
   { id: 'anime', label: 'Por anime', icon: Tv },
 ]
