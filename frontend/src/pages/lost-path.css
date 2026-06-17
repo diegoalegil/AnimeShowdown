@@ -1,0 +1,242 @@
+/* LostPath (pieza 100) — 404 del recinto en niebla. Peso pluma: sin imágenes, sin
+   blur(), sin loops infinitos (todas las entradas son one-shot al montar).
+   Tokens del proyecto only; alphas con color-mix() — cero hex/rgb/hsl. */
+
+.lost {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: calc(100svh - 5rem);
+  padding: 4rem 1.25rem 5rem;
+  overflow: hidden;
+  text-align: center;
+}
+
+/* Niebla: UNA capa, gradiente estático (cero animación de niebla). */
+.lost__fog {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background:
+    radial-gradient(
+      120% 80% at 50% 16%,
+      color-mix(in srgb, var(--color-surface) 65%, transparent) 0%,
+      transparent 58%
+    ),
+    radial-gradient(
+      90% 55% at 50% 100%,
+      color-mix(in srgb, var(--color-canvas) 90%, transparent) 0%,
+      transparent 72%
+    );
+}
+
+/* Escena decorativa: kanji 迷 + senda de faroles. */
+.lost__scene {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  margin-bottom: 1.25rem;
+}
+
+.lost__kanji {
+  font-family: var(--font-kanji-serif);
+  font-size: clamp(7rem, 26vw, 13rem);
+  line-height: 0.9;
+  color: color-mix(in srgb, var(--color-gold) 20%, transparent);
+  text-shadow: 0 0 36px color-mix(in srgb, var(--color-accent) 16%, transparent);
+  animation: lost-kanji-in 1100ms var(--ease-brush) both;
+}
+
+/* Senda: tres faroles de piedra apagados que menguan hacia la niebla. */
+.lost__path {
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  gap: clamp(1.25rem, 6vw, 3rem);
+  margin-top: -1rem;
+}
+
+.lost__lantern {
+  --lantern-size: 1.5rem;
+  --lantern-final: 0.9;
+  width: var(--lantern-size);
+  height: calc(var(--lantern-size) * 1.6);
+  border-radius: var(--radius-lg) var(--radius-lg) 2px 2px;
+  background: linear-gradient(
+    to bottom,
+    color-mix(in srgb, var(--color-surface-alt) 92%, transparent),
+    color-mix(in srgb, var(--color-canvas) 88%, transparent)
+  );
+  border: 1px solid var(--color-border-gold-subtle);
+  opacity: 0;
+  animation: lost-lantern-in 600ms var(--ease-lift) both;
+}
+
+/* Perspectiva: los faroles lejanos menguan y se apagan. */
+.lost__lantern:nth-child(1) {
+  animation-delay: 0ms;
+}
+.lost__lantern:nth-child(2) {
+  --lantern-size: 1.15rem;
+  --lantern-final: 0.6;
+  animation-delay: 120ms;
+}
+.lost__lantern:nth-child(3) {
+  --lantern-size: 0.8rem;
+  --lantern-final: 0.32;
+  animation-delay: 240ms;
+}
+
+.lost__content {
+  position: relative;
+  max-width: 34rem;
+}
+
+.lost__eyebrow {
+  font-family: var(--font-kanji-serif);
+  font-size: var(--text-2xs);
+  font-weight: 800;
+  color: var(--color-gold);
+}
+
+.lost__title {
+  margin-top: 0.5rem;
+  font-size: clamp(1.75rem, 5vw, 2.5rem);
+  font-weight: 900;
+  line-height: 1.1;
+  color: var(--color-fg-strong);
+}
+
+.lost__lede {
+  margin: 0.75rem auto 0;
+  max-width: 30rem;
+  line-height: 1.6;
+  color: var(--color-fg-muted);
+}
+
+/* Sugerencia "¿quizás buscabas?": tablilla que entra con corte de tinta
+   (scaleX origin-left) a t+600ms — solo si la heurística da match fiable. */
+.lost__suggest {
+  display: inline-flex;
+  flex-direction: column;
+  gap: 0.1rem;
+  margin: 1.25rem auto 0;
+  padding: 0.6rem 1.15rem;
+  border: 1px solid var(--color-border-gold);
+  border-radius: var(--radius-lg);
+  background: color-mix(in srgb, var(--color-surface) 80%, transparent);
+  text-decoration: none;
+  transform-origin: left center;
+  animation: lost-inkcut 520ms var(--ease-brush) 600ms both;
+}
+.lost__suggest:hover {
+  border-color: var(--color-gold-bright);
+}
+.lost__suggest:focus-visible {
+  outline: 2px solid var(--color-gold);
+  outline-offset: 2px;
+}
+.lost__suggest-label {
+  font-size: var(--text-2xs);
+  color: var(--color-fg-muted);
+}
+.lost__suggest-name {
+  font-weight: 800;
+  color: var(--color-gold);
+}
+
+.lost__exits {
+  margin-top: 1.5rem;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+  justify-content: center;
+}
+
+.lost__exit {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  min-height: 2.75rem;
+  padding: 0 1.25rem;
+  border-radius: var(--radius-lg);
+  border: 1px solid var(--color-border);
+  background: color-mix(in srgb, var(--color-surface) 60%, transparent);
+  color: var(--color-fg-strong);
+  font-size: 0.875rem;
+  font-weight: 800;
+  cursor: pointer;
+  transition:
+    transform 160ms var(--ease-lift),
+    border-color 160ms ease,
+    color 160ms ease;
+}
+.lost__exit:hover {
+  transform: translateY(-2px);
+  border-color: var(--color-border-gold);
+  color: var(--color-gold);
+}
+.lost__exit:focus-visible {
+  outline: 2px solid var(--color-gold);
+  outline-offset: 2px;
+}
+.lost__exit--primary {
+  border-color: color-mix(in srgb, var(--color-accent) 55%, transparent);
+  background: var(--color-accent);
+  color: var(--color-fg-strong);
+}
+.lost__exit--primary:hover {
+  background: var(--color-accent-hover);
+  color: var(--color-fg-strong);
+}
+
+@keyframes lost-kanji-in {
+  from {
+    opacity: 0;
+    transform: translateY(10px) scale(0.96);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+@keyframes lost-lantern-in {
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+  to {
+    opacity: var(--lantern-final);
+    transform: none;
+  }
+}
+
+@keyframes lost-inkcut {
+  from {
+    opacity: 0;
+    transform: scaleX(0);
+  }
+  to {
+    opacity: 1;
+    transform: scaleX(1);
+  }
+}
+
+/* reduced-motion: todo estático en su estado final (kanji ya "trazado"). */
+@media (prefers-reduced-motion: reduce) {
+  .lost__kanji,
+  .lost__suggest {
+    animation: none;
+    opacity: 1;
+    transform: none;
+  }
+  .lost__lantern {
+    animation: none;
+    opacity: var(--lantern-final);
+    transform: none;
+  }
+}
