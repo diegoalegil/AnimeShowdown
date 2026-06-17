@@ -1,17 +1,18 @@
 import { expect, test } from '@playwright/test'
 
-// El combate guiado (FirstDuelTour): el único spec donde el gate
+// El kumite de iniciación (TrainingKumite): el único spec donde el gate
 // 'onboarding.v1' queda ABIERTO a propósito — el resto de specs lo cierran
-// en sus helpers para que el tour no secuestre sus flujos.
+// en sus helpers para que el entrenamiento no secuestre sus flujos.
 //
-// Cobertura deliberadamente determinista y sin backend: la guía aparece para
-// el candidato (autenticado + gate ausente + /votar) AUNQUE las APIs de la
-// arena fallen (el telón queda sin hueco y la guía sigue operativa — es un
-// requisito del spec del tour, no un accidente). El avance por voto real se
+// Cobertura deliberadamente determinista y sin backend: el kumite aparece para
+// el candidato (autenticado + gate ausente + /votar + catálogo con ≥3 cartas)
+// y su práctica es autocontenida (duelo y búsqueda de mentira, sin red). Solo
+// depende del catálogo, que aquí se sirve mockeado. El avance por gesto real se
 // cubre en el harness visual de la pieza.
 
 const CATALOG_STORAGE_KEY = 'animeshowdown.catalogo-personajes.v1'
 
+// El kumite exige ≥3 personajes (izquierda, derecha y objetivo de búsqueda).
 const CATALOG = [
   {
     slug: 'goku',
@@ -25,6 +26,13 @@ const CATALOG = [
     nombre: 'Naruto Uzumaki',
     anime: 'Naruto',
     imagenUrl: '/img/Naruto/naruto.webp',
+    imagenColorDominante: '#e0a13c',
+  },
+  {
+    slug: 'luffy',
+    nombre: 'Monkey D. Luffy',
+    anime: 'One Piece',
+    imagenUrl: '/img/OnePiece/luffy.webp',
     imagenColorDominante: '#e0a13c',
   },
 ]
@@ -45,7 +53,7 @@ async function prepareCandidatePage(page) {
     localStorage.setItem('i18nextLng', 'es')
     localStorage.setItem(catalog.key, JSON.stringify(catalog.data))
     sessionStorage.setItem('animeshowdown.splash.shown', 'true')
-    // OJO: aquí NO se cierra 'onboarding.v1' — este spec ES el del tour.
+    // OJO: aquí NO se cierra 'onboarding.v1' — este spec ES el del kumite.
   }, { key: CATALOG_STORAGE_KEY, data: CATALOG })
   await page.addInitScript((user) => {
     localStorage.setItem('animeshowdown.user', JSON.stringify(user))
@@ -66,40 +74,42 @@ async function prepareCandidatePage(page) {
   })
 }
 
-const guia = (page) => page.getByRole('dialog', { name: /Combate guiado/ })
+const kumite = (page) =>
+  page.getByRole('dialog', { name: /Kumite de iniciación/ })
 
-test('el candidato ve el combate guiado al pisar /votar', async ({ page }) => {
+test('el candidato ve el kumite de iniciación al pisar /votar', async ({ page }) => {
   await prepareCandidatePage(page)
   await page.goto('/votar')
 
-  await expect(guia(page)).toBeVisible({ timeout: 15_000 })
-  await expect(guia(page)).toContainText('Tu primer duelo decide.')
-  // Skip siempre visible (regla dura del spec del tour).
-  await expect(guia(page).getByRole('button', { name: 'Saltar el tour' })).toBeVisible()
+  await expect(kumite(page)).toBeVisible({ timeout: 15_000 })
+  // Arranca por el primer ejercicio (el voto).
+  await expect(kumite(page)).toContainText('Ejercicio 1 de 4')
+  // Saltable SIEMPRE: el botón "Ya entrené" está disponible de entrada.
+  await expect(kumite(page).getByRole('button', { name: 'Ya entrené' })).toBeVisible()
 })
 
-test('Escape salta el tour, fija el gate y no reaparece al recargar', async ({ page }) => {
+test('Escape salta el kumite, fija el gate y no reaparece al recargar', async ({ page }) => {
   await prepareCandidatePage(page)
   await page.goto('/votar')
-  await expect(guia(page)).toBeVisible({ timeout: 15_000 })
+  await expect(kumite(page)).toBeVisible({ timeout: 15_000 })
 
   await page.keyboard.press('Escape')
-  await expect(guia(page)).toHaveCount(0)
+  await expect(kumite(page)).toHaveCount(0)
   await expect
     .poll(() => page.evaluate(() => localStorage.getItem('onboarding.v1')))
     .toBe('skipped')
 
   await page.reload()
   await page.waitForLoadState('networkidle')
-  await expect(guia(page)).toHaveCount(0)
+  await expect(kumite(page)).toHaveCount(0)
 })
 
-test('con el gate cerrado el tour no existe', async ({ page }) => {
+test('con el gate cerrado el kumite no existe', async ({ page }) => {
   await prepareCandidatePage(page)
   await page.addInitScript(() => {
     localStorage.setItem('onboarding.v1', 'done')
   })
   await page.goto('/votar')
   await page.waitForLoadState('networkidle')
-  await expect(guia(page)).toHaveCount(0)
+  await expect(kumite(page)).toHaveCount(0)
 })

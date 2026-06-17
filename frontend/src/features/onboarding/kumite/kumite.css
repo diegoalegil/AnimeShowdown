@@ -1,0 +1,585 @@
+/* ============================================================================
+   kumite.css — CSS de feature del KUMITE DE INICIACION (pieza 122).
+   Lo importa el componente raiz (TrainingKumite); aqui viven TODOS los
+   @keyframes (CSP por hash: cero estilos en runtime). Reglas de la casa:
+   solo transform/opacity se animan (60fps), cero blur/backdrop-blur nuevos,
+   cero literales de color (ni en comentarios, que el guard tambien lee) — solo
+   tokens var(--color-*) y color-mix(in srgb, var(--token) N%, transparent) para
+   alphas. Easings de la casa: var(--ease-lift), var(--ease-brush).
+   ============================================================================ */
+
+/* ── El pergamino del sensei ──────────────────────────────────────────────
+   Lamina de superficie con canto dorado; en >=sm vive a un lado, a 390px se
+   vuelve banda superior. La entrada (corte + asiento) la disparan re-keys. */
+.kumite-sensei {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  padding: 1.25rem;
+  border-radius: 14px;
+  border: 1px solid var(--color-border-gold-subtle);
+  background:
+    linear-gradient(
+      180deg,
+      var(--color-surface-alt),
+      color-mix(in srgb, var(--color-surface) 92%, var(--color-gold) 8%)
+    );
+  transform-origin: 50% 100%;
+}
+
+.kumite-sensei__ordinal {
+  margin: 0;
+  font-size: 0.72rem;
+  letter-spacing: 0.04em;
+  color: color-mix(in srgb, var(--color-gold) 70%, transparent);
+}
+
+/* Contenedor del trazo: el kanji debajo, la tapa de tinta encima. */
+.kumite-sensei__trazo {
+  position: relative;
+  overflow: hidden;
+  align-self: flex-start;
+  line-height: 1;
+}
+
+.kumite-sensei__kanji {
+  display: block;
+  font-size: clamp(3.25rem, 11vw, 4.5rem);
+  font-weight: 800;
+  color: var(--color-gold-bright);
+}
+
+/* Corte de tinta: tapa que cubre el kanji y se retira hacia la derecha
+   (translateX, nitido), dejando ver el glifo de izquierda a derecha. Su canto
+   izquierdo es el filo dorado de la pincelada (borde, no sombra: no se escala).
+   Re-key por ejercicio => se reproduce una vez al cambiar de paso. */
+.kumite-sensei__cut {
+  position: absolute;
+  inset: 0;
+  background: var(--color-surface-alt);
+  border-left: 3px solid var(--color-gold-bright);
+  transform: translateX(0);
+  animation: kumite-cut 0.8s var(--ease-brush) forwards;
+}
+
+@keyframes kumite-cut {
+  from { transform: translateX(0); }
+  to { transform: translateX(105%); }
+}
+
+.kumite-sensei__titulo {
+  margin: 0.35rem 0 0;
+  font-size: 0.95rem;
+  font-weight: 800;
+  color: var(--color-fg-strong);
+}
+
+.kumite-sensei__concepto {
+  margin: 0;
+  font-size: 0.9rem;
+  line-height: 1.5;
+  color: var(--color-fg);
+}
+
+.kumite-sensei__instruccion {
+  margin: 0.15rem 0 0;
+  font-size: 0.84rem;
+  line-height: 1.45;
+  color: var(--color-fg-muted);
+}
+
+/* El sensei asiente (rota 2° y vuelve) con WAAPI desde SenseiScroll — gesto
+   one-shot por acierto, no un loop ni una clase CSS (evita setState en effect). */
+
+/* A 390px el pergamino es una banda superior compacta. */
+@media (max-width: 30rem) {
+  .kumite-sensei {
+    padding: 0.85rem 1rem;
+  }
+  .kumite-sensei__kanji {
+    font-size: clamp(2.5rem, 14vw, 3.25rem);
+  }
+}
+
+/* ── El duelo de práctica (PracticeBout) ──────────────────────────────────
+   Dos cartas + balanza central. El control del gesto activo va resaltado; el
+   resto deshabilitado (sin interacción inválida posible). */
+.kumite-bout {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.75rem;
+}
+
+.kumite-bout__carta {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.4rem;
+  width: clamp(5.5rem, 28vw, 7.5rem);
+  padding: 0.4rem;
+  border-radius: 12px;
+  border: 1px solid var(--color-border);
+  background: var(--color-surface-alt);
+  cursor: pointer;
+  transition: border-color 0.18s var(--ease-lift), transform 0.18s var(--ease-lift);
+}
+
+.kumite-bout__carta:not(:disabled):hover,
+.kumite-bout__carta:not(:disabled):focus-visible {
+  border-color: var(--color-border-gold);
+  transform: translateY(-2px);
+}
+
+.kumite-bout__carta:disabled {
+  cursor: default;
+  opacity: 0.55;
+}
+
+.kumite-bout__art {
+  aspect-ratio: 2 / 3;
+  width: 100%;
+  border-radius: 8px;
+  overflow: hidden;
+}
+
+.kumite-bout__nombre {
+  font-size: 0.78rem;
+  font-weight: 700;
+  line-height: 1.2;
+  text-align: center;
+  color: var(--color-fg);
+}
+
+/* Sello 票 al votar: hanko que cae con overshoot (ease-stamp). transform/opacity. */
+.kumite-bout__sello {
+  position: absolute;
+  top: 38%;
+  left: 50%;
+  transform: translate(-50%, -50%) rotate(-8deg);
+  font-size: clamp(2rem, 9vw, 2.75rem);
+  font-weight: 900;
+  color: var(--color-hanko);
+  pointer-events: none;
+}
+
+.kumite-bout__sello--stamp {
+  animation: kumite-stamp 0.42s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+@keyframes kumite-stamp {
+  0% { opacity: 0; transform: translate(-50%, -50%) rotate(-8deg) scale(1.8); }
+  60% { opacity: 1; }
+  100% { opacity: 1; transform: translate(-50%, -50%) rotate(-8deg) scale(1); }
+}
+
+/* La balanza del empate (同). Botón central; resaltado solo en su ejercicio. */
+.kumite-bout__balanza {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.15rem;
+  min-width: 44px;
+  min-height: 44px;
+  padding: 0.5rem 0.7rem;
+  border-radius: 10px;
+  border: 1px solid var(--color-border-gold-subtle);
+  background: color-mix(in srgb, var(--color-surface) 80%, transparent);
+  color: var(--color-fg-muted);
+  cursor: pointer;
+  transition: border-color 0.18s var(--ease-lift), color 0.18s var(--ease-lift);
+}
+
+.kumite-bout__balanza:not(:disabled):hover,
+.kumite-bout__balanza:not(:disabled):focus-visible {
+  border-color: var(--color-border-gold);
+  color: var(--color-gold-bright);
+}
+
+.kumite-bout__balanza:disabled {
+  cursor: default;
+  opacity: 0.5;
+}
+
+.kumite-bout__balanza-kanji {
+  font-size: 1.4rem;
+  line-height: 1;
+  color: var(--color-gold);
+}
+
+.kumite-bout__balanza-txt {
+  font-size: 0.7rem;
+  font-weight: 700;
+}
+
+/* ── La búsqueda simulada (PracticeSearch) ────────────────────────────────
+   Botón que abre una paleta de práctica (input + resultado del objetivo). */
+.kumite-search {
+  display: flex;
+  justify-content: center;
+  width: 100%;
+}
+
+.kumite-search__abrir {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  min-height: 44px;
+  padding: 0 1rem;
+  border-radius: 10px;
+  border: 1px solid var(--color-border-gold-subtle);
+  background: var(--color-surface-alt);
+  font-size: 0.9rem;
+  font-weight: 700;
+  color: var(--color-fg);
+  cursor: pointer;
+  transition: border-color 0.18s var(--ease-lift);
+}
+
+.kumite-search__abrir:hover,
+.kumite-search__abrir:focus-visible {
+  border-color: var(--color-border-gold);
+}
+
+.kumite-search__kbd {
+  font-family: ui-monospace, monospace;
+  font-size: 0.72rem;
+  padding: 0.1rem 0.35rem;
+  border-radius: 5px;
+  border: 1px solid var(--color-border);
+  background: var(--color-surface);
+  color: var(--color-fg-muted);
+}
+
+.kumite-search__panel {
+  width: 100%;
+  max-width: 22rem;
+  padding: 0.6rem;
+  border-radius: 12px;
+  border: 1px solid var(--color-border-gold);
+  background: var(--color-surface);
+  transform-origin: top center;
+  animation: kumite-search-in 0.22s var(--ease-lift);
+}
+
+@keyframes kumite-search-in {
+  from { opacity: 0; transform: translateY(-6px) scale(0.98); }
+  to { opacity: 1; transform: translateY(0) scale(1); }
+}
+
+.kumite-search__input {
+  width: 100%;
+  box-sizing: border-box;
+  min-height: 44px;
+  padding: 0 0.75rem;
+  border-radius: 8px;
+  border: 1px solid var(--color-border);
+  background: var(--color-bg);
+  font-size: 0.9rem;
+  color: var(--color-fg-strong);
+}
+
+.kumite-search__input:focus-visible {
+  outline: 2px solid var(--color-gold);
+  outline-offset: 1px;
+}
+
+.kumite-search__res {
+  list-style: none;
+  margin: 0.5rem 0 0;
+  padding: 0;
+}
+
+.kumite-search__hit {
+  display: flex;
+  align-items: baseline;
+  gap: 0.5rem;
+  width: 100%;
+  min-height: 44px;
+  padding: 0 0.6rem;
+  border-radius: 8px;
+  border: 1px solid var(--color-border-gold-subtle);
+  background: color-mix(in srgb, var(--color-gold) 10%, transparent);
+  cursor: pointer;
+  text-align: left;
+}
+
+.kumite-search__hit:hover,
+.kumite-search__hit:focus-visible {
+  border-color: var(--color-border-gold);
+}
+
+.kumite-search__hit-nombre {
+  font-size: 0.9rem;
+  font-weight: 700;
+  color: var(--color-fg-strong);
+}
+
+.kumite-search__hit-anime {
+  font-size: 0.76rem;
+  color: var(--color-fg-muted);
+}
+
+.kumite-search__vacio {
+  padding: 0.5rem 0.6rem;
+  font-size: 0.82rem;
+  color: var(--color-fg-muted);
+}
+
+/* ── Orquestador (TrainingKumite): overlay con telón + panel ───────────────── */
+.kumite {
+  position: fixed;
+  inset: 0;
+  z-index: 60;
+  display: grid;
+  place-items: center;
+  padding: clamp(0.75rem, 3vw, 1.5rem);
+  background: color-mix(in srgb, var(--color-canvas) 88%, transparent);
+}
+.kumite:focus {
+  outline: none;
+}
+
+.kumite__panel {
+  width: 100%;
+  max-width: 40rem;
+  max-height: calc(100dvh - 2rem);
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  padding: clamp(1rem, 3vw, 1.5rem);
+  border-radius: 16px;
+  border: 1px solid var(--color-border-gold);
+  background: var(--color-surface);
+}
+
+/* Telón: el panel sube al entrar (transform/opacity). */
+.kumite--telon .kumite__panel {
+  animation: kumite-telon 0.5s var(--ease-lift);
+}
+@keyframes kumite-telon {
+  from { opacity: 0; transform: translateY(18px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.kumite__head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+}
+.kumite__eyebrow {
+  margin: 0;
+  font-size: 0.72rem;
+  letter-spacing: 0.08em;
+  text-transform: none;
+  color: color-mix(in srgb, var(--color-gold) 70%, transparent);
+}
+.kumite__skip {
+  min-height: 44px;
+  padding: 0 0.75rem;
+  border-radius: 8px;
+  border: 1px solid var(--color-border);
+  background: transparent;
+  font-size: 0.82rem;
+  font-weight: 600;
+  color: var(--color-fg-muted);
+  cursor: pointer;
+}
+.kumite__skip:hover,
+.kumite__skip:focus-visible {
+  color: var(--color-fg-strong);
+  border-color: var(--color-border-gold-subtle);
+}
+
+/* Progreso de cordones. */
+.kumite__cordones {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.kumite__cordon {
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+  padding: 0.3rem 0.6rem;
+  border-radius: 999px;
+  border: 1px solid var(--color-border);
+  font-size: 0.74rem;
+  color: var(--color-fg-muted);
+}
+.kumite__cordon[aria-current='step'] {
+  border-color: var(--color-border-gold);
+  color: var(--color-fg-strong);
+}
+.kumite__cordon--hecho {
+  border-color: var(--color-border-gold);
+  background: color-mix(in srgb, var(--color-gold) 12%, transparent);
+  color: var(--color-gold-bright);
+}
+.kumite__cordon-num {
+  font-size: 0.7rem;
+  opacity: 0.7;
+}
+.kumite__cordon-check {
+  font-weight: 900;
+  color: var(--color-gold-bright);
+}
+
+/* Acto: sensei + ejercicio. Apilado en móvil, lado a lado en ≥sm. */
+.kumite__acto {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+@media (min-width: 40rem) {
+  .kumite__acto {
+    flex-direction: row;
+    align-items: stretch;
+  }
+  .kumite-sensei {
+    flex: 0 0 15rem;
+  }
+}
+.kumite__ejercicio {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 12rem;
+}
+
+/* Ceremonia del cinturón: lazo trazado + sello 誓. */
+.kumite__ceremonia {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 1.5rem 1rem;
+  text-align: center;
+}
+.kumite__lazo {
+  width: clamp(7rem, 40vw, 9rem);
+  height: auto;
+}
+.kumite__lazo-path {
+  fill: none;
+  stroke: var(--color-gold-bright);
+  stroke-width: 2.5;
+  stroke-linecap: round;
+  stroke-dasharray: 400;
+  stroke-dashoffset: 400;
+  animation: kumite-lazo 0.6s var(--ease-brush) forwards;
+}
+@keyframes kumite-lazo {
+  to { stroke-dashoffset: 0; }
+}
+.kumite__sello {
+  font-size: clamp(2.5rem, 12vw, 3.5rem);
+  font-weight: 900;
+  line-height: 1;
+  color: var(--color-hanko);
+  animation: kumite-stamp 0.42s cubic-bezier(0.34, 1.56, 0.64, 1) 0.4s both;
+}
+.kumite__ceremonia-txt {
+  margin: 0;
+  font-size: 0.95rem;
+  line-height: 1.5;
+  color: var(--color-fg);
+}
+
+/* Ejercicio 4 — el archivo (rastro en el ranking personal, maqueta). */
+.kumite-archivo {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.6rem;
+  width: 100%;
+  max-width: 18rem;
+  text-align: center;
+}
+.kumite-archivo__titulo {
+  margin: 0;
+  font-size: 0.78rem;
+  font-weight: 800;
+  letter-spacing: 0.04em;
+  color: var(--color-gold);
+}
+.kumite-archivo__lista {
+  width: 100%;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 0.3rem;
+}
+.kumite-archivo__lista li {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.4rem 0.6rem;
+  border-radius: 8px;
+  border: 1px solid var(--color-border);
+  background: var(--color-surface-alt);
+  font-size: 0.85rem;
+  font-weight: 700;
+  color: var(--color-fg);
+}
+.kumite-archivo__pos {
+  color: var(--color-gold);
+}
+.kumite-archivo__nota {
+  margin: 0;
+  font-size: 0.78rem;
+  line-height: 1.4;
+  color: var(--color-fg-muted);
+}
+.kumite-archivo__ok {
+  min-height: 44px;
+  padding: 0 1.1rem;
+  border-radius: 10px;
+  border: 1px solid var(--color-border-gold);
+  background: color-mix(in srgb, var(--color-gold) 14%, transparent);
+  font-size: 0.88rem;
+  font-weight: 800;
+  color: var(--color-fg-strong);
+  cursor: pointer;
+}
+.kumite-archivo__ok:hover,
+.kumite-archivo__ok:focus-visible {
+  background: color-mix(in srgb, var(--color-gold) 22%, transparent);
+}
+
+/* reduced-motion: el concepto aparece escrito; sin corte, sin asentir, sin sello
+   ni entrada de paleta animados; sin telón ni trazo del lazo. */
+@media (prefers-reduced-motion: reduce) {
+  .kumite-sensei__cut {
+    display: none;
+  }
+  .kumite-bout__sello--stamp {
+    animation: none;
+  }
+  .kumite-bout__carta {
+    transition: none;
+  }
+  .kumite-search__panel {
+    animation: none;
+  }
+  .kumite--telon .kumite__panel {
+    animation: none;
+  }
+  .kumite__lazo-path {
+    stroke-dashoffset: 0;
+    animation: none;
+  }
+  .kumite__sello {
+    animation: none;
+  }
+}
