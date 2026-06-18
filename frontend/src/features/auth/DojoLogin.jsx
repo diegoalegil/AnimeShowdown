@@ -1,10 +1,10 @@
-import { useCallback, useEffect, useRef, useState } from 'react'
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { Link, useSearchParams } from 'react-router-dom'
 import { useReducedMotion } from 'framer-motion'
 import PasswordInput from '../../components/PasswordInput'
 import AuthSocialButtons from '../../components/AuthSocialButtons'
 import AuthLegalNote from '../../components/AuthLegalNote'
-import { sanitizeNext, sceneOfDay } from './dojo-login-data'
+import { escenaDeEntrada, sanitizeNext } from './dojo-login-data'
 import './dojo-login.css'
 
 // Estilos: ver el bloque "DojoLogin" en index.css (dojo-login.index.css).
@@ -65,7 +65,9 @@ function DojoLogin({
 
   const userRef = useRef(null)
   const passRef = useRef(null)
-  const scene = sceneOfDay(scenes)
+  // Escena contextual: si venías al PvP en vivo (next=/duel-live) la puerta
+  // muestra la arena de PvP en vez de la escena de anime del día.
+  const scene = useMemo(() => escenaDeEntrada(next, scenes), [next, scenes])
 
   const focusRight = useCallback(() => {
     const el = rememberedUsername ? passRef.current : userRef.current
@@ -190,7 +192,7 @@ function DojoLogin({
             )}
             {scene && (
               <p className="mt-2 font-mono text-[11px] text-fg-muted">
-                escena del día — {scene.fandom}
+                {scene.caption ?? `escena del día — ${scene.fandom}`}
               </p>
             )}
           </div>
@@ -347,7 +349,7 @@ function DojoLogin({
               <div className="dojo-login__scrim absolute inset-0" />
               <div className="absolute bottom-3 left-4 right-4">
                 {welcomeLine && <p className="font-display text-[15px] text-fg-strong">{welcomeLine}</p>}
-                <p className="mt-1 font-mono text-[10px] text-fg-muted">escena del día — {scene.fandom}</p>
+                <p className="mt-1 font-mono text-[10px] text-fg-muted">{scene.caption ?? `escena del día — ${scene.fandom}`}</p>
               </div>
             </div>
           )}
