@@ -33,7 +33,9 @@ function SupportCandle({ recibido = 0, objetivo = 25, mes }) {
   const encendida = recibido > 0
   const progreso = Math.min(1, objetivo > 0 ? recibido / objetivo : 0)
   const pct = Math.round(progreso * 100)
-  const mesAuto = new Date().toLocaleString('es-ES', { month: 'long' })
+  // Mes congelado al montar (inicializador lazy puro): new Date() en el cuerpo
+  // del render es impuro y el Compiler no puede memoizar el subárbol.
+  const [mesAuto] = useState(() => new Date().toLocaleString('es-ES', { month: 'long' }))
   const mesLabel = mes ?? mesAuto
 
   /* El llenado entra desde 0 al montar (un frame después). Con

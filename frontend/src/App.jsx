@@ -31,6 +31,17 @@ import { settleNavigationViewTransition } from './lib/viewTransitions'
 import i18n from './lib/i18n'
 import { useCalmMode } from './hooks/useCalmMode'
 
+// Estático: tokens CSS + labels fijos. A nivel de módulo para no recrear el
+// objeto (ni su style anidado) en cada render de App.
+const TOAST_OPTIONS = {
+  closeButtonAriaLabel: 'Cerrar notificacion',
+  style: {
+    background: 'var(--color-surface)',
+    border: '1px solid var(--color-border)',
+    color: 'var(--color-fg-strong)',
+  },
+}
+
 // Todas las rutas, incluida home, van detrás de React.lazy. InicioPage
 // importa el catálogo estático y varias secciones visuales pesadas; si se
 // queda en el bundle raíz, cualquier ruta paga ese coste antes de pintar.
@@ -355,14 +366,7 @@ function App() {
         position="top-right"
         theme="dark"
         containerAriaLabel="Notificaciones de AnimeShowdown"
-        toastOptions={{
-          closeButtonAriaLabel: 'Cerrar notificacion',
-          style: {
-            background: 'var(--color-surface)',
-            border: '1px solid var(--color-border)',
-            color: 'var(--color-fg-strong)',
-          },
-        }}
+        toastOptions={TOAST_OPTIONS}
       />
       {/* /tv tiene chrome propio fullscreen. Omitimos header, footer y
           bottom nav global para no montar DOM visual duplicado. */}
