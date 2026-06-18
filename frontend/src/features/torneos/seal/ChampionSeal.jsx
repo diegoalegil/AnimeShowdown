@@ -45,7 +45,7 @@
  *   />
  *
  *   Si `prediccion` llega del backend, monta directamente en fase papeleta
- *   (sin teatro retroactivo, mismo criterio que BracketReveal en Bracket.jsx).
+ *   (sin teatro retroactivo, mismo criterio que el histórico de Bracket.jsx).
  */
 
 import { useMemo, useRef, useState } from 'react'

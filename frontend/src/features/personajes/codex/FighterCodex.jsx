@@ -333,7 +333,7 @@ export default function FighterCodex({
                     <span className="codex__seal-ripple" aria-hidden="true" />
                   </span>
                   <span className="flex flex-col leading-[1.1]">
-                    <span className="font-mono text-[10px] uppercase tracking-[0.08em] text-fg-muted">{s.label}</span>
+                    <span className="font-mono text-[10px] text-fg-muted">{s.label}</span>
                     <span className="font-mono text-[clamp(20px,4.6vw,27px)] font-bold tabular-nums text-elo-number">{s.value}</span>
                   </span>
                 </div>
@@ -367,7 +367,7 @@ export default function FighterCodex({
             <div className="absolute inset-x-0 bottom-0 p-[clamp(18px,4vw,30px)]">
               <p className="m-0 font-mono text-xs text-gold">{personaje.anime}</p>
               <p className="m-0 mt-1 font-display text-[clamp(1.6rem,5vw,2.6rem)] font-bold leading-[1.05] text-fg-strong">{personaje.nombre}</p>
-              <p className="m-0 mt-2.5 font-mono text-[11px] uppercase tracking-[0.14em] text-gold/80">Abrir el códice ›</p>
+              <p className="m-0 mt-2.5 font-mono text-[11px] text-gold/80">Abrir el códice ›</p>
             </div>
           </div>
         </div>
@@ -442,7 +442,7 @@ function StatsPleat({ personaje, stats, rankAnime, totalAnime, winRate, total })
       <div className="grid grid-cols-[repeat(auto-fit,minmax(150px,1fr))] gap-3">
         {cards.map((c) => (
           <div key={c.label} className="rounded-xl border border-border bg-surface p-4">
-            <p className="m-0 font-mono text-[10px] uppercase tracking-[0.08em] text-fg-muted">{c.label}</p>
+            <p className="m-0 font-mono text-[10px] text-fg-muted">{c.label}</p>
             <p className={`m-0 mt-2 font-mono text-[28px] font-bold tabular-nums ${c.cls}`}>{c.value}</p>
             <p className="m-0 mt-1.5 text-xs text-fg-muted">{c.note}</p>
           </div>

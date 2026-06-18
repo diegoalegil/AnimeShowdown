@@ -9,9 +9,8 @@
  *      hacia su match destino de la siguiente ronda.
  *   2. Cuando un cruce se resuelve EN VIVO (su id está en `revealedIds`),
  *      el camino del ganador se ENCIENDE: trazo oro que avanza con
- *      stroke-dashoffset 1 → 0, 450 ms. Es exactamente la fase (1) de
- *      REVEAL_TIMING, así que el pulse del ganador (350–650 ms) y el
- *      atenuado del perdedor (550–800 ms) de BracketReveal encadenan solos.
+ *      stroke-dashoffset 1 → 0, 450 ms. El pulse del ganador (350–650 ms) y
+ *      el atenuado del perdedor (550–800 ms) encadenan solos sobre ese trazo.
  *   3. Matches resueltos al montar (histórico, fuera de revealedIds) pintan
  *      el oro en estado final sin transición — sin teatro retroactivo,
  *      coherente con reveladosEnVivo de Bracket.jsx.
@@ -46,7 +45,7 @@ import { useReducedMotionPref } from '../hooks/useReducedMotionPref'
 import { elbowPath, half } from './bracket-paths'
 
 const TRACE_MS = 450
-const TRACE_EASE = 'cubic-bezier(0.22, 1, 0.36, 1)' // = fase (1) de REVEAL_TIMING
+const TRACE_EASE = 'cubic-bezier(0.22, 1, 0.36, 1)' // easing del trazo del camino
 const WAVE_DELAY_MS = 430
 const WAVE_MS = 700
 
