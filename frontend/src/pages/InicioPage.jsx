@@ -30,6 +30,7 @@ import { markPersonajeHero } from '../lib/viewTransitions'
 import { useSound } from '../contexts/SoundContext'
 import { getGameVisual } from '../data/visual-assets'
 import ColiseoTop10 from '../features/home/ColiseoTop10'
+import HomeStreakEmber from '../features/home/HomeStreakEmber'
 import { usePersonajesCatalogo } from '../hooks/usePersonajesCatalogo'
 
 function getHomeCarousels(catalogoPersonajes) {
@@ -124,6 +125,9 @@ function InicioPage() {
             en/ja cubren hero/combate); marcarlo evita que un SR en en/ja
             pronuncie español con fonética inglesa/japonesa. */}
         <section lang="es" className="mx-auto w-full max-w-6xl px-4 pb-6 sm:px-6">
+          <div className="mb-4">
+            <HomeStreakEmber />
+          </div>
           <DailyMissionPanel />
         </section>
       </HomeSectionBoundary>
