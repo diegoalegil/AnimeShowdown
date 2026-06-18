@@ -18,8 +18,7 @@ import {
   personajes,
 } from '../lib/personajes-core'
 import { useSeo } from '../hooks/useSeo'
-import { getAnimeIdentity } from '../data/anime-identities'
-import { slugifyAnime } from '../lib/animes'
+import { toFighter } from '../features/versus/versus-fighter'
 import JsonLd from '../components/JsonLd'
 import PersonajeImg from '../components/PersonajeImg'
 import VersusIntroOverlay from '../features/versus/VersusIntroOverlay'
@@ -448,17 +447,6 @@ function DuelosSugeridos({ personaje, sugerencias }) {
       </div>
     </div>
   )
-}
-
-function toFighter(personaje) {
-  // Kanji del universo (cae al genérico 界 si el anime no tiene identidad curada).
-  const kanji = getAnimeIdentity(slugifyAnime(personaje.anime), personaje.anime).kanji
-  return {
-    slug: personaje.slug,
-    name: personaje.nombre,
-    series: personaje.anime,
-    kanji,
-  }
 }
 
 function getWinRate(stats) {
