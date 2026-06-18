@@ -156,6 +156,25 @@ class MonederoServiceTest {
     }
 
     @Test
+    void elDropDeJuegoEloDuelCuentaParaElTopeDiario() {
+        // Regresión: DROP_JUEGO (ELO Duel) debe contar para el tope diario como
+        // el resto de drops. Si MOTIVOS_DROP no lo incluye, sería un faucet de
+        // moneda sin límite (farmeo ilimitado). Con tope=1: el 1er acierto
+        // acredita, el 2º cae al tope.
+        Usuario usuario = crearUsuario("drop_juego_tope");
+        LocalDateTime desde = LocalDateTime.now().minusDays(1);
+
+        MonederoService.ResultadoDrop primero = monederoService.acreditarDropConTopeDiario(
+                usuario, MotivoMovimiento.DROP_JUEGO, "juego:elo:tope:1", 3L, 1, desde);
+        MonederoService.ResultadoDrop segundo = monederoService.acreditarDropConTopeDiario(
+                usuario, MotivoMovimiento.DROP_JUEGO, "juego:elo:tope:2", 3L, 1, desde);
+
+        assertThat(primero.estado()).isEqualTo(MonederoService.ResultadoDrop.Estado.APLICADO);
+        assertThat(segundo.estado()).isEqualTo(MonederoService.ResultadoDrop.Estado.TOPE_DIARIO);
+        assertThat(monederoService.saldoDe(usuario)).isEqualTo(3L);
+    }
+
+    @Test
     void topeDiarioSeCuentaDentroDelLockDeMonedero() {
         Usuario usuario = crearUsuario("drop_lock_order");
         monederoService.crearMonederoParaTest(usuario);

@@ -43,7 +43,8 @@ public class MonederoService {
             MotivoMovimiento.DROP_VOTO,
             MotivoMovimiento.DROP_MISION_DIARIA,
             MotivoMovimiento.DROP_TORNEO,
-            MotivoMovimiento.DROP_DUELO);
+            MotivoMovimiento.DROP_DUELO,
+            MotivoMovimiento.DROP_JUEGO);
 
     private final MonederoRepository monederoRepo;
     private final MonederoMovimientoRepository movimientoRepo;
