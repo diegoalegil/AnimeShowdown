@@ -7,6 +7,7 @@ import {
   useState,
 } from 'react'
 import { useSound } from '../../contexts/SoundContext'
+import './stamp-card.css'
 
 /**
  * @typedef {Object} ScMission Misión de HOY.
