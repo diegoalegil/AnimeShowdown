@@ -54,12 +54,16 @@ function SenseiScroll({ step, nod = 0, reducedMotion = false }) {
         {!reducedMotion && <span className="kumite-sensei__cut" key={`cut-${step.id}`} />}
       </div>
 
-      {/* Equivalente textual REAL (lo que se anuncia y queda si no hay motion). */}
-      <h3 className="kumite-sensei__titulo">
-        Ejercicio {step.ordinal} de 4 · {step.titulo}
-      </h3>
-      <p className="kumite-sensei__concepto">{step.concepto}</p>
-      <p className="kumite-sensei__instruccion">{step.instruccion}</p>
+      {/* Equivalente textual REAL (lo que se anuncia y queda si no hay motion).
+          role=status: al cambiar de ejercicio el lector anuncia el paso nuevo
+          (título + concepto + instrucción), no solo el aria-current del cordón. */}
+      <div role="status">
+        <h3 className="kumite-sensei__titulo">
+          Ejercicio {step.ordinal} de 4 · {step.titulo}
+        </h3>
+        <p className="kumite-sensei__concepto">{step.concepto}</p>
+        <p className="kumite-sensei__instruccion">{step.instruccion}</p>
+      </div>
     </aside>
   )
 }

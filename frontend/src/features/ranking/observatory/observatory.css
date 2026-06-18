@@ -122,6 +122,18 @@
   transition: transform 600ms var(--ease-lift), opacity 300ms ease;
   outline: none;
 }
+/* Área de toque accesible ≥24px (WCAG 2.5.8) sin agrandar el disco visual:
+   las estrellas de ELO bajo miden ~14px, pero este pseudo invisible extiende
+   el target del enlace a 24px centrado. */
+.sky-star::before {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: max(100%, 24px);
+  height: max(100%, 24px);
+  transform: translate(-50%, -50%);
+}
 .sky-star:focus-visible {
   outline: 2px solid var(--color-gold-bright);
   outline-offset: 3px;
