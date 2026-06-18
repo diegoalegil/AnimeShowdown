@@ -7,6 +7,7 @@ import {
   useState,
 } from 'react'
 import { useSound } from '../../contexts/SoundContext'
+import './stamp-card.css'
 
 /**
  * @typedef {Object} ScMission Misión de HOY.
@@ -341,7 +342,10 @@ function StampCard({
       </ul>
 
       <div className="sc-week-wrap">
-        <div className="sc-week" role="list" ref={weekRef} aria-label="Cartilla de la semana">
+        {/* tabIndex=0: en ≤540px la cartilla pasa a flex+overflow-x (riel
+            scrolleable) y sus casillas no son interactivas → sin tabindex sería
+            una región scrollable sin acceso por teclado (axe serious). */}
+        <div className="sc-week" role="list" ref={weekRef} aria-label="Cartilla de la semana" tabIndex={0}>
           {geom !== null && segs.length > 0 && (
             <svg
               className="sc-cord"

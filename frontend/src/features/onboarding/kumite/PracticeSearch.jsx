@@ -27,11 +27,14 @@ function PracticeSearch({ objetivo, onGesto }) {
     const onKey = (e) => {
       if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === 'k') {
         e.preventDefault()
+        // Captura + stop: durante este paso ganamos al listener global de ⌘K
+        // (CommandPalette) para que NO se abran las dos paletas a la vez.
+        e.stopImmediatePropagation()
         setOpen(true)
       }
     }
-    window.addEventListener('keydown', onKey)
-    return () => window.removeEventListener('keydown', onKey)
+    window.addEventListener('keydown', onKey, true)
+    return () => window.removeEventListener('keydown', onKey, true)
   }, [])
 
   // Foco al input al abrir (rAF, no síncrono en el cuerpo del effect).
