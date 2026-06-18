@@ -13,6 +13,7 @@
 import { useEffect, useRef, useState } from "react";
 import { motion, AnimatePresence, useReducedMotion } from "framer-motion";
 import { CORE, MILESTONES, OUTER, TIER_TRANSFORM, tierOf } from "./flame-core";
+import StreakChests from "./StreakChests";
 
 // Ámbar derivado de la paleta (sin inventar color): oro arrastrado hacia carmesí
 const AMBER = "color-mix(in oklch, var(--color-gold) 70%, var(--color-accent))";
@@ -229,38 +230,10 @@ export default function StreakFlame({
         </div>
       </div>
 
-      {/* Últimas 2 semanas: 完 entintado = completado, hueco = fallado */}
-      <div className="mt-4 grid grid-cols-7 gap-[7px]" role="img" aria-label="Últimos 14 días">
-        {days.map((done, i) => {
-          const isToday = i === 13;
-          return (
-            <div
-              key={i}
-              className={`grid aspect-square place-items-center rounded-[10px] border ${
-                done ? "border-gold/25 bg-gold/[0.07]" : "border-white/10"
-              }`}
-              style={
-                isToday
-                  ? {
-                      borderColor: danger
-                        ? AMBER
-                        : "color-mix(in srgb, var(--color-electric) 55%, transparent)",
-                    }
-                  : undefined
-              }
-            >
-              {done && (
-                <span
-                  className="text-[15px] text-gold/90"
-                  style={{ fontFamily: "var(--font-kanji-serif)" }}
-                >
-                  完
-                </span>
-              )}
-            </div>
-          );
-        })}
-      </div>
+      {/* La semana como COFRES: día completado = cofre abierto (oro), hoy =
+          cofre cerrado que invita y abre con flip al completar. Reemplaza la
+          rejilla de marcas 完; mismos datos del progreso diario (últimos 7). */}
+      <StreakChests days={days.slice(-7)} danger={danger} />
 
       {/* Próximo hito · o, a racha 0, la invitación a encender la primera llama */}
       <footer className="mt-4">

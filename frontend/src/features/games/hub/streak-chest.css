@@ -1,0 +1,86 @@
+/*
+ * streak-chest.css — la semana de la racha como cofres (pieza 30, parte 1).
+ * Cada día es una celda con FLIP blindado para Safari: cara cerrada ⇄ cara
+ * abierta (rotateY 180, backface-visibility en AMBAS caras, preserve-3d con
+ * prefijo -webkit-). El cofre del día completado abre con el flip; al cargar,
+ * los ya completados nacen abiertos (sin animación: el transform inicial no
+ * transiciona). Solo transform/opacity. Cero literales de color (tokens + mix).
+ */
+
+.streak-week {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 7px;
+  margin-top: 1rem;
+}
+
+.streak-chest {
+  perspective: 360px;
+}
+
+.streak-chest__flip {
+  position: relative;
+  aspect-ratio: 1;
+  transform-style: preserve-3d;
+  -webkit-transform-style: preserve-3d;
+  transform: rotateY(0deg);
+  transition: transform 520ms var(--ease-lift);
+}
+.streak-chest__flip.is-abierto {
+  transform: rotateY(180deg);
+}
+
+.streak-chest__face {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  border-radius: 10px;
+  border: 1px solid var(--color-border);
+  backface-visibility: hidden;
+  -webkit-backface-visibility: hidden;
+}
+
+/* Cara cerrada (reposo / día no completado). */
+.streak-chest__face--cerrada {
+  color: color-mix(in srgb, var(--color-fg-muted) 70%, transparent);
+}
+/* El día de HOY aún sin completar: invita (borde eléctrico + latido suave). */
+.streak-chest__face--hoy {
+  border-color: color-mix(in srgb, var(--color-electric) 55%, transparent);
+  color: color-mix(in srgb, var(--color-electric) 80%, var(--color-fg));
+  animation: streak-chest-invita 2.6s ease-in-out infinite;
+}
+.streak-chest__face--peligro {
+  border-color: color-mix(in oklch, var(--color-gold) 70%, var(--color-accent));
+  color: color-mix(in oklch, var(--color-gold) 70%, var(--color-accent));
+}
+
+/* Cara abierta (día completado): oro tenue + cofre dorado. */
+.streak-chest__face--abierta {
+  transform: rotateY(180deg);
+  border-color: var(--color-border-gold-subtle);
+  background-color: color-mix(in srgb, var(--color-gold) 7%, transparent);
+  color: var(--color-gold);
+}
+
+.streak-chest__svg {
+  width: 66%;
+  height: 66%;
+  overflow: visible;
+}
+
+@keyframes streak-chest-invita {
+  0%, 100% { opacity: 0.72; }
+  50% { opacity: 1; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .streak-chest__flip {
+    transition: none;
+  }
+  .streak-chest__face--hoy {
+    animation: none;
+    opacity: 1;
+  }
+}
