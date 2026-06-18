@@ -47,8 +47,12 @@ import { getArenaDescription, getArenaStatusLabel } from '../features/votar/aren
 import { VOTO_REGISTRADO_EVENT, emitAppEvent } from '../lib/app-events'
 import { warmPersonajeImage } from '../lib/personaje-img-srcset'
 import { imagenPersonaje } from '../lib/personajes-core'
-import VersusIntroOverlay from '../features/versus/VersusIntroOverlay'
 import { toFighter } from '../features/versus/versus-fighter'
+
+// La intro cinemática va LAZY: saca VersusIntro (framer-motion) del chunk
+// crítico de /votar → no carga TBT al primer paint (es un flourish de sesión
+// que entra un instante después).
+const VersusIntroOverlay = lazy(() => import('../features/versus/VersusIntroOverlay'))
 
 // Suscripción imperativa del contador de racha al evento de voto de la casa
 // (identidad estable a nivel de módulo: el contador se monta UNA vez y
@@ -1032,11 +1036,13 @@ function VotarPage() {
             re-renderiza la arena al subir el contador ni re-popea al cambiar
             de duelo. */}
         {introFighters && (
-          <VersusIntroOverlay
-            left={introFighters.left}
-            right={introFighters.right}
-            storageKey="vs-intro:votar-sesion"
-          />
+          <Suspense fallback={null}>
+            <VersusIntroOverlay
+              left={introFighters.left}
+              right={introFighters.right}
+              storageKey="vs-intro:votar-sesion"
+            />
+          </Suspense>
         )}
         <div className="relative">
           <VoteArena
