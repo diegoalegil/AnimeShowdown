@@ -25,6 +25,8 @@ import com.diegoalegil.animeshowdown.dto.EloDuelGuessRequest;
 import com.diegoalegil.animeshowdown.dto.EloDuelGuessResponse;
 import com.diegoalegil.animeshowdown.dto.EloDuelRoundDto;
 import com.diegoalegil.animeshowdown.dto.PersonajeScoreItem;
+import com.diegoalegil.animeshowdown.model.MotivoMovimiento;
+import com.diegoalegil.animeshowdown.model.Usuario;
 
 @Service
 public class EloDuelService {
@@ -39,17 +41,20 @@ public class EloDuelService {
     private static final String ALGORITHM = "server_vote_score_balanced";
 
     private final PersonajeScoreQueryService personajeScoreQueryService;
+    private final DropService dropService;
     private final SecureRandom secureRandom;
     private final Clock clock;
     private final SecretKeySpec tokenKey;
 
     @Autowired
-    public EloDuelService(PersonajeScoreQueryService personajeScoreQueryService) {
-        this(personajeScoreQueryService, new SecureRandom(), Clock.systemUTC());
+    public EloDuelService(PersonajeScoreQueryService personajeScoreQueryService, DropService dropService) {
+        this(personajeScoreQueryService, dropService, new SecureRandom(), Clock.systemUTC());
     }
 
-    EloDuelService(PersonajeScoreQueryService personajeScoreQueryService, SecureRandom secureRandom, Clock clock) {
+    EloDuelService(PersonajeScoreQueryService personajeScoreQueryService, DropService dropService,
+            SecureRandom secureRandom, Clock clock) {
         this.personajeScoreQueryService = personajeScoreQueryService;
+        this.dropService = dropService;
         this.secureRandom = secureRandom;
         this.clock = clock;
         byte[] key = new byte[32];
@@ -61,12 +66,24 @@ public class EloDuelService {
         return crearRondaDesde(poolConSenal(), null);
     }
 
-    public EloDuelGuessResponse resolver(EloDuelGuessRequest request) {
+    public EloDuelGuessResponse resolver(EloDuelGuessRequest request, Usuario usuario) {
         RoundPayload payload = decryptToken(request.roundToken());
         EloDuelChoice correctChoice = payload.challengerElo() > payload.referenceElo()
                 ? EloDuelChoice.HIGHER
                 : EloDuelChoice.LOWER;
         boolean correct = request.choice() == correctChoice;
+        // Recompensa server-authoritative: solo el ACIERTO de un usuario LOGUEADO
+        // acredita moneda, vía DropService (tope diario + idempotencia por la ronda
+        // —el roundToken cifrado es la referencia, así una ronda no paga dos veces).
+        // El anónimo juega gratis sin premio. Los demás juegos client-side no pagan.
+        long monedasGanadas = 0L;
+        if (correct && usuario != null) {
+            DropService.DropResultado resultado = dropService.otorgar(
+                    usuario, MotivoMovimiento.DROP_JUEGO, "juego:elo:" + request.roundToken());
+            if (resultado == DropService.DropResultado.APLICADO) {
+                monedasGanadas = dropService.recompensa(MotivoMovimiento.DROP_JUEGO);
+            }
+        }
         EloDuelRoundDto nextRound = correct
                 ? crearSiguienteRonda(payload.challengerId())
                 : null;
@@ -77,6 +94,7 @@ public class EloDuelService {
                 payload.referenceElo(),
                 payload.challengerElo(),
                 Math.abs(payload.challengerElo() - payload.referenceElo()),
+                monedasGanadas,
                 nextRound);
     }
 

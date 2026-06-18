@@ -64,6 +64,7 @@ public class DropService {
             @Value("${app.cartas.drop.mision-diaria:23}") long misionDiaria,
             @Value("${app.cartas.drop.torneo:38}") long torneo,
             @Value("${app.cartas.drop.duelo:30}") long duelo,
+            @Value("${app.cartas.drop.juego:3}") long juego,
             @Value("${app.cartas.drop.tope-diario:100}") int topeDiario,
             @Value("${app.cartas.drop.voto-cada-n:10}") int votoCadaN) {
         this.monederoService = monederoService;
@@ -77,6 +78,12 @@ public class DropService {
         this.recompensas.put(MotivoMovimiento.DROP_MISION_DIARIA, Math.max(0, misionDiaria));
         this.recompensas.put(MotivoMovimiento.DROP_TORNEO, Math.max(0, torneo));
         this.recompensas.put(MotivoMovimiento.DROP_DUELO, Math.max(0, duelo));
+        this.recompensas.put(MotivoMovimiento.DROP_JUEGO, Math.max(0, juego));
+    }
+
+    /** Monedas que otorga un motivo de drop (0 si no es un drop con recompensa). */
+    public long recompensa(MotivoMovimiento motivo) {
+        return recompensas.getOrDefault(motivo, 0L);
     }
 
     /**

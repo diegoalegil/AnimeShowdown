@@ -23,11 +23,14 @@ import com.diegoalegil.animeshowdown.dto.EloDuelGuessRequest;
 import com.diegoalegil.animeshowdown.dto.EloDuelGuessResponse;
 import com.diegoalegil.animeshowdown.dto.EloDuelRoundDto;
 import com.diegoalegil.animeshowdown.dto.PersonajeScoreItem;
+import com.diegoalegil.animeshowdown.model.MotivoMovimiento;
+import com.diegoalegil.animeshowdown.model.Usuario;
 
 @ExtendWith(MockitoExtension.class)
 class EloDuelServiceTest {
 
     @Mock private PersonajeScoreQueryService personajeScoreQueryService;
+    @Mock private DropService dropService;
 
     private EloDuelService sut;
     private List<PersonajeScoreItem> pool;
@@ -36,6 +39,7 @@ class EloDuelServiceTest {
     void setUp() {
         sut = new EloDuelService(
                 personajeScoreQueryService,
+                dropService,
                 new SecureRandom(new byte[]{1, 2, 3, 4}),
                 Clock.fixed(Instant.parse("2026-05-31T12:00:00Z"), ZoneOffset.UTC));
         pool = List.of(
@@ -72,7 +76,8 @@ class EloDuelServiceTest {
         EloDuelRoundDto round = sut.iniciarRonda();
         EloDuelChoice correctChoice = expectedChoice(round);
 
-        EloDuelGuessResponse result = sut.resolver(new EloDuelGuessRequest(round.roundToken(), correctChoice));
+        EloDuelGuessResponse result =
+                sut.resolver(new EloDuelGuessRequest(round.roundToken(), correctChoice), null);
 
         assertTrue(result.correct());
         assertEquals(correctChoice, result.correctChoice());
@@ -90,9 +95,78 @@ class EloDuelServiceTest {
         String tampered = tamperCiphertext(round.roundToken());
 
         ResponseStatusException ex = assertThrows(ResponseStatusException.class,
-                () -> sut.resolver(new EloDuelGuessRequest(tampered, EloDuelChoice.HIGHER)));
+                () -> sut.resolver(new EloDuelGuessRequest(tampered, EloDuelChoice.HIGHER), null));
 
         assertEquals(400, ex.getStatusCode().value());
+    }
+
+    @Test
+    void aciertoDeUsuarioLogueadoAcreditaMonedaConReferenciaDeRonda() {
+        when(personajeScoreQueryService.topConPuntuacionYRecencia(any(), anyInt())).thenReturn(pool);
+        when(dropService.otorgar(any(), eq(MotivoMovimiento.DROP_JUEGO), anyString()))
+                .thenReturn(DropService.DropResultado.APLICADO);
+        when(dropService.recompensa(MotivoMovimiento.DROP_JUEGO)).thenReturn(3L);
+        Usuario usuario = mock(Usuario.class);
+
+        EloDuelRoundDto round = sut.iniciarRonda();
+        EloDuelChoice correctChoice = expectedChoice(round);
+
+        EloDuelGuessResponse result =
+                sut.resolver(new EloDuelGuessRequest(round.roundToken(), correctChoice), usuario);
+
+        assertTrue(result.correct());
+        assertEquals(3L, result.monedasGanadas());
+        // Idempotencia: la referencia es la ronda cifrada → no se cobra dos veces.
+        verify(dropService).otorgar(eq(usuario), eq(MotivoMovimiento.DROP_JUEGO),
+                eq("juego:elo:" + round.roundToken()));
+    }
+
+    @Test
+    void anonimoAciertaPeroNoAcreditaMoneda() {
+        when(personajeScoreQueryService.topConPuntuacionYRecencia(any(), anyInt())).thenReturn(pool);
+
+        EloDuelRoundDto round = sut.iniciarRonda();
+        EloDuelChoice correctChoice = expectedChoice(round);
+
+        EloDuelGuessResponse result =
+                sut.resolver(new EloDuelGuessRequest(round.roundToken(), correctChoice), null);
+
+        assertTrue(result.correct());
+        assertEquals(0L, result.monedasGanadas());
+        verifyNoInteractions(dropService);
+    }
+
+    @Test
+    void fallarNoAcreditaMonedaAunqueEstesLogueado() {
+        when(personajeScoreQueryService.topConPuntuacionYRecencia(any(), anyInt())).thenReturn(pool);
+        Usuario usuario = mock(Usuario.class);
+
+        EloDuelRoundDto round = sut.iniciarRonda();
+        EloDuelChoice wrong = opposite(expectedChoice(round));
+
+        EloDuelGuessResponse result =
+                sut.resolver(new EloDuelGuessRequest(round.roundToken(), wrong), usuario);
+
+        assertFalse(result.correct());
+        assertEquals(0L, result.monedasGanadas());
+        verify(dropService, never()).otorgar(any(), any(), anyString());
+    }
+
+    @Test
+    void aciertoTopadoOIdempotenteDevuelveCeroMonedas() {
+        when(personajeScoreQueryService.topConPuntuacionYRecencia(any(), anyInt())).thenReturn(pool);
+        when(dropService.otorgar(any(), eq(MotivoMovimiento.DROP_JUEGO), anyString()))
+                .thenReturn(DropService.DropResultado.TOPE_DIARIO);
+        Usuario usuario = mock(Usuario.class);
+
+        EloDuelRoundDto round = sut.iniciarRonda();
+        EloDuelChoice correctChoice = expectedChoice(round);
+
+        EloDuelGuessResponse result =
+                sut.resolver(new EloDuelGuessRequest(round.roundToken(), correctChoice), usuario);
+
+        assertTrue(result.correct());
+        assertEquals(0L, result.monedasGanadas());
     }
 
     @Test
@@ -104,6 +178,10 @@ class EloDuelServiceTest {
         ResponseStatusException ex = assertThrows(ResponseStatusException.class, () -> sut.iniciarRonda());
 
         assertEquals(404, ex.getStatusCode().value());
+    }
+
+    private static EloDuelChoice opposite(EloDuelChoice c) {
+        return c == EloDuelChoice.HIGHER ? EloDuelChoice.LOWER : EloDuelChoice.HIGHER;
     }
 
     private EloDuelChoice expectedChoice(EloDuelRoundDto round) {

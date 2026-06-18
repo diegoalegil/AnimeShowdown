@@ -1037,8 +1037,11 @@ export const endpoints = {
   enfrentamientoAleatorio: () => api.get('/api/enfrentamientos/siguiente', { auth: false }),
   dueloSugerido: () => api.get('/api/votar/sugerir-duelo', { auth: false }),
   eloDuelRound: () => api.get('/api/games/elo-duel/round', { auth: false }),
+  // Auth OPCIONAL: el endpoint es público (el anónimo juega sin token), pero si
+  // hay sesión adjuntamos el Bearer para que el server acredite moneda al acierto
+  // (validado en server). Por eso NO lleva { auth: false }.
   eloDuelGuess: ({ roundToken, choice }) =>
-    api.post('/api/games/elo-duel/guess', { roundToken, choice }, { auth: false }),
+    api.post('/api/games/elo-duel/guess', { roundToken, choice }),
   dueloLiveActive: () => api.get('/api/duelo-live/active'),
   dueloLiveJoin: () => api.post('/api/duelo-live/queue', undefined),
   dueloLiveState: (id) => api.get(`/api/duelo-live/${id}`),
