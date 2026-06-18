@@ -32,7 +32,8 @@
   margin: 0;
   font-size: 0.72rem;
   letter-spacing: 0.04em;
-  color: color-mix(in srgb, var(--color-gold) 70%, transparent);
+  /* Oro sólido (contraste AA ~7.4:1); el 70% sobre el lienzo oscuro caía ~4.2. */
+  color: var(--color-gold);
 }
 
 /* Contenedor del trazo: el kanji debajo, la tapa de tinta encima. */
@@ -376,7 +377,8 @@
   font-size: 0.72rem;
   letter-spacing: 0.08em;
   text-transform: none;
-  color: color-mix(in srgb, var(--color-gold) 70%, transparent);
+  /* Oro sólido (AA); el 70% transparente sobre el lienzo oscuro no llegaba a 4.5:1. */
+  color: var(--color-gold);
 }
 .kumite__skip {
   min-height: 44px;
