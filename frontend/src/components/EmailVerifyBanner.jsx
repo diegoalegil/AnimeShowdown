@@ -186,6 +186,7 @@ function EmailVerifyBanner() {
   useEffect(() => {
     if (untilTs == null || phase === 'leaving' || phase === 'gone') return undefined
     const tick = () => {
+      if (document.hidden) return // pausa con la pestaña oculta (cuenta atrás derivada de Date.now)
       const left = Math.ceil((untilTs - Date.now()) / 1000)
       if (left <= 0) {
         try {
@@ -201,10 +202,15 @@ function EmailVerifyBanner() {
       }
     }
     const t = setTimeout(tick, 0)
-    const iv = setInterval(tick, 250)
+    const iv = setInterval(tick, 1000) // display de segundos enteros: 1s basta
+    const onVisible = () => {
+      if (!document.hidden) tick() // al volver, refresca ya
+    }
+    document.addEventListener('visibilitychange', onVisible)
     return () => {
       clearTimeout(t)
       clearInterval(iv)
+      document.removeEventListener('visibilitychange', onVisible)
     }
   }, [untilTs, phase])
 

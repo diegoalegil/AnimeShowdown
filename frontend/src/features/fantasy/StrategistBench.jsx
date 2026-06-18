@@ -293,11 +293,20 @@ function StrategistBench({
       const p = (n) => String(n).padStart(2, '0')
       return `${d}d ${p(h)}:${p(m)}:${p(s)}`
     }
-    const primero = setTimeout(() => setCountdown(fmt()), 0)
-    const id = setInterval(() => setCountdown(fmt()), 1000)
+    const tick = () => {
+      if (document.hidden) return // pausa con la pestaña oculta (valor derivado de Date.now)
+      setCountdown(fmt())
+    }
+    const primero = setTimeout(tick, 0)
+    const id = setInterval(tick, 1000)
+    const onVisible = () => {
+      if (!document.hidden) tick() // al volver, refresca ya
+    }
+    document.addEventListener('visibilitychange', onVisible)
     return () => {
       clearTimeout(primero)
       clearInterval(id)
+      document.removeEventListener('visibilitychange', onVisible)
     }
   }, [cierre, estado])
 

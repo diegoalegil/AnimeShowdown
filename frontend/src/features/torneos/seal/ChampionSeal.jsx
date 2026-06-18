@@ -240,6 +240,10 @@ export default function ChampionSeal({ candidatos, prediccion = null, resolucion
     prediccion ? candidatos.find((c) => c.id === prediccion.personajeId) ?? null : null,
   )
   const [fechaSello, setFechaSello] = useState(prediccion?.fechaISO ?? null)
+  // Fallback de fecha congelado al montar (lazy puro): el sello fija fechaSello
+  // al confirmar, pero si la papeleta se pinta sin ella, este new Date() en
+  // render sería impuro. Defensivo y estable.
+  const [fallbackFechaSello] = useState(() => new Date().toISOString())
 
   // Stagger por distancia real en px (medida al confirmar) + posición del
   // hanko sobre el elegido. Refs por candidato, sin re-render.
@@ -516,7 +520,7 @@ export default function ChampionSeal({ candidatos, prediccion = null, resolucion
         {faseLocal === 'papeleta' && confirmado && (
           <Papeleta
             campeon={confirmado}
-            fecha={fechaSello ?? new Date().toISOString()}
+            fecha={fechaSello ?? fallbackFechaSello}
             resuelta={resuelta}
             acierto={acierto}
             reduced={reduced}

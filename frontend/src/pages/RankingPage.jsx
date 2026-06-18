@@ -183,13 +183,14 @@ function RankingPage() {
     return m
   }, [arenaCatalogo])
 
-  const consultadoA = useMemo(
-    () =>
-      new Date().toLocaleTimeString('es-ES', {
-        hour: '2-digit',
-        minute: '2-digit',
-      }),
-    [],
+  // Hora de consulta congelada al montar (lazy puro). useState en vez de
+  // useMemo([]): React puede descartar y recomputar un memo; el inicializador
+  // lazy garantiza un único new Date().
+  const [consultadoA] = useState(() =>
+    new Date().toLocaleTimeString('es-ES', {
+      hour: '2-digit',
+      minute: '2-digit',
+    }),
   )
 
   // Observatorio (pestaña 'observatorio'): proyecta el top del ELO canónico como
@@ -206,14 +207,12 @@ function RankingPage() {
       })),
     [rankedElo],
   )
-  const fechaCielo = useMemo(
-    () =>
-      new Date().toLocaleDateString('es-ES', {
-        day: '2-digit',
-        month: 'short',
-        year: 'numeric',
-      }),
-    [],
+  const [fechaCielo] = useState(() =>
+    new Date().toLocaleDateString('es-ES', {
+      day: '2-digit',
+      month: 'short',
+      year: 'numeric',
+    }),
   )
   const compartirRanking = async () => {
     const top5 = rankedElo.slice(0, 5)

@@ -146,10 +146,12 @@ function HigherOrLowerGame() {
         choice: choiceFromGuess(esMayor),
       })
     } catch (error) {
+      if (!mountedRef.current) return // desmontado durante el await
       setManualError(describeLoadError(error))
       setIsSubmitting(false)
       return
     }
+    if (!mountedRef.current) return // desmontado durante el await
 
     setResult(guessResult)
     setIsSubmitting(false)

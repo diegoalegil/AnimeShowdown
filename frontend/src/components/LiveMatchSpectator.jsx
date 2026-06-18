@@ -182,14 +182,20 @@ function useServerCountdown(serverNowIso, endsAtIso) {
     const clientStart = Date.now()
 
     const tick = () => {
+      if (document.hidden) return // pausa con la pestaña oculta (valor derivado de Date.now, sin deriva)
       const elapsedClient = Date.now() - clientStart
       setRemainingMs(Math.max(0, endsAt - serverNow - elapsedClient))
     }
     const timeout = window.setTimeout(tick, 0)
     const id = window.setInterval(tick, 1000)
+    const onVisible = () => {
+      if (!document.hidden) tick() // al volver, refresca ya
+    }
+    document.addEventListener('visibilitychange', onVisible)
     return () => {
       window.clearTimeout(timeout)
       window.clearInterval(id)
+      document.removeEventListener('visibilitychange', onVisible)
     }
   }, [serverNowIso, endsAtIso])
 

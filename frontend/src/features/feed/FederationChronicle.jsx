@@ -223,6 +223,13 @@ export default function FederationChronicle() {
   const entradas = useMemo(() => clavesUnicas(data?.items ?? []), [data])
   useHiloCronica(seccionRef, hiloRef, entradas.length)
 
+  // Etiqueta del separador "Hoy" congelada al montar (lazy puro): new Date() en
+  // el JSX es impuro y rompe la memoización del Compiler. Hook antes de los
+  // returns tempranos (regla de hooks).
+  const [hoyLabel] = useState(() =>
+    new Date().toLocaleDateString('es-ES', { weekday: 'long', day: 'numeric', month: 'long' }),
+  )
+
   if (isLoading) return <CronicaCargando />
   if (isError) {
     return (
@@ -265,9 +272,7 @@ export default function FederationChronicle() {
       />
       <ul className="flex flex-col gap-3.5">
         {hoy.length > 0 && (
-          <SeparadorDia
-            etiqueta={`Hoy — ${new Date().toLocaleDateString('es-ES', { weekday: 'long', day: 'numeric', month: 'long' })}`}
-          />
+          <SeparadorDia etiqueta={`Hoy — ${hoyLabel}`} />
         )}
         <AnimatePresence initial={false}>{bloque(hoy, true)}</AnimatePresence>
         {ayer.length > 0 && <SeparadorDia etiqueta="Ayer" />}

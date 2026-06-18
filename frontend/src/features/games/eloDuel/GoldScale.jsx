@@ -305,6 +305,9 @@ function GoldScale({
     return () => {
       timers.forEach(clearTimeout)
       pendingOdos.forEach(cancelAnimationFrame)
+      // Reset del array: sin esto los rAF ids (ya cancelados) se acumulan en
+      // odoTimers.current en cada resultId → fuga de memoria en sesión larga.
+      odoTimers.current = []
     }
   }, [result, landedId, reduced, leftElo, rightElo, left, right, tieRuleLabel,
       play, runOdometer, ensureRaf])
