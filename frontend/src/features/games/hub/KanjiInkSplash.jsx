@@ -9,7 +9,7 @@ const KanjiInkAssembly = lazy(() => import('./KanjiInkAssembly'))
 // Puntero fino + viewport ≥640px + sin reduced-motion: en móvil/táctil el
 // splash no justifica descargar three para un backdrop decorativo, y con
 // reduced-motion el resultado final sería un kanji estático — que es
-// exactamente el fallback. Suscripción matchMedia viva (patrón FloatingCards).
+// exactamente el fallback. Suscripción matchMedia viva (estado externo).
 const SPLASH_QUERY =
   '(min-width: 640px) and (hover: hover) and (pointer: fine) and (prefers-reduced-motion: no-preference)'
 

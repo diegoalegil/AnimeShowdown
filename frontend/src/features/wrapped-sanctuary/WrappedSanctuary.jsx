@@ -248,7 +248,7 @@ function WrappedSanctuary({ wrapped, onCompartir, onVolverArena, publico = false
       >
         <div className="mt-6 flex flex-col items-center">
           <div className="sanctuary-rise relative rounded-b-[10px] rounded-t-md border border-border-gold-subtle bg-gradient-to-b from-surface-alt to-surface px-[30px] pb-5 pt-4 shadow-elev-2" style={{ '--pd': '0.24s' }}>
-            <p className="m-0 font-mono text-[11px] uppercase tracking-[0.18em] text-fg-muted">peregrino</p>
+            <p className="m-0 font-mono text-[11px] text-fg-muted">Peregrino</p>
             <p className="m-0 mt-1 text-[clamp(1.4rem,5vw,2rem)] font-extrabold text-fg-strong">@{wrapped.username}</p>
           </div>
           <div className="relative mt-7 h-24 w-24">

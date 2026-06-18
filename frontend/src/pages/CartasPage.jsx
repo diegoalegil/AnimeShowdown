@@ -56,8 +56,8 @@ function makeIdempotencyKey() {
 // CartaFace es ilegible en pantallas estrechas) y respeta reduced-motion en la
 // MISMA query: el useReducedMotion de framer 12 solo lee el valor al montar,
 // así que aquí la fuente de verdad es matchMedia con listener 'change' (vivo).
-// Mismo patrón de suscripción que FloatingCards: estado externo, no derived
-// state. Inicialización síncrona: evita pintar el grid un frame y desmontarlo
+// Suscripción con estado externo, no derived state.
+// Inicialización síncrona: evita pintar el grid un frame y desmontarlo
 // entero para montar la vitrina cuando la query de cartas está en caché.
 const VITRINA_QUERY =
   '(min-width: 640px) and (hover: hover) and (pointer: fine) and (prefers-reduced-motion: no-preference)'

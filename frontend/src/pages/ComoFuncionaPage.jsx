@@ -156,7 +156,7 @@ function ComoFuncionaPage() {
       <JsonLd id="faq-como-funciona" schema={faqPageSchema(FAQ)} />
       <div className="mx-auto max-w-6xl">
         <header className="mb-7">
-          <p className="text-xs font-black uppercase tracking-[0.3em] text-gold">Guía rápida</p>
+          <p className="text-xs font-black text-gold">Guía rápida</p>
           <h1 className="mt-2 text-3xl font-black text-fg-strong sm:text-4xl">Vota, juega y vuelve mañana</h1>
           <p className="mt-3 max-w-3xl text-sm leading-7 text-fg-muted">
             AnimeShowdown funciona como un ritual diario para fans: eliges
