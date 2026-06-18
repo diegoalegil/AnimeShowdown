@@ -47,6 +47,12 @@ import { getArenaDescription, getArenaStatusLabel } from '../features/votar/aren
 import { VOTO_REGISTRADO_EVENT, emitAppEvent } from '../lib/app-events'
 import { warmPersonajeImage } from '../lib/personaje-img-srcset'
 import { imagenPersonaje } from '../lib/personajes-core'
+import { toFighter } from '../features/versus/versus-fighter'
+
+// La intro cinemática va LAZY: saca VersusIntro (framer-motion) del chunk
+// crítico de /votar → no carga TBT al primer paint (es un flourish de sesión
+// que entra un instante después).
+const VersusIntroOverlay = lazy(() => import('../features/versus/VersusIntroOverlay'))
 
 // Suscripción imperativa del contador de racha al evento de voto de la casa
 // (identidad estable a nivel de módulo: el contador se monta UNA vez y
@@ -358,6 +364,12 @@ function VotarPage() {
   }
 
   const currentPairKey = a?.slug && b?.slug ? pairKey(a.slug, b.slug) : ''
+  // Intro cinemática de sesión: el overlay decide por sessionStorage (storageKey
+  // fija) que se vea UNA sola vez por sesión, en el primer duelo. Saltable.
+  const introFighters = useMemo(
+    () => (a && b ? { left: toFighter(a), right: toFighter(b) } : null),
+    [a, b],
+  )
   const exactDuelActive =
     hasFixedDuel &&
     a?.slug &&
@@ -1023,6 +1035,15 @@ function VotarPage() {
             La insignia de racha vive FUERA del memo y del key del par: ni
             re-renderiza la arena al subir el contador ni re-popea al cambiar
             de duelo. */}
+        {introFighters && (
+          <Suspense fallback={null}>
+            <VersusIntroOverlay
+              left={introFighters.left}
+              right={introFighters.right}
+              storageKey="vs-intro:votar-sesion"
+            />
+          </Suspense>
+        )}
         <div className="relative">
           <VoteArena
             a={a}
