@@ -8,6 +8,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 
+import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -37,11 +38,16 @@ public class EloHistoryService {
 
     private final PersonajeRepository personajeRepository;
     private final VotoRepository votoRepository;
+    // Auto-referencia para que historialBatch invoque historial() a través del
+    // proxy (si no, la self-invocación salta el @Cacheable). ObjectProvider es
+    // perezoso: cero riesgo de ciclo en el arranque.
+    private final ObjectProvider<EloHistoryService> self;
 
     public EloHistoryService(PersonajeRepository personajeRepository,
-            VotoRepository votoRepository) {
+            VotoRepository votoRepository, ObjectProvider<EloHistoryService> self) {
         this.personajeRepository = personajeRepository;
         this.votoRepository = votoRepository;
+        this.self = self;
     }
 
     @Cacheable(value = "personaje-elo-history", key = "#slug + ':' + #dias")
@@ -94,7 +100,7 @@ public class EloHistoryService {
                 .map(String::trim)
                 .distinct()
                 .limit(25)
-                .forEach(slug -> out.put(slug, historial(slug, dias)));
+                .forEach(slug -> out.put(slug, self.getObject().historial(slug, dias)));
         return out;
     }
 

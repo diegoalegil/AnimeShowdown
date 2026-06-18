@@ -2,6 +2,7 @@ package com.diegoalegil.animeshowdown.service;
 
 import java.nio.charset.StandardCharsets;
 import java.security.GeneralSecurityException;
+import java.security.MessageDigest;
 import java.security.SecureRandom;
 import java.time.Clock;
 import java.time.Instant;
@@ -15,7 +16,10 @@ import javax.crypto.Cipher;
 import javax.crypto.spec.GCMParameterSpec;
 import javax.crypto.spec.SecretKeySpec;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.web.server.ResponseStatusException;
@@ -40,6 +44,8 @@ public class EloDuelService {
     private static final String SCORE_LABEL = "ELO competitivo";
     private static final String ALGORITHM = "server_vote_score_balanced";
 
+    private static final Logger LOG = LoggerFactory.getLogger(EloDuelService.class);
+
     private final PersonajeScoreQueryService personajeScoreQueryService;
     private final DropService dropService;
     private final SecureRandom secureRandom;
@@ -47,19 +53,47 @@ public class EloDuelService {
     private final SecretKeySpec tokenKey;
 
     @Autowired
-    public EloDuelService(PersonajeScoreQueryService personajeScoreQueryService, DropService dropService) {
-        this(personajeScoreQueryService, dropService, new SecureRandom(), Clock.systemUTC());
+    public EloDuelService(PersonajeScoreQueryService personajeScoreQueryService, DropService dropService,
+            @Value("${app.elo-duel.token-secret:}") String tokenSecret) {
+        this(personajeScoreQueryService, dropService, new SecureRandom(), Clock.systemUTC(), tokenSecret);
+    }
+
+    // Conservado para tests: clave efímera derivada del SecureRandom inyectado
+    // (sin secreto configurado = comportamiento histórico, determinista con un
+    // SecureRandom sembrado).
+    EloDuelService(PersonajeScoreQueryService personajeScoreQueryService, DropService dropService,
+            SecureRandom secureRandom, Clock clock) {
+        this(personajeScoreQueryService, dropService, secureRandom, clock, null);
     }
 
     EloDuelService(PersonajeScoreQueryService personajeScoreQueryService, DropService dropService,
-            SecureRandom secureRandom, Clock clock) {
+            SecureRandom secureRandom, Clock clock, String tokenSecret) {
         this.personajeScoreQueryService = personajeScoreQueryService;
         this.dropService = dropService;
         this.secureRandom = secureRandom;
         this.clock = clock;
-        byte[] key = new byte[32];
-        this.secureRandom.nextBytes(key);
-        this.tokenKey = new SecretKeySpec(key, "AES");
+        this.tokenKey = deriveTokenKey(tokenSecret, secureRandom);
+    }
+
+    // Clave AES del token de ronda. Con app.elo-duel.token-secret configurado se
+    // deriva por SHA-256 (estable entre redeploys e instancias → los tokens en
+    // vuelo sobreviven). Sin secreto, clave efímera aleatoria (comportamiento
+    // previo): los tokens mueren al reiniciar y no valen entre instancias.
+    private static SecretKeySpec deriveTokenKey(String secret, SecureRandom rng) {
+        byte[] key;
+        if (secret != null && !secret.isBlank()) {
+            try {
+                key = MessageDigest.getInstance("SHA-256").digest(secret.getBytes(StandardCharsets.UTF_8));
+            } catch (GeneralSecurityException e) {
+                throw new IllegalStateException("SHA-256 no disponible para derivar la clave del token", e);
+            }
+        } else {
+            key = new byte[32];
+            rng.nextBytes(key);
+            LOG.warn("app.elo-duel.token-secret sin configurar: clave de token de ronda efímera "
+                    + "(los tokens no sobreviven a un redeploy ni son válidos entre instancias)");
+        }
+        return new SecretKeySpec(key, "AES");
     }
 
     public EloDuelRoundDto iniciarRonda() {
