@@ -3,11 +3,8 @@ import { RANKING_TABS } from '../ranking-tabs'
 function RankingTabs({ activo, onChange }) {
   return (
     <div className="scrollbar-hide scroll-x-affordance scroll-x-fade-mobile -mx-5 overflow-x-auto px-5 pb-1 sm:mx-0 sm:px-0">
-      {/* Botones toggle (aria-pressed), NO patrón tablist: el contenido cambia
-          in-place sin un tabpanel real ni navegación por flechas, así que un
-          tablist incompleto confundía a los lectores. */}
       <div
-        role="group"
+        role="tablist"
         aria-label="Secciones del ranking"
         className="inline-flex w-max gap-1 whitespace-nowrap rounded-lg border border-border bg-surface p-1 sm:flex sm:w-full sm:flex-wrap"
       >
@@ -15,7 +12,8 @@ function RankingTabs({ activo, onChange }) {
           <button
             key={id}
             type="button"
-            aria-pressed={activo === id}
+            role="tab"
+            aria-selected={activo === id}
             onClick={() => onChange(id)}
             title={
               id === 'elo'
