@@ -187,10 +187,19 @@ public class DropService {
                     usuario.getUsername(), motivo, cantidad, credito.saldo());
             return DropResultado.APLICADO;
         } catch (DataIntegrityViolationException e) {
-            // Carrera de idempotencia: el crédito ya hizo rollback en su propia tx.
-            log.debug("Drop idempotente (carrera) usuario={} motivo={} ref={}",
-                    usuario.getUsername(), motivo, referencia);
-            return DropResultado.IDEMPOTENTE;
+            // Discriminar la carrera de idempotencia (la fila ya existe porque un
+            // crédito concurrente la insertó y este hizo rollback) de un error de
+            // integridad REAL (overflow de referencia, NOT NULL, check). Enmascarar
+            // el segundo como idempotencia hacía que un acierto dejara de pagar en
+            // silencio y sin rastro en logs.
+            if (monederoService.yaAcreditado(usuario, motivo, referencia)) {
+                log.debug("Drop idempotente (carrera) usuario={} motivo={} ref={}",
+                        usuario.getUsername(), motivo, referencia);
+                return DropResultado.IDEMPOTENTE;
+            }
+            log.error("Drop fallido por violación de integridad no-idempotente usuario={} motivo={} ref={}",
+                    usuario.getUsername(), motivo, referencia, e);
+            return DropResultado.ERROR;
         }
     }
 
@@ -210,6 +219,8 @@ public class DropService {
         /** El usuario alcanzó el tope diario de drops. */
         TOPE_DIARIO,
         /** Sin recompensa para ese motivo o usuario nulo. */
-        OMITIDO
+        OMITIDO,
+        /** Falló por una violación de integridad real (no idempotencia). */
+        ERROR
     }
 }

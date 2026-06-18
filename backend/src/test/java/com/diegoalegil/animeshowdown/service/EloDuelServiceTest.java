@@ -150,9 +150,10 @@ class EloDuelServiceTest {
 
         assertTrue(result.correct());
         assertEquals(3L, result.monedasGanadas());
-        // Idempotencia: la referencia es la ronda cifrada → no se cobra dos veces.
+        // Idempotencia: la referencia es un hash acotado del roundToken (1:1 con
+        // la ronda, <=96 chars de la columna) → una ronda no paga dos veces ni desborda.
         verify(dropService).otorgar(eq(usuario), eq(MotivoMovimiento.DROP_JUEGO),
-                eq("juego:elo:" + round.roundToken()));
+                argThat(ref -> ref.startsWith("juego:elo:") && ref.length() <= 96));
     }
 
     @Test

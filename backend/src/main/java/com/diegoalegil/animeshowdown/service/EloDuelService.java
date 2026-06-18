@@ -113,7 +113,7 @@ public class EloDuelService {
         long monedasGanadas = 0L;
         if (correct && usuario != null) {
             DropService.DropResultado resultado = dropService.otorgar(
-                    usuario, MotivoMovimiento.DROP_JUEGO, "juego:elo:" + request.roundToken());
+                    usuario, MotivoMovimiento.DROP_JUEGO, referenciaRonda(request.roundToken()));
             if (resultado == DropService.DropResultado.APLICADO) {
                 monedasGanadas = dropService.recompensa(MotivoMovimiento.DROP_JUEGO);
             }
@@ -130,6 +130,19 @@ public class EloDuelService {
                 Math.abs(payload.challengerElo() - payload.referenceElo()),
                 monedasGanadas,
                 nextRound);
+    }
+
+    // Referencia idempotente del drop ACOTADA: el roundToken cifrado puede pasar
+    // de los 96 chars de monedero_movimiento.referencia; un SHA-256 (base64url, 43
+    // chars) es estable por token → una ronda no paga dos veces, y nunca desborda.
+    private String referenciaRonda(String roundToken) {
+        try {
+            byte[] h = MessageDigest.getInstance("SHA-256")
+                    .digest(roundToken.getBytes(StandardCharsets.UTF_8));
+            return "juego:elo:" + Base64.getUrlEncoder().withoutPadding().encodeToString(h);
+        } catch (GeneralSecurityException e) {
+            throw new IllegalStateException("SHA-256 no disponible", e); // nunca: algoritmo estándar
+        }
     }
 
     private EloDuelRoundDto crearSiguienteRonda(Long referenceId) {
