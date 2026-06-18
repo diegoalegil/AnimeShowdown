@@ -10,8 +10,10 @@ import {
 } from 'framer-motion'
 import { Download, Lock, Share2, X } from 'lucide-react'
 import CartaFace from './CartaFace'
+import DepthCard from '../../components/DepthCard'
 import PersonajeImg from '../../components/PersonajeImg'
 import { FOCUSABLE_SELECTOR } from '../../lib/focusables'
+import { buildDepthCardProps } from './card-depth'
 
 /**
  * Vitrina 3D del álbum: estanterías de cristal oscuro en perspectiva con las
@@ -278,6 +280,8 @@ function CartaDetalle({ carta, origen, onDownload, onShare, descargando, onClose
   useEffect(() => {
     onCloseRef.current = onClose
   })
+  // Carta especial con recorte → vitrina 2.5D (DepthCard); el resto, CartaFace.
+  const depth = useMemo(() => buildDepthCardProps(carta), [carta])
 
   const x = useMotionValue(0)
   const y = useMotionValue(0)
@@ -371,7 +375,18 @@ function CartaDetalle({ carta, origen, onDownload, onShare, descargando, onClose
           className="pointer-events-auto m-0 w-[min(72vw,300px)] cursor-pointer"
           onClick={onClose}
         >
-          <CartaFace carta={carta} eager sizes="300px" />
+          {depth ? (
+            <DepthCard
+              bgSrc={depth.bgSrc}
+              cutoutSrc={depth.cutoutSrc}
+              name={depth.name}
+              anime={depth.anime}
+              kanji={depth.kanji}
+              kanjiMeaning={depth.kanjiMeaning}
+            />
+          ) : (
+            <CartaFace carta={carta} eager sizes="300px" />
+          )}
         </motion.figure>
         <motion.div
           className="pointer-events-auto flex items-center gap-2"
