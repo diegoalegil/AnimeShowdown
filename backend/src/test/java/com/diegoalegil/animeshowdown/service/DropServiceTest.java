@@ -48,7 +48,7 @@ class DropServiceTest {
     private DropService dropService(MonederoService monederoService,
             AuditLogService auditLogService, VotoRepository votoRepository, int topeDiario, Clock clock) {
         return new DropService(monederoService, auditLogService, votoRepository, clock,
-                8, 23, 38, 30, topeDiario, 10);
+                8, 23, 38, 30, 3, topeDiario, 10);
     }
 
     @Test

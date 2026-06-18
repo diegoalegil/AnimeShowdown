@@ -267,6 +267,23 @@ function HigherOrLowerGame() {
         </header>
 
         <ScoreBar score={score} best={best} />
+        {/* "+N monedas" al acertar: solo aparece si el server acreditó (logueado
+            y dentro del tope diario). Anónimo o topado → monedasGanadas 0 → nada. */}
+        <AnimatePresence>
+          {result?.correct && result.monedasGanadas > 0 && (
+            <motion.p
+              key={`coins-${score}`}
+              initial={{ opacity: 0, y: -6 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0 }}
+              transition={{ duration: 0.25 }}
+              className="text-center font-mono text-sm font-bold text-gold"
+              aria-live="polite"
+            >
+              +{result.monedasGanadas} monedas
+            </motion.p>
+          )}
+        </AnimatePresence>
         <RoundStatusBanner
           message={roundStatus}
           tone={revealed}

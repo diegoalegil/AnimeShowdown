@@ -7,5 +7,6 @@ public record EloDuelGuessResponse(
         int referenceElo,
         int challengerElo,
         int eloDiff,
+        long monedasGanadas,
         EloDuelRoundDto nextRound) {
 }

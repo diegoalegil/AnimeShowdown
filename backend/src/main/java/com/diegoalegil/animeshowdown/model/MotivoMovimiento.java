@@ -17,6 +17,8 @@ public enum MotivoMovimiento {
     DROP_TORNEO,
     /** Drop por ganar una partida de los daily games (duelo live PvP). */
     DROP_DUELO,
+    /** Drop por acertar en un juego validado en servidor (ELO Duel). */
+    DROP_JUEGO,
     /** Gasto al comprar/abrir un sobre. */
     COMPRA_SOBRE,
     /** Conversión de carta duplicada a moneda blanda. */

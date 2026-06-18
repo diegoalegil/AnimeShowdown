@@ -574,9 +574,10 @@ describe('endpoints', () => {
     expect((opts.headers as Record<string, string>)?.Authorization).toBeUndefined()
   })
 
-  it('eloDuelGuess: POST publico con token y eleccion, sin ELO cliente', async () => {
-    const fn = mockFetchResolved({ correct: true })
+  it('eloDuelGuess: POST público; adjunta auth solo si hay sesión (para acreditar moneda)', async () => {
+    const fn = mockFetchResolved({ correct: true, monedasGanadas: 0 })
     vi.stubGlobal('fetch', fn)
+    // Anónimo: sin token → sin Authorization (juega gratis, sin recompensa).
     await endpoints.eloDuelGuess({ roundToken: 'v1.token', choice: 'HIGHER' })
     const [url, opts] = fn.mock.calls[0] as [string, RequestInit]
     expect(url).toContain('/api/games/elo-duel/guess')
@@ -586,6 +587,11 @@ describe('endpoints', () => {
       choice: 'HIGHER',
     })
     expect((opts.headers as Record<string, string>)?.Authorization).toBeUndefined()
+    // Logueado: adjunta el Bearer para que el server valide y acredite moneda.
+    setToken('jwt.elo')
+    await endpoints.eloDuelGuess({ roundToken: 'v1.token2', choice: 'LOWER' })
+    const [, opts2] = fn.mock.calls[1] as [string, RequestInit]
+    expect((opts2.headers as Record<string, string>)?.Authorization).toBe('Bearer jwt.elo')
   })
 
   it('rankingMovimientos: constructs query params limit+dias', async () => {
