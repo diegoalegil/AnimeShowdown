@@ -101,6 +101,40 @@ class EloDuelServiceTest {
     }
 
     @Test
+    void conTokenSecretLaClaveEsEstableEntreInstancias() {
+        when(personajeScoreQueryService.topConPuntuacionYRecencia(any(), anyInt())).thenReturn(pool);
+        // Dos instancias (dos réplicas o un redeploy) con el MISMO secreto
+        // derivan la misma clave AES → el token emitido por una se resuelve en
+        // la otra.
+        EloDuelService emisor = conSecreto("secreto-compartido");
+        EloDuelService receptor = conSecreto("secreto-compartido");
+
+        EloDuelRoundDto round = emisor.iniciarRonda();
+        EloDuelGuessResponse result = receptor.resolver(
+                new EloDuelGuessRequest(round.roundToken(), expectedChoice(round)), null);
+
+        assertTrue(result.correct());
+    }
+
+    @Test
+    void sinTokenSecretLaClaveEsEfimeraYNoValeEntreInstancias() {
+        when(personajeScoreQueryService.topConPuntuacionYRecencia(any(), anyInt())).thenReturn(pool);
+        // Sin secreto cada instancia genera una clave aleatoria distinta → el
+        // token de una NO se descifra en otra (el fallo previo que corrige el
+        // secreto configurable).
+        EloDuelService emisor = sinSecreto();
+        EloDuelService receptor = sinSecreto();
+
+        EloDuelRoundDto round = emisor.iniciarRonda();
+        EloDuelGuessRequest request =
+                new EloDuelGuessRequest(round.roundToken(), expectedChoice(round));
+
+        ResponseStatusException ex = assertThrows(ResponseStatusException.class,
+                () -> receptor.resolver(request, null));
+        assertEquals(400, ex.getStatusCode().value());
+    }
+
+    @Test
     void aciertoDeUsuarioLogueadoAcreditaMonedaConReferenciaDeRonda() {
         when(personajeScoreQueryService.topConPuntuacionYRecencia(any(), anyInt())).thenReturn(pool);
         when(dropService.otorgar(any(), eq(MotivoMovimiento.DROP_JUEGO), anyString()))
@@ -182,6 +216,16 @@ class EloDuelServiceTest {
 
     private static EloDuelChoice opposite(EloDuelChoice c) {
         return c == EloDuelChoice.HIGHER ? EloDuelChoice.LOWER : EloDuelChoice.HIGHER;
+    }
+
+    private EloDuelService conSecreto(String secret) {
+        return new EloDuelService(personajeScoreQueryService, dropService, new SecureRandom(),
+                Clock.fixed(Instant.parse("2026-05-31T12:00:00Z"), ZoneOffset.UTC), secret);
+    }
+
+    private EloDuelService sinSecreto() {
+        return new EloDuelService(personajeScoreQueryService, dropService, new SecureRandom(),
+                Clock.fixed(Instant.parse("2026-05-31T12:00:00Z"), ZoneOffset.UTC), null);
     }
 
     private EloDuelChoice expectedChoice(EloDuelRoundDto round) {
