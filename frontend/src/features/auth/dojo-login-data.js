@@ -22,6 +22,31 @@ export function sceneOfDay(scenes, now = Date.now()) {
   return scenes[Math.floor(now / 86400000) % scenes.length]
 }
 
+/* Escena CONTEXTUAL de la puerta: si el visitante venía a un destino con arte
+   propio (p. ej. el PvP en vivo, que exige cuenta), la entrada muestra ESA
+   escena en vez de la del día — así la puerta "encaja" con lo que iba a hacer
+   en vez de enseñar un anime al azar. Los slugs viven en el banco de marca
+   (brand-assets-manifest, variantes -480/-768/-1280). */
+export const ESCENAS_CONTEXTO = {
+  '/duel-live': {
+    slug: 'pvp-no-session',
+    fandom: 'PvP en vivo',
+    caption: 'Duelo 1v1 en directo — entra para combatir',
+    contextual: true,
+  },
+}
+
+/**
+ * Escena de la entrada: contextual si `next` tiene arte propio; si no, la del día.
+ * @param {string|null} next  destino ya saneado (sanitizeNext)
+ * @param {Array<{slug: string, fandom: string}>} scenes
+ * @param {number} [now=Date.now()]
+ * @returns {({slug: string, fandom: string, caption?: string, contextual?: boolean}) | null}
+ */
+export function escenaDeEntrada(next, scenes, now = Date.now()) {
+  return ESCENAS_CONTEXTO[next] ?? sceneOfDay(scenes, now)
+}
+
 /* Rotación curada del arte de la entrada: escenas 16:9 del banco de
    marca (todas verificadas contra brand-assets-manifest.json). */
 export const DOJO_SCENES = [
