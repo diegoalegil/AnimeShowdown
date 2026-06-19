@@ -60,7 +60,6 @@ export const queryKeys = {
     dias,
   ],
   // Cartas coleccionables
-  coleccionCartas: (): QueryKey => ['cartas', 'coleccion'],
   coleccionResumen: (): QueryKey => ['cartas', 'resumen'],
   coleccionPagina: (rareza?: string, anime?: string, orden?: string): QueryKey => [
     'cartas',

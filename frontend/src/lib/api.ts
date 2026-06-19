@@ -666,7 +666,6 @@ export const endpoints = {
   // hardcode de data/eventos.js si la lista viene vacía o la llamada falla.
   eventos: () => api.get('/api/eventos', { auth: false }),
   // Cartas coleccionables. Todas autenticadas (auth por defecto).
-  miColeccion: () => api.get('/api/me/cartas'),
   // Salón Legendario: galería pública de cartas especiales curadas.
   especialesCuradas: () => api.get('/api/cartas/especiales', { auth: false }),
   // Cabecera de la colección (totales, saldo, pity, progreso) sin el array de cartas.
@@ -821,8 +820,6 @@ export const endpoints = {
     }),
   // Perfil del usuario autenticado.
   perfilStats: () => api.get('/api/perfil/me/stats'),
-  perfilHistorialVotos: ({ page = 0, size = 50 } = {}) =>
-    api.get(`/api/perfil/me/historial-votos?page=${page}&size=${size}`),
   migrarVotosAnonimos: () =>
     api.post('/api/perfil/me/migrar-votos-anonimos', undefined),
   perfilTop: ({ limit = 5 } = {}) =>

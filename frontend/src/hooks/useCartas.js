@@ -23,27 +23,16 @@ function invalidarColeccion(queryClient) {
 /**
  * Hooks de cartas coleccionables.
  *
- * - useColeccion: catálogo + obtenidas + % + saldo. Disabled sin user (la API
- *   es autenticada; evita el 403 ruidoso en consola).
+ * - useColeccionResumen / useColeccionPagina: cabecera ligera + lista paginada.
  * - useOddsCartas: probabilidades transparentes del sobre.
  * - useAbrirSobre: mutation que gasta moneda y revela un sobre; al terminar
  *   invalida la colección para refrescar saldo y progreso.
  * - useCofreDiario: reclama la recompensa diaria idempotente del servidor.
  */
-export function useColeccion() {
-  const { user } = useAuth()
-  return useQuery({
-    queryKey: queryKeys.coleccionCartas(),
-    queryFn: endpoints.miColeccion,
-    enabled: Boolean(user),
-    staleTime: 30 * 1000,
-  })
-}
-
 /**
  * Cabecera de la colección: totales, saldo, pity, flags y progreso por anime y
  * rareza. Sin el array de cartas (ese se pagina con useColeccionPagina). Es la
- * fuente ligera que sustituye a useColeccion en la página y el banner.
+ * fuente ligera de la cabecera en la página y el banner.
  */
 export function useColeccionResumen() {
   const { user } = useAuth()
