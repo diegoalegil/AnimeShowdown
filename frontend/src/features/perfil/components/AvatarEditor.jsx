@@ -46,6 +46,21 @@ async function fileToBase64(file, maxSize = 256, quality = 0.82) {
  */
 function AvatarEditor({ user, updateUser, tabs = ['archivo', 'catalogo', 'url'] }) {
   const [tab, setTab] = useState(tabs[0])
+  const tabRefs = useRef([])
+
+  // Roving tabindex + flechas (patrón APG de PerfilTabs).
+  const handleKeyDown = (e, idx) => {
+    const n = tabs.length
+    let next
+    if (e.key === 'ArrowRight') next = (idx + 1) % n
+    else if (e.key === 'ArrowLeft') next = (idx - 1 + n) % n
+    else if (e.key === 'Home') next = 0
+    else if (e.key === 'End') next = n - 1
+    else return
+    e.preventDefault()
+    setTab(tabs[next])
+    tabRefs.current[next]?.focus()
+  }
 
   return (
     <div className="flex flex-col gap-5">
@@ -58,16 +73,20 @@ function AvatarEditor({ user, updateUser, tabs = ['archivo', 'catalogo', 'url'] 
         style={{ gridTemplateColumns: `repeat(${tabs.length}, minmax(0, 1fr))` }}
         role="tablist"
       >
-        {tabs.map((id) => {
+        {tabs.map((id, idx) => {
           const meta = TAB_META[id]
           const Icon = meta.icon
           return (
             <button
               key={id}
+              ref={(el) => { tabRefs.current[idx] = el }}
               type="button"
               role="tab"
+              id={`avatartab-${id}`}
               aria-selected={tab === id}
+              tabIndex={tab === id ? 0 : -1}
               onClick={() => setTab(id)}
+              onKeyDown={(e) => handleKeyDown(e, idx)}
               className={`inline-flex items-center justify-center gap-2 rounded-lg px-3 py-2 text-[13px] font-semibold transition-colors ${
                 tab === id
                   ? 'bg-surface-alt text-fg-strong'
