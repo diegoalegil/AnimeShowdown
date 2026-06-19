@@ -71,6 +71,7 @@ public interface PrediccionRepository extends JpaRepository<Prediccion, Long> {
     @Query("""
             SELECT p FROM Prediccion p
             LEFT JOIN p.enfrentamiento e
+            LEFT JOIN FETCH p.personajePredicho
             WHERE p.usuario = :usuario AND (e.torneo = :torneo OR p.torneo = :torneo)
             ORDER BY p.tipo DESC, e.ronda ASC, e.id ASC
             """)
