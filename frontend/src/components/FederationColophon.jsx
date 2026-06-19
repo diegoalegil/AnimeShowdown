@@ -5,7 +5,7 @@ import { LEGAL_CONTACT_MAILTO } from '../data/legal'
 import './federation-colophon.css'
 
 // ─────────────────────────────────────────────────────────────────────────────
-// Rutas REALES del footer actual (Footer.jsx) — mismas claves i18n (nav.*).
+// Rutas REALES del pie de página — mismas claves i18n (nav.*).
 // No añadir secciones aquí sin tocar también el footer móvil/sitemap.xml.
 // ─────────────────────────────────────────────────────────────────────────────
 const productoLinks = [

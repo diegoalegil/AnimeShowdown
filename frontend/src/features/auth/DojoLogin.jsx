@@ -7,8 +7,8 @@ import AuthLegalNote from '../../components/AuthLegalNote'
 import { escenaDeEntrada, sanitizeNext } from './dojo-login-data'
 import './dojo-login.css'
 
-// Estilos: ver el bloque "DojoLogin" en index.css (dojo-login.index.css).
-// CSP por hash: cero <style> en runtime, todos los keyframes viven allí.
+// Estilos en dojo-login.css (importado arriba). CSP por hash: cero <style> en
+// runtime, todos los keyframes viven en ese fichero.
 
 /**
  * @typedef {Object} DojoScene
