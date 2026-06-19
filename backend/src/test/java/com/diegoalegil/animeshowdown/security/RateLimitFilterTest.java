@@ -110,6 +110,15 @@ class RateLimitFilterTest {
     }
 
     @Test
+    void wrappedPublicoLimitaTreintaGetPorMinuto() throws Exception {
+        // GET /api/wrapped/u/{username} (permitAll, 5+ queries no cacheadas): 30/min por IP.
+        for (int i = 0; i < 30; i++) {
+            assertEquals(200, get("/api/wrapped/u/usuario" + i).getStatus());
+        }
+        assertEquals(429, get("/api/wrapped/u/otro").getStatus());
+    }
+
+    @Test
     void getNoCostosoNoSeLimita() throws Exception {
         // Un GET corriente (no OG ni descarga) no consume bucket: ilimitado.
         for (int i = 0; i < 100; i++) {

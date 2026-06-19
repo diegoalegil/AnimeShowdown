@@ -40,7 +40,14 @@ public class PersonajeAdminService {
             @CacheEvict(value = "personajes-listado", allEntries = true),
             @CacheEvict(value = "personajes-catalogo", allEntries = true),
             @CacheEvict(value = "personajes-individual", allEntries = true),
-            @CacheEvict(value = "personajes-similares", allEntries = true)
+            @CacheEvict(value = "personajes-similares", allEntries = true),
+            // Derivadas por slug: una edición/borrado de personaje debe refrescar
+            // también su OG, matchups, votos por periodo e historial de ELO
+            // (auditoría 2; allEntries porque las escrituras de admin son raras).
+            @CacheEvict(value = "og-personaje", allEntries = true),
+            @CacheEvict(value = "personaje-matchups", allEntries = true),
+            @CacheEvict(value = "personaje-votos-periodo", allEntries = true),
+            @CacheEvict(value = "personaje-elo-history", allEntries = true)
     })
     public Personaje crear(PersonajeCrearRequest request) {
         Personaje p = new Personaje(
@@ -62,7 +69,14 @@ public class PersonajeAdminService {
             @CacheEvict(value = "personajes-listado", allEntries = true),
             @CacheEvict(value = "personajes-catalogo", allEntries = true),
             @CacheEvict(value = "personajes-individual", allEntries = true),
-            @CacheEvict(value = "personajes-similares", allEntries = true)
+            @CacheEvict(value = "personajes-similares", allEntries = true),
+            // Derivadas por slug: una edición/borrado de personaje debe refrescar
+            // también su OG, matchups, votos por periodo e historial de ELO
+            // (auditoría 2; allEntries porque las escrituras de admin son raras).
+            @CacheEvict(value = "og-personaje", allEntries = true),
+            @CacheEvict(value = "personaje-matchups", allEntries = true),
+            @CacheEvict(value = "personaje-votos-periodo", allEntries = true),
+            @CacheEvict(value = "personaje-elo-history", allEntries = true)
     })
     public boolean eliminar(Long id) {
         if (!personajeRepository.existsById(id)) {
@@ -81,7 +95,14 @@ public class PersonajeAdminService {
             @CacheEvict(value = "personajes-listado", allEntries = true),
             @CacheEvict(value = "personajes-catalogo", allEntries = true),
             @CacheEvict(value = "personajes-individual", allEntries = true),
-            @CacheEvict(value = "personajes-similares", allEntries = true)
+            @CacheEvict(value = "personajes-similares", allEntries = true),
+            // Derivadas por slug: una edición/borrado de personaje debe refrescar
+            // también su OG, matchups, votos por periodo e historial de ELO
+            // (auditoría 2; allEntries porque las escrituras de admin son raras).
+            @CacheEvict(value = "og-personaje", allEntries = true),
+            @CacheEvict(value = "personaje-matchups", allEntries = true),
+            @CacheEvict(value = "personaje-votos-periodo", allEntries = true),
+            @CacheEvict(value = "personaje-elo-history", allEntries = true)
     })
     public Personaje actualizar(Long id, PersonajeActualizarRequest datos) {
         Personaje p = personajeRepository.findById(id)
@@ -100,7 +121,14 @@ public class PersonajeAdminService {
             @CacheEvict(value = "personajes-listado", allEntries = true),
             @CacheEvict(value = "personajes-catalogo", allEntries = true),
             @CacheEvict(value = "personajes-individual", allEntries = true),
-            @CacheEvict(value = "personajes-similares", allEntries = true)
+            @CacheEvict(value = "personajes-similares", allEntries = true),
+            // Derivadas por slug: una edición/borrado de personaje debe refrescar
+            // también su OG, matchups, votos por periodo e historial de ELO
+            // (auditoría 2; allEntries porque las escrituras de admin son raras).
+            @CacheEvict(value = "og-personaje", allEntries = true),
+            @CacheEvict(value = "personaje-matchups", allEntries = true),
+            @CacheEvict(value = "personaje-votos-periodo", allEntries = true),
+            @CacheEvict(value = "personaje-elo-history", allEntries = true)
     })
     public List<Personaje> crearBatch(List<PersonajeCrearRequest> personajes) {
         List<Personaje> guardados = personajes.stream()
