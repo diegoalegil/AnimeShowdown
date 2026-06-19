@@ -578,12 +578,19 @@ function VotarPage() {
       queryClient.setQueryData(['monedero'], (old) =>
         old ? { ...old, saldo: (old.saldo ?? 0) + monedas } : old,
       )
+      if (coinsTimeoutRef.current) clearTimeout(coinsTimeoutRef.current)
       coinsTimeoutRef.current = window.setTimeout(() => {
         queryClient.invalidateQueries({ queryKey: ['monedero'] })
       }, 1500)
     },
     [queryClient],
   )
+
+  // Limpia el timeout de reconciliación del saldo al desmontar (se re-arma
+  // limpio en cada voto, arriba): sin esto quedaba colgado.
+  useEffect(() => () => {
+    if (coinsTimeoutRef.current) clearTimeout(coinsTimeoutRef.current)
+  }, [])
 
   const handleVoteSuccess = useCallback(
     (personaje, data, perdedor) => {
