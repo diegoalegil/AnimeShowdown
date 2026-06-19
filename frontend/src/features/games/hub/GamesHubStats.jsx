@@ -1,4 +1,3 @@
-import { useMemo } from 'react'
 import { Flame, Hourglass, Trophy } from 'lucide-react'
 
 function StatTile({ icon: Icon, iconColor, label, value, className = '' }) {
@@ -42,88 +41,5 @@ export function GamesHubStatsBar({ completadosHoy, totalDaily, eloBest, resetLab
         className="col-span-2 sm:col-span-1"
       />
     </div>
-  )
-}
-
-export function DailyHistoryStrip({ days, streak }) {
-  const dayFormatter = useMemo(
-    () =>
-      new Intl.DateTimeFormat('es-ES', {
-        weekday: 'short',
-      }),
-    [],
-  )
-  const dateFormatter = useMemo(
-    () =>
-      new Intl.DateTimeFormat('es-ES', {
-        day: 'numeric',
-        month: 'short',
-      }),
-    [],
-  )
-
-  return (
-    <section className="as-panel mb-6 rounded-2xl p-4 sm:p-5">
-      <div className="mb-4 flex flex-col gap-1 sm:flex-row sm:items-end sm:justify-between">
-        <div>
-          <p className="text-[10px] font-black text-gold">
-            Calendario daily
-          </p>
-          <h2 className="mt-1 text-lg font-black text-fg-strong">
-            Últimos 7 días de ritual
-          </h2>
-        </div>
-        <p className="text-[12px] text-fg-muted">
-          Racha actual <span className="font-mono font-black text-gold">{streak.current}</span>
-          {' '}· récord <span className="font-mono font-black text-fg-strong">{streak.longest}</span>
-        </p>
-      </div>
-      <div className="grid grid-cols-7 gap-2">
-        {days.map((day) => {
-          const parsed = new Date(`${day.date}T12:00:00`)
-          const completed = day.completed
-          const started = day.votes > 0 || day.gamesCompleted > 0 || day.rankingViewed
-          return (
-            <div
-              key={day.date}
-              className={`min-h-[5.75rem] rounded-xl border px-2 py-2 text-center ${
-                completed
-                  ? 'border-success/35 bg-success/10'
-                  : started
-                    ? 'border-gold/35 bg-gold-soft'
-                    : 'border-border bg-bg/45'
-              }`}
-              title={`${dateFormatter.format(parsed)} · ${
-                completed
-                  ? 'ritual completado'
-                  : started
-                    ? 'ritual empezado'
-                    : 'sin progreso'
-              }`}
-            >
-              <p className="text-[9px] font-black text-fg-muted">
-                {dayFormatter.format(parsed)}
-              </p>
-              <p
-                className={`mt-2 font-mono text-xl font-black ${
-                  completed
-                    ? 'text-success'
-                    : started
-                      ? 'text-gold'
-                      : 'text-fg-muted'
-                }`}
-              >
-                {completed ? '✓' : started ? '•' : '—'}
-              </p>
-              <p className="mt-2 text-[10px] leading-4 text-fg-muted">
-                {Math.min(day.votes, 10)}/10 votos
-                <br />
-                {Math.min(day.gamesCompleted, 1)}/1 daily
-              </p>
-            </div>
-          )
-        })}
-      </div>
-    </section>
   )
 }
