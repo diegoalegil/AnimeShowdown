@@ -1,6 +1,7 @@
 package com.diegoalegil.animeshowdown.model;
 
 import java.time.LocalDateTime;
+import java.time.ZoneOffset;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
@@ -74,7 +75,10 @@ public class MonederoMovimiento {
     @PrePersist
     void onCreate() {
         if (creadoEn == null) {
-            creadoEn = LocalDateTime.now();
+            // UTC explícito: el tope diario anti-faucet calcula su ventana en UTC,
+            // así que sellar en la zona de la JVM desincronizaría el borde de
+            // medianoche si TZ != UTC. Independiza el sello de la zona del proceso.
+            creadoEn = LocalDateTime.now(ZoneOffset.UTC);
         }
     }
 
