@@ -62,6 +62,21 @@ async function fileToBannerBase64(file, targetW = BANNER_W, targetH = BANNER_H, 
  */
 function BannerEditor({ user, updateUser, tabs = ['archivo', 'catalogo', 'animes', 'torneos', 'url'] }) {
   const [tab, setTab] = useState(tabs[0])
+  const tabRefs = useRef([])
+
+  // Roving tabindex + flechas (patrón APG de PerfilTabs).
+  const handleKeyDown = (e, idx) => {
+    const n = tabs.length
+    let next
+    if (e.key === 'ArrowRight') next = (idx + 1) % n
+    else if (e.key === 'ArrowLeft') next = (idx - 1 + n) % n
+    else if (e.key === 'Home') next = 0
+    else if (e.key === 'End') next = n - 1
+    else return
+    e.preventDefault()
+    setTab(tabs[next])
+    tabRefs.current[next]?.focus()
+  }
 
   return (
     <div className="flex flex-col gap-5">
@@ -83,16 +98,20 @@ function BannerEditor({ user, updateUser, tabs = ['archivo', 'catalogo', 'animes
         className="flex flex-wrap gap-1 rounded-lg border border-border bg-bg p-1"
         role="tablist"
       >
-        {tabs.map((id) => {
+        {tabs.map((id, idx) => {
           const meta = TAB_META[id]
           const Icon = meta.icon
           return (
             <button
               key={id}
+              ref={(el) => { tabRefs.current[idx] = el }}
               type="button"
               role="tab"
+              id={`bannertab-${id}`}
               aria-selected={tab === id}
+              tabIndex={tab === id ? 0 : -1}
               onClick={() => setTab(id)}
+              onKeyDown={(e) => handleKeyDown(e, idx)}
               className={`inline-flex min-w-[84px] flex-1 items-center justify-center gap-2 rounded-lg px-3 py-2 text-[13px] font-semibold transition-colors ${
                 tab === id
                   ? 'bg-surface-alt text-fg-strong'

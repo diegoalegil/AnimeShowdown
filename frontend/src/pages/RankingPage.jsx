@@ -453,6 +453,17 @@ function CategoriasYIntencionTab({ catalogoIndex, isCatalogLoading }) {
     if (!intencion && disponibles.length > 0) setIntencion(disponibles[0].id)
   }
 
+  // Roving tabindex + flechas para las 2 pestañas (patrón APG de PerfilTabs).
+  const tabRefs = useRef([])
+  const handleTabKey = (e, idx) => {
+    if (!['ArrowRight', 'ArrowLeft', 'Home', 'End'].includes(e.key)) return
+    e.preventDefault()
+    const activadores = [activarArquetipo, activarIntencion]
+    const next = e.key === 'Home' ? 0 : e.key === 'End' ? 1 : (idx + 1) % 2
+    activadores[next]()
+    tabRefs.current[next]?.focus()
+  }
+
   const pestañaBase =
     'flex-1 rounded-lg px-3 py-2 text-[13px] font-bold transition-colors'
   return (
@@ -463,10 +474,14 @@ function CategoriasYIntencionTab({ catalogoIndex, isCatalogLoading }) {
         className="flex gap-1 rounded-xl border border-border bg-surface p-1"
       >
         <button
+          ref={(el) => { tabRefs.current[0] = el }}
           type="button"
           role="tab"
+          id="cattab-arquetipo"
           aria-selected={modo === 'arquetipo'}
+          tabIndex={modo === 'arquetipo' ? 0 : -1}
           onClick={activarArquetipo}
+          onKeyDown={(e) => handleTabKey(e, 0)}
           className={`${pestañaBase} ${
             modo === 'arquetipo'
               ? 'bg-accent text-white'
@@ -476,10 +491,14 @@ function CategoriasYIntencionTab({ catalogoIndex, isCatalogLoading }) {
           Por arquetipo
         </button>
         <button
+          ref={(el) => { tabRefs.current[1] = el }}
           type="button"
           role="tab"
+          id="cattab-intencion"
           aria-selected={modo === 'intencion'}
+          tabIndex={modo === 'intencion' ? 0 : -1}
           onClick={activarIntencion}
+          onKeyDown={(e) => handleTabKey(e, 1)}
           className={`${pestañaBase} ${
             modo === 'intencion'
               ? 'bg-accent text-white'
