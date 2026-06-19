@@ -289,14 +289,14 @@ function Ring({ items }) {
               onClick={() => goTo(i)}
               aria-label={`Posición ${i + 1}: ${c.name}`}
               className={`inline-flex min-h-11 min-w-11 items-center justify-center font-mono text-[10px] leading-none transition-colors hover:text-gold ${
-                i === front ? "text-gold" : "text-fg-muted/60"
+                i === front ? "text-gold" : "text-fg-muted"
               }`}
             >
               {String(i + 1).padStart(2, "0")}
             </button>
           ))}
         </nav>
-        <p className="font-mono text-[10.5px] opacity-30">Arrastra para girar · ← → para navegar</p>
+        <p className="font-mono text-[10.5px] opacity-70">Arrastra para girar · ← → para navegar</p>
       </footer>
     </section>
   );
