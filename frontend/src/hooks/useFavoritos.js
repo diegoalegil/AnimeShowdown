@@ -119,6 +119,8 @@ export function useToggleFavorito(slug) {
     isPending: mutation.isPending,
     isReady: Boolean(user) && !estadoQ.isLoading,
     isError: estadoQ.isError || mutation.isError,
-    toggle: () => mutation.mutate(Boolean(isFollowing)),
+    // opciones opcionales {onSuccess, onError} para feedback ligado al resultado
+    // real (el caller muestra el toast tras confirmar, no de forma optimista).
+    toggle: (opciones) => mutation.mutate(Boolean(isFollowing), opciones),
   }
 }

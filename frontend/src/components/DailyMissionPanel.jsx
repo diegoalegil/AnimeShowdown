@@ -21,6 +21,7 @@ import {
 import { getDailyResetCountdown } from '../lib/games'
 import { shareWithToast } from '../lib/shareWithToast'
 import { useAuth } from '../contexts/AuthContext'
+import { useTodayKey } from '../hooks/useDailyGameState'
 import { ANON_VOTE_LIMIT as ANON_VOTE_CAP } from '../lib/anonymousVoting'
 
 // Tope de votos de invitado: única fuente de verdad es ANON_VOTE_LIMIT en
@@ -109,6 +110,16 @@ function DailyMissionPanel({ compact = false, className = '' }) {
   const [progress, setProgress] = useState(() => readDailyProgress())
   const [streak, setStreak] = useState(() => readDailyStreak())
   const [resetCountdown, setResetCountdown] = useState(getDailyResetCountdown)
+  const todayKey = useTodayKey()
+  // Ajuste de estado al cambiar el día (patrón en-render de React, NO en effect):
+  // al cruzar medianoche (timer de useTodayKey) o volver a la pestaña, re-leer
+  // el progreso/racha; si no, el panel montado e inactivo mostraría el de ayer.
+  const [diaMostrado, setDiaMostrado] = useState(todayKey)
+  if (diaMostrado !== todayKey) {
+    setDiaMostrado(todayKey)
+    setProgress(readDailyProgress())
+    setStreak(readDailyStreak())
+  }
 
   useEffect(
     () =>

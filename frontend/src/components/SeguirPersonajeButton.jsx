@@ -32,15 +32,20 @@ function SeguirPersonajeButton({ slug, nombre }) {
       return
     }
     const previo = isFollowing
-    toggle()
-    // Toast optimista — el rollback de useToggleFavorito al error
-    // ya restaura el cache; el toast queda como "se intentó". Si
-    // necesitas mostrar error, el caller puede observar isError.
-    if (previo) {
-      toast(`Has dejado de seguir a ${nombre}`, { duration: 1800 })
-    } else {
-      toast.success(`Sigues a ${nombre}`, { duration: 1800 })
-    }
+    // El toast espera al resultado real: en error el cache hace rollback, así
+    // que un toast de éxito optimista daría un feedback falso ("Sigues a X"
+    // mientras se revierte). La carta (corazón) sí cambia optimista.
+    toggle({
+      onSuccess: () => {
+        if (previo) toast(`Has dejado de seguir a ${nombre}`, { duration: 1800 })
+        else toast.success(`Sigues a ${nombre}`, { duration: 1800 })
+      },
+      onError: () => {
+        toast.error(
+          previo ? `No se pudo dejar de seguir a ${nombre}` : `No se pudo seguir a ${nombre}`,
+        )
+      },
+    })
   }
 
   // Loading / pre-auth check: deshabilitamos hasta saber el estado real.
