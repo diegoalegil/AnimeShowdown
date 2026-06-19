@@ -91,8 +91,10 @@ export function useAplicarPrediccionCampeon(torneoId) {
         (old) => mergePrediccionEnLista(old, prediccion),
       )
       queryClient.invalidateQueries({ queryKey: buildMiasKey(torneoId, userKey) })
+      // Por prefijo (sin el limit): invalida el leaderboard del torneo sea cual
+      // sea el limit del consumidor; antes el literal 10 dejaba fuera otros.
       queryClient.invalidateQueries({
-        queryKey: ['predicciones', 'leaderboard', 'torneo', String(torneoId), 10],
+        queryKey: ['predicciones', 'leaderboard', 'torneo', String(torneoId)],
       })
     },
   })
