@@ -377,7 +377,7 @@ export default function BattleChronicle({
       {combates.length === 0 ? (
         <CronicaVacia></CronicaVacia>
       ) : (
-        <div className="bc-scroll" ref={scrollRef}>
+        <div className="bc-scroll" ref={scrollRef} tabIndex={0} role="region" aria-label="Historial de combates">
           <ol className="bc-list" aria-label="Combates recientes" data-pushing={liveEntry ? 'true' : undefined}>
             {filas.map((c, i) => (
               <FilaCombate
