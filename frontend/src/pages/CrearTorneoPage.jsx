@@ -71,7 +71,9 @@ function CrearTorneoPage() {
   // Datos reales para el estandarte de la forja: el nombre se observa en
   // vivo, el organizador es el usuario logueado y la fecha es la de hoy.
   const nombreEnVivo = watch('nombre')
-  const hoy = useMemo(() => new Date().toISOString().slice(0, 10), [])
+  // useState lazy en vez de useMemo([]): React puede descartar memos; el
+  // inicializador lazy garantiza un único new Date() (convención de pureza del repo).
+  const [hoy] = useState(() => new Date().toISOString().slice(0, 10))
 
   const slugToBackendId = useMemo(() => {
     const m = new Map()

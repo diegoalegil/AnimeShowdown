@@ -43,6 +43,7 @@ function ScoreScroll({ abierta, lineas, onCerrar, titulo = 'Acta de la semana', 
   const paperRef = useRef(null)
   const closeRef = useRef(null)
   const timersRef = useRef(new Set())
+  const rafsRef = useRef(new Set())
   const [announce, setAnnounce] = useState('')
   const [run, setRun] = useState(0) // bump = replay
 
@@ -57,6 +58,10 @@ function ScoreScroll({ abierta, lineas, onCerrar, titulo = 'Acta de la semana', 
   const clearTimers = useCallback(() => {
     timersRef.current.forEach(clearTimeout)
     timersRef.current.clear()
+    // Cancela los rAF del odómetro: sin esto, al "repetir acta" dos loops
+    // escriben el mismo span a la vez (y siguen tras desmontar).
+    rafsRef.current.forEach(cancelAnimationFrame)
+    rafsRef.current.clear()
   }, [])
 
   const fmtDelta = (v) => (v > 0 ? `+${v}` : v < 0 ? `−${Math.abs(v)}` : '0')
@@ -73,9 +78,9 @@ function ScoreScroll({ abierta, lineas, onCerrar, titulo = 'Acta de la semana', 
     const step = (now) => {
       const p = Math.min((now - t0) / dur, 1)
       el.textContent = fmtDelta(Math.round(target * (1 - Math.pow(1 - p, 3))))
-      if (p < 1) requestAnimationFrame(step)
+      if (p < 1) rafsRef.current.add(requestAnimationFrame(step))
     }
-    requestAnimationFrame(step)
+    rafsRef.current.add(requestAnimationFrame(step))
     after(dur + 80, () => { el.textContent = fmtDelta(target) })
   }, [after])
 
