@@ -76,8 +76,15 @@ public class RateLimitFilter extends OncePerRequestFilter {
     // (un guess cada 2s sostenido) y corta el abuso.
     private static final RateLimitPolicy ELO_DUEL = new RateLimitPolicy(
             "elo-duel", 30, Duration.ofMinutes(1));
+    // Wrapped público (GET /api/wrapped/u/{username}, permitAll): cada request
+    // ejecuta 5+ queries NO cacheadas sobre la tabla votos. Sin límite un anónimo
+    // amplifica carga de DB a coste cero (DoS de coste). 30/min por IP no molesta
+    // a quien comparte/abre un wrapped y corta el martilleo.
+    private static final RateLimitPolicy WRAPPED = new RateLimitPolicy(
+            "wrapped", 30, Duration.ofMinutes(1));
 
     private static final String RUTA_ELO_DUEL_PREFIJO = "/api/games/elo-duel/";
+    private static final String RUTA_WRAPPED_PUBLICO_PREFIJO = "/api/wrapped/u/";
     private static final String RUTA_VOTAR_SUFIJO = "/votar";
     private static final String RUTA_VOTAR_PREFIJO = "/api/enfrentamientos/";
     private static final String RUTA_VOTAR_PERSONAJE_PREFIJO = "/api/personajes/";
@@ -158,6 +165,9 @@ public class RateLimitFilter extends OncePerRequestFilter {
             }
             if (uri.startsWith(RUTA_ELO_DUEL_PREFIJO)) {
                 return ELO_DUEL;
+            }
+            if (uri.startsWith(RUTA_WRAPPED_PUBLICO_PREFIJO)) {
+                return WRAPPED;
             }
             return null;
         }

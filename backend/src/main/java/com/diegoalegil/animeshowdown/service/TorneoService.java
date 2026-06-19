@@ -193,7 +193,9 @@ public class TorneoService {
      * creador (best-effort).
      */
     @Transactional
-    @CacheEvict(value = "torneos-resumen", allEntries = true)
+    // og-torneo: el OG cacheó el fallback genérico mientras el torneo era
+    // PENDIENTE; al aprobarlo hay que evictarlo para re-renderizar el real.
+    @CacheEvict(value = {"torneos-resumen", "og-torneo"}, allEntries = true)
     public Torneo aprobar(Long id) {
         Torneo torneo = torneoRepository.findById(id)
                 .orElseThrow(() -> new EntityNotFoundException("Torneo no encontrado: id=" + id));
@@ -249,6 +251,7 @@ public class TorneoService {
      * que el creador vuelva a enviarlo con ajustes, futuro).
      */
     @Transactional
+    @CacheEvict(value = "og-torneo", allEntries = true)
     public Torneo rechazar(Long id, String motivo) {
         Torneo torneo = torneoRepository.findById(id)
                 .orElseThrow(() -> new EntityNotFoundException("Torneo no encontrado: id=" + id));
