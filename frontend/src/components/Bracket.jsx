@@ -366,7 +366,7 @@ function RopesLayer({ gridRef, rondas, reveladosEnVivo, corona, dibujadas, predi
   const svgRef = useRef(null)
 
   /* medición coalescada rAF+backstop, relativa al grid (el scroll-x
-     cancela por construcción) — mismo patrón que BracketPaths.jsx */
+     cancela por construcción) */
   useLayoutEffect(() => {
     const grid = svgRef.current?.parentElement ?? gridRef.current
     if (!grid) return undefined

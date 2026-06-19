@@ -260,8 +260,7 @@
 }
 .tide-scrubber__titulo {
   font-size: var(--text-2xs);
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
+  font-weight: 600;
   color: var(--color-fg-muted);
 }
 .tide-scrubber__nota {

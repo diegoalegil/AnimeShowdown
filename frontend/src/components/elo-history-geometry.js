@@ -1,6 +1,6 @@
 /**
  * Geometría pura del EloHistoryChart — separada del componente para poder
- * testearla sin montar React (mismo patrón que bracket-paths.js).
+ * testearla sin montar React (geometría pura en su propio módulo).
  */
 export const W = 600
 export const H = 170

@@ -93,7 +93,7 @@ function EmakiFinale({ wrapped, onCompartir, onVolver, feedback = '', publico = 
               >
                 {t.valor}
               </span>
-              <span className="font-mono text-xs uppercase tracking-[0.08em] text-fg-muted">{t.label}</span>
+              <span className="font-mono text-xs text-fg-muted">{t.label}</span>
             </div>
           ))}
         </div>
