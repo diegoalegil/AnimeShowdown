@@ -10,7 +10,6 @@ import { useAuth } from '../contexts/AuthContext.jsx'
  * - useAplicarPrediccion(torneoId): mutation que invalida la query de
  *   "mis predicciones" tras éxito. El backend ya hace INSERT o UPDATE
  *   automáticamente según UNIQUE constraint.
- * - useLeaderboardPredicciones({dias, limit}): top predictores. Público.
  */
 
 function getUserCacheKey(user) {
@@ -97,14 +96,6 @@ export function useAplicarPrediccionCampeon(torneoId) {
         queryKey: ['predicciones', 'leaderboard', 'torneo', String(torneoId)],
       })
     },
-  })
-}
-
-export function useLeaderboardPredicciones({ dias = 30, limit = 10 } = {}) {
-  return useQuery({
-    queryKey: ['predicciones', 'leaderboard', dias, limit],
-    queryFn: () => endpoints.leaderboardPredicciones({ dias, limit }),
-    staleTime: 5 * 60 * 1000, // 5 min: el top no cambia tan rápido
   })
 }
 

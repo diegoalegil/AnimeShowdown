@@ -19,16 +19,6 @@ export function usePerfilStats({ enabled = true } = {}) {
   })
 }
 
-export function usePerfilHistorial({ page = 0, size = 50 } = {}) {
-  const { user } = useAuth()
-  return useQuery({
-    queryKey: ['perfil', 'historial', page, size],
-    queryFn: () => endpoints.perfilHistorialVotos({ page, size }),
-    enabled: Boolean(user),
-    staleTime: 30_000,
-  })
-}
-
 export function usePerfilTop({ limit = 5, enabled = true } = {}) {
   const { user } = useAuth()
   return useQuery({
