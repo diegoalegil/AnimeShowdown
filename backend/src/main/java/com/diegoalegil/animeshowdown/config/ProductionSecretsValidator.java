@@ -50,6 +50,8 @@ public class ProductionSecretsValidator {
     private final Map<String, String> secretosOpcionales;
     private final boolean turnstileEnabled;
     private final String turnstileSecret;
+    /** Secreto del token de ronda ELO: opcional, su ausencia solo degrada (clave efímera). */
+    private final String eloDuelTokenSecret;
     /** Con APP_SECRETS_STRICT=true las claves cortas abortan el boot (activar tras rotarlas). */
     private final boolean entropiaEstricta;
 
@@ -64,7 +66,8 @@ public class ProductionSecretsValidator {
             @Value("${spring.security.oauth2.client.registration.discord.client-id:}") String discordClientId,
             @Value("${spring.security.oauth2.client.registration.discord.client-secret:}") String discordClientSecret,
             @Value("${app.turnstile.enabled:false}") boolean turnstileEnabled,
-            @Value("${app.turnstile.secret:}") String turnstileSecret) {
+            @Value("${app.turnstile.secret:}") String turnstileSecret,
+            @Value("${app.elo-duel.token-secret:}") String eloDuelTokenSecret) {
         // LinkedHashMap para que el mensaje de error sea determinístico
         // (Map.of no garantiza orden en versiones futuras).
         this.secretosRequeridos = new LinkedHashMap<>();
@@ -85,6 +88,7 @@ public class ProductionSecretsValidator {
 
         this.turnstileEnabled = turnstileEnabled;
         this.turnstileSecret = turnstileSecret == null ? "" : turnstileSecret.trim();
+        this.eloDuelTokenSecret = eloDuelTokenSecret == null ? "" : eloDuelTokenSecret.trim();
         this.entropiaEstricta = entropiaEstricta;
     }
 
@@ -147,6 +151,15 @@ public class ProductionSecretsValidator {
                     "ProductionSecretsValidator: variables OAuth con placeholder o vacías {} — "
                             + "los login providers asociados no funcionarán hasta que se configuren.",
                     opcionalesInseguros);
+        }
+
+        // Token de ronda ELO: NO requerido (el fallback efímero es seguro, solo
+        // pierde estabilidad entre redeploys/réplicas). Hard-fail sería dañino;
+        // solo avisamos para que el operador lo cablee si quiere persistencia.
+        if (eloDuelTokenSecret.isBlank()) {
+            log.warn("ProductionSecretsValidator: app.elo-duel.token-secret (ELO_DUEL_TOKEN_SECRET) "
+                    + "sin configurar — la clave del token de ronda ELO será efímera por instancia "
+                    + "(los tokens en vuelo no sobreviven a un redeploy ni valen entre réplicas).");
         }
 
         log.info(

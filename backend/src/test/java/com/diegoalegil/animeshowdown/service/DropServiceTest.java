@@ -18,6 +18,7 @@ import java.time.ZoneOffset;
 
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
+import org.springframework.dao.DataIntegrityViolationException;
 
 import com.diegoalegil.animeshowdown.model.AuditEvento;
 import com.diegoalegil.animeshowdown.model.MotivoMovimiento;
@@ -116,6 +117,35 @@ class DropServiceTest {
         assertThat(service.otorgar(usuario, MotivoMovimiento.DROP_DUELO, "duelo:7"))
                 .isEqualTo(DropService.DropResultado.IDEMPOTENTE);
         verify(auditLogService, never()).registrar(any(), any(), any(), any());
+    }
+
+    @Test
+    void carreraDeIdempotenciaEnElInsertSeTrataComoIdempotente() {
+        MonederoService monederoService = mock(MonederoService.class);
+        AuditLogService auditLogService = mock(AuditLogService.class);
+        when(monederoService.acreditarDropConTopeDiario(any(), any(), any(), anyLong(), anyInt(), any()))
+                .thenThrow(new DataIntegrityViolationException("uk_movimiento_referencia"));
+        // La fila ya existe (otra tx la insertó): es la carrera de idempotencia.
+        when(monederoService.yaAcreditado(usuario, MotivoMovimiento.DROP_DUELO, "duelo:7")).thenReturn(true);
+        DropService service = dropService(monederoService, auditLogService, 50);
+
+        assertThat(service.otorgar(usuario, MotivoMovimiento.DROP_DUELO, "duelo:7"))
+                .isEqualTo(DropService.DropResultado.IDEMPOTENTE);
+    }
+
+    @Test
+    void violacionDeIntegridadRealNoSeEnmascaraComoIdempotencia() {
+        MonederoService monederoService = mock(MonederoService.class);
+        AuditLogService auditLogService = mock(AuditLogService.class);
+        when(monederoService.acreditarDropConTopeDiario(any(), any(), any(), anyLong(), anyInt(), any()))
+                .thenThrow(new DataIntegrityViolationException("value too long for column referencia"));
+        // No hay fila: el fallo es un error de integridad REAL (overflow, NOT NULL...),
+        // NO idempotencia → debe devolver ERROR, no enmascararse como IDEMPOTENTE.
+        when(monederoService.yaAcreditado(usuario, MotivoMovimiento.DROP_JUEGO, "juego:elo:x")).thenReturn(false);
+        DropService service = dropService(monederoService, auditLogService, 50);
+
+        assertThat(service.otorgar(usuario, MotivoMovimiento.DROP_JUEGO, "juego:elo:x"))
+                .isEqualTo(DropService.DropResultado.ERROR);
     }
 
     @Test
