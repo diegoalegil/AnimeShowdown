@@ -65,7 +65,7 @@ function PracticeSearch({ objetivo, onGesto }) {
 
   return (
     <div className="kumite-search">
-      <div className="kumite-search__panel" role="dialog" aria-label="Buscador de práctica">
+      <div className="kumite-search__panel" role="search" aria-label="Buscador de práctica">
         <input
           ref={inputRef}
           type="text"
