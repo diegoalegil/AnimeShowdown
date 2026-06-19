@@ -56,6 +56,14 @@ public class PersonajeController {
     private static final String DEFAULT_PAGE_SIZE_PARAM = "50";
     private static final int MAX_PAGE_SIZE = 100;
 
+    /** Key de caché del listado público: MISMA normalización que el body (anime
+     *  trim + null→all, page/size clamped) → queries lógicamente iguales comparten
+     *  entrada en personajes-listado en vez de gastar slots con params crudos. */
+    public static String listadoCacheKey(String anime, int page, int size) {
+        String a = (anime == null || anime.isBlank()) ? "all" : anime.trim();
+        return a + ":" + Math.max(0, page) + ":" + Math.min(MAX_PAGE_SIZE, Math.max(1, size));
+    }
+
     private final PersonajeRepository personajeRepository;
     private final RecomendacionService recomendacionService;
     private final EloHistoryService eloHistoryService;
@@ -94,7 +102,7 @@ public class PersonajeController {
      * evitar respuestas masivas desde este endpoint.
      */
     @Cacheable(value = "personajes-listado",
-            key = "(#anime ?: 'all') + ':' + #page + ':' + #size")
+            key = "T(com.diegoalegil.animeshowdown.controller.PersonajeController).listadoCacheKey(#anime, #page, #size)")
     @GetMapping
     public PageResponse<Personaje> listarTodos(
             @RequestParam(required = false) String anime,
