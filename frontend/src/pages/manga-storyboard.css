@@ -183,8 +183,6 @@
   font-family: var(--font-display);
   font-weight: 700;
   font-size: 12px;
-  letter-spacing: 0.6px;
-  text-transform: uppercase;
   color: var(--color-gold);
   text-shadow: var(--text-shadow-scrim);
 }
