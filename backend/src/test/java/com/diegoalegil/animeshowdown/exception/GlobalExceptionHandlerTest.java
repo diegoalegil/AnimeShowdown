@@ -14,6 +14,8 @@ import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.web.server.ResponseStatusException;
 
+import com.auth0.jwt.exceptions.JWTVerificationException;
+
 import jakarta.persistence.EntityNotFoundException;
 
 /**
@@ -66,6 +68,18 @@ class GlobalExceptionHandlerTest {
         assertStandardShape(resp.getBody(), 409, "/api/torneos");
         // El mensaje al cliente es genérico — no expone el nombre de la constraint.
         assertThat(resp.getBody().get("message").toString()).doesNotContain("uk_secret");
+    }
+
+    @Test
+    void jwtInvalidoDevuelve401SinFiltrarDetalle() {
+        ResponseEntity<Map<String, Object>> resp = handler.handleJwtVerification(
+                new JWTVerificationException("signature verification failed for token abc.def.ghi"),
+                req("/api/me"));
+
+        assertThat(resp.getStatusCode()).isEqualTo(HttpStatus.UNAUTHORIZED);
+        assertStandardShape(resp.getBody(), 401, "/api/me");
+        // Mensaje genérico: no filtra el detalle interno del token al cliente.
+        assertThat(resp.getBody().get("message").toString()).doesNotContain("abc.def.ghi");
     }
 
     @Test

@@ -20,6 +20,8 @@ import org.springframework.web.context.request.WebRequest;
 import org.springframework.web.method.annotation.MethodArgumentTypeMismatchException;
 import org.springframework.web.servlet.NoHandlerFoundException;
 
+import com.auth0.jwt.exceptions.JWTVerificationException;
+
 import jakarta.persistence.EntityNotFoundException;
 import jakarta.servlet.http.HttpServletRequest;
 
@@ -89,6 +91,14 @@ public class GlobalExceptionHandler {
                 HttpStatus.CONFLICT,
                 "El recurso ya existe o viola una restricción de integridad",
                 req);
+    }
+
+    /** Token JWT inválido/expirado/manipulado que llega a una capa que no lo
+     *  validó antes (los filtros sí lo hacen con validarToken): 401, no 500. */
+    @ExceptionHandler(JWTVerificationException.class)
+    public ResponseEntity<Map<String, Object>> handleJwtVerification(
+            JWTVerificationException ex, HttpServletRequest req) {
+        return buildResponse(HttpStatus.UNAUTHORIZED, "Token inválido o expirado", req);
     }
 
     /** JSON malformado, body vacío en endpoint que espera body: 400. */

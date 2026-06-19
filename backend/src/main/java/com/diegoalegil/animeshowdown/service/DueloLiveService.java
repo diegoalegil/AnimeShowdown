@@ -289,6 +289,12 @@ public class DueloLiveService {
     }
 
     private void resolverRonda(DueloLive duelo, DueloLiveRonda ronda, LocalDateTime now) {
+        // Guard idempotente: el scheduler de timeout (findExpiradas, sin lock) y un
+        // voto que cierra la ronda pueden entrar a la vez sobre la misma ronda. Si
+        // ya está resuelta, salir: re-resolverla incrementaría el marcador dos veces.
+        if (ronda.getEstado() != DueloLiveRondaEstado.IN_PROGRESS) {
+            return;
+        }
         long started = System.nanoTime();
         var scores = botPolicy.scoresComunidad(ronda);
         DueloLiveChoice correcta = botPolicy.decisionComunidad(ronda, scores);
