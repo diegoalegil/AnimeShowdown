@@ -61,8 +61,12 @@ function RosterCard({ favorito }) {
 
   const onQuitar = (e) => {
     e.stopPropagation()
-    toggle()
-    toast(`Has dejado de seguir a ${nombre}`, { duration: 1800 })
+    // El toast espera al resultado real (el hook reenvía las opciones): en error
+    // el cache hace rollback, así que un toast de éxito optimista mentiría.
+    toggle({
+      onSuccess: () => toast(`Has dejado de seguir a ${nombre}`, { duration: 1800 }),
+      onError: () => toast.error(`No se pudo quitar a ${nombre} del roster`),
+    })
   }
 
   return (

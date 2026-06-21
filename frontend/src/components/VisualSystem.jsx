@@ -1,5 +1,3 @@
-import { Link } from 'react-router-dom'
-import EditorialCover from './EditorialCover'
 import ResponsivePicture from './ResponsivePicture'
 import { BRAND_VISUALS } from '../data/visual-assets'
 import { AtmospherePreset } from './AtmosphereEffects'
@@ -275,36 +273,5 @@ export function CinematicHero({
         {aside && <div className="relative hidden lg:block">{aside}</div>}
       </div>
     </div>
-  )
-}
-
-export function VisualCard({
-  to,
-  visual,
-  title,
-  eyebrow,
-  meta,
-  children,
-  className = '',
-  coverClassName = 'h-48',
-}) {
-  const Wrapper = to ? Link : 'div'
-  const props = to ? { to } : {}
-  return (
-    <Wrapper
-      {...props}
-      className={`as-panel group block overflow-hidden rounded-2xl transition-all hover:-translate-y-1 hover:border-gold/45 hover:shadow-aura-lg [--aura-color:rgb(197_161_90_/_0.7)] ${className}`}
-    >
-      <EditorialCover
-        visual={visual}
-        title={title}
-        eyebrow={eyebrow}
-        meta={meta}
-        className={`${coverClassName} rounded-none border-0`}
-        imageClassName="saturate-110 contrast-105"
-        compact
-      />
-      {children && <div className="p-5">{children}</div>}
-    </Wrapper>
   )
 }

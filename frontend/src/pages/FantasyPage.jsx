@@ -268,9 +268,11 @@ function FantasyPage() {
 
             {/* El vestuario del estratega: taquillas + pila de monedas +
                 mercado con vuelos WAAPI. El buscador alimenta el mercado. */}
-            <div className="mb-4 flex items-center gap-2 rounded-lg border border-border bg-surface px-3 py-2">
+            <div className="mb-4 flex items-center gap-2 rounded-lg border border-border bg-surface px-3 py-2 focus-within:ring-2 focus-within:ring-accent/50">
               <Search className="h-4 w-4 text-fg-muted" />
               <input
+                type="search"
+                aria-label="Buscar personaje o anime en el mercado"
                 value={search}
                 onChange={(event) => setSearch(event.target.value)}
                 placeholder="Buscar personaje o anime"
