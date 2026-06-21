@@ -1,6 +1,7 @@
 package com.diegoalegil.animeshowdown.service;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.ArgumentMatchers.anyString;
@@ -61,6 +62,21 @@ class EventoRecompensaServiceTest {
         evento.setRecompensaBadgeCodigo("campeon_evento");
         evento.setRecompensaSobreGratis(true);
         return evento;
+    }
+
+    @Test
+    void referenciaYOrigenSeAcotanCuandoElSlugDelEventoEsLargo() {
+        // Slug largo: "evento:"+slug+":"+ids desborda monedero_movimiento.referencia(96)
+        // y "evento:"+slug desborda sobre_gratis_credito.origen(80); se acota con hash
+        // (antes la recompensa fallaba en silencio y cada re-finalize reintentaba).
+        String slugLargo = "a".repeat(80);
+        Torneo torneo = copaDeEvento(slugLargo);
+        EventoTematico evento = eventoConLas4(slugLargo);
+        Usuario u = new Usuario("u", "h", "u@example.com");
+        u.setId(987654L);
+
+        assertTrue(EventoRecompensaService.referenciaEvento(evento, torneo, u).length() <= 96);
+        assertTrue(EventoRecompensaService.origenEvento(evento).length() <= 80);
     }
 
     @Test
