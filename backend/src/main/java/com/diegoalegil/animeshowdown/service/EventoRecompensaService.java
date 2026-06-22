@@ -1,5 +1,9 @@
 package com.diegoalegil.animeshowdown.service;
 
+import java.nio.charset.StandardCharsets;
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
+import java.util.Base64;
 import java.util.List;
 import java.util.Map;
 
@@ -114,7 +118,7 @@ public class EventoRecompensaService {
     }
 
     private boolean premiarUsuario(Torneo torneo, EventoTematico evento, Usuario usuario) {
-        String referencia = "evento:" + evento.getSlug() + ":" + torneo.getId() + ":" + usuario.getId();
+        String referencia = referenciaEvento(evento, torneo, usuario);
         int moneda = Math.max(0, evento.getRecompensaMoneda());
         if (moneda > 0) {
             monederoService.acreditar(usuario, MotivoMovimiento.RECOMPENSA_EVENTO, referencia, moneda);
@@ -132,7 +136,7 @@ public class EventoRecompensaService {
 
         boolean sobreGratis = evento.isRecompensaSobreGratis();
         if (sobreGratis) {
-            cartaService.otorgarCreditoSobre(usuario.getId(), "evento:" + evento.getSlug(),
+            cartaService.otorgarCreditoSobre(usuario.getId(), origenEvento(evento),
                     referencia, "Sobre de " + evento.getTitulo());
         }
 
@@ -158,6 +162,32 @@ public class EventoRecompensaService {
                         "sobreGratis", sobreGratis),
                 null);
         return true;
+    }
+
+    // Acota referencia/origen cuando el slug del evento es largo: evita desbordar
+    // monedero_movimiento.referencia(96) y sobre_gratis_credito.origen(80) — un
+    // desbordamiento hacía que la recompensa nunca se entregara (DIV silenciosa)
+    // y cada re-finalize reintentara. Solo se hashea SI desbordaría, así los slugs
+    // cortos conservan su clave exacta (cero riesgo de doble-crédito en re-finalize);
+    // la idempotencia real la da EventoRecompensaEntregada UNIQUE(torneo,usuario).
+    static String referenciaEvento(EventoTematico evento, Torneo torneo, Usuario usuario) {
+        String ref = "evento:" + evento.getSlug() + ":" + torneo.getId() + ":" + usuario.getId();
+        if (ref.length() <= 96) return ref;
+        return "evento:" + hashSlug(evento.getSlug()) + ":" + torneo.getId() + ":" + usuario.getId();
+    }
+
+    static String origenEvento(EventoTematico evento) {
+        String origen = "evento:" + evento.getSlug();
+        return origen.length() <= 80 ? origen : "evento:" + hashSlug(evento.getSlug());
+    }
+
+    private static String hashSlug(String slug) {
+        try {
+            byte[] h = MessageDigest.getInstance("SHA-256").digest(slug.getBytes(StandardCharsets.UTF_8));
+            return Base64.getUrlEncoder().withoutPadding().encodeToString(h); // 43 chars
+        } catch (NoSuchAlgorithmException e) {
+            throw new IllegalStateException("SHA-256 no disponible", e); // nunca: algoritmo estándar
+        }
     }
 
     private boolean tieneRecompensa(EventoTematico e) {
