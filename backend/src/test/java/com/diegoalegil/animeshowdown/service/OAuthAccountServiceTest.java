@@ -6,8 +6,13 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Map;
 import java.util.UUID;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
 
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -77,6 +82,43 @@ class OAuthAccountServiceTest {
 
         assertTrue(result.creado());
         assertEquals("duelist_" + id + "_2", result.usuario().getUsername());
+    }
+
+    @Test
+    void primerLoginOAuthConcurrenteNoDuplicaNiRevienta() throws Exception {
+        // Carrera: varios primeros logins OAuth del mismo email nuevo a la vez.
+        // El fix (crear en REQUIRES_NEW + capturar el choque del UNIQUE + re-leer)
+        // debe hacer que TODOS resuelvan al mismo usuario, sin 500 ni duplicado.
+        // f.get() relanza cualquier excepción de un hilo → el test solo falla si
+        // el fix está roto (un DIV escapa), nunca por timing.
+        String id = UUID.randomUUID().toString().substring(0, 8);
+        String email = "race_" + id + "@example.com";
+        Map<String, Object> attrs = Map.of("email", email, "email_verified", true);
+        int hilos = 8;
+        CountDownLatch salida = new CountDownLatch(1);
+        var pool = Executors.newFixedThreadPool(hilos);
+        try {
+            List<Future<Long>> futuros = new ArrayList<>();
+            for (int i = 0; i < hilos; i++) {
+                futuros.add(pool.submit(() -> {
+                    salida.await();
+                    return oauthAccountService.resolverOCrear("google", attrs).usuario().getId();
+                }));
+            }
+            salida.countDown();
+
+            List<Long> ids = new ArrayList<>();
+            for (Future<Long> f : futuros) {
+                ids.add(f.get());
+            }
+            long primerId = ids.get(0);
+            for (Long uid : ids) {
+                assertEquals(primerId, uid);
+            }
+            assertTrue(usuarioRepository.findByEmail(email).isPresent());
+        } finally {
+            pool.shutdownNow();
+        }
     }
 
     @Test
