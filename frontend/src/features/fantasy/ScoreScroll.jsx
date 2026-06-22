@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { useReducedMotion } from 'framer-motion'
 import { useSound } from '../../contexts/SoundContext'
+import { useFocusTrap } from '../../hooks/useFocusTrap'
 import './fantasy-bench.css'
 
 /**
@@ -40,12 +41,19 @@ import './fantasy-bench.css'
 function ScoreScroll({ abierta, lineas, onCerrar, titulo = 'Acta de la semana', fecha, onCompleta }) {
   const reduced = useReducedMotion()
   const { play } = useSound()
+  const dialogRef = useRef(null)
   const paperRef = useRef(null)
   const closeRef = useRef(null)
   const timersRef = useRef(new Set())
   const rafsRef = useRef(new Set())
   const [announce, setAnnounce] = useState('')
   const [run, setRun] = useState(0) // bump = replay
+
+  // Contrato a11y de modal (trap de Tab, Escape, scroll-lock, restore de foco)
+  // SIN tocar la coreografía del pergamino: el foco inicial va al botón cerrar
+  // (igual que ya hacía la coreografía). No reusamos AccessibleDialog porque su
+  // chrome + puertas shōji romperían el acta desenrollándose.
+  useFocusTrap(dialogRef, { open: abierta, onClose: onCerrar, initialFocusRef: closeRef })
 
   const total = lineas.reduce((a, l) => a + l.delta, 0)
   const perfecta = lineas.length > 0 && lineas.every((l) => l.delta > 0)
@@ -148,17 +156,10 @@ function ScoreScroll({ abierta, lineas, onCerrar, titulo = 'Acta de la semana', 
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [abierta, run])
 
-  useEffect(() => {
-    if (!abierta) return undefined
-    const onKey = (e) => { if (e.key === 'Escape') onCerrar() }
-    document.addEventListener('keydown', onKey)
-    return () => document.removeEventListener('keydown', onKey)
-  }, [abierta, onCerrar])
-
   if (!abierta) return null
 
   return (
-    <div role="dialog" aria-modal="true" aria-label={titulo} className="fixed inset-0 z-60 grid place-items-center overflow-y-auto p-4">
+    <div ref={dialogRef} role="dialog" aria-modal="true" aria-label={titulo} className="fixed inset-0 z-60 grid place-items-center overflow-y-auto p-4">
       <div className="fixed inset-0 bg-canvas/80" onClick={onCerrar} aria-hidden="true" />
       <div className="relative w-full max-w-[540px]">
         <div className="sb-scroll-rod relative z-[2]" aria-hidden="true" />
