@@ -2,13 +2,17 @@ package com.diegoalegil.animeshowdown.service;
 
 import java.util.Locale;
 import java.util.Map;
+import java.util.Optional;
 import java.util.UUID;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.context.ApplicationEventPublisher;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.diegoalegil.animeshowdown.event.UsuarioRegistradoEvent;
@@ -34,18 +38,23 @@ public class OAuthAccountService {
     private final ReferralService referralService;
     private final AdminEmails adminEmails;
     private final ApplicationEventPublisher eventPublisher;
+    // Auto-referencia para invocar crearUsuarioOAuth a través del proxy y que su
+    // @Transactional(REQUIRES_NEW) surta efecto (la self-invocación lo saltaría).
+    private final ObjectProvider<OAuthAccountService> self;
 
     public OAuthAccountService(
             UsuarioRepository usuarioRepository,
             PasswordEncoder passwordEncoder,
             ReferralService referralService,
             AdminEmails adminEmails,
-            ApplicationEventPublisher eventPublisher) {
+            ApplicationEventPublisher eventPublisher,
+            ObjectProvider<OAuthAccountService> self) {
         this.usuarioRepository = usuarioRepository;
         this.passwordEncoder = passwordEncoder;
         this.referralService = referralService;
         this.adminEmails = adminEmails;
         this.eventPublisher = eventPublisher;
+        this.self = self;
     }
 
     @Transactional
@@ -59,12 +68,26 @@ public class OAuthAccountService {
         }
 
         String emailNormalizado = email.trim().toLowerCase(Locale.ROOT);
-        return usuarioRepository.findByEmail(emailNormalizado)
-                .map(usuario -> new ResultadoOAuth(usuario, false))
-                .orElseGet(() -> crearUsuarioOAuth(provider, emailNormalizado, attributes));
+        Optional<Usuario> existente = usuarioRepository.findByEmail(emailNormalizado);
+        if (existente.isPresent()) {
+            return new ResultadoOAuth(existente.get(), false);
+        }
+        try {
+            // Crea en tx propia (REQUIRES_NEW): si dos primeros logins concurrentes
+            // del mismo email chocan contra el UNIQUE, el DIV rollbackea SOLO esa tx
+            // (no esta), y abajo re-leemos para devolver el usuario que creó la otra.
+            return self.getObject().crearUsuarioOAuth(provider, emailNormalizado, attributes);
+        } catch (DataIntegrityViolationException e) {
+            log.info("Carrera de primer login OAuth resuelta para {}: reuso el usuario ya creado", emailNormalizado);
+            return usuarioRepository.findByEmail(emailNormalizado)
+                    .map(usuario -> new ResultadoOAuth(usuario, false))
+                    .orElseThrow(() -> new IllegalStateException(
+                            "Conflicto OAuth sin usuario tras la carrera", e));
+        }
     }
 
-    private ResultadoOAuth crearUsuarioOAuth(String provider, String email, Map<String, Object> attributes) {
+    @Transactional(propagation = Propagation.REQUIRES_NEW)
+    public ResultadoOAuth crearUsuarioOAuth(String provider, String email, Map<String, Object> attributes) {
         String username = generarUsername(email);
         Usuario nuevo = new Usuario(
                 username,
@@ -77,7 +100,9 @@ public class OAuthAccountService {
             nuevo.setAvatarUrl(avatar);
         }
         referralService.asignarCodigoSiHaceFalta(nuevo);
-        Usuario guardado = usuarioRepository.save(nuevo);
+        // saveAndFlush (no save): fuerza el INSERT ya, así un choque del UNIQUE de
+        // email por carrera salta como DIV aquí (capturable) y no diferido al commit.
+        Usuario guardado = usuarioRepository.saveAndFlush(nuevo);
         eventPublisher.publishEvent(new UsuarioRegistradoEvent(guardado.getId()));
         return new ResultadoOAuth(guardado, true);
     }
