@@ -18,6 +18,7 @@ import WaitingSonar from '../features/dueloLive/WaitingSonar'
 import {
   getDueloLivePollDelay,
   isRecoverableDueloLiveState,
+  isStaleDueloLiveUpdate,
   shouldPollDueloLiveFallback,
 } from '../lib/dueloLiveRecoveryPolicy'
 
@@ -103,12 +104,23 @@ function DueloLivePage() {
   const [ceremony, setCeremony] = useState(null)
   const prevEstadoRef = useRef(null)
   const lastDueloLivePushAtRef = useRef(0)
+  // serverNow (epoch ms) del último estado APLICADO: marca de orden para
+  // descartar respuestas fuera de secuencia (una HTTP lenta que llega tras un
+  // push WS más nuevo y revertiría el duelo). Ver isStaleDueloLiveUpdate.
+  const lastAppliedServerNowRef = useRef(0)
   const { lastMessage, connected } = useStompSubscription('/user/queue/duelo', {
     enabled: Boolean(user),
   })
 
   const aplicarEstado = useCallback((data) => {
     if (!data) return
+    // Guarda de orden: si esta respuesta es más vieja que el último estado ya
+    // aplicado, la ignoramos (sin tocar prevEstado ni la ceremonia) para no
+    // revertir el duelo. Las vías frescas (push WS, acciones del usuario)
+    // siempre traen un serverNow mayor, así que nunca se descartan.
+    const incomingServerNow = toMs(data.serverNow)
+    if (isStaleDueloLiveUpdate(lastAppliedServerNowRef.current, incomingServerNow)) return
+    if (incomingServerNow != null) lastAppliedServerNowRef.current = incomingServerNow
     const prev = prevEstadoRef.current
     prevEstadoRef.current = data.estado
     if (data.estado === 'FINISHED' && prev != null && prev !== 'FINISHED') {

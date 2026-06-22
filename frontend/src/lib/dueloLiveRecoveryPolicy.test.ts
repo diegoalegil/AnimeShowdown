@@ -4,6 +4,7 @@ import {
   DUEL_LIVE_POLL_MAX_MS,
   DUEL_LIVE_PUSH_FRESH_MS,
   getDueloLivePollDelay,
+  isStaleDueloLiveUpdate,
   shouldPollDueloLiveFallback,
 } from './dueloLiveRecoveryPolicy'
 
@@ -59,5 +60,29 @@ describe('dueloLiveRecoveryPolicy', () => {
     expect(getDueloLivePollDelay(0)).toBe(DUEL_LIVE_POLL_BASE_MS)
     expect(getDueloLivePollDelay(1)).toBe(8000)
     expect(getDueloLivePollDelay(99)).toBe(DUEL_LIVE_POLL_MAX_MS)
+  })
+
+  describe('isStaleDueloLiveUpdate', () => {
+    it('descarta una respuesta más vieja que el último estado aplicado', () => {
+      // poll lento (t=1000) llega tras un push WS más nuevo (t=2000) ya aplicado
+      expect(isStaleDueloLiveUpdate(2000, 1000)).toBe(true)
+    })
+
+    it('aplica respuestas más nuevas o de la misma marca (idempotente)', () => {
+      expect(isStaleDueloLiveUpdate(1000, 2000)).toBe(false)
+      expect(isStaleDueloLiveUpdate(2000, 2000)).toBe(false)
+    })
+
+    it('nunca descarta si la respuesta no trae serverNow (defensivo)', () => {
+      expect(isStaleDueloLiveUpdate(5000, null)).toBe(false)
+      expect(isStaleDueloLiveUpdate(5000, undefined)).toBe(false)
+      expect(isStaleDueloLiveUpdate(5000, NaN)).toBe(false)
+    })
+
+    it('aplica el primer estado aunque el último-aplicado sea no finito', () => {
+      expect(isStaleDueloLiveUpdate(0, 1000)).toBe(false)
+      expect(isStaleDueloLiveUpdate(null, 1000)).toBe(false)
+      expect(isStaleDueloLiveUpdate(NaN, 1000)).toBe(false)
+    })
   })
 })
