@@ -44,6 +44,9 @@ public class CacheConfig {
                 buildCache("og-personaje", Duration.ofDays(7), 500),
                 buildCache("og-torneo", Duration.ofDays(7), 50),
                 buildCache("og-ranking", Duration.ofDays(7), 16),
+                // OG de la portada (compartir animeshowdown.dev). Una sola
+                // entrada; 7 días, se refresca solo con el redeploy o el TTL.
+                buildCache("og-home", Duration.ofDays(7), 1),
                 buildCache("og-anime", Duration.ofDays(7), 256),
                 buildCache("og-pvp", Duration.ofDays(7), 8),
                 buildCache("og-duelo", Duration.ofDays(7), 1000),

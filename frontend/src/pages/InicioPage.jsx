@@ -89,6 +89,11 @@ function InicioPage() {
     description:
       'Más de 1000 personajes, ranking ELO en directo y brackets visuales. Vota a tus favoritos y mueve el ranking cada semana.',
     canonical: 'https://animeshowdown.dev/',
+    // OG dinámico de la portada (top 5 personajes reales): al compartir la home
+    // sale una tarjeta rica en vez del logo plano. absolutizar lo resuelve
+    // contra api.animeshowdown.dev (sirve /api/og); el HTML estático lleva la
+    // misma URL para los crawlers que no ejecutan JS.
+    image: '/api/og/home.png',
   })
   return (
     <>

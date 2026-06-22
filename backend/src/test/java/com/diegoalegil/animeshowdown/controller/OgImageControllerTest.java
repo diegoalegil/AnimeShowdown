@@ -29,6 +29,7 @@ class OgImageControllerTest {
         when(service.renderTorneo(anyString())).thenReturn(png);
         when(service.renderAnime(anyString())).thenReturn(png);
         when(service.renderRanking()).thenReturn(png);
+        when(service.renderHome()).thenReturn(png);
         when(service.renderPvp()).thenReturn(png);
         when(service.renderDuelo(anyString(), anyString())).thenReturn(png);
         // Usuario existente -> png; el resto (incl. "no-existe") queda sin
@@ -42,6 +43,7 @@ class OgImageControllerTest {
         assertOg("/api/og/personaje/levi_ackerman.png");
         assertOg("/api/og/torneo/shonen-showdown.png");
         assertOg("/api/og/ranking.png");
+        assertOg("/api/og/home.png");
         assertOg("/api/og/anime/naruto.png");
         assertOg("/api/og/pvp.png");
         assertOg("/api/og/duelo/naruto_uzumaki/vs/monkey_d_luffy.png");
