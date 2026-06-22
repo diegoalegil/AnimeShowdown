@@ -606,8 +606,19 @@ public class CartaService {
         if (usuarioCartaRepository.incrementarCantidad(usuario, carta) > 0) {
             return false;
         }
-        usuarioCartaRepository.save(new UsuarioCarta(usuario, carta));
-        return true;
+        // Insert atómico idempotente (ON CONFLICT DO NOTHING) en vez de save():
+        // si otra apertura concurrente del mismo usuario+carta insertó primero,
+        // un save() chocaría con uk_usuario_carta lanzando un DIV que reventaría
+        // con 500 y envenenaría la tx de apertura. Aquí no lanza: 1 fila = la
+        // creamos nosotros (NUEVA); 0 filas = ya existía por la carrera.
+        if (usuarioCartaRepository.insertarPosesionSiFalta(usuario.getId(), carta.getId()) > 0) {
+            return true;
+        }
+        // Carrera: otra apertura la creó entre el incrementar y el insert. Ahora
+        // sí existe, así que la incrementamos (UPDATE atómico, sin lost-update) y
+        // la tratamos como duplicado, no como nueva.
+        usuarioCartaRepository.incrementarCantidad(usuario, carta);
+        return false;
     }
 
     private long acreditarDuplicado(Usuario usuario, String idem, Carta carta, int posicion) {
