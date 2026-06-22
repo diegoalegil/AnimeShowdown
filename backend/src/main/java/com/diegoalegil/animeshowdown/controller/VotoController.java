@@ -125,7 +125,6 @@ public class VotoController {
             @RequestParam(required = false) String categoria,
             @RequestParam(defaultValue = "50") int limit) {
         int saneLimit = Math.min(MAX_LIMIT, Math.max(1, limit));
-        var pageable = PageRequest.of(0, saneLimit);
 
         if (anime != null && !anime.isBlank()) {
             return metrics.recordRanking(() ->
@@ -145,13 +144,12 @@ public class VotoController {
         // honrando la ventana temporal.
         CategoriaVoto cat = CategoriaVoto.fromId(categoria);
         if (cat != null) {
-            String catId = cat.getId();
-            if (desde == null) {
-                return metrics.recordRanking(() -> ResponseEntity.ok(
-                        votoRepository.rankingPorCategoria(catId, pageable)));
-            }
+            // Cacheado 30s en RankingMaterializadoService (key por etiqueta de
+            // periodo, no por el timestamp `desde`). Antes pegaba un GROUP BY en
+            // vivo sobre `votos` en cada request del mismo combo.
+            String periodoKey = periodo == null ? "all" : periodo.toLowerCase();
             return metrics.recordRanking(() -> ResponseEntity.ok(
-                    votoRepository.rankingPorCategoriaDesde(catId, desde, pageable)));
+                    rankingMaterializadoService.rankingPorCategoria(cat.getId(), periodoKey, desde, saneLimit)));
         }
 
         if (desde == null) {
