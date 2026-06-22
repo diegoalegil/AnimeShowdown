@@ -43,7 +43,7 @@
   },
   "dependencies": {
     "@react-three/fiber": "^9.6.1",
-    "@sentry/react": "^10.57.0",
+    "@sentry/react": "^10.59.0",
     "@stomp/stompjs": "^7.3.0",
     "@tailwindcss/vite": "^4.3.0",
     "@tanstack/react-query": "^5.101.0",
