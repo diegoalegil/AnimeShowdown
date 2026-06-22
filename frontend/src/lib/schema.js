@@ -65,6 +65,29 @@ export function webSiteSchema() {
 }
 
 /**
+ * Schema {@code Organization} — la entidad de marca AnimeShowdown. Google la
+ * usa para asociar nombre + logo en resultados de marca (y, con suficiente
+ * autoridad, el Knowledge Panel / logo en SERP). El {@code @id} le da identidad
+ * estable para que WebSite, breadcrumbs, etc. puedan referenciarla en el futuro.
+ * El logo reusa {@code /logo.webp} (el mismo del OG). {@code sameAs} enlazaría
+ * los perfiles sociales oficiales — se omite hoy porque la marca aún no tiene
+ * redes públicas (un sameAs vacío no aporta y ensucia la validación); añadir el
+ * array aquí cuando existan los conecta a la entidad.
+ */
+export function organizationSchema() {
+  return {
+    '@context': 'https://schema.org',
+    '@type': 'Organization',
+    '@id': `${SITIO}/#organization`,
+    name: 'AnimeShowdown',
+    url: SITIO,
+    logo: abs('/logo.webp'),
+    description:
+      'Duelos cara a cara, juegos diarios y rankings ELO competitivos de personajes de anime.',
+  }
+}
+
+/**
  * Schema {@code Person} para un personaje individual.
  *
  * @param personaje objeto del catálogo cliente-side con {slug, nombre, anime, descripcion, imagen}

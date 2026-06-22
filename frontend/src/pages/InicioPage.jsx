@@ -2,7 +2,7 @@ import { useMemo } from 'react'
 import { motion } from 'framer-motion'
 import { useNavigate } from 'react-router-dom'
 import { useSeo } from '../hooks/useSeo'
-import { webSiteSchema } from '../lib/schema'
+import { organizationSchema, webSiteSchema } from '../lib/schema'
 import JsonLd from '../components/JsonLd'
 import {
   AlertTriangle,
@@ -93,6 +93,7 @@ function InicioPage() {
   return (
     <>
       <JsonLd id="website" schema={webSiteSchema()} />
+      <JsonLd id="organization" schema={organizationSchema()} />
       {/* Jerarquía de la portada: el hogar (hero) → combate estelar
           (cartel del día) → pulso + misión diaria → top ranking → retos
           diarios → torneos → explora por universo. Primero entender la
