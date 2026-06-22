@@ -1,5 +1,6 @@
 import { lazy, Suspense, useEffect, useMemo, useRef, useState } from 'react'
 import { motion, useReducedMotion } from 'framer-motion'
+import { useFocusTrap } from '../../hooks/useFocusTrap'
 
 /**
  * DuelCeremony — ceremonia de cierre del duelo PvP en vivo.
@@ -74,6 +75,13 @@ export default function DuelCeremony({ outcome, delta, ratingBefore, onDone }) {
   const [skipNonce, setSkipNonce] = useState(0)
   const t0 = useRef(0)
   const timers = useRef([])
+  const dialogRef = useRef(null)
+
+  // Contrato a11y de modal (trap de Tab, Escape→onDone, scroll-lock, restore de
+  // foco). No reusamos AccessibleDialog: su chrome + puertas shōji romperían la
+  // ceremonia (kanji a pantalla + odómetro). El foco inicial va al primer
+  // focusable, que es el CTA "Continuar" (antes lo hacía autoFocus).
+  useFocusTrap(dialogRef, { onClose: onDone })
 
   useEffect(() => {
     t0.current = performance.now()
@@ -107,15 +115,11 @@ export default function DuelCeremony({ outcome, delta, ratingBefore, onDone }) {
 
   return (
     <motion.div
+      ref={dialogRef}
       role="dialog"
+      aria-modal="true"
       aria-label={win ? 'Victoria' : 'Derrota'}
       onClick={skip}
-      onKeyDown={(e) => {
-        if (e.key === 'Escape') {
-          e.stopPropagation()
-          onDone()
-        }
-      }}
       className="fixed inset-0 z-50 flex flex-col items-center justify-center bg-bg/95"
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
@@ -175,7 +179,6 @@ export default function DuelCeremony({ outcome, delta, ratingBefore, onDone }) {
 
       <motion.button
         type="button"
-        autoFocus
         onClick={(e) => {
           e.stopPropagation()
           onDone()
