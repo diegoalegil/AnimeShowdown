@@ -9,10 +9,12 @@ import java.util.Optional;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.diegoalegil.animeshowdown.dto.NotificacionDto;
@@ -96,15 +98,26 @@ public class NotificacionService {
      *
      * @return {@code true} si se creó una notificación nueva, {@code false} si ya existía.
      */
-    @Transactional
+    // REQUIRES_NEW: corre en su PROPIA tx. Sin esto, si dos ejecuciones
+    // concurrentes pasan el existsBy y una choca con el UNIQUE, el DIV marca
+    // rollback-only la tx COMPARTIDA del llamador (voto/badge/notif) y revienta
+    // todo. Aislada + capturando el DIV, la carrera se resuelve sin tocar al
+    // llamador. (Misma convención que AuditLogService/BadgeService.)
+    @Transactional(propagation = Propagation.REQUIRES_NEW)
     public boolean crearSiNoExiste(Usuario usuario, NotificacionTipo tipo,
             String titulo, String mensaje, String payload, String eventoKey) {
         if (usuario == null || eventoKey == null
                 || repo.existsByUsuarioAndTipoAndEventoKey(usuario, tipo, eventoKey)) {
             return false;
         }
-        Notificacion guardada = repo.saveAndFlush(
-                new Notificacion(usuario, tipo, titulo, mensaje, payload, eventoKey));
+        Notificacion guardada;
+        try {
+            guardada = repo.saveAndFlush(
+                    new Notificacion(usuario, tipo, titulo, mensaje, payload, eventoKey));
+        } catch (DataIntegrityViolationException e) {
+            // Carrera: otra ejecución la creó entre el existsBy y el insert.
+            return false;
+        }
         log.info("Notificación idempotente creada: id={} usuario={} tipo={} eventoKey={}",
                 guardada.getId(), usuario.getUsername(), tipo, eventoKey);
         pushUsuario(usuario, NotificacionDto.from(guardada));
