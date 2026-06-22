@@ -45,6 +45,22 @@ class PersonajeCatalogoBusquedaControllerTest {
     }
 
     @Test
+    void listarTodosDevuelveDtoSinFiltrarColumnasInternas() throws Exception {
+        // El listado emite PersonajeCatalogoDto, no la entidad JPA cruda: los
+        // campos user-facing siguen presentes (slug/nombre/anime, siempre no
+        // nulos) y las columnas internas (eloSemilla, popularidadFuente,
+        // genero) no las tiene el DTO, así que nunca se filtran al cliente.
+        mvc.perform(get("/api/personajes"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.content[0].slug").exists())
+                .andExpect(jsonPath("$.content[0].nombre").exists())
+                .andExpect(jsonPath("$.content[0].anime").exists())
+                .andExpect(jsonPath("$.content[0].eloSemilla").doesNotExist())
+                .andExpect(jsonPath("$.content[0].popularidadFuente").doesNotExist())
+                .andExpect(jsonPath("$.content[0].genero").doesNotExist());
+    }
+
+    @Test
     void listarTodosConPaginacionDevuelvePageResponse() throws Exception {
         mvc.perform(get("/api/personajes")
                         .param("page", "0")

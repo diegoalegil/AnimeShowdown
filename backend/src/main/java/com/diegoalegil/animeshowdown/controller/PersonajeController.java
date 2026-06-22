@@ -4,6 +4,7 @@ import java.util.List;
 import java.util.Map;
 
 import org.springframework.cache.annotation.Cacheable;
+import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
@@ -28,6 +29,7 @@ import com.diegoalegil.animeshowdown.dto.MatchupResumenDto;
 import com.diegoalegil.animeshowdown.dto.PageResponse;
 import com.diegoalegil.animeshowdown.dto.PersonajeActualizarRequest;
 import com.diegoalegil.animeshowdown.dto.PersonajeBusquedaDto;
+import com.diegoalegil.animeshowdown.dto.PersonajeCatalogoDto;
 import com.diegoalegil.animeshowdown.dto.PersonajeCrearRequest;
 import com.diegoalegil.animeshowdown.dto.PersonajeSimilarDto;
 import com.diegoalegil.animeshowdown.dto.VotosPeriodoDto;
@@ -100,11 +102,17 @@ public class PersonajeController {
     /**
      * Listado público paginado. El catálogo completo vive en /catalogo para
      * evitar respuestas masivas desde este endpoint.
+     *
+     * <p>Devuelve {@link PersonajeCatalogoDto}, no la entidad JPA cruda: así no
+     * se filtran columnas internas ({@code eloSemilla}, {@code popularidadFuente},
+     * {@code genero}) que el cliente no consume y que son detalle de
+     * implementación. El cache Caffeine es in-memory y nace vacío en cada
+     * redeploy, así que el cambio de tipo no necesita migración.
      */
     @Cacheable(value = "personajes-listado",
             key = "T(com.diegoalegil.animeshowdown.controller.PersonajeController).listadoCacheKey(#anime, #page, #size)")
     @GetMapping
-    public PageResponse<Personaje> listarTodos(
+    public PageResponse<PersonajeCatalogoDto> listarTodos(
             @RequestParam(required = false) String anime,
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = DEFAULT_PAGE_SIZE_PARAM) int size) {
@@ -113,10 +121,10 @@ public class PersonajeController {
                 Math.max(0, page),
                 Math.min(MAX_PAGE_SIZE, Math.max(1, size)),
                 Sort.by("id").ascending());
-        if (animeNormalizado != null) {
-            return PageResponse.from(personajeRepository.findByAnime(animeNormalizado, pageable));
-        }
-        return PageResponse.from(personajeRepository.findAll(pageable));
+        Page<Personaje> pagina = animeNormalizado != null
+                ? personajeRepository.findByAnime(animeNormalizado, pageable)
+                : personajeRepository.findAll(pageable);
+        return PageResponse.from(pagina.map(PersonajeCatalogoDto::from));
     }
 
     /**
