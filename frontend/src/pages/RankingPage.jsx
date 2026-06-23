@@ -327,7 +327,16 @@ function RankingPage() {
             meta report, los movers y los rankings editoriales. */}
         <RankingTabs activo={tab} onChange={setTab} />
 
-        <div className="mt-6">
+        {/* Panel del patrón ARIA tabs: las pestañas de RankingTabs lo apuntan
+            con aria-controls; aria-labelledby cuelga del tab activo (single
+            panel que intercambia contenido). Sin tabIndex porque su contenido
+            ya es focusable (listas con enlaces), por APG. */}
+        <div
+          className="mt-6"
+          role="tabpanel"
+          id="rankingtabpanel"
+          aria-labelledby={`rankingtab-${tab}`}
+        >
           {tab === 'elo' && (
             <ListaEloLocal
               key={`elo:${initialSearch}:${initialAnimeFilter}`}

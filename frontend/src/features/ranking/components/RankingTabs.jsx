@@ -34,6 +34,7 @@ function RankingTabs({ activo, onChange }) {
             role="tab"
             id={`rankingtab-${id}`}
             aria-selected={activo === id}
+            aria-controls="rankingtabpanel"
             tabIndex={activo === id ? 0 : -1}
             onClick={() => onChange(id)}
             onKeyDown={(e) => handleKeyDown(e, idx)}
