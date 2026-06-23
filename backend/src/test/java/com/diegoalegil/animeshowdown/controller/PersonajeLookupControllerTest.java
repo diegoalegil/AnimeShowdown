@@ -45,4 +45,19 @@ class PersonajeLookupControllerTest {
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.slug").value("zoro"));
     }
+
+    @Test
+    void detalleEmiteDtoSinFiltrarColumnasInternas() throws Exception {
+        // El detalle por id/slug emite PersonajeCatalogoDto, no la entidad JPA
+        // cruda: los campos user-facing siguen y las columnas internas
+        // (eloSemilla, popularidadFuente, genero) no se filtran al cliente.
+        mvc.perform(get("/api/personajes/luffy"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.slug").value("luffy"))
+                .andExpect(jsonPath("$.nombre").exists())
+                .andExpect(jsonPath("$.anime").exists())
+                .andExpect(jsonPath("$.eloSemilla").doesNotExist())
+                .andExpect(jsonPath("$.popularidadFuente").doesNotExist())
+                .andExpect(jsonPath("$.genero").doesNotExist());
+    }
 }

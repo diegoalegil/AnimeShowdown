@@ -213,16 +213,16 @@ public class PersonajeController {
     /** Cache individual 5min por id — usado por /personajes/{id}. */
     @Cacheable(value = "personajes-individual", key = "#id")
     @GetMapping("/{id:\\d+}")
-    public Personaje buscarPorId(@PathVariable Long id) {
-        return personajeRepository.findById(id)
-                .orElseThrow(() -> new EntityNotFoundException("Personaje no encontrado: id=" + id));
+    public PersonajeCatalogoDto buscarPorId(@PathVariable Long id) {
+        return PersonajeCatalogoDto.from(personajeRepository.findById(id)
+                .orElseThrow(() -> new EntityNotFoundException("Personaje no encontrado: id=" + id)));
     }
 
     /** Cache individual 5min por slug — usado por clientes públicos y docs. */
     @Cacheable(value = "personajes-individual", key = "'slug:' + #slug")
     @GetMapping("/{slug:[A-Za-z][A-Za-z0-9_-]*}")
-    public Personaje buscarPorSlug(@PathVariable String slug) {
-        return buscarPersonajePorSlugOCualquierAlias(slug);
+    public PersonajeCatalogoDto buscarPorSlug(@PathVariable String slug) {
+        return PersonajeCatalogoDto.from(buscarPersonajePorSlugOCualquierAlias(slug));
     }
 
     /**
@@ -236,8 +236,9 @@ public class PersonajeController {
      * invalidación de cachés/índice) vive en {@link PersonajeAdminService}.
      */
     @PostMapping
-    public ResponseEntity<Personaje> crear(@Valid @RequestBody PersonajeCrearRequest request) {
-        return ResponseEntity.status(HttpStatus.CREATED).body(personajeAdminService.crear(request));
+    public ResponseEntity<PersonajeCatalogoDto> crear(@Valid @RequestBody PersonajeCrearRequest request) {
+        return ResponseEntity.status(HttpStatus.CREATED)
+                .body(PersonajeCatalogoDto.from(personajeAdminService.crear(request)));
     }
 
     @DeleteMapping("/{id}")
@@ -253,15 +254,17 @@ public class PersonajeController {
      * Request valida formato y tamaño pero no obliga a estar presentes.
      */
     @PutMapping("/{id}")
-    public Personaje actualizar(
+    public PersonajeCatalogoDto actualizar(
             @PathVariable Long id,
             @Valid @RequestBody PersonajeActualizarRequest datos) {
-        return personajeAdminService.actualizar(id, datos);
+        return PersonajeCatalogoDto.from(personajeAdminService.actualizar(id, datos));
     }
 
     @PostMapping("/batch")
-    public List<Personaje> crearBatch(@RequestBody List<@Valid PersonajeCrearRequest> personajes) {
-        return personajeAdminService.crearBatch(personajes);
+    public List<PersonajeCatalogoDto> crearBatch(@RequestBody List<@Valid PersonajeCrearRequest> personajes) {
+        return personajeAdminService.crearBatch(personajes).stream()
+                .map(PersonajeCatalogoDto::from)
+                .toList();
     }
 
     /**
