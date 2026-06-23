@@ -37,6 +37,22 @@ const versusCurados = [
   ['light_yagami', 'l'],
   ['zoro', 'itachi'],
   ['kaneki', 'eren_yeager'],
+  // Matchups ICÓNICOS de alta búsqueda (curados, NO masivo: evitamos la granja
+  // de contenido). Cada página tiene datos reales de comparación (ELO,
+  // popularidad, señales de la comunidad) + OG propia + schema, así que es
+  // contenido con sustancia, no doorway. Slugs verificados contra el seed.
+  ['goku', 'naruto'],
+  ['naruto', 'sasuke'],
+  ['goku', 'vegeta'],
+  ['satoru_gojo', 'sukuna'],
+  ['luffy', 'zoro'],
+  ['ichigo', 'naruto'],
+  ['levi_ackerman', 'eren_yeager'],
+  ['gon_freecss', 'killua_zoldyck'],
+  ['madara', 'itachi'],
+  ['saitama', 'sukuna'],
+  ['tanjiro', 'zoro'],
+  ['goku', 'luffy'],
 ]
   .map(([a, b]) => [personajesPorSlug.get(a), personajesPorSlug.get(b)])
   .filter(([a, b]) => a && b)
