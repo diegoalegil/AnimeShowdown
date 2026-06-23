@@ -255,7 +255,13 @@ public class OgImageService {
         }
     }
 
-    @Cacheable(value = "og-anime", key = "#slug", unless = "#result == null")
+    // La clave se NORMALIZA con la misma slugify que usa el cuerpo: así
+    // "Attack on Titan" y "attack-on-titan" comparten entrada en vez de
+    // fragmentar el cache (mismo OG resultante). T() necesita método public
+    // static — SlugUtil.slugify lo es.
+    @Cacheable(value = "og-anime",
+            key = "T(com.diegoalegil.animeshowdown.model.SlugUtil).slugify(#slug)",
+            unless = "#result == null")
     public byte[] renderAnime(String slug) {
         String targetSlug = SlugUtil.slugify(slug);
         String anime = personajeRepository.findDistinctAnimes()
