@@ -21,6 +21,13 @@ import org.springframework.stereotype.Component;
  * El IV es random por cada encrypt — el mismo plaintext produce
  * ciphertexts distintos pero todos descifran al mismo valor.
  *
+ * <p><strong>Migración CBC → GCM (fase 1):</strong> se cifra con AES/GCM
+ * autenticado ({@link Encryptors#delux}); el AES/CBC sin autenticar anterior
+ * ({@link Encryptors#text}) se conserva SOLO como fallback de lectura para los
+ * secretos guardados antes de la migración. Misma key+salt para ambos, así el
+ * cambio no rompe a nadie: lo viejo descifra por CBC, lo nuevo por GCM. Tras
+ * re-cifrar todo a GCM se retirará el fallback (fases 2/3).
+ *
  * <p>El default es un placeholder ruidoso para que sea evidente si se
  * arranca prod sin override. En tests usamos una clave fija.
  */
@@ -29,7 +36,16 @@ public class TotpEncryptor {
 
     private static final Logger log = LoggerFactory.getLogger(TotpEncryptor.class);
 
-    private final TextEncryptor encryptor;
+    /** Cifrador nuevo: AES/GCM autenticado ({@link Encryptors#delux}). */
+    private final TextEncryptor gcm;
+    /**
+     * Cifrador legacy: AES/CBC sin autenticación ({@link Encryptors#text}),
+     * construido EXACTAMENTE como antes (misma key+salt) para descifrar los
+     * secretos guardados antes de la migración. Solo se usa como fallback de
+     * lectura; nunca se cifra con él. Se retirará cuando todos los secretos
+     * estén re-cifrados a GCM (fases 2/3 de la migración).
+     */
+    private final TextEncryptor cbcLegacy;
 
     public TotpEncryptor(
             @Value("${app.totp.encryption-key:CHANGE_ME_IN_PROD_openssl_rand_base64_32}") String password,
@@ -37,16 +53,34 @@ public class TotpEncryptor {
         if ("CHANGE_ME_IN_PROD_openssl_rand_base64_32".equals(password)) {
             log.warn("TotpEncryptor arrancando con clave default — define TOTP_ENCRYPTION_KEY en producción");
         }
-        this.encryptor = Encryptors.text(password, saltHex);
+        this.gcm = Encryptors.delux(password, saltHex);
+        this.cbcLegacy = Encryptors.text(password, saltHex);
     }
 
+    /** Cifra con GCM (autenticado). Los secretos nuevos nacen ya en GCM. */
     public String cifrar(String plaintext) {
         if (plaintext == null) return null;
-        return encryptor.encrypt(plaintext);
+        return gcm.encrypt(plaintext);
     }
 
+    /**
+     * Descifra el secreto. Intenta GCM y, si falla, cae a CBC legacy (secretos
+     * cifrados antes de la migración). La autenticación de GCM hace que un
+     * ciphertext CBC alimentado a GCM falle de forma inequívoca (tag inválido),
+     * así que el fallback es seguro y sin ambigüedad: nunca devuelve basura. Si
+     * ambos esquemas fallan (ciphertext corrupto o clave cambiada) propaga el
+     * error original de GCM.
+     */
     public String descifrar(String ciphertext) {
         if (ciphertext == null) return null;
-        return encryptor.decrypt(ciphertext);
+        try {
+            return gcm.decrypt(ciphertext);
+        } catch (RuntimeException errorGcm) {
+            try {
+                return cbcLegacy.decrypt(ciphertext);
+            } catch (RuntimeException errorCbc) {
+                throw errorGcm;
+            }
+        }
     }
 }
