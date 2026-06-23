@@ -22,8 +22,16 @@ import { getEventVisual } from '../../../../data/visual-assets'
 function EventoHeadlineBanner() {
   const [now, setNow] = useState(() => new Date())
   useEffect(() => {
-    const id = setInterval(() => setNow(new Date()), 60_000)
-    return () => clearInterval(id)
+    // Pausa con la pestaña oculta (mismo patrón que useServerCountdown y
+    // EventCountdown): no re-renderizamos el contador en background; al volver,
+    // refrescamos ya para que la cuenta esté al día.
+    const tick = () => { if (!document.hidden) setNow(new Date()) }
+    const id = setInterval(tick, 60_000)
+    document.addEventListener('visibilitychange', tick)
+    return () => {
+      clearInterval(id)
+      document.removeEventListener('visibilitychange', tick)
+    }
   }, [])
 
   const eventos = useEventos()

@@ -131,11 +131,15 @@ function DailyMissionPanel({ compact = false, className = '' }) {
   )
 
   useEffect(() => {
-    const id = window.setInterval(
-      () => setResetCountdown(getDailyResetCountdown()),
-      60_000,
-    )
-    return () => window.clearInterval(id)
+    // Pausa con la pestaña oculta (mismo patrón que useServerCountdown): no
+    // re-renderizamos el contador de reset en background; al volver refrescamos.
+    const tick = () => { if (!document.hidden) setResetCountdown(getDailyResetCountdown()) }
+    const id = window.setInterval(tick, 60_000)
+    document.addEventListener('visibilitychange', tick)
+    return () => {
+      window.clearInterval(id)
+      document.removeEventListener('visibilitychange', tick)
+    }
   }, [])
 
   const votes = clamp(progress.votes, DAILY_VOTE_TARGET)
