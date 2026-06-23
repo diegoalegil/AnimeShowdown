@@ -112,6 +112,29 @@ class CartaEconomiaPostgresConcurrencyTest extends PostgresIntegrationTestBase {
         assertThat(cantidadDe(usuario, carta)).isEqualTo(1 + concurrentes);
     }
 
+    @Test
+    void concesionesConcurrentesDeCartaNuevaNoRevientan() throws Exception {
+        // Primera posesión EN CARRERA: varias concesiones concurrentes de la
+        // MISMA carta nueva SIN pre-concesión. Antes la 2ª+ copia chocaba con el
+        // UNIQUE uk_usuario_carta -> DataIntegrityViolationException (500) que
+        // envenenaba la tx de concesión/apertura. Con el INSERT ... ON CONFLICT
+        // DO NOTHING ninguna revienta: una crea la fila (NUEVA) y el resto la
+        // incrementan (duplicado), sin lost-update.
+        Usuario usuario = crearUsuario("cartas_pg_primera");
+        String slug = "pg-primera-heroe";
+        Carta carta = crearCartaEspecial(slug);
+
+        int concurrentes = 16;
+        List<Carta> resultados = concederConcurrente(usuario.getId(), slug, concurrentes);
+
+        assertThat(resultados).hasSize(concurrentes);
+        assertThat(resultados).allSatisfy(c -> assertThat(c).isNotNull()); // ninguna 500
+        // Una sola fila de posesión y cantidad = N (1 nueva + N-1 duplicados):
+        // sin el UPSERT, una de las copias reventaba la transacción.
+        assertThat(filasDePosesion(usuario, carta)).isEqualTo(1L);
+        assertThat(cantidadDe(usuario, carta)).isEqualTo(concurrentes);
+    }
+
     private Usuario crearUsuario(String username) {
         Usuario usuario = new Usuario(username, "{noop}pass", username + "@example.test");
         return usuarioRepository.saveAndFlush(usuario);

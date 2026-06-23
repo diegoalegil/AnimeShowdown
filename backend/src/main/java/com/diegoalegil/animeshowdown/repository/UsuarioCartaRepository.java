@@ -50,6 +50,26 @@ public interface UsuarioCartaRepository extends JpaRepository<UsuarioCarta, Long
             + "where uc.usuario = :usuario and uc.carta = :carta")
     int incrementarCantidad(@Param("usuario") Usuario usuario, @Param("carta") Carta carta);
 
+    /**
+     * Inserta la posesión usuario+carta de forma atómica e idempotente. El
+     * {@code ON CONFLICT DO NOTHING} evita la excepción de UNIQUE
+     * ({@code uk_usuario_carta}) cuando dos aperturas concurrentes del mismo
+     * usuario+carta insertan a la vez — esa excepción reventaría con 500 y, peor,
+     * envenenaría la transacción de apertura del sobre (rollback-only). Devuelve
+     * filas afectadas: 1 si la insertamos nosotros (carta NUEVA), 0 si ya existía
+     * (carrera: otra apertura la creó; el llamante la trata como duplicado). Las
+     * columnas NOT NULL se rellenan explícitas porque {@code @PrePersist} no corre
+     * en query nativa. Mismo patrón dual H2/Postgres que
+     * {@code PersonajeVotoScoreRepository.insertarSiFalta}.
+     */
+    @Modifying(flushAutomatically = true)
+    @Query(value = """
+            INSERT INTO usuario_carta (usuario_id, carta_id, cantidad, obtenida_en, actualizada_en, destacada)
+            VALUES (:usuarioId, :cartaId, 1, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP, false)
+            ON CONFLICT DO NOTHING
+            """, nativeQuery = true)
+    int insertarPosesionSiFalta(@Param("usuarioId") Long usuarioId, @Param("cartaId") Long cartaId);
+
     /** Gate de propiedad para endpoints que no deben filtrar cartas no poseídas. */
     boolean existsByUsuarioIdAndCartaId(Long usuarioId, Long cartaId);
 

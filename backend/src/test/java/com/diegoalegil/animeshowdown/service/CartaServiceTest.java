@@ -140,6 +140,11 @@ class CartaServiceTest {
                 .thenReturn(900L);
         when(usuarioCartaRepository.findByUsuarioAndCarta(eq(usuario), org.mockito.ArgumentMatchers.any(Carta.class)))
                 .thenReturn(Optional.empty());
+        // INSERT atómico de la posesión: 1 = insertada (carta nueva). El mock no
+        // modela "ya existe", así que cada carta del pack se registra como nueva.
+        when(usuarioCartaRepository.insertarPosesionSiFalta(
+                org.mockito.ArgumentMatchers.anyLong(), org.mockito.ArgumentMatchers.anyLong()))
+                .thenReturn(1);
         when(cartaLecturaCacheService.votosPorPersonaje()).thenReturn(Map.of());
         when(sobreAperturaRepository.save(org.mockito.ArgumentMatchers.any()))
                 .thenAnswer(invocation -> invocation.getArgument(0));
@@ -170,6 +175,10 @@ class CartaServiceTest {
         when(monederoService.saldoDe(usuario)).thenReturn(0L);
         when(usuarioCartaRepository.findByUsuarioAndCarta(eq(usuario), org.mockito.ArgumentMatchers.any(Carta.class)))
                 .thenReturn(Optional.empty());
+        // INSERT atómico de la posesión: 1 = insertada (carta nueva).
+        when(usuarioCartaRepository.insertarPosesionSiFalta(
+                org.mockito.ArgumentMatchers.anyLong(), org.mockito.ArgumentMatchers.anyLong()))
+                .thenReturn(1);
         when(sobreAperturaRepository.save(org.mockito.ArgumentMatchers.any()))
                 .thenAnswer(invocation -> invocation.getArgument(0));
 
