@@ -1013,6 +1013,25 @@ public class AuthController {
     }
 
     /**
+     * Descifra el secreto TOTP almacenado y, si estaba en CBC legacy (fallback
+     * de lectura), lo re-cifra a GCM y lo persiste — migración PEREZOSA (fase 2):
+     * en cuanto un usuario con secreto antiguo valida (login/regenerar), su
+     * secreto sube a GCM autenticado, una sola vez. El valor del secreto NO
+     * cambia (mismo plaintext); solo su cifrado en reposo. Corre dentro de la tx
+     * @Transactional del flujo. Tras migrar a casi todos, se retira el fallback
+     * CBC (fase 3).
+     */
+    private String descifrarTotpMigrando(Usuario usuario) {
+        TotpEncryptor.Descifrado d = totpEncryptor.descifrarConOrigen(usuario.getTotpSecret());
+        if (d.legado() && d.plaintext() != null) {
+            usuario.setTotpSecret(totpEncryptor.cifrar(d.plaintext()));
+            usuarioRepository.save(usuario);
+            log.info("2FA: secreto TOTP migrado CBC->GCM (perezoso) username={}", usuario.getUsername());
+        }
+        return d.plaintext();
+    }
+
+    /**
      * Valida un código TOTP con anti-replay: el step de 30s aceptado se
      * persiste en el usuario y cualquier código de un step ya consumido se
      * rechaza. Sin esto, un código interceptado vale ~90s (drift de la lib).
@@ -1068,7 +1087,7 @@ public class AuthController {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(Map.of(
                     "message", "Demasiados intentos. Espera unos minutos y vuelve a iniciar sesión."));
         }
-        String secretPlano = totpEncryptor.descifrar(usuario.getTotpSecret());
+        String secretPlano = descifrarTotpMigrando(usuario);
         String codigoBruto = request.codigo();
         boolean totpOk = validarTotpAntiReplay(usuario, secretPlano, codigoBruto);
         Optional<Long> backupCodeId = Optional.empty();
@@ -1129,7 +1148,7 @@ public class AuthController {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(Map.of(
                     "message", "El 2FA no está activado."));
         }
-        String secretPlano = totpEncryptor.descifrar(usuario.getTotpSecret());
+        String secretPlano = descifrarTotpMigrando(usuario);
         if (!totpService.validarCodigo(secretPlano, request.codigo())) {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(Map.of(
                     "message", "Código incorrecto."));

@@ -72,12 +72,29 @@ public class TotpEncryptor {
      * error original de GCM.
      */
     public String descifrar(String ciphertext) {
-        if (ciphertext == null) return null;
+        return descifrarConOrigen(ciphertext).plaintext();
+    }
+
+    /**
+     * Resultado de descifrar: el {@code plaintext} y si vino de un ciphertext
+     * CBC legacy ({@code legado=true}), señal para la migración perezosa
+     * (fase 2): el llamante re-cifra a GCM y persiste tras una validación.
+     */
+    public record Descifrado(String plaintext, boolean legado) {}
+
+    /**
+     * Como {@link #descifrar}, pero además indica si el secreto estaba en CBC
+     * legacy (se descifró por el fallback) — para que el flujo de validación lo
+     * re-cifre a GCM de forma perezosa. Un GCM válido devuelve {@code legado=false};
+     * el fallback CBC, {@code legado=true}; null entra y sale como null.
+     */
+    public Descifrado descifrarConOrigen(String ciphertext) {
+        if (ciphertext == null) return new Descifrado(null, false);
         try {
-            return gcm.decrypt(ciphertext);
+            return new Descifrado(gcm.decrypt(ciphertext), false);
         } catch (RuntimeException errorGcm) {
             try {
-                return cbcLegacy.decrypt(ciphertext);
+                return new Descifrado(cbcLegacy.decrypt(ciphertext), true);
             } catch (RuntimeException errorCbc) {
                 throw errorGcm;
             }

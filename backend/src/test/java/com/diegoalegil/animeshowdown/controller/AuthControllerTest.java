@@ -1,5 +1,6 @@
 package com.diegoalegil.animeshowdown.controller;
 
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.doAnswer;
@@ -27,10 +28,12 @@ import java.util.concurrent.TimeUnit;
 
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.context.annotation.Import;
 import org.springframework.http.MediaType;
+import org.springframework.security.crypto.encrypt.Encryptors;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.bean.override.mockito.MockitoSpyBean;
 import org.springframework.test.web.servlet.MockMvc;
@@ -73,6 +76,12 @@ class AuthControllerTest {
 
     @Autowired
     private UsuarioRepository usuarioRepository;
+
+    @Value("${app.totp.encryption-key}")
+    private String totpKey;
+
+    @Value("${app.totp.encryption-salt}")
+    private String totpSalt;
 
     @MockitoSpyBean
     private EmailVerificationRepository emailVerificationRepository;
@@ -912,6 +921,50 @@ class AuthControllerTest {
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.token").isString())
                 .andExpect(jsonPath("$.usuario.totpHabilitado").value(true));
+    }
+
+    @Test
+    void verifyLoginMigraSecretoLegacyCbcAGcm() throws Exception {
+        // Fase 2 (re-cifrado perezoso): un usuario con el secreto en CBC legacy
+        // (anterior a la migración) debe, al validar el login 2FA, quedar
+        // re-cifrado a GCM — sin bloqueo y de forma transparente.
+        Sesion s = registrarYLoguear("totp_legacy", "secreta123", "totp_legacy@example.com");
+        var setupRes = mvc.perform(post("/api/auth/2fa/setup")
+                .header("Authorization", "Bearer " + s.token()))
+                .andExpect(status().isOk()).andReturn();
+        String secret = json.readTree(setupRes.getResponse().getContentAsString()).get("secret").asText();
+        mvc.perform(post("/api/auth/2fa/enable")
+                .header("Authorization", "Bearer " + s.token())
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(json.writeValueAsString(Map.of("codigo", generarCodigoActual(secret)))))
+                .andExpect(status().isOk());
+
+        // Forzamos el estado PRE-migración: el secreto guardado en CBC legacy
+        // (misma key/salt que los beans). En prod estos venían de antes de fase 1.
+        var antes = usuarioRepository.findByUsername("totp_legacy").orElseThrow();
+        String cbcLegacy = Encryptors.text(totpKey, totpSalt).encrypt(secret);
+        antes.setTotpSecret(cbcLegacy);
+        usuarioRepository.save(antes);
+
+        // Login + verify-login con código válido: debe completar sesión.
+        var loginRes = mvc.perform(post("/api/auth/login")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(json.writeValueAsString(Map.of("username", "totp_legacy", "password", "secreta123"))))
+                .andExpect(status().isOk()).andReturn();
+        String challengeToken = json.readTree(loginRes.getResponse().getContentAsString())
+                .get("challengeToken").asText();
+        mvc.perform(post("/api/auth/2fa/verify-login")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(json.writeValueAsString(Map.of(
+                        "challengeToken", challengeToken,
+                        "codigo", generarCodigoActual(secret)))))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.token").isString());
+
+        // Migración perezosa: el secreto ya NO es el CBC de antes y descifra con GCM.
+        var despues = usuarioRepository.findByUsername("totp_legacy").orElseThrow();
+        assertThat(despues.getTotpSecret()).isNotEqualTo(cbcLegacy);
+        assertThat(Encryptors.delux(totpKey, totpSalt).decrypt(despues.getTotpSecret())).isEqualTo(secret);
     }
 
     @Test
