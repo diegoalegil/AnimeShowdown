@@ -85,6 +85,33 @@ function buildPvpShareText(state, resultado, delta) {
   return `${resultado || 'Duelo'} PvP en AnimeShowdown${rival}: ${marcador}${deltaText}.\n¿Te atreves a superar mi duelo?`
 }
 
+/**
+ * Comparte el resultado del duelo PvP (Web Share nativo o copia al
+ * portapapeles). Reusado por la card de resultado del arena Y por la ceremonia
+ * de victoria (loop viral: el share llega en el pico de emoción, al ganar).
+ */
+async function compartirDuelo(state) {
+  if (!state) return
+  const delta = state.miEloDelta
+  const resultado = delta == null
+    ? null
+    : delta > 0 ? 'Victoria' : delta < 0 ? 'Derrota' : 'Empate'
+  try {
+    const result = await shareOrCopy({
+      title: 'Mi duelo PvP en AnimeShowdown',
+      text: buildPvpShareText(state, resultado, delta),
+      url: '/duel-live',
+    })
+    if (result === 'cancelled') return
+    recordDailyShare()
+    toast.success(result === 'native' ? 'Resultado compartido' : 'Resultado copiado')
+  } catch (error) {
+    toast.error('No se pudo compartir el resultado', {
+      description: error?.message || 'Copia el marcador manualmente.',
+    })
+  }
+}
+
 function DueloLivePage() {
   useSeo({
     title: 'Duelo PvP en directo · AnimeShowdown',
@@ -288,6 +315,7 @@ function DueloLivePage() {
           outcome={ceremony.outcome}
           delta={ceremony.delta}
           ratingBefore={ceremony.ratingBefore}
+          onShare={() => compartirDuelo(state)}
           onDone={() => setCeremony(null)}
         />
       )}
@@ -304,23 +332,7 @@ function StartArena({ state, joining, onJoin }) {
       : delta < 0
         ? 'Derrota'
         : 'Empate'
-  const compartirResultado = async () => {
-    if (!state) return
-    try {
-      const result = await shareOrCopy({
-        title: 'Mi duelo PvP en AnimeShowdown',
-        text: buildPvpShareText(state, resultado, delta),
-        url: '/duel-live',
-      })
-      if (result === 'cancelled') return
-      recordDailyShare()
-      toast.success(result === 'native' ? 'Resultado compartido' : 'Resultado copiado')
-    } catch (error) {
-      toast.error('No se pudo compartir el resultado', {
-        description: error?.message || 'Copia el marcador manualmente.',
-      })
-    }
-  }
+  const compartirResultado = () => compartirDuelo(state)
   return (
     <div className="as-panel overflow-hidden rounded-2xl border border-border bg-surface/80 p-6 shadow-xl shadow-black/25">
       {state?.estado === 'FINISHED' || state?.estado === 'ABANDONED' ? (

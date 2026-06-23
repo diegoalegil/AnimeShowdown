@@ -42,4 +42,16 @@ describe('DuelCeremony (fallback sin WebGL)', () => {
     fireEvent.keyDown(screen.getByRole('dialog'), { key: 'Escape' })
     expect(onDone).toHaveBeenCalledTimes(1)
   })
+
+  it('victoria con onShare ofrece compartir en el pico (loop viral) y lo invoca', () => {
+    const onShare = vi.fn()
+    render(<DuelCeremony outcome="win" delta={24} ratingBefore={1180} onDone={() => {}} onShare={onShare} />)
+    fireEvent.click(screen.getByRole('button', { name: 'Compartir victoria' }))
+    expect(onShare).toHaveBeenCalledTimes(1)
+  })
+
+  it('derrota NO ofrece compartir (solo se comparte la victoria)', () => {
+    render(<DuelCeremony outcome="lose" delta={-18} ratingBefore={1200} onDone={() => {}} onShare={() => {}} />)
+    expect(screen.queryByRole('button', { name: 'Compartir victoria' })).toBeNull()
+  })
 })
