@@ -1,5 +1,6 @@
 package com.diegoalegil.animeshowdown.controller;
 
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
@@ -34,6 +35,7 @@ class VotoControllerTest {
     @Autowired private UsuarioRepository usuarioRepository;
     @Autowired private VotoRepository votoRepository;
     @Autowired private com.diegoalegil.animeshowdown.service.VotoStatsService votoStatsService;
+    @Autowired private org.springframework.cache.CacheManager cacheManager;
 
     @Test
     void rankingsPublicosDevuelvenArraysSinExplotarConVotosReales() throws Exception {
@@ -162,6 +164,25 @@ class VotoControllerTest {
                 .andExpect(jsonPath("$").isArray())
                 .andExpect(jsonPath("$", org.hamcrest.Matchers.hasItem("poder")))
                 .andExpect(jsonPath("$", org.hamcrest.Matchers.hasItem("diseno")));
+    }
+
+    @Test
+    void rankingPorCategoriaSeCachea() throws Exception {
+        // El ranking por categoría agrega en vivo (GROUP BY sobre votos); ahora
+        // va por @Cacheable. Verificamos que la llamada puebla EXACTAMENTE la key
+        // catId:periodoKey:limit, así dos requests del mismo combo no re-pegan.
+        var cache = cacheManager.getCache("votos-ranking-categoria");
+        assertThat(cache).isNotNull();
+        cache.clear();
+        String catId = com.diegoalegil.animeshowdown.model.CategoriaVoto.fromId("poder").getId();
+
+        mvc.perform(get("/api/votos/ranking/segmentado")
+                        .param("categoria", "poder")
+                        .param("periodo", "all")
+                        .param("limit", "20"))
+                .andExpect(status().isOk());
+
+        assertThat(cache.get(catId + ":all:20")).isNotNull();
     }
 
     private Voto guardarVoto(Voto voto) {

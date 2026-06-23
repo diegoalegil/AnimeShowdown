@@ -60,6 +60,11 @@ public class CacheConfig {
                 // cambios menores (votos recientes) se reflejen rápido sin
                 // saturar Postgres con cada request.
                 buildCache("votos-ranking", Duration.ofSeconds(30), 8),
+                // Ranking por categoría de intención de voto (feature #15). A
+                // diferencia de las ramas materializadas, agrega en vivo con
+                // GROUP BY sobre `votos` (caro); TTL 30s para absorber hits
+                // repetidos del mismo combo categoria+periodo+limit.
+                buildCache("votos-ranking-categoria", Duration.ofSeconds(30), 64),
                 // El catálogo de personajes apenas cambia (solo cuando admin
                 // importa o el seed corre). TTL 5min ahorra ~95% de hits a
                 // Postgres en horas pico sin que el usuario note staleness.

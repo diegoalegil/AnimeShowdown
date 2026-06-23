@@ -7,11 +7,14 @@ import java.util.List;
 import java.util.Map;
 
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.cache.annotation.Cacheable;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.diegoalegil.animeshowdown.dto.RankingItem;
+import com.diegoalegil.animeshowdown.repository.VotoRepository;
 
 @Service
 public class RankingMaterializadoService {
@@ -20,11 +23,14 @@ public class RankingMaterializadoService {
     private static final int ELO_SEMILLA_FALLBACK = 1500;
 
     private final JdbcTemplate jdbcTemplate;
+    private final VotoRepository votoRepository;
     private final double votoPeso;
 
     public RankingMaterializadoService(JdbcTemplate jdbcTemplate,
+            VotoRepository votoRepository,
             @Value("${app.ranking.voto-peso:1.0}") double votoPeso) {
         this.jdbcTemplate = jdbcTemplate;
+        this.votoRepository = votoRepository;
         this.votoPeso = votoPeso;
     }
 
@@ -112,6 +118,27 @@ public class RankingMaterializadoService {
                 ORDER BY SUM(s.peso_votos) DESC, p.id ASC
                 LIMIT ?
                 """, this::rankingItem, dia, saneLimit(limit));
+    }
+
+    /**
+     * Ranking por categoría de intención de voto (feature #15), cacheado.
+     *
+     * <p>A diferencia de las ramas materializadas (stats pre-agregadas), las
+     * queries por categoría agregan en vivo con GROUP BY sobre {@code votos} —
+     * caras y antes sin cache (se re-ejecutaban en cada request del mismo
+     * combo). Se cachean 30s (como {@code votos-ranking}) para absorber hits
+     * repetidos. La clave usa la ETIQUETA del periodo ({@code periodoKey}), NO
+     * el {@code desde} (viene de {@code now()} y nunca acertaría); {@code desde}
+     * solo entra en la query.
+     */
+    @Cacheable(value = "votos-ranking-categoria", key = "#catId + ':' + #periodoKey + ':' + #limit")
+    @Transactional(readOnly = true)
+    public List<RankingItem> rankingPorCategoria(String catId, String periodoKey,
+            LocalDateTime desde, int limit) {
+        var pageable = PageRequest.of(0, saneLimit(limit));
+        return desde == null
+                ? votoRepository.rankingPorCategoria(catId, pageable)
+                : votoRepository.rankingPorCategoriaDesde(catId, desde, pageable);
     }
 
     @Transactional(readOnly = true)
