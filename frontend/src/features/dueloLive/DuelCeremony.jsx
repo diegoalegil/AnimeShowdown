@@ -55,7 +55,7 @@ function Odometer({ value, animate: animado }) {
   )
 }
 
-export default function DuelCeremony({ outcome, delta, ratingBefore, onDone }) {
+export default function DuelCeremony({ outcome, delta, ratingBefore, onShare, onDone }) {
   const win = outcome === 'win'
   const glyph = win ? '勝' : '敗'
   const reduced = useReducedMotion()
@@ -177,20 +177,39 @@ export default function DuelCeremony({ outcome, delta, ratingBefore, onDone }) {
         {ratingBefore} → {ratingBefore + delta}
       </motion.p>
 
-      <motion.button
-        type="button"
-        onClick={(e) => {
-          e.stopPropagation()
-          onDone()
-        }}
-        className="mt-8 min-h-11 rounded-xl border border-fg/25 px-7 text-sm font-semibold text-fg transition-colors hover:border-fg/50"
+      <motion.div
+        className="mt-8 flex items-center gap-3"
         initial={{ opacity: 0 }}
         animate={{ opacity: ctaOn ? 1 : 0 }}
         style={{ pointerEvents: ctaOn ? 'auto' : 'none' }}
         transition={{ duration: 0.3 }}
       >
-        Continuar
-      </motion.button>
+        {/* Loop viral: al GANAR ofrecemos compartir en el pico de emoción (el
+            share lleva la tarjeta OG del duelo). El foco inicial cae aquí en
+            victoria — nudge a compartir; en derrota no se muestra. */}
+        {win && typeof onShare === 'function' && (
+          <button
+            type="button"
+            onClick={(e) => {
+              e.stopPropagation()
+              onShare()
+            }}
+            className="min-h-11 rounded-xl border border-gold/40 px-6 text-sm font-semibold text-gold transition-colors hover:border-gold/70 hover:bg-gold/10"
+          >
+            Compartir victoria
+          </button>
+        )}
+        <button
+          type="button"
+          onClick={(e) => {
+            e.stopPropagation()
+            onDone()
+          }}
+          className="min-h-11 rounded-xl border border-fg/25 px-7 text-sm font-semibold text-fg transition-colors hover:border-fg/50"
+        >
+          Continuar
+        </button>
+      </motion.div>
       <p className="absolute bottom-4 font-mono text-[10px] text-fg/30">toca para saltar</p>
     </motion.div>
   )
