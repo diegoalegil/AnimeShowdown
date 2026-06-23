@@ -73,6 +73,14 @@ public class OgImageController {
                 .body(ogImageService.renderRanking());
     }
 
+    @GetMapping(value = "/home.png", produces = MediaType.IMAGE_PNG_VALUE)
+    public ResponseEntity<byte[]> home() {
+        return ResponseEntity.ok()
+                .contentType(MediaType.IMAGE_PNG)
+                .cacheControl(CACHE_7_DIAS)
+                .body(ogImageService.renderHome());
+    }
+
     @GetMapping(value = "/anime/{slug}.png", produces = MediaType.IMAGE_PNG_VALUE)
     public ResponseEntity<byte[]> anime(@PathVariable String slug) {
         return ResponseEntity.ok()

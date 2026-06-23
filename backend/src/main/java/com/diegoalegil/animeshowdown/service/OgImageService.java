@@ -222,6 +222,39 @@ public class OgImageService {
         }
     }
 
+    /**
+     * OG image de la portada (lo que se ve al compartir animeshowdown.dev).
+     * Antes el OG del home era el logo plano (CTR bajo al compartir); aquí se
+     * compone la misma tarjeta rica que el ranking pero con copy que vende el
+     * sitio entero (top 5 personajes reales como gancho). Reusa el top all-time
+     * con fallback al catálogo, igual que {@link #renderRanking()}.
+     */
+    @Cacheable(value = "og-home", key = "'home'", unless = "#result == null")
+    public byte[] renderHome() {
+        try {
+            List<RankingOgEntry> top = votoRepository.rankingAllTime(PageRequest.of(0, 5))
+                    .getContent()
+                    .stream()
+                    .map(RankingOgEntry::from)
+                    .toList();
+            if (top.isEmpty()) {
+                top = personajeRepository.findAllOrderBySlug()
+                        .stream()
+                        .limit(5)
+                        .map(RankingOgEntry::from)
+                        .toList();
+            }
+            return renderRankingCard(
+                    "Vota al mejor personaje de anime",
+                    "Más de 1000 personajes · ranking ELO en directo · duelos y torneos",
+                    top,
+                    "Entra y mueve el ranking");
+        } catch (Exception e) {
+            log.error("OgImageService.renderHome fallo: {}", e.getMessage(), e);
+            return renderFallback("AnimeShowdown", "Vota al mejor personaje de anime");
+        }
+    }
+
     @Cacheable(value = "og-anime", key = "#slug", unless = "#result == null")
     public byte[] renderAnime(String slug) {
         String targetSlug = SlugUtil.slugify(slug);

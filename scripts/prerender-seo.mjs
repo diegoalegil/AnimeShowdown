@@ -8,6 +8,9 @@ const __dirname = dirname(fileURLToPath(import.meta.url))
 const ROOT = join(__dirname, '..')
 const DIST = join(ROOT, 'frontend/dist')
 const BASE_URL = 'https://animeshowdown.dev'
+// Las imágenes OG dinámicas las sirve el API (no el front): /api/og vive en
+// api.animeshowdown.dev. Mismo criterio que useSeo.absolutizar en el cliente.
+const API_BASE_URL = 'https://api.animeshowdown.dev'
 const BRAND_TITLE = 'AnimeShowdown'
 
 const INDEX_PATH = join(DIST, 'index.html')
@@ -57,6 +60,9 @@ const staticRoutes = [
     title: 'AnimeShowdown — Torneos de personajes de anime',
     description:
       'Más de 1000 personajes anime, ranking ELO en directo y brackets visuales. Vota a tus favoritos y mueve el meta cada semana.',
+    // OG dinámico de la portada (tarjeta rica con top 5 personajes) en vez del
+    // logo plano → más CTR al compartir animeshowdown.dev.
+    image: `${API_BASE_URL}/api/og/home.png`,
     jsonLd: [
       webSiteSchema(),
       webPageSchema('/', 'AnimeShowdown', 'Plataforma de duelos, rankings ELO y torneos anime.'),

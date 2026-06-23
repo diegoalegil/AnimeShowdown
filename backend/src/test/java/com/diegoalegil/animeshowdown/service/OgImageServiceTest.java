@@ -69,6 +69,16 @@ class OgImageServiceTest {
     }
 
     @Test
+    void renderHomeDevuelvePngConFallbackDeCatalogo() {
+        when(votoRepository.rankingAllTime(any(Pageable.class))).thenReturn(Page.empty());
+        when(personajeRepository.findAllOrderBySlug()).thenReturn(List.of(personaje("naruto", "Naruto Uzumaki", "Naruto")));
+
+        byte[] png = service.renderHome();
+
+        assertPng(png);
+    }
+
+    @Test
     void renderAnimeDevuelvePngParaSlugValido() {
         when(personajeRepository.findDistinctAnimes()).thenReturn(List.of("Naruto"));
         when(votoRepository.rankingPorAnime(eq("Naruto"), any(Pageable.class))).thenReturn(List.of());
