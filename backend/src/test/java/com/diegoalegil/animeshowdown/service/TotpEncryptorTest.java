@@ -59,4 +59,25 @@ class TotpEncryptorTest {
         assertThat(enc.cifrar(null)).isNull();
         assertThat(enc.descifrar(null)).isNull();
     }
+
+    @Test
+    void descifrarConOrigenMarcaLegadoSoloParaCbc() {
+        // Fase 2: descifrarConOrigen distingue el origen para el re-cifrado
+        // perezoso. GCM nuevo -> legado=false; CBC legacy -> legado=true; null
+        // entra y sale como null sin marcar legado.
+        TotpEncryptor enc = new TotpEncryptor(KEY, SALT);
+
+        var nuevo = enc.descifrarConOrigen(enc.cifrar("JBSWY3DPEHPK3PXP"));
+        assertThat(nuevo.legado()).isFalse();
+        assertThat(nuevo.plaintext()).isEqualTo("JBSWY3DPEHPK3PXP");
+
+        String legacyCbc = Encryptors.text(KEY, SALT).encrypt("KRSXG5CTMVRXEZLU");
+        var viejo = enc.descifrarConOrigen(legacyCbc);
+        assertThat(viejo.legado()).isTrue();
+        assertThat(viejo.plaintext()).isEqualTo("KRSXG5CTMVRXEZLU");
+
+        var vacio = enc.descifrarConOrigen(null);
+        assertThat(vacio.plaintext()).isNull();
+        assertThat(vacio.legado()).isFalse();
+    }
 }
