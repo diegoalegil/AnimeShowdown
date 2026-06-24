@@ -63,7 +63,7 @@ function MiRankingPage() {
   })
 
   const { personajes: catalogoPersonajes } = usePersonajesCatalogo()
-  const { usuario } = useAuth()
+  const { user } = useAuth()
   const [votes, setVotes] = useState(() => readLocalVotes())
 
   useEffect(
@@ -175,7 +175,7 @@ function MiRankingPage() {
 
       <div className="mx-auto max-w-4xl">
         <PersonalDossier
-          username={usuario?.username ?? 'invitado'}
+          username={user?.username ?? 'invitado'}
           entries={entries}
           storage={dossierStorage}
           recentVoteSlug={recentVoteSlug}
