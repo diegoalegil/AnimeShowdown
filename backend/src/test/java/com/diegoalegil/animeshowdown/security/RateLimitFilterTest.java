@@ -164,7 +164,28 @@ class RateLimitFilterTest {
     }
 
     @Test
-    void tokenAdminValidoSaltaElRateLimit() throws Exception {
+    void tokenAdminSaltaRateLimitEnPoliciesNoAuth() throws Exception {
+        Usuario admin = new Usuario("admin", "password", "admin@example.com");
+        admin.setRol(Rol.ADMIN);
+        when(jwtUtil.validarToken("admin-token")).thenReturn(true);
+        when(jwtUtil.extraerUsername("admin-token")).thenReturn("admin");
+        when(usuarioRepository.findByUsername("admin")).thenReturn(Optional.of(admin));
+
+        // Social (no-auth): el admin agota el límite y luego lo salta con su token.
+        for (int i = 0; i < 60; i++) {
+            assertEquals(200, post("/api/reacciones").getStatus());
+        }
+        assertEquals(429, post("/api/reacciones").getStatus());
+
+        assertEquals(200, post("/api/reacciones", "Bearer admin-token").getStatus());
+    }
+
+    @Test
+    void tokenAdminNoSaltaRateLimitDeAuth() throws Exception {
+        // Endurecimiento: el límite de fuerza-bruta sobre credenciales es
+        // universal. Ni un token admin válido (ni uno robado) debe evadir el
+        // rate-limit de /api/auth/login — si no, una cuenta admin comprometida
+        // martillearía credenciales ajenas sin freno.
         Usuario admin = new Usuario("admin", "password", "admin@example.com");
         admin.setRol(Rol.ADMIN);
         when(jwtUtil.validarToken("admin-token")).thenReturn(true);
@@ -172,11 +193,9 @@ class RateLimitFilterTest {
         when(usuarioRepository.findByUsername("admin")).thenReturn(Optional.of(admin));
 
         for (int i = 0; i < 10; i++) {
-            assertEquals(200, post("/api/auth/login").getStatus());
+            assertEquals(200, post("/api/auth/login", "Bearer admin-token").getStatus());
         }
-        assertEquals(429, post("/api/auth/login").getStatus());
-
-        assertEquals(200, post("/api/auth/login", "Bearer admin-token").getStatus());
+        assertEquals(429, post("/api/auth/login", "Bearer admin-token").getStatus());
     }
 
     private MockHttpServletResponse get(String path) throws Exception {
