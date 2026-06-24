@@ -198,6 +198,19 @@
 .inklang-item:hover {
   background: color-mix(in srgb, var(--color-canvas) 7%, transparent);
 }
+/* Sello "beta": idioma con traducción parcial. Empujado al final del item,
+   tono apagado sobre el papel claro (mismo color base que el texto, atenuado),
+   con borde-sello fino. Honestidad de expectativa sin gritar. */
+.inklang-item-tag {
+  margin-inline-start: auto;
+  padding: 0.1rem 0.3rem;
+  border: 1px solid color-mix(in srgb, var(--color-bg) 22%, transparent);
+  border-radius: 0.25rem;
+  font: 700 0.5625rem / 1 var(--font-mono);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: color-mix(in srgb, var(--color-bg) 52%, transparent);
+}
 .inklang-item:focus-visible {
   outline: 2px solid var(--color-accent);
   outline-offset: -2px;

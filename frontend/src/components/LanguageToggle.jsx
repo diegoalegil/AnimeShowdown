@@ -8,10 +8,13 @@ import './ink-language.css'
  * autónimo (NO se traduce), `announce` = anuncio del live region en su idioma.
  * El glifo 日 (U+65E5) ya está en el subset de --font-kanji-serif → sin tofu.
  */
+// `partial` = la traducción está incompleta (solo el catálogo i18n base; gran
+// parte del producto sigue en español). Se marca con un sello "beta" en el
+// popover para fijar expectativas sin ocultar el idioma.
 const IDIOMAS = [
   { code: 'es', glyph: 'ES', label: 'Español', announce: 'idioma: español' },
-  { code: 'en', glyph: 'EN', label: 'English', announce: 'language: English' },
-  { code: 'ja', glyph: '日', label: '日本語', announce: '言語：日本語' },
+  { code: 'en', glyph: 'EN', label: 'English', announce: 'language: English', partial: true },
+  { code: 'ja', glyph: '日', label: '日本語', announce: '言語：日本語', partial: true },
 ]
 
 /**
@@ -234,6 +237,7 @@ function LanguageToggle() {
                   {l.glyph}
                 </span>
                 <span className="inklang-item-name">{l.label}</span>
+                {l.partial && <span className="inklang-item-tag">beta</span>}
               </button>
             )
           })}
