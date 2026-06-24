@@ -57,6 +57,7 @@ public class TorneoService {
     private final SeguidorFanOutService seguidorFanOutService;
     private final TorneoCreationLock torneoCreationLock;
     private final TorneoOperacionLockService torneoOperacionLockService;
+    private final EventoRecompensaService eventoRecompensaService;
 
     public TorneoService(
             TorneoRepository torneoRepository,
@@ -70,7 +71,8 @@ public class TorneoService {
             IndexNowService indexNowService,
             SeguidorFanOutService seguidorFanOutService,
             TorneoCreationLock torneoCreationLock,
-            TorneoOperacionLockService torneoOperacionLockService) {
+            TorneoOperacionLockService torneoOperacionLockService,
+            EventoRecompensaService eventoRecompensaService) {
         this.torneoRepository = torneoRepository;
         this.enfrentamientoRepository = enfrentamientoRepository;
         this.personajeRepository = personajeRepository;
@@ -83,6 +85,7 @@ public class TorneoService {
         this.seguidorFanOutService = seguidorFanOutService;
         this.torneoCreationLock = torneoCreationLock;
         this.torneoOperacionLockService = torneoOperacionLockService;
+        this.eventoRecompensaService = eventoRecompensaService;
     }
 
     @Transactional
@@ -454,9 +457,23 @@ public class TorneoService {
         // Resuelve todas las predicciones del torneo
         // comparando contra los ganadores recién calculados.
         int resueltas = prediccionService.resolverParaTorneo(guardado);
+        // El finalize manual debe repartir las recompensas de copa de evento
+        // igual que el auto-avance @Scheduled (A8): sin esto, un admin que cierra
+        // un torneo a mano dejaba a los ganadores sin premio. Idempotente por el
+        // ledger de V65, así que es seguro aunque ya se hubiera repartido.
+        repartirRecompensasEvento(guardado);
         notificarTorneoFinalizado(guardado);
         log.info("Torneo {} finalizado en cascada: {} predicciones resueltas", id, resueltas);
         return guardado;
+    }
+
+    private void repartirRecompensasEvento(Torneo torneo) {
+        try {
+            eventoRecompensaService.repartirPorTorneoFinalizado(torneo);
+        } catch (Exception e) {
+            log.warn("Reparto de recompensas de evento falló: torneo={} err={}",
+                    torneo.getId(), e.getMessage());
+        }
     }
 
     private void notificarTorneoDisponible(Torneo torneo) {

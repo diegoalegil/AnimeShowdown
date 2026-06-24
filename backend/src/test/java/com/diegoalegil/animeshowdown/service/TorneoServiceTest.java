@@ -52,6 +52,7 @@ class TorneoServiceTest {
     @Mock private SeguidorFanOutService seguidorFanOutService;
     @Mock private TorneoCreationLock torneoCreationLock;
     @Mock private TorneoOperacionLockService torneoOperacionLockService;
+    @Mock private EventoRecompensaService eventoRecompensaService;
 
     private TorneoService service;
 
@@ -69,7 +70,8 @@ class TorneoServiceTest {
                 indexNowService,
                 seguidorFanOutService,
                 torneoCreationLock,
-                torneoOperacionLockService);
+                torneoOperacionLockService,
+                eventoRecompensaService);
     }
 
     // ─── Fixtures ──────────────────────────────────────────────────────────────
@@ -565,6 +567,22 @@ class TorneoServiceTest {
 
             verify(prediccionService).resolverParaTorneo(any(Torneo.class));
             verify(notificacionService).notificarTorneoFinalizadoATodos(any(Torneo.class));
+        }
+
+        @Test
+        void finalizaManualReparteRecompensasDeEvento() {
+            // A8: el finalize manual debe repartir las recompensas de copa de
+            // evento igual que el auto-avance; antes se las saltaba.
+            var t = torneo().id(1L).estado(EstadoTorneo.IN_PROGRESS).build();
+            when(torneoRepository.findById(1L)).thenReturn(Optional.of(t));
+            when(bracketAdvanceService.cerrarTodasLasRondas(t))
+                    .thenReturn(BracketAdvanceService.Resultado.TORNEO_FINALIZADO);
+            lenient().when(torneoRepository.save(any(Torneo.class))).thenAnswer(inv -> inv.getArgument(0));
+            when(prediccionService.resolverParaTorneo(any(Torneo.class))).thenReturn(0);
+
+            service.finalizar(1L);
+
+            verify(eventoRecompensaService).repartirPorTorneoFinalizado(any(Torneo.class));
         }
     }
 
