@@ -82,20 +82,29 @@ function ComentariosPersonaje({ slug, nombre }) {
     },
   })
 
+  // El observer leía el objeto-query completo en deps → se recreaba en CADA
+  // render (cada fetch/cambio de estado lo re-referencia). Ahora se recrea solo
+  // cuando cambia hasNextPage; el callback lee el estado volátil (isFetching/
+  // fetchNextPage) desde una ref siempre fresca.
+  const queryRef = useRef(comentariosQuery)
+  useEffect(() => {
+    queryRef.current = comentariosQuery
+  })
   useEffect(() => {
     const node = sentinelRef.current
     if (!node || !comentariosQuery.hasNextPage) return undefined
     const observer = new IntersectionObserver(
       ([entry]) => {
-        if (entry.isIntersecting && !comentariosQuery.isFetchingNextPage) {
-          comentariosQuery.fetchNextPage()
+        const q = queryRef.current
+        if (entry.isIntersecting && q.hasNextPage && !q.isFetchingNextPage) {
+          q.fetchNextPage()
         }
       },
       { rootMargin: '240px' },
     )
     observer.observe(node)
     return () => observer.disconnect()
-  }, [comentariosQuery])
+  }, [comentariosQuery.hasNextPage])
 
   // Publicar: conserva el flujo de moderación (toast.message en
   // PENDIENTE_REVISION, toast.success al publicar, toast.error al fallar) que
