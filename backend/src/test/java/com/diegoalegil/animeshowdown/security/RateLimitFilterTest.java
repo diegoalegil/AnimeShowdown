@@ -171,14 +171,30 @@ class RateLimitFilterTest {
         when(jwtUtil.extraerUsername("admin-token")).thenReturn("admin");
         when(usuarioRepository.findByUsername("admin")).thenReturn(Optional.of(admin));
 
-        // Economía (sí concede bypass): el admin agota el límite por IP y luego lo
-        // salta con su token (operativa legítima de admin sobre cartas).
+        // Imágenes OG (GET de render, sí concede bypass): el admin agota el límite
+        // por IP y luego lo salta con su token (preview/tooling legítimo, no muta).
         for (int i = 0; i < 60; i++) {
-            assertEquals(200, post("/api/me/cartas/sobre").getStatus());
+            assertEquals(200, get("/api/og/duelo/naruto/vs/luffy.png").getStatus());
         }
-        assertEquals(429, post("/api/me/cartas/sobre").getStatus());
+        assertEquals(429, get("/api/og/personaje/goku.png").getStatus());
 
-        assertEquals(200, post("/api/me/cartas/sobre", "Bearer admin-token").getStatus());
+        assertEquals(200, get("/api/og/personaje/goku.png", "Bearer admin-token").getStatus());
+    }
+
+    @Test
+    void tokenAdminNoSaltaRateLimitEconomia() throws Exception {
+        // Economía (sobres/cofres/trades) muta estado y toma locks pesimistas;
+        // como social, el límite es universal aunque seas admin.
+        Usuario admin = new Usuario("admin", "password", "admin@example.com");
+        admin.setRol(Rol.ADMIN);
+        when(jwtUtil.validarToken("admin-token")).thenReturn(true);
+        when(jwtUtil.extraerUsername("admin-token")).thenReturn("admin");
+        when(usuarioRepository.findByUsername("admin")).thenReturn(Optional.of(admin));
+
+        for (int i = 0; i < 60; i++) {
+            assertEquals(200, post("/api/me/cartas/sobre", "Bearer admin-token").getStatus());
+        }
+        assertEquals(429, post("/api/me/cartas/sobre", "Bearer admin-token").getStatus());
     }
 
     @Test
@@ -217,8 +233,15 @@ class RateLimitFilterTest {
     }
 
     private MockHttpServletResponse get(String path) throws Exception {
+        return get(path, null);
+    }
+
+    private MockHttpServletResponse get(String path, String authorization) throws Exception {
         MockHttpServletRequest request = new MockHttpServletRequest("GET", path);
         request.setServletPath(path);
+        if (authorization != null) {
+            request.addHeader("Authorization", authorization);
+        }
         MockHttpServletResponse response = new MockHttpServletResponse();
         filter.doFilter(request, response, new MockFilterChain());
         return response;
