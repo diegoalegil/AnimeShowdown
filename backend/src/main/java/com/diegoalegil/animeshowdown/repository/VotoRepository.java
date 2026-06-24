@@ -18,6 +18,21 @@ import com.diegoalegil.animeshowdown.model.Voto;
 public interface VotoRepository extends JpaRepository<Voto, Long> {
 
     /**
+     * Advisory lock de transacción (Postgres) por SESIÓN anónima. Se libera al
+     * cerrar la tx, así que serializa los votos concurrentes de una MISMA
+     * sesión: el check del tope ANON_VOTE_LIMIT + el save quedan atómicos. Sin
+     * él, N votos simultáneos sobre matches distintos leerían count<tope a la
+     * vez y todos insertarían (la UNIQUE (enfrentamiento, anon_session) de V30
+     * solo frena el doble voto al MISMO match, no el total). Sesiones distintas
+     * no contienden. El SELECT 1 envuelto da una fila escalar mapeable —
+     * pg_advisory_xact_lock devuelve void. SOLO Postgres: el caller lo gatea por
+     * dialecto (en H2 de tests no existe la función).
+     */
+    @Query(value = "SELECT 1 FROM (SELECT pg_advisory_xact_lock(hashtext(:clave))) AS _lock",
+            nativeQuery = true)
+    Integer lockSesionAnonima(@Param("clave") String clave);
+
+    /**
      * Ranking all-time por votos ponderados.
      *
      * <p>Se anade desempate por id ASC. Sin tiebreak,
