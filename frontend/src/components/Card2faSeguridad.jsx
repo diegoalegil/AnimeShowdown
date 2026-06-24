@@ -414,7 +414,7 @@ function SetupForm({ setupData, onBackupCodes }) {
             required: 'Introduce el código',
             pattern: { value: /^\d{6}$/, message: 'Deben ser 6 dígitos' },
           })}
-          className={`rounded-lg border bg-bg px-3.5 py-2.5 text-center font-mono text-xl text-fg-strong focus:outline-none focus:ring-2 focus:ring-accent/40 ${
+          className={`rounded-lg border bg-bg px-3.5 py-2.5 text-center font-mono text-xl text-fg-strong focus:outline-none focus:ring-2 focus:ring-gold ${
             errors.codigo ? 'border-danger' : 'border-border'
           }`}
           placeholder="123456"
@@ -650,7 +650,7 @@ function Modal2faDisable({ onClose, onSuccess }) {
               required: 'Introduce el código',
               pattern: { value: /^\d{6}$/, message: 'Deben ser 6 dígitos' },
             })}
-            className={`rounded-lg border bg-bg px-3.5 py-2.5 text-center font-mono text-xl text-fg-strong focus:outline-none focus:ring-2 focus:ring-accent/40 ${
+            className={`rounded-lg border bg-bg px-3.5 py-2.5 text-center font-mono text-xl text-fg-strong focus:outline-none focus:ring-2 focus:ring-gold ${
               errors.codigo ? 'border-danger' : 'border-border'
             }`}
             placeholder="123456"
@@ -751,7 +751,7 @@ function Modal2faRegenerate({ onClose }) {
               required: 'Introduce el código',
               pattern: { value: /^\d{6}$/, message: 'Deben ser 6 dígitos' },
             })}
-            className={`rounded-lg border bg-bg px-3.5 py-2.5 text-center font-mono text-xl text-fg-strong focus:outline-none focus:ring-2 focus:ring-accent/40 ${
+            className={`rounded-lg border bg-bg px-3.5 py-2.5 text-center font-mono text-xl text-fg-strong focus:outline-none focus:ring-2 focus:ring-gold ${
               errors.codigo ? 'border-danger' : 'border-border'
             }`}
             placeholder="123456"

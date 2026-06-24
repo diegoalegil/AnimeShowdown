@@ -82,7 +82,7 @@ function UsernamePicker({
             placeholder="ShadowHokage"
             aria-invalid={Boolean(errorInline) || status === 'taken' || status === 'invalid'}
             aria-describedby="onboarding-username-status"
-            className={`w-full rounded-lg border bg-bg px-3.5 py-2.5 pr-10 text-sm text-fg-strong placeholder:text-fg-muted focus:outline-none focus:ring-2 focus:ring-accent/40 ${
+            className={`w-full rounded-lg border bg-bg px-3.5 py-2.5 pr-10 text-sm text-fg-strong placeholder:text-fg-muted focus:outline-none focus:ring-2 focus:ring-gold ${
               errorInline || status === 'taken' || status === 'invalid'
                 ? 'border-danger'
                 : status === 'available'

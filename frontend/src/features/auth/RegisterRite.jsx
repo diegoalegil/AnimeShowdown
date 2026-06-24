@@ -296,7 +296,7 @@ function RegisterRite({
   ]
 
   const inputClass = (name) =>
-    `min-h-11 rounded-lg border bg-bg px-3.5 py-2.5 text-sm text-fg-strong placeholder:text-fg-muted focus:outline-none focus:ring-2 focus:ring-accent/40 ${
+    `min-h-11 rounded-lg border bg-bg px-3.5 py-2.5 text-sm text-fg-strong placeholder:text-fg-muted focus:outline-none focus:ring-2 focus:ring-gold ${
       errors[name] ? 'border-danger' : 'border-border'
     }`
 
@@ -547,7 +547,7 @@ function RegisterRite({
                   aria-describedby={errors.referralCode ? 'referralCode-error' : undefined}
                   {...register('referralCode')}
                   placeholder="Si un amigo te invitó…"
-                  className="min-h-11 rounded-lg border border-border bg-bg px-3.5 py-2.5 font-mono text-sm text-fg-strong placeholder:text-fg-muted focus:outline-none focus:ring-2 focus:ring-accent/40"
+                  className="min-h-11 rounded-lg border border-border bg-bg px-3.5 py-2.5 font-mono text-sm text-fg-strong placeholder:text-fg-muted focus:outline-none focus:ring-2 focus:ring-gold"
                 />
                 {errors.referralCode && (
                   <p id="referralCode-error" className="text-[12px] text-danger">{errors.referralCode.message}</p>

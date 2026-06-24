@@ -155,7 +155,7 @@ function Step2Totp({ challenge, onSuccess, onCancel, completeLogin2fa }) {
               required: 'Introduce el código',
               minLength: { value: 6, message: 'Mínimo 6 caracteres' },
             })}
-            className={`rounded-lg border bg-bg px-3.5 py-3 text-center font-mono text-2xl text-fg-strong placeholder:text-fg-muted/40 focus:outline-none focus:ring-2 focus:ring-accent/40 ${
+            className={`rounded-lg border bg-bg px-3.5 py-3 text-center font-mono text-2xl text-fg-strong placeholder:text-fg-muted/40 focus:outline-none focus:ring-2 focus:ring-gold ${
               errors.codigo ? 'border-danger' : 'border-border'
             }`}
             placeholder="123456 o ABCD-EFGHJK"
