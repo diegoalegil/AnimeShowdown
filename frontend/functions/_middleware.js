@@ -262,10 +262,20 @@ export async function onRequest(context) {
     const og = ogParaRuta(url, apiBase)
     if (!og) return base
 
+    // og:url y canonical: el HTML estatico apunta al home; en una ruta dinamica
+    // hay que reescribirlos a la URL real, o todo lo compartido sale como el
+    // home. Las twitter cards (name="twitter:*") tambien quedaban sin tocar, asi
+    // que X mostraba el titulo/imagen por defecto en cada perfil/duelo/top (A14).
+    const canonical = `${url.origin}${url.pathname}`
+
     return new HTMLRewriter()
       .on('meta[property="og:image"]', new SetContent(og.image))
       .on('meta[property="og:title"]', new SetContent(og.title))
       .on('meta[property="og:description"]', new SetContent(og.description))
+      .on('meta[property="og:url"]', new SetContent(canonical))
+      .on('meta[name="twitter:image"]', new SetContent(og.image))
+      .on('meta[name="twitter:title"]', new SetContent(og.title))
+      .on('meta[name="twitter:description"]', new SetContent(og.description))
       .on('meta[name="description"]', new SetContent(og.description))
       .on('title', new SetText(og.title))
       .transform(base)
