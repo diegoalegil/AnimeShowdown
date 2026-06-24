@@ -118,11 +118,16 @@ public class ArenaService {
         Map<Long, Double> totalPorEnf = new HashMap<>();
         Map<Long, Long> ganadorPorEnf = new HashMap<>();
         Map<Long, Double> mejorScorePorEnf = new HashMap<>();
+        // ORDER BY determinista: sin él, en un empate de score ganaba la primera
+        // fila que devolviera el motor (arbitrario, podía variar entre réplicas).
+        // Con score DESC + personaje_id ASC, la primera fila por enfrentamiento es
+        // el ganador estable (a igual score, el de menor personaje_id).
         jdbcTemplate.query("""
                 SELECT s.enfrentamiento_id AS enf, s.personaje_id AS per, s.votos_score AS score
                 FROM voto_enfrentamiento_stats s
                 JOIN enfrentamientos e ON e.id = s.enfrentamiento_id
                 WHERE e.torneo_id = ? AND e.ganador_id IS NULL
+                ORDER BY s.enfrentamiento_id ASC, s.votos_score DESC, s.personaje_id ASC
                 """, rs -> {
             long enf = rs.getLong("enf");
             long per = rs.getLong("per");
