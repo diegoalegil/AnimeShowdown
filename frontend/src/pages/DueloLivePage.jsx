@@ -525,7 +525,7 @@ function VersusHeader({ state }) {
 function PlayerBlock({ player, score, align }) {
   return (
     <div className={`flex items-center gap-3 ${align === 'right' ? 'md:flex-row-reverse md:text-right' : ''}`}>
-      <Avatar src={player?.avatarUrl} username={player?.username} size="lg" />
+      <Avatar user={player} size={64} />
       <div className="min-w-0">
         <p className="truncate text-lg font-black text-fg-strong">{player?.username}</p>
         <p className="text-xs font-bold text-fg-muted">
