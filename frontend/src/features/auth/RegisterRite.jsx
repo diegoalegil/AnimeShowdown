@@ -241,7 +241,15 @@ function RegisterRite({
       onSuccess(data.username)
     } catch (err) {
       if (err?.status === 409) {
-        const campo = err?.body?.campo === 'email' ? 'email' : 'username'
+        // El backend devuelve el 409 como string plano ("El email ya está
+        // registrado" / "El username ya existe"), sin campo estructurado. Si algún
+        // día envía body.campo lo respetamos; mientras, detectamos por el texto
+        // para no rotular un email duplicado como error de username.
+        const textoError = `${err?.message || ''} ${typeof err?.body === 'string' ? err.body : ''}`.toLowerCase()
+        const campo =
+          err?.body?.campo === 'email' || (err?.body?.campo == null && textoError.includes('email'))
+            ? 'email'
+            : 'username'
         setServerError(
           campo === 'email'
             ? {

@@ -1042,7 +1042,9 @@ function VotarPage() {
             La insignia de racha vive FUERA del memo y del key del par: ni
             re-renderiza la arena al subir el contador ni re-popea al cambiar
             de duelo. */}
-        {introFighters && (
+        {/* En modo a ciegas la intro NO se muestra: revela nombre/imagen/kanji y
+            spoilearía la identidad antes del voto. Mismo gate que FightBillRail. */}
+        {!blindMode && introFighters && (
           <Suspense fallback={null}>
             <VersusIntroOverlay
               left={introFighters.left}
