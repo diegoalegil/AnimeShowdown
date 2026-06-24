@@ -15,7 +15,6 @@ const PAGINA_LIMIT = 60
  * tras una mutación que cambia saldo/cartas. No toca odds (estáticas).
  */
 function invalidarColeccion(queryClient) {
-  queryClient.invalidateQueries({ queryKey: queryKeys.coleccionCartas() })
   queryClient.invalidateQueries({ queryKey: queryKeys.coleccionResumen() })
   queryClient.invalidateQueries({ queryKey: ['cartas', 'pagina'] })
 }
