@@ -1,6 +1,5 @@
 import { useEffect, useMemo, useState } from 'react'
 import { Link } from 'react-router-dom'
-import { toast } from 'sonner'
 import {
   ArrowRight,
   CalendarDays,
@@ -23,10 +22,9 @@ import {
   readDailyProgress,
   readDailyStreak,
   readRecentDailyProgress,
-  recordDailyShare,
 } from '../lib/dailyProgress'
 import StampCard from '../features/misiones/StampCard'
-import { shareOrCopy } from '../lib/share'
+import { shareWithToast } from '../lib/shareWithToast'
 
 function MisionesPage() {
   useSeo({
@@ -137,20 +135,14 @@ function MisionesPage() {
       `${Math.min(progress.votes, DAILY_VOTE_TARGET)}/${DAILY_VOTE_TARGET} votos · ${Math.min(progress.gamesCompleted, DAILY_GAME_TARGET)}/${DAILY_GAME_TARGET} daily · ranking ${progress.rankingViewed ? 'revisado' : 'pendiente'}.`,
       `Racha actual: ${streak.current} día${streak.current === 1 ? '' : 's'}.`,
     ].join('\n')
-    try {
-      const result = await shareOrCopy({
-        title: 'Mi misión diaria de AnimeShowdown',
-        text,
-        url: '/misiones',
-      })
-      if (result === 'cancelled') return
-      recordDailyShare()
-      toast.success(result === 'native' ? 'Misión compartida' : 'Misión copiada')
-    } catch (error) {
-      toast.error('No se pudo compartir', {
-        description: error?.message || 'Copia el resultado manualmente.',
-      })
-    }
+    await shareWithToast(
+      { title: 'Mi misión diaria de AnimeShowdown', text, url: '/misiones' },
+      {
+        nativeSuccess: 'Misión compartida',
+        clipboardSuccess: 'Misión copiada',
+        errorDescription: 'Copia el resultado manualmente.',
+      },
+    )
   }
 
   return (

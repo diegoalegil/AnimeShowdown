@@ -33,8 +33,8 @@ import EmptyState from '../components/EmptyState'
 import { CinematicHero, VisualPageShell } from '../components/VisualSystem'
 import TopPlate from './TopPlate'
 import { BRAND_VISUALS } from '../data/visual-assets'
-import { shareOrCopy } from '../lib/share'
-import { recordDailyRankingView, recordDailyShare } from '../lib/dailyProgress'
+import { shareWithToast } from '../lib/shareWithToast'
+import { recordDailyRankingView } from '../lib/dailyProgress'
 import NotFoundPage from './NotFoundPage'
 
 function buildRows(page, catalogoPersonajes, eloDe) {
@@ -122,20 +122,18 @@ function EditorialRankingPage() {
       toast.error('El ranking todavía está cargando')
       return
     }
-    try {
-      const result = await shareOrCopy({
+    await shareWithToast(
+      {
         title: page.title,
         text: `${page.title} en AnimeShowdown:\n${top5Text}\n\nVota y mueve este top.`,
         url: `/rankings/${page.slug}`,
-      })
-      if (result === 'cancelled') return
-      recordDailyShare()
-      toast.success(result === 'native' ? 'Ranking compartido' : 'Ranking copiado')
-    } catch (error) {
-      toast.error('No se pudo compartir el ranking', {
-        description: error?.message || 'Copia el enlace manualmente.',
-      })
-    }
+      },
+      {
+        nativeSuccess: 'Ranking compartido',
+        clipboardSuccess: 'Ranking copiado',
+        errorTitle: 'No se pudo compartir el ranking',
+      },
+    )
   }
 
   const faqs = [

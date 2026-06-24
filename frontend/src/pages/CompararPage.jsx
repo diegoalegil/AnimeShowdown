@@ -1,6 +1,5 @@
 import { useMemo } from 'react'
 import { Link, useSearchParams } from 'react-router-dom'
-import { toast } from 'sonner'
 import {
   ArrowRight,
   BarChart3,
@@ -20,8 +19,7 @@ import { CinematicHero, VisualPageShell } from '../components/VisualSystem'
 import { BRAND_VISUALS } from '../data/visual-assets'
 import { usePersonajesCatalogo } from '../hooks/usePersonajesCatalogo'
 import { getStatsPersonaje } from '../lib/personajes-core'
-import { shareOrCopy } from '../lib/share'
-import { recordDailyShare } from '../lib/dailyProgress'
+import { shareWithToast } from '../lib/shareWithToast'
 
 function CompararPage() {
   useSeo({
@@ -98,8 +96,8 @@ function CompararPage() {
 
   const compartir = async () => {
     if (!ambos) return
-    try {
-      const result = await shareOrCopy({
+    await shareWithToast(
+      {
         title: `${personajeA.nombre} vs ${personajeB.nombre}`,
         text: [
           `${personajeA.nombre} vs ${personajeB.nombre} en AnimeShowdown.`,
@@ -107,15 +105,12 @@ function CompararPage() {
           '¿A quién subirías votando?',
         ].join('\n'),
         url: dueloUrl,
-      })
-      if (result === 'cancelled') return
-      recordDailyShare()
-      toast.success(result === 'native' ? 'Comparación compartida' : 'Comparación copiada')
-    } catch (error) {
-      toast.error('No se pudo compartir', {
-        description: error?.message || 'Copia el enlace manualmente.',
-      })
-    }
+      },
+      {
+        nativeSuccess: 'Comparación compartida',
+        clipboardSuccess: 'Comparación copiada',
+      },
+    )
   }
 
   return (

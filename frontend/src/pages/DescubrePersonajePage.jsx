@@ -1,6 +1,5 @@
 import { useMemo, useState } from 'react'
 import { Link } from 'react-router-dom'
-import { toast } from 'sonner'
 import {
   ArrowRight,
   CalendarDays,
@@ -25,8 +24,7 @@ import { usePersonajesCatalogo } from '../hooks/usePersonajesCatalogo'
 import { fechaDelDia } from '../lib/games'
 import { slugifyAnime } from '../lib/animes'
 import { imagenPersonaje } from '../lib/personajes-core'
-import { recordDailyShare } from '../lib/dailyProgress'
-import { shareOrCopy } from '../lib/share'
+import { shareWithToast } from '../lib/shareWithToast'
 
 function seededIndex(seed, length) {
   if (length <= 0) return 0
@@ -80,24 +78,18 @@ function DescubrePersonajePage() {
 
   const compartir = async () => {
     if (!personaje) return
-    try {
-      const result = await shareOrCopy({
+    await shareWithToast(
+      {
         title: `Hoy me tocó ${personaje.nombre}`,
         text: `Hoy me tocó ${personaje.nombre} de ${personaje.anime} en AnimeShowdown. ¿Lo retarías o lo dejarías pasar?`,
         url: `/personajes/${personaje.slug}`,
-      })
-      if (result === 'cancelled') return
-      recordDailyShare()
-      toast.success(
-        result === 'native'
-          ? 'Personaje compartido'
-          : 'Texto copiado al portapapeles',
-      )
-    } catch (error) {
-      toast.error('No se pudo compartir', {
-        description: error?.message || 'Inténtalo de nuevo en unos segundos.',
-      })
-    }
+      },
+      {
+        nativeSuccess: 'Personaje compartido',
+        clipboardSuccess: 'Texto copiado al portapapeles',
+        errorDescription: 'Inténtalo de nuevo en unos segundos.',
+      },
+    )
   }
 
   return (

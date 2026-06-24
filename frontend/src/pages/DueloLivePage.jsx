@@ -6,8 +6,7 @@ import { endpoints, ApiError } from '../lib/api'
 import { useAuth } from '../contexts/AuthContext'
 import { useStompSubscription } from '../hooks/useStompSubscription'
 import { useSeo } from '../hooks/useSeo'
-import { shareOrCopy } from '../lib/share'
-import { recordDailyShare } from '../lib/dailyProgress'
+import { shareWithToast } from '../lib/shareWithToast'
 import { VisualPageShell } from '../components/VisualSystem'
 import { BRAND_VISUALS } from '../data/visual-assets'
 import Avatar from '../components/Avatar'
@@ -96,20 +95,19 @@ async function compartirDuelo(state) {
   const resultado = delta == null
     ? null
     : delta > 0 ? 'Victoria' : delta < 0 ? 'Derrota' : 'Empate'
-  try {
-    const result = await shareOrCopy({
+  await shareWithToast(
+    {
       title: 'Mi duelo PvP en AnimeShowdown',
       text: buildPvpShareText(state, resultado, delta),
       url: '/duel-live',
-    })
-    if (result === 'cancelled') return
-    recordDailyShare()
-    toast.success(result === 'native' ? 'Resultado compartido' : 'Resultado copiado')
-  } catch (error) {
-    toast.error('No se pudo compartir el resultado', {
-      description: error?.message || 'Copia el marcador manualmente.',
-    })
-  }
+    },
+    {
+      nativeSuccess: 'Resultado compartido',
+      clipboardSuccess: 'Resultado copiado',
+      errorTitle: 'No se pudo compartir el resultado',
+      errorDescription: 'Copia el marcador manualmente.',
+    },
+  )
 }
 
 function DueloLivePage() {

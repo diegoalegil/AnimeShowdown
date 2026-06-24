@@ -29,8 +29,7 @@ import PersonajeImg from '../components/PersonajeImg'
 import EmptyState from '../components/EmptyState'
 import { CinematicHero, VisualPageShell } from '../components/VisualSystem'
 import { getAnimeVisual } from '../data/anime-visual'
-import { shareOrCopy } from '../lib/share'
-import { recordDailyShare } from '../lib/dailyProgress'
+import { shareWithToast } from '../lib/shareWithToast'
 import NotFoundPage from './NotFoundPage'
 
 function AnimeRankingPage() {
@@ -116,20 +115,18 @@ function AnimeRankingPage() {
       toast.error('El ranking todavía está cargando')
       return
     }
-    try {
-      const result = await shareOrCopy({
+    await shareWithToast(
+      {
         title: `Ranking de ${anime}`,
         text: `Ranking de ${anime} en AnimeShowdown:\n${top5Text}\n\nVota y mueve la tabla.`,
         url: `/animes/${slug}/ranking`,
-      })
-      if (result === 'cancelled') return
-      recordDailyShare()
-      toast.success(result === 'native' ? 'Ranking compartido' : 'Ranking copiado')
-    } catch (error) {
-      toast.error('No se pudo compartir el ranking', {
-        description: error?.message || 'Copia el enlace manualmente.',
-      })
-    }
+      },
+      {
+        nativeSuccess: 'Ranking compartido',
+        clipboardSuccess: 'Ranking copiado',
+        errorTitle: 'No se pudo compartir el ranking',
+      },
+    )
   }
 
   const faqs = [

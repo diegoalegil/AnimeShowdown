@@ -42,8 +42,8 @@ import { markPersonajeHero } from '../lib/viewTransitions'
 import { INTENCIONES } from '../data/voto-intenciones'
 import { useQueryState } from '../hooks/useQueryState'
 import { usePersonajesCatalogo } from '../hooks/usePersonajesCatalogo'
-import { shareOrCopy } from '../lib/share'
-import { recordDailyRankingView, recordDailyShare } from '../lib/dailyProgress'
+import { shareWithToast } from '../lib/shareWithToast'
+import { recordDailyRankingView } from '../lib/dailyProgress'
 import EditorialRankingsStrip from '../features/ranking/components/EditorialRankingsStrip'
 import EloExplainer from '../features/ranking/components/EloExplainer'
 import MoversStrip from '../features/ranking/components/MoversStrip'
@@ -223,20 +223,19 @@ function RankingPage() {
     const resumen = top5
       .map((p, index) => `${index + 1}. ${p.nombre} (${p.anime}) · ${p.elo} ELO`)
       .join('\n')
-    try {
-      const result = await shareOrCopy({
+    await shareWithToast(
+      {
         title: 'Top anime en AnimeShowdown',
         text: `Mi top 5 por ELO en AnimeShowdown ahora mismo:\n${resumen}\n\nVota y cambia la tabla.`,
         url: '/ranking',
-      })
-      if (result === 'cancelled') return
-      recordDailyShare()
-      toast.success(result === 'native' ? 'Ranking compartido' : 'Ranking copiado')
-    } catch (error) {
-      toast.error('No se pudo compartir el ranking', {
-        description: error?.message || 'Copia el top manualmente.',
-      })
-    }
+      },
+      {
+        nativeSuccess: 'Ranking compartido',
+        clipboardSuccess: 'Ranking copiado',
+        errorTitle: 'No se pudo compartir el ranking',
+        errorDescription: 'Copia el top manualmente.',
+      },
+    )
   }
 
   return (
@@ -819,20 +818,19 @@ function ListaEloLocal({
         ? ` para "${searchTrimmed}"`
         : ''
 
-    try {
-      const result = await shareOrCopy({
+    await shareWithToast(
+      {
         title: `Ranking anime${scope}`,
         text: `Mi top${scope} en AnimeShowdown:\n${top5ShareText}\n\nÁbrelo y dime a quién subirías votando.`,
         url,
-      })
-      if (result === 'cancelled') return
-      recordDailyShare()
-      toast.success(result === 'native' ? 'Vista compartida' : 'Vista copiada')
-    } catch (error) {
-      toast.error('No se pudo compartir la vista', {
-        description: error?.message || 'Copia el ranking manualmente.',
-      })
-    }
+      },
+      {
+        nativeSuccess: 'Vista compartida',
+        clipboardSuccess: 'Vista copiada',
+        errorTitle: 'No se pudo compartir la vista',
+        errorDescription: 'Copia el ranking manualmente.',
+      },
+    )
   }
 
   return (
@@ -1037,20 +1035,19 @@ function PorAnime({ initialAnime = '' }) {
       .slice(0, 5)
       .map((item, index) => `${index + 1}. ${item.personaje.nombre} · ${item.votos} votos`)
       .join('\n')
-    try {
-      const result = await shareOrCopy({
+    await shareWithToast(
+      {
         title: `Ranking de ${anime}`,
         text: `Ranking interno de ${anime} en AnimeShowdown:\n${top5}\n\nVota personajes de ${anime} y mueve este top.`,
         url: `/ranking?tab=anime&anime=${encodeURIComponent(anime)}`,
-      })
-      if (result === 'cancelled') return
-      recordDailyShare()
-      toast.success(result === 'native' ? 'Ranking compartido' : 'Ranking copiado')
-    } catch (error) {
-      toast.error('No se pudo compartir el ranking', {
-        description: error?.message || 'Copia el top manualmente.',
-      })
-    }
+      },
+      {
+        nativeSuccess: 'Ranking compartido',
+        clipboardSuccess: 'Ranking copiado',
+        errorTitle: 'No se pudo compartir el ranking',
+        errorDescription: 'Copia el top manualmente.',
+      },
+    )
   }
 
   return (

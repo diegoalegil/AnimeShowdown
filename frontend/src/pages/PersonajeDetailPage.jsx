@@ -60,8 +60,7 @@ import { VisualPageShell } from '../components/VisualSystem'
 import { hexToRgbChannels } from '../lib/color'
 import { getAnimeVisual } from '../data/anime-visual'
 import { slugifyAnime } from '../lib/animes'
-import { shareOrCopy } from '../lib/share'
-import { recordDailyShare } from '../lib/dailyProgress'
+import { shareWithToast } from '../lib/shareWithToast'
 import {
   getLocalVoteStats,
   listenLocalVotes,
@@ -287,23 +286,20 @@ function PersonajeDetailPage() {
     const personalLine = personalSignal
       ? `En mi ranking personal va #${personalSignal.rank} con ${personalSignal.count} voto${personalSignal.count === 1 ? '' : 's'} mío${personalSignal.count === 1 ? '' : 's'}.`
       : ''
-    try {
-      const result = await shareOrCopy({
+    await shareWithToast(
+      {
         title: titulo,
         text: [
           `${personaje.nombre} de ${personaje.anime} está en AnimeShowdown con ELO base ${stats.elo}. ¿Lo subirías en el ranking?`,
           personalLine,
         ].filter(Boolean).join('\n'),
         url: `/personajes/${slug}`,
-      })
-      if (result === 'cancelled') return
-      recordDailyShare()
-      toast.success(result === 'native' ? 'Ficha compartida' : 'Ficha copiada')
-    } catch (e) {
-      toast.error('No se pudo compartir', {
-        description: e?.message || 'Copia el enlace manualmente.',
-      })
-    }
+      },
+      {
+        nativeSuccess: 'Ficha compartida',
+        clipboardSuccess: 'Ficha copiada',
+      },
+    )
   }
   const retoRecomendado = getRetoRecomendado(personaje)
   // Visual del anime al que pertenece el personaje: usa el banner editorial
@@ -339,8 +335,8 @@ function PersonajeDetailPage() {
   const compartirRetoRecomendado = async () => {
     if (!retoRecomendado) return
     const rival = retoRecomendado.personaje
-    try {
-      const result = await shareOrCopy({
+    await shareWithToast(
+      {
         title: `${personaje.nombre} vs ${rival.nombre}`,
         text: [
           `Reto recomendado en AnimeShowdown: ${personaje.nombre} vs ${rival.nombre}.`,
@@ -348,15 +344,13 @@ function PersonajeDetailPage() {
           '¿A quién subirías votando?',
         ].join('\n'),
         url: `/duelos/${personaje.slug}-vs-${rival.slug}`,
-      })
-      if (result === 'cancelled') return
-      recordDailyShare()
-      toast.success(result === 'native' ? 'Reto compartido' : 'Reto copiado')
-    } catch (error) {
-      toast.error('No se pudo compartir el reto', {
-        description: error?.message || 'Copia el enlace manualmente.',
-      })
-    }
+      },
+      {
+        nativeSuccess: 'Reto compartido',
+        clipboardSuccess: 'Reto copiado',
+        errorTitle: 'No se pudo compartir el reto',
+      },
+    )
   }
 
   return (
