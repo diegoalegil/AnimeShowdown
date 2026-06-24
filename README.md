@@ -2,8 +2,6 @@
 
 [![Tests](https://github.com/diegoalegil/AnimeShowdown/actions/workflows/test.yml/badge.svg)](https://github.com/diegoalegil/AnimeShowdown/actions/workflows/test.yml)
 [![E2E](https://github.com/diegoalegil/AnimeShowdown/actions/workflows/e2e.yml/badge.svg)](https://github.com/diegoalegil/AnimeShowdown/actions/workflows/e2e.yml)
-![Coverage Backend](https://img.shields.io/badge/Coverage%20BE-76%25-6DB33F)
-![Coverage Frontend](https://img.shields.io/badge/Coverage%20FE-85%25-24C6DC)
 ![Version](https://img.shields.io/badge/Version-FE%200.0.0%20%7C%20BE%200.0.1--SNAPSHOT-24C6DC)
 ![React](https://img.shields.io/badge/React-19-61DAFB?logo=react&logoColor=white)
 ![Vite](https://img.shields.io/badge/Vite-8-646CFF?logo=vite&logoColor=white)

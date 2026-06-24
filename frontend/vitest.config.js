@@ -46,34 +46,29 @@ export default defineConfig({
     coverage: {
       provider: 'v8',
       reporter: ['text', 'json', 'html', 'lcov'],
-      all: false,
-      include: [
-        'src/lib/**/*.{ts,tsx}',
-        'src/lib/username-suggestions.js',
-        'src/data/voto-intenciones.js',
-        'src/hooks/useRanking.js',
-        'src/components/ProfileBanner.jsx',
-        'src/components/RequireCatalog.jsx',
-        'src/features/votar/components/IntencionSelector.jsx',
-      ],
+      // all:true + include de TODO src — el gate mide la superficie real del
+      // producto, no un puñado de ficheros. Antes (all:false + include de ~7
+      // rutas) el porcentaje era honesto solo para esos 7 archivos y daba una
+      // falsa sensación de cobertura global. Ahora cuenta cada .js/jsx/ts/tsx
+      // de src (menos tests, specs, helpers de test y tipos puros).
+      all: true,
+      include: ['src/**/*.{js,jsx,ts,tsx}'],
       exclude: [
         'src/**/*.test.{js,jsx,ts,tsx}',
         'src/**/*.spec.{js,jsx,ts,tsx}',
         'src/test/**',
         'src/lib/types.ts',
       ],
-      // Thresholds calibrados contra la cobertura real medida — misma
-      // metodología de siempre (real menos ~5 puntos de margen defensivo),
-      // RECALIBRADA para vitest 4: v4 mide con oxc una superficie más amplia que
-      // v3 (cuenta más ficheros de coverage.include aunque no estén importados),
-      // así que las cifras globales bajan respecto a v3. Medición real v4:
-      // lines 77.74% / statements 76.96% / branches 69.07% / functions 59.38%.
-      // El gate sigue protegiendo regresiones, ahora sobre la superficie real.
+      // Thresholds calibrados contra la cobertura real de TODO src (no de 7
+      // ficheros): medición real lines 37.93% / statements 36.83% /
+      // branches 33.96% / functions 34.43%, menos ~4-5 puntos de margen
+      // defensivo (variación CI/local + cambios que no tocan unidades
+      // instrumentadas). Honesto y protege regresiones sobre la superficie real.
       thresholds: {
-        lines: 72,
-        statements: 72,
-        branches: 64,
-        functions: 54,
+        lines: 33,
+        statements: 32,
+        branches: 29,
+        functions: 30,
       },
     },
   },
