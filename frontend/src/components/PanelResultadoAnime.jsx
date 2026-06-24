@@ -233,7 +233,7 @@ function PanelResultadoAnime({
           <textarea
             readOnly
             value={fallbackText}
-            className="mt-3 min-h-28 w-full rounded-lg border border-border bg-bg/70 p-3 text-[12px] leading-5 text-fg-muted outline-none focus-visible:ring-2 focus-visible:ring-accent/50"
+            className="mt-3 min-h-28 w-full rounded-lg border border-border bg-bg/70 p-3 text-[12px] leading-5 text-fg-muted outline-none focus-visible:ring-2 focus-visible:ring-gold"
             aria-label="Texto del resultado para copiar manualmente"
           />
         )}

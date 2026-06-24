@@ -337,7 +337,7 @@ function Field({ label, name, register, rules, errors, placeholder, fullWidth })
         type="text"
         {...register(name, rules)}
         placeholder={placeholder}
-        className={`rounded-lg border bg-bg px-3.5 py-2.5 text-sm text-fg-strong placeholder:text-fg-muted focus:outline-none focus:ring-2 focus:ring-accent/40 ${
+        className={`rounded-lg border bg-bg px-3.5 py-2.5 text-sm text-fg-strong placeholder:text-fg-muted focus:outline-none focus:ring-2 focus:ring-gold ${
           errors[name] ? 'border-danger' : 'border-border'
         }`}
       />

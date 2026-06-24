@@ -98,7 +98,7 @@ function ForgotPasswordPage() {
                   message: 'El email no es válido',
                 },
               })}
-              className={`rounded-lg border bg-bg px-3.5 py-2.5 text-sm text-fg-strong placeholder:text-fg-muted focus:outline-none focus:ring-2 focus:ring-accent/40 ${
+              className={`rounded-lg border bg-bg px-3.5 py-2.5 text-sm text-fg-strong placeholder:text-fg-muted focus:outline-none focus:ring-2 focus:ring-gold ${
                 errors.email ? 'border-danger' : 'border-border'
               }`}
               placeholder="tu@correo.com"

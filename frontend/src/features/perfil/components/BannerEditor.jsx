@@ -354,7 +354,7 @@ function CatalogoForm({ updateUser }) {
           value={q}
           onChange={(e) => setQ(e.target.value)}
           placeholder="Busca un personaje o anime…"
-          className="w-full rounded-lg border border-border bg-bg py-2.5 pl-9 pr-3 text-sm text-fg-strong placeholder:text-fg-muted focus:outline-none focus:ring-2 focus:ring-accent/40"
+          className="w-full rounded-lg border border-border bg-bg py-2.5 pl-9 pr-3 text-sm text-fg-strong placeholder:text-fg-muted focus:outline-none focus:ring-2 focus:ring-gold"
         />
       </div>
       {isPending ? (
@@ -439,7 +439,7 @@ function VisualesForm({ items, updateUser, etiqueta }) {
           value={q}
           onChange={(e) => setQ(e.target.value)}
           placeholder={`Busca un ${etiqueta}…`}
-          className="w-full rounded-lg border border-border bg-bg py-2.5 pl-9 pr-3 text-sm text-fg-strong placeholder:text-fg-muted focus:outline-none focus:ring-2 focus:ring-accent/40"
+          className="w-full rounded-lg border border-border bg-bg py-2.5 pl-9 pr-3 text-sm text-fg-strong placeholder:text-fg-muted focus:outline-none focus:ring-2 focus:ring-gold"
         />
       </div>
       {filtrados.length === 0 ? (
@@ -534,7 +534,7 @@ function UrlForm({ user, updateUser }) {
             maxLength: { value: 2000, message: 'URL demasiado larga' },
           })}
           placeholder="https://i.imgur.com/abc.jpg"
-          className={`rounded-lg border bg-bg px-3.5 py-2.5 text-sm text-fg-strong placeholder:text-fg-muted focus:outline-none focus:ring-2 focus:ring-accent/40 ${
+          className={`rounded-lg border bg-bg px-3.5 py-2.5 text-sm text-fg-strong placeholder:text-fg-muted focus:outline-none focus:ring-2 focus:ring-gold ${
             errors.bannerUrl ? 'border-danger' : 'border-border'
           }`}
         />

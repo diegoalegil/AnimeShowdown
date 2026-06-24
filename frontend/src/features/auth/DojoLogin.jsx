@@ -251,7 +251,7 @@ function DojoLogin({
                   value={identificador}
                   onChange={(e) => setIdentificador(e.target.value)}
                   placeholder="tu usuario o tu email"
-                  className="min-h-11 rounded-lg border border-border bg-canvas px-3.5 py-2.5 text-sm text-fg-strong focus:outline-none focus:ring-2 focus:ring-accent/40"
+                  className="min-h-11 rounded-lg border border-border bg-canvas px-3.5 py-2.5 text-sm text-fg-strong focus:outline-none focus:ring-2 focus:ring-gold"
                 />
               </div>
 
