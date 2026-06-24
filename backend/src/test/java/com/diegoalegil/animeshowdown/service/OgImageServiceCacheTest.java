@@ -72,8 +72,31 @@ class OgImageServiceCacheTest {
         assertThat(cache().get("naruto")).isNotNull();
     }
 
+    @Test
+    void claveDeDueloUsaSeparadorQueNoColisionaConGuiones() {
+        // Bajo el separador viejo '-vs-', ('x-vs','y') y ('x','vs-y') colapsaban a
+        // la misma clave 'x-vs-vs-y'. Con '|' (imposible en un slug) son distintas.
+        when(personajeRepository.findBySlug(org.mockito.ArgumentMatchers.anyString()))
+                .thenReturn(java.util.Optional.empty());
+
+        sut.renderDuelo("x-vs", "y");  // clave "x-vs|y"
+        sut.renderDuelo("x", "vs-y");  // clave "x|vs-y" (distinta → cache miss)
+
+        // Si colisionaran (separador viejo) la 2ª sería cache hit y el cuerpo NO
+        // consultaría "x". Que se consulte prueba que son entradas separadas.
+        verify(personajeRepository).findBySlug("x");
+        assertThat(dueloCache().get("x-vs|y")).isNotNull();
+        assertThat(dueloCache().get("x|vs-y")).isNotNull();
+    }
+
     private Cache cache() {
         Cache cache = cacheManager.getCache("og-anime");
+        assertThat(cache).isNotNull();
+        return cache;
+    }
+
+    private Cache dueloCache() {
+        Cache cache = cacheManager.getCache("og-duelo");
         assertThat(cache).isNotNull();
         return cache;
     }

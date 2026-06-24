@@ -303,7 +303,11 @@ public class OgImageService {
                 "1v1 al mejor de 5 rondas · sube tu ELO PvP");
     }
 
-    @Cacheable(value = "og-duelo", key = "#slugA + '-vs-' + #slugB", unless = "#result == null")
+    // Separador '|': los slugs son [a-z0-9-] (SlugUtil), así que '-vs-' como
+    // separador es ambiguo —('x-vs','y') y ('x','vs-y') colapsan a la misma
+    // clave 'x-vs-vs-y'—. '|' nunca aparece en un slug, así que no colisiona.
+    // No se slugifica aquí: el cuerpo usa los slugs crudos en findBySlug.
+    @Cacheable(value = "og-duelo", key = "#slugA + '|' + #slugB", unless = "#result == null")
     public byte[] renderDuelo(String slugA, String slugB) {
         Personaje a = personajeRepository.findBySlug(slugA).orElse(null);
         Personaje b = personajeRepository.findBySlug(slugB).orElse(null);
