@@ -84,13 +84,21 @@ public class RateLimitFilter extends OncePerRequestFilter {
     private static final RateLimitPolicy WRAPPED = new RateLimitPolicy(
             "wrapped", 30, Duration.ofMinutes(1));
 
-    // Policies de fuerza-bruta sobre credenciales: el bypass de admin NO aplica
-    // aquí. El límite de login/2fa/registro/reset es UNIVERSAL — un admin no
-    // tiene motivo legítimo para saltárselo, y si su token se compromete no debe
-    // poder martillear credenciales ajenas sin freno. El resto de policies
-    // (economía/social/imágenes…) sí conceden bypass para operativa de admin.
-    private static final Set<String> POLICIES_FUERZA_BRUTA = Set.of(
-            LOGIN.id(), REGISTRO.id(), RESET_PASSWORD.id(), TWO_FACTOR.id());
+    // Policies donde el bypass de admin NO aplica — el límite es UNIVERSAL:
+    //   · auth (login/2fa/registro/reset): fuerza-bruta sobre credenciales; un
+    //     admin no tiene motivo legítimo para saltárselo y un token robado no
+    //     debe poder martillear credenciales ajenas.
+    //   · social (reacciones/comentarios/seguir) y economía (sobres/cofres/
+    //     trades): son acciones de usuario que mutan estado y toman locks
+    //     pesimistas, no operativa de lectura. Ningún admin las ejecuta a
+    //     >60/min legítimamente (moderar va por endpoints de admin aparte); el
+    //     bypass solo abriría spam/DoS por contención de locks si el token admin
+    //     se compromete.
+    // El resto (imágenes/descargas/GET de render) sí concede bypass — ahí un
+    // admin sí puede tener picos legítimos de preview/tooling y no muta estado.
+    private static final Set<String> POLICIES_SIN_BYPASS_ADMIN = Set.of(
+            LOGIN.id(), REGISTRO.id(), RESET_PASSWORD.id(), TWO_FACTOR.id(),
+            SOCIAL.id(), ECONOMIA.id());
 
     private static final String RUTA_ELO_DUEL_PREFIJO = "/api/games/elo-duel/";
     private static final String RUTA_WRAPPED_PUBLICO_PREFIJO = "/api/wrapped/u/";
@@ -137,7 +145,7 @@ public class RateLimitFilter extends OncePerRequestFilter {
         // Bypass de admin en todo MENOS las policies de fuerza-bruta. El
         // contains() va primero a propósito: en endpoints de auth corta por
         // short-circuit y ni siquiera paga el lookup a BD de esAdmin().
-        if (!POLICIES_FUERZA_BRUTA.contains(policy.id()) && esAdmin(req)) {
+        if (!POLICIES_SIN_BYPASS_ADMIN.contains(policy.id()) && esAdmin(req)) {
             chain.doFilter(req, res);
             return;
         }
