@@ -63,7 +63,7 @@ export default function EventCountdown({ evento, hero = false }) {
       <div ref={wrapRef} className={`fest-count${hero ? ' fest-count--hero' : ''}`} role="timer" aria-live="off">
         <div className="fest-count__unit">
           <span className="fest-count__value" data-key="dias">--</span>
-          <span className="fest-count__label">dias</span>
+          <span className="fest-count__label">días</span>
         </div>
         <span className="fest-count__sep" aria-hidden="true">:</span>
         <div className="fest-count__unit">

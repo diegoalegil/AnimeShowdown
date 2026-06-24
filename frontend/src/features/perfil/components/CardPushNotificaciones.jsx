@@ -61,7 +61,7 @@ function CardPushNotificaciones() {
       }
       const config = publicKeyQuery.data || await publicKeyQuery.refetch().then((r) => r.data)
       if (!config?.enabled || !config.publicKey) {
-        throw new Error('Las notificaciones push aun no estan activas en el servidor.')
+        throw new Error('Las notificaciones push aún no están activas en el servidor.')
       }
 
       let nextPermission = permissionActual()

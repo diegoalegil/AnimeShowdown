@@ -367,7 +367,7 @@ function VersusHeroCard({ personaje, stats, side }) {
           <div className="mt-5 grid grid-cols-3 gap-2">
             <MiniStat label="ELO" value={stats.elo} accent />
             <MiniStat label="Récord" value={`${stats.wins}-${stats.losses}`} />
-            <MiniStat label="Win" value={`${getWinRate(stats)}%`} />
+            <MiniStat label="Ratio" value={`${getWinRate(stats)}%`} />
           </div>
           <Link
             to={`/personajes/${personaje.slug}`}
