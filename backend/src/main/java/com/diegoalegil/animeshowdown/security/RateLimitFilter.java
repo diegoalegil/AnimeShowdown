@@ -83,6 +83,14 @@ public class RateLimitFilter extends OncePerRequestFilter {
     // a quien comparte/abre un wrapped y corta el martilleo.
     private static final RateLimitPolicy WRAPPED = new RateLimitPolicy(
             "wrapped", 30, Duration.ofMinutes(1));
+    // Cron disparado por secreto compartido (POST /api/cron/**). El secreto ya
+    // autentica, pero sin rate-limit a nivel app un secreto filtrado deja
+    // martillear TorneoAutoService.generar() (locks de creación + cascada de
+    // bracket + indexNow + notificaciones), un DoS por contención del
+    // TorneoCreationLock global que comparten los usuarios reales. 6/hora basta
+    // para el scheduler legítimo (corre puntualmente) y corta el abuso.
+    private static final RateLimitPolicy CRON = new RateLimitPolicy(
+            "cron", 6, Duration.ofHours(1));
 
     // Policies donde el bypass de admin NO aplica — el límite es UNIVERSAL:
     //   · auth (login/2fa/registro/reset): fuerza-bruta sobre credenciales; un
@@ -111,6 +119,7 @@ public class RateLimitFilter extends OncePerRequestFilter {
     private static final String RUTA_REACCIONES = "/api/reacciones";
     private static final String RUTA_COMENTARIOS_SUFIJO = "/comentarios";
     private static final String RUTA_SEGUIDORES_PREFIJO = "/api/seguidores/";
+    private static final String RUTA_CRON_PREFIJO = "/api/cron/";
 
     private final boolean enabled;
     private final Cache<String, Bucket> buckets;
@@ -254,6 +263,11 @@ public class RateLimitFilter extends OncePerRequestFilter {
                 || uri.endsWith(RUTA_COMENTARIOS_SUFIJO)
                 || uri.startsWith(RUTA_SEGUIDORES_PREFIJO)) {
             return SOCIAL;
+        }
+        // Cron por secreto compartido (POST /api/cron/**): limita un secreto
+        // filtrado para que no martillee la generación de torneos.
+        if (uri.startsWith(RUTA_CRON_PREFIJO)) {
+            return CRON;
         }
         return null;
     }

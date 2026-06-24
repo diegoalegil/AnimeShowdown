@@ -174,6 +174,15 @@ class RateLimitFilterTest {
     }
 
     @Test
+    void cronLimitaSeisPostPorHora() throws Exception {
+        // POST /api/cron/** antes quedaba sin límite a nivel app (solo el secreto).
+        for (int i = 0; i < 6; i++) {
+            assertEquals(200, post("/api/cron/torneos/auto-generar").getStatus());
+        }
+        assertEquals(429, post("/api/cron/torneos/auto-generar").getStatus());
+    }
+
+    @Test
     void socialPermiteSesentaReaccionesPorMinuto() throws Exception {
         for (int i = 0; i < 60; i++) {
             assertEquals(200, post("/api/reacciones").getStatus());

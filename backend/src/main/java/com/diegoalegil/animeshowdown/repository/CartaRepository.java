@@ -74,4 +74,13 @@ public interface CartaRepository extends JpaRepository<Carta, Long> {
 
     @EntityGraph(attributePaths = "personaje")
     Optional<Carta> findByPersonajeSlugAndRarezaAndVariante(String slug, RarezaCarta rareza, String variante);
+
+    /**
+     * Carta especial de un personaje SIN exigir variante vacía: los premios de
+     * evento fallaban con personajes cuya ESPECIAL tiene variante no vacía
+     * (p.ej. ":6-caminos"). Ordena por variante ascendente, así prefiere la base
+     * ("") si existe y, si no, la primera variante de forma determinista.
+     */
+    @EntityGraph(attributePaths = "personaje")
+    Optional<Carta> findFirstByPersonajeSlugAndRarezaOrderByVarianteAsc(String slug, RarezaCarta rareza);
 }
