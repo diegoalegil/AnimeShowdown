@@ -55,7 +55,7 @@
  *   NO existe en el prompt del producto: el padre debe pasar la regla real.
  * @param {boolean} [props.disabled]  Bloquea la elección (p.ej. fin de partida).
  */
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
+import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react'
 import './goldscale.css'
 import { useReducedMotion } from 'framer-motion'
 import { useSound } from '../../../contexts/SoundContext'
@@ -109,6 +109,7 @@ function GoldScale({
   const eloLRef = useRef(null)
   const eloRRef = useRef(null)
   const rootRef = useRef(null)
+  const stageFrameRef = useRef(null)
 
   // — motor de animación (ángulo, vaivén, hundimiento) en un solo rAF pausable
   const engine = useRef({
@@ -195,6 +196,23 @@ function GoldScale({
       if (e.raf) cancelAnimationFrame(e.raf)
     }
   }, [ensureRaf])
+
+  // — escala fluida del escenario: el sistema de coordenadas es fijo (680×470,
+  // el rAF posiciona los platillos en px), así que en pantallas estrechas hay
+  // que escalar TODO el escenario para que no se recorte. Medimos el ancho del
+  // marco y escribimos --gs-scale = ancho/680 (tope 1, nunca agranda).
+  useLayoutEffect(() => {
+    const frame = stageFrameRef.current
+    if (!frame) return
+    const aplicar = () => {
+      frame.style.setProperty('--gs-scale', String(Math.min(1, frame.clientWidth / 680)))
+    }
+    aplicar()
+    if (typeof ResizeObserver === 'undefined') return
+    const ro = new ResizeObserver(aplicar)
+    ro.observe(frame)
+    return () => ro.disconnect()
+  }, [])
 
   // — pick: hundimiento inmediato + vaivén de espera
   useEffect(() => {
@@ -363,6 +381,7 @@ function GoldScale({
 
   return (
     <div ref={rootRef} className="gs-root">
+      <div ref={stageFrameRef} className="gs-stage-frame">
       <div className="gs-stage">
         <svg viewBox="0 0 680 470" className="gs-armature" aria-hidden="true">
           <defs>
@@ -398,6 +417,7 @@ function GoldScale({
             </div>
           </div>
         )}
+      </div>
       </div>
 
       <p role="status" aria-live="polite" className="gs-live font-mono text-[13px] text-gold-pale">

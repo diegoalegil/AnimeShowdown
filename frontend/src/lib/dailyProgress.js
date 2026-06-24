@@ -99,8 +99,20 @@ export function readDailyProgress(date = fechaDelDia()) {
   return normalizeProgress(readJson(progressKey(date), null), date)
 }
 
-export function readDailyStreak() {
-  return normalizeStreak(readJson(STREAK_KEY, null))
+export function readDailyStreak(date = fechaDelDia()) {
+  const streak = normalizeStreak(readJson(STREAK_KEY, null))
+  if (!streak.lastCompletedDate) return streak
+  // La racha solo sigue viva si la última jornada completada fue hoy o ayer.
+  // Si es anterior, está rota: devolver `current` crudo mostraría un dato
+  // falso ("Racha: 5 días") hasta la próxima misión. Se recalcula en lectura
+  // (no se persiste: el valor guardado se corrige al completar la siguiente).
+  if (
+    streak.lastCompletedDate === date ||
+    streak.lastCompletedDate === previousLocalDate(date)
+  ) {
+    return streak
+  }
+  return { ...streak, current: 0 }
 }
 
 export function readRecentDailyProgress(days = 7, date = fechaDelDia()) {
@@ -116,7 +128,7 @@ export function updateDailyProgress(mutator, date = fechaDelDia()) {
   const next = normalizeProgress(mutator({ ...before }) || before, date)
   safeSet(progressKey(date), JSON.stringify(next))
 
-  let streak = readDailyStreak()
+  let streak = readDailyStreak(date)
   if (!before.completed && next.completed && streak.lastCompletedDate !== date) {
     const yesterday = previousLocalDate(date)
     const continued = streak.lastCompletedDate === yesterday
