@@ -625,6 +625,16 @@ describe('endpoints', () => {
     expect(fn.mock.calls.length).toBeGreaterThan(0)
   })
 
+  it('votosPeriodoBatch: trocea en grupos de 50 y fusiona las respuestas (>50 slugs)', async () => {
+    // Antes truncaba a 50 → los favoritos por encima de 50 no recibían datos.
+    const fn = mockFetchResolved([{ slug: 'x' }])
+    vi.stubGlobal('fetch', fn)
+    const slugs = Array.from({ length: 51 }, (_, i) => `s${i}`)
+    const result = await endpoints.votosPeriodoBatch({ slugs })
+    expect(fn.mock.calls.length).toBe(2) // 50 + 1
+    expect(result).toHaveLength(2) // se fusionan ambos grupos (el mock da 1 por grupo)
+  })
+
   it('personajeAleatorio: llama al endpoint publico con exclusion opcional', async () => {
     const fn = mockFetchResolved({ slug: 'zoro' })
     vi.stubGlobal('fetch', fn)

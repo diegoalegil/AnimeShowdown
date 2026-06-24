@@ -75,7 +75,11 @@ function normalizarApiBase(value: unknown): string {
     return url.toString().replace(/\/$/, '')
   } catch {
     if (import.meta.env.DEV) return DEV_API_BASE
-    throw new Error('VITE_API_BASE_URL debe ser una URL válida')
+    // En PROD una URL mal configurada NO debe tumbar el arranque entero: este
+    // código corre en la evaluación del módulo, así que un throw aquí deja la
+    // app en pantalla en blanco sin fallback. Degradamos al dominio canónico.
+    console.error('[api] VITE_API_BASE_URL no es una URL válida; usando el dominio canónico del API.')
+    return PROD_API_BASE
   }
 }
 
@@ -760,12 +764,25 @@ export const endpoints = {
   votosPeriodoPersonaje: (slug, { dias = 7 } = {}) =>
     api.get(`/api/personajes/${encodeURIComponent(slug)}/votos-periodo?dias=${dias}`, { auth: false }),
   votosPeriodoBatch: ({ slugs = [], dias = 7 } = {}) => {
-    const lista = (Array.isArray(slugs) ? slugs : [])
-      .filter(Boolean)
-      .slice(0, 50)
-      .join(',')
-    if (!lista) return Promise.resolve([])
-    return api.get(`/api/personajes/votos-periodo?slugs=${encodeURIComponent(lista)}&dias=${dias}`, { auth: false })
+    const lista = (Array.isArray(slugs) ? slugs : []).filter(Boolean)
+    if (!lista.length) return Promise.resolve([])
+    // El endpoint acepta hasta 50 slugs por request; antes se truncaba a 50 y
+    // los favoritos por encima de 50 NUNCA recibían datos (aunque la query-key
+    // incluía la lista completa). Troceamos en grupos de 50 y fusionamos las
+    // respuestas (cada una es un array de {slug, ...}).
+    const CHUNK = 50
+    const grupos: string[][] = []
+    for (let i = 0; i < lista.length; i += CHUNK) {
+      grupos.push(lista.slice(i, i + CHUNK))
+    }
+    return Promise.all(
+      grupos.map((grupo) =>
+        api.get(
+          `/api/personajes/votos-periodo?slugs=${encodeURIComponent(grupo.join(','))}&dias=${dias}`,
+          { auth: false },
+        ),
+      ),
+    ).then((respuestas) => respuestas.flat())
   },
 
   // Mi roster / favoritos. Todos requieren auth.
