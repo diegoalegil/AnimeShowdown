@@ -54,6 +54,10 @@ public class ProductionSecretsValidator {
     private final String eloDuelTokenSecret;
     /** Con APP_SECRETS_STRICT=true las claves cortas abortan el boot (activar tras rotarlas). */
     private final boolean entropiaEstricta;
+    /** ¿Hay API key de Resend? Sin ella el email transaccional está apagado. */
+    private final boolean emailHabilitado;
+    /** ¿El remitente sigue siendo el sender de prueba de Resend (solo entrega al dueño)? */
+    private final boolean emailRemitenteEsTest;
 
     public ProductionSecretsValidator(
             @Value("${app.secrets.strict:false}") boolean entropiaEstricta,
@@ -67,7 +71,9 @@ public class ProductionSecretsValidator {
             @Value("${spring.security.oauth2.client.registration.discord.client-secret:}") String discordClientSecret,
             @Value("${app.turnstile.enabled:false}") boolean turnstileEnabled,
             @Value("${app.turnstile.secret:}") String turnstileSecret,
-            @Value("${app.elo-duel.token-secret:}") String eloDuelTokenSecret) {
+            @Value("${app.elo-duel.token-secret:}") String eloDuelTokenSecret,
+            @Value("${email.resend.api-key:}") String resendApiKey,
+            @Value("${email.resend.from:}") String resendFrom) {
         // LinkedHashMap para que el mensaje de error sea determinístico
         // (Map.of no garantiza orden en versiones futuras).
         this.secretosRequeridos = new LinkedHashMap<>();
@@ -90,6 +96,13 @@ public class ProductionSecretsValidator {
         this.turnstileSecret = turnstileSecret == null ? "" : turnstileSecret.trim();
         this.eloDuelTokenSecret = eloDuelTokenSecret == null ? "" : eloDuelTokenSecret.trim();
         this.entropiaEstricta = entropiaEstricta;
+
+        this.emailHabilitado = resendApiKey != null && !resendApiKey.isBlank();
+        // El default de email.resend.from es el sender de prueba de Resend, que
+        // SOLO entrega al dueño de la cuenta. Si en prod sigue así (o vacío), los
+        // usuarios reales no reciben verificación ni reset.
+        String from = resendFrom == null ? "" : resendFrom.trim();
+        this.emailRemitenteEsTest = from.isBlank() || from.equalsIgnoreCase("onboarding@resend.dev");
     }
 
     @PostConstruct
@@ -151,6 +164,31 @@ public class ProductionSecretsValidator {
                     "ProductionSecretsValidator: variables OAuth con placeholder o vacías {} — "
                             + "los login providers asociados no funcionarán hasta que se configuren.",
                     opcionalesInseguros);
+        }
+
+        // Email transaccional (verificación de cuenta + reset de contraseña). El
+        // fallo era SILENCIOSO: sin RESEND_API_KEY el servicio está apagado y con
+        // el RESEND_FROM de prueba Resend solo entrega al dueño de la cuenta, así
+        // que los usuarios reales nunca reciben nada y no hay error visible. Lo
+        // hacemos ruidoso en boot (y abortable con APP_SECRETS_STRICT, igual que
+        // las claves cortas: un boot-abort sorpresa en prod sería peor que el
+        // degradado, así que por defecto solo se avisa).
+        List<String> emailProblemas = new ArrayList<>();
+        if (!emailHabilitado) {
+            emailProblemas.add("RESEND_API_KEY vacía (email transaccional DESACTIVADO)");
+        }
+        if (emailRemitenteEsTest) {
+            emailProblemas.add("RESEND_FROM sin configurar — usa el sender de prueba "
+                    + "onboarding@resend.dev, que SOLO entrega al dueño de la cuenta Resend");
+        }
+        if (!emailProblemas.isEmpty()) {
+            String mensaje = "Configuración de email incompleta: " + emailProblemas
+                    + ". La verificación de email y el reset de contraseña no llegarán a los "
+                    + "usuarios reales. Configura RESEND_API_KEY y RESEND_FROM (dominio verificado).";
+            if (entropiaEstricta) {
+                throw new IllegalStateException("Boot abortado: " + mensaje);
+            }
+            log.error(mensaje);
         }
 
         // Token de ronda ELO: NO requerido (el fallback efímero es seguro, solo
