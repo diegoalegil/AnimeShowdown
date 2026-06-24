@@ -21,8 +21,12 @@ import com.diegoalegil.animeshowdown.service.AnimeShowdownMetrics;
 import com.diegoalegil.animeshowdown.service.RankingMaterializadoService;
 import com.diegoalegil.animeshowdown.service.RankingMovimientosService;
 
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.tags.Tag;
+
 @RestController
 @RequestMapping("/api/votos")
+@Tag(name = "Votos y ranking", description = "Rankings comunitarios por votos: all-time, segmentado, ELO canónico y movimientos.")
 public class VotoController {
 
     private static final int MAX_LIMIT = 200;
@@ -49,6 +53,8 @@ public class VotoController {
      */
     @GetMapping("/ranking")
     @Cacheable(value = "votos-ranking")
+    @Operation(summary = "Ranking all-time",
+            description = "Público. Ranking comunitario completo por votos, lista plana sin paginar (cacheado).")
     public List<RankingItem> obtenerRanking() {
         return metrics.recordRanking(() -> rankingMaterializadoService.rankingAllTime(FULL_RANKING_LIMIT));
     }
