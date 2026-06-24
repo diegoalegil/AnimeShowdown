@@ -156,6 +156,24 @@ class RateLimitFilterTest {
     }
 
     @Test
+    void putDestacadaConsumeElBucketDeEconomia() throws Exception {
+        // PUT /api/me/cartas/{id}/destacada antes quedaba sin límite (no era POST).
+        for (int i = 0; i < 60; i++) {
+            assertEquals(200, request("PUT", "/api/me/cartas/42/destacada").getStatus());
+        }
+        assertEquals(429, request("PUT", "/api/me/cartas/42/destacada").getStatus());
+    }
+
+    @Test
+    void patchCategoriaVotoConsumeElBucketDeVotos() throws Exception {
+        // PATCH /api/enfrentamientos/{id}/votar/categoria antes quedaba sin límite.
+        for (int i = 0; i < 60; i++) {
+            assertEquals(200, request("PATCH", "/api/enfrentamientos/7/votar/categoria").getStatus());
+        }
+        assertEquals(429, request("PATCH", "/api/enfrentamientos/7/votar/categoria").getStatus());
+    }
+
+    @Test
     void socialPermiteSesentaReaccionesPorMinuto() throws Exception {
         for (int i = 0; i < 60; i++) {
             assertEquals(200, post("/api/reacciones").getStatus());
@@ -242,6 +260,14 @@ class RateLimitFilterTest {
         if (authorization != null) {
             request.addHeader("Authorization", authorization);
         }
+        MockHttpServletResponse response = new MockHttpServletResponse();
+        filter.doFilter(request, response, new MockFilterChain());
+        return response;
+    }
+
+    private MockHttpServletResponse request(String method, String path) throws Exception {
+        MockHttpServletRequest request = new MockHttpServletRequest(method, path);
+        request.setServletPath(path);
         MockHttpServletResponse response = new MockHttpServletResponse();
         filter.doFilter(request, response, new MockFilterChain());
         return response;

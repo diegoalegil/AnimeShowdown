@@ -201,6 +201,16 @@ public class RateLimitFilter extends OncePerRequestFilter {
         if ("PUT".equalsIgnoreCase(method) && coincide(uri, "/api/auth/me/password")) {
             return RESET_PASSWORD;
         }
+        // Acciones de economía/voto que NO son POST y antes quedaban sin límite:
+        //  - PUT /api/me/cartas/{id}/destacada (fijar carta destacada) → economía.
+        //  - PATCH /api/enfrentamientos/{id}/votar/categoria (intención de voto) → votos.
+        if ("PUT".equalsIgnoreCase(method) && uri.startsWith(RUTA_CARTAS_PREFIJO)) {
+            return ECONOMIA;
+        }
+        if ("PATCH".equalsIgnoreCase(method)
+                && uri.startsWith(RUTA_VOTAR_PREFIJO) && uri.endsWith("/votar/categoria")) {
+            return VOTOS;
+        }
         if (!"POST".equalsIgnoreCase(method)) {
             return null;
         }
