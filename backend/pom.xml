@@ -308,10 +308,11 @@
 							<goal>check</goal>
 						</goals>
 						<configuration>
-							<!-- Hard gate de coverage para service.*. Umbrales con margen
-							     defensivo (LINE 65, BRANCH 50) para no romper por
-							     fluctuaciones y dejar techo para futuras refactors sin
-							     penalizar PRs no relacionados. -->
+							<!-- Hard gate de coverage para service.*, controller.* y
+							     security.*. Umbrales con margen defensivo bajo la cobertura
+							     real medida (service ~83/62, controller ~79/56, security
+							     ~82/75) para no romper por fluctuaciones ni penalizar PRs
+							     no relacionados. controller y security antes no tenían gate. -->
 							<haltOnFailure>true</haltOnFailure>
 							<rules>
 								<rule>
@@ -329,6 +330,42 @@
 											<counter>BRANCH</counter>
 											<value>COVEREDRATIO</value>
 											<minimum>0.50</minimum>
+										</limit>
+									</limits>
+								</rule>
+								<rule>
+									<element>PACKAGE</element>
+									<includes>
+										<include>com.diegoalegil.animeshowdown.controller*</include>
+									</includes>
+									<limits>
+										<limit>
+											<counter>LINE</counter>
+											<value>COVEREDRATIO</value>
+											<minimum>0.65</minimum>
+										</limit>
+										<limit>
+											<counter>BRANCH</counter>
+											<value>COVEREDRATIO</value>
+											<minimum>0.45</minimum>
+										</limit>
+									</limits>
+								</rule>
+								<rule>
+									<element>PACKAGE</element>
+									<includes>
+										<include>com.diegoalegil.animeshowdown.security*</include>
+									</includes>
+									<limits>
+										<limit>
+											<counter>LINE</counter>
+											<value>COVEREDRATIO</value>
+											<minimum>0.70</minimum>
+										</limit>
+										<limit>
+											<counter>BRANCH</counter>
+											<value>COVEREDRATIO</value>
+											<minimum>0.60</minimum>
 										</limit>
 									</limits>
 								</rule>
