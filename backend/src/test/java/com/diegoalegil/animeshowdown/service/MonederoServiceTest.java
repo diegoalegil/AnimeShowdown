@@ -1,6 +1,7 @@
 package com.diegoalegil.animeshowdown.service;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.*;
@@ -13,7 +14,9 @@ import org.mockito.InOrder;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.SpyBean;
+import org.springframework.http.HttpStatus;
 import org.springframework.test.context.ActiveProfiles;
+import org.springframework.web.server.ResponseStatusException;
 
 import com.diegoalegil.animeshowdown.model.MotivoMovimiento;
 import com.diegoalegil.animeshowdown.model.Usuario;
@@ -188,6 +191,52 @@ class MonederoServiceTest {
         InOrder inOrder = inOrder(monederoRepo, movimientoRepo);
         inOrder.verify(monederoRepo).findForUpdateByUsuarioId(usuario.getId());
         inOrder.verify(movimientoRepo).countDropsDesde(eq(usuario), any(), eq(desde));
+    }
+
+    @Test
+    void debitarReduceElSaldoYRegistraMovimientoNegativo() {
+        Usuario usuario = crearUsuario("debitar_ok");
+        monederoService.acreditar(usuario, MotivoMovimiento.DROP_VOTO, "fondo:debitar:1", 100L);
+
+        long saldo = monederoService.debitar(usuario, MotivoMovimiento.COMPRA_SOBRE, "compra:1", 30L);
+
+        assertThat(saldo).isEqualTo(70L);
+        assertThat(monederoService.saldoDe(usuario)).isEqualTo(70L);
+        // Crédito (+100) y débito (-30) registrados como dos movimientos.
+        assertThat(movimientoRepo.count()).isEqualTo(2L);
+    }
+
+    @Test
+    void debitarConSaldoInsuficienteLanza409YNoTocaElSaldo() {
+        Usuario usuario = crearUsuario("debitar_insuf");
+        monederoService.acreditar(usuario, MotivoMovimiento.DROP_VOTO, "fondo:insuf:1", 50L);
+
+        assertThatThrownBy(() -> monederoService.debitar(
+                usuario, MotivoMovimiento.COMPRA_SOBRE, "compra:insuf:1", 100L))
+                .isInstanceOf(ResponseStatusException.class)
+                .satisfies(e -> assertThat(((ResponseStatusException) e).getStatusCode())
+                        .isEqualTo(HttpStatus.CONFLICT));
+
+        // El gasto fallido no debe mover el saldo.
+        assertThat(monederoService.saldoDe(usuario)).isEqualTo(50L);
+    }
+
+    @Test
+    void debitarSinMonederoLanza409() {
+        // Sin monedero (sin crédito previo) tampoco hay saldo: 409, no NPE.
+        Usuario usuario = crearUsuario("debitar_sinmon");
+        assertThatThrownBy(() -> monederoService.debitar(
+                usuario, MotivoMovimiento.COMPRA_SOBRE, "compra:sinmon:1", 10L))
+                .isInstanceOf(ResponseStatusException.class);
+    }
+
+    @Test
+    void debitarCantidadNoPositivaEsIllegalArgument() {
+        Usuario usuario = crearUsuario("debitar_neg");
+        monederoService.acreditar(usuario, MotivoMovimiento.DROP_VOTO, "fondo:neg:1", 100L);
+        assertThatThrownBy(() -> monederoService.debitar(
+                usuario, MotivoMovimiento.COMPRA_SOBRE, "compra:neg:1", 0L))
+                .isInstanceOf(IllegalArgumentException.class);
     }
 
     private Usuario crearUsuario(String username) {
