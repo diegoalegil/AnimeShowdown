@@ -43,8 +43,22 @@ const PROD_HOSTS = new Set(['animeshowdown.dev', 'www.animeshowdown.dev'])
 const PREVIEW_API_ORIGINS =
   'https://animeshowdown-production-a9f4.up.railway.app wss://animeshowdown-production-a9f4.up.railway.app'
 
-function esHostDePreview(hostname) {
-  return !PROD_HOSTS.has(hostname)
+// Normaliza el host antes de cualquier match: minúsculas y SIN el punto final
+// del FQDN. Sin esto, `animeshowdown.dev.` (punto final, válido en DNS) NO
+// estaba en PROD_HOSTS → se trataba como preview y colaba el origen Railway de
+// preview en la CSP de PRODUCCIÓN.
+function normalizarHost(hostname) {
+  return (hostname || '').toLowerCase().replace(/\.$/, '')
+}
+
+// Allowlist EXPLÍCITA de hosts de preview: solo los deploys de Cloudflare Pages
+// (*.pages.dev, que es donde corre este propio middleware) reciben el origen del
+// API de preview en connect-src. Antes cualquier host no-prod lo recibía
+// (fail-open); ahora un host desconocido o falsificado NO amplía la CSP.
+export function esHostDePreview(hostname) {
+  const host = normalizarHost(hostname)
+  if (PROD_HOSTS.has(host)) return false
+  return host === 'localhost' || host.endsWith('.pages.dev')
 }
 
 // Devuelve una Response con connect-src ampliado para incluir el API de preview.

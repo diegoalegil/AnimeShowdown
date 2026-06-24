@@ -1,7 +1,7 @@
 import { describe, it, expect } from 'vitest'
 // El middleware OG corre en CADA request en el edge de Cloudflare. Aquí
 // testeamos solo la función pura de routing (sin HTMLRewriter ni red).
-import { ogParaRuta } from '../../functions/_middleware.js'
+import { ogParaRuta, esHostDePreview } from '../../functions/_middleware.js'
 
 const API = 'https://api.animeshowdown.dev'
 const og = (path: string) => ogParaRuta(new URL(path, 'https://animeshowdown.dev'), API)
@@ -89,5 +89,29 @@ describe('ogParaRuta', () => {
   it('devuelve null para rutas no mapeadas', () => {
     expect(og('/apoya')).toBeNull()
     expect(og('/')).toBeNull()
+  })
+})
+
+describe('esHostDePreview (CSP edge)', () => {
+  it('los hosts de producción NO son preview', () => {
+    expect(esHostDePreview('animeshowdown.dev')).toBe(false)
+    expect(esHostDePreview('www.animeshowdown.dev')).toBe(false)
+  })
+
+  it('el FQDN con punto final del host de prod NO cuela como preview', () => {
+    // Regresión: animeshowdown.dev. (punto final) burlaba el match de prod y
+    // metía el origen Railway de preview en la CSP de producción.
+    expect(esHostDePreview('animeshowdown.dev.')).toBe(false)
+    expect(esHostDePreview('ANIMESHOWDOWN.DEV')).toBe(false)
+  })
+
+  it('solo los previews de Cloudflare Pages (*.pages.dev) y localhost amplían la CSP', () => {
+    expect(esHostDePreview('abc123.animeshowdown.pages.dev')).toBe(true)
+    expect(esHostDePreview('localhost')).toBe(true)
+  })
+
+  it('un host desconocido/falsificado NO amplía la CSP (fail-closed)', () => {
+    expect(esHostDePreview('evil.example.com')).toBe(false)
+    expect(esHostDePreview('animeshowdown.dev.evil.com')).toBe(false)
   })
 })
