@@ -171,13 +171,31 @@ class RateLimitFilterTest {
         when(jwtUtil.extraerUsername("admin-token")).thenReturn("admin");
         when(usuarioRepository.findByUsername("admin")).thenReturn(Optional.of(admin));
 
-        // Social (no-auth): el admin agota el límite y luego lo salta con su token.
+        // Economía (sí concede bypass): el admin agota el límite por IP y luego lo
+        // salta con su token (operativa legítima de admin sobre cartas).
         for (int i = 0; i < 60; i++) {
-            assertEquals(200, post("/api/reacciones").getStatus());
+            assertEquals(200, post("/api/me/cartas/sobre").getStatus());
         }
-        assertEquals(429, post("/api/reacciones").getStatus());
+        assertEquals(429, post("/api/me/cartas/sobre").getStatus());
 
-        assertEquals(200, post("/api/reacciones", "Bearer admin-token").getStatus());
+        assertEquals(200, post("/api/me/cartas/sobre", "Bearer admin-token").getStatus());
+    }
+
+    @Test
+    void tokenAdminNoSaltaRateLimitSocial() throws Exception {
+        // Social = CREACIÓN de contenido (reacciones/comentarios/seguir), no
+        // moderación (que va por endpoints de admin aparte). El límite es
+        // universal: un token admin comprometido no debe poder spamear sin freno.
+        Usuario admin = new Usuario("admin", "password", "admin@example.com");
+        admin.setRol(Rol.ADMIN);
+        when(jwtUtil.validarToken("admin-token")).thenReturn(true);
+        when(jwtUtil.extraerUsername("admin-token")).thenReturn("admin");
+        when(usuarioRepository.findByUsername("admin")).thenReturn(Optional.of(admin));
+
+        for (int i = 0; i < 60; i++) {
+            assertEquals(200, post("/api/reacciones", "Bearer admin-token").getStatus());
+        }
+        assertEquals(429, post("/api/reacciones", "Bearer admin-token").getStatus());
     }
 
     @Test
