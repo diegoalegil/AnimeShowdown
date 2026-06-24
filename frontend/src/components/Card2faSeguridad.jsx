@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react'
+import { useEffect, useId, useRef, useState } from 'react'
 import { useForm } from 'react-hook-form'
 import { AnimatePresence, motion } from 'framer-motion'
 import { toast } from 'sonner'
@@ -149,11 +149,23 @@ function ModalShell({ onClose, title, icon: Icon, children, wide }) {
   // entre los elementos focusables del dialog y rebotamos al primer/último.
   // ESC también cierra. Body scroll lock se mantiene.
   const dialogRef = useRef(null)
+  const titleId = useId()
   useEffect(() => {
     const prev = document.body.style.overflow
     document.body.style.overflow = 'hidden'
     return () => {
       document.body.style.overflow = prev
+    }
+  }, [])
+
+  // Restaura el foco al elemento que abrió el modal al cerrarlo (a11y: no dejar
+  // el foco perdido en el body). Captura en montaje, restaura en desmontaje.
+  useEffect(() => {
+    const previouslyFocused = document.activeElement
+    return () => {
+      if (previouslyFocused instanceof HTMLElement) {
+        previouslyFocused.focus?.({ preventScroll: true })
+      }
     }
   }, [])
 
@@ -205,6 +217,7 @@ function ModalShell({ onClose, title, icon: Icon, children, wide }) {
         ref={dialogRef}
         role="dialog"
         aria-modal="true"
+        aria-labelledby={titleId}
         className={`relative w-full ${wide ? 'max-w-xl' : 'max-w-md'} rounded-2xl border border-border bg-surface p-6 shadow-2xl`}
         initial={{ opacity: 0, y: 20, scale: 0.98 }}
         animate={{ opacity: 1, y: 0, scale: 1 }}
@@ -222,7 +235,7 @@ function ModalShell({ onClose, title, icon: Icon, children, wide }) {
         </button>
         <div className="mb-4 flex items-center gap-2 pr-8">
           {Icon && <Icon className="h-5 w-5 text-gold" />}
-          <h3 className="text-xl font-bold text-fg-strong">{title}</h3>
+          <h3 id={titleId} className="text-xl font-bold text-fg-strong">{title}</h3>
         </div>
         {children}
       </motion.div>
