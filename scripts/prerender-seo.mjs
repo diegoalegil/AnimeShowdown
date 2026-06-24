@@ -27,6 +27,7 @@ const personajes = JSON.parse(readFileSync(seedPath, 'utf8'))
     nombre: p.nombre,
     anime: p.anime,
     imagen: p.imagenUrl ?? p.imagen,
+    descripcion: p.descripcion,
   }))
 const personajesPorSlug = new Map(personajes.map((p) => [p.slug, p]))
 const animes = [...new Set(personajes.map((p) => p.anime))].sort()
@@ -167,7 +168,29 @@ const versusRoutes = versusCurados.map(([a, b]) => ({
   jsonLd: [versusSchema(a, b)],
 }))
 
-const routes = [...staticRoutes, ...animeRoutes, ...versusRoutes]
+// Fichas de personaje: el sitemap ya lista las 1086, pero al rastrearlas daban
+// un #root vacío (cero contenido server-side). Ahora cada una se prerenderiza
+// con meta + OG + canonical + JSON-LD ProfilePage/Person y un body SSR-light
+// (nombre, universo, imagen, descripción + enlaces) inyectado en #root. La app
+// monta con createRoot (CSR, no hydrate), así que React limpia ese body al
+// arrancar para el usuario; los crawlers sin JS sí ven contenido indexable.
+const personajeRoutes = personajes.map((p) => {
+  const ficha = `/personajes/${p.slug}`
+  const desc =
+    p.descripcion && p.descripcion.trim().length > 40
+      ? p.descripcion.trim()
+      : `${p.nombre} es un personaje de ${p.anime}. En AnimeShowdown tiene ficha con imagen, universo, ranking ELO y duelos abiertos contra otros personajes anime.`
+  return {
+    path: ficha,
+    title: `${p.nombre} · ${p.anime} · AnimeShowdown`,
+    description: `${p.nombre} (${p.anime}) en AnimeShowdown: ELO, popularidad, duelos y ranking. ${desc}`.slice(0, 280),
+    image: p.imagen,
+    jsonLd: [personSchema(p)],
+    seoBody: seoBodyFor(p, desc),
+  }
+})
+
+const routes = [...staticRoutes, ...animeRoutes, ...versusRoutes, ...personajeRoutes]
 
 for (const route of routes) {
   writeRoute(route, renderRoute(route))
@@ -177,6 +200,7 @@ console.log(`✅ SEO prerender generado: ${routes.length} rutas HTML iniciales`)
 console.log(`   - ${staticRoutes.length} rutas base`)
 console.log(`   - ${animeRoutes.length} rutas de anime/top 10`)
 console.log(`   - ${versusRoutes.length} versus curados`)
+console.log(`   - ${personajeRoutes.length} fichas de personaje (SSR-light)`)
 
 function writeRoute(route, html) {
   if (route.path === '/') {
@@ -212,6 +236,11 @@ function renderRoute(route) {
     '@context': 'https://schema.org',
     '@graph': graph.filter(Boolean),
   })
+  // SSR-light: inyecta contenido indexable en #root (solo rutas que lo aportan,
+  // hoy las fichas). createRoot lo reemplaza al montar; sirve a crawlers sin JS.
+  if (route.seoBody) {
+    html = html.replace(/<div id="root">\s*<\/div>/, `<div id="root">${route.seoBody}</div>`)
+  }
   return html
 }
 
@@ -328,6 +357,46 @@ function versusSchema(a, b) {
     })),
     isPartOf: { '@id': `${BASE_URL}/#website` },
   }
+}
+
+function personSchema(p) {
+  const ficha = `/personajes/${p.slug}`
+  return {
+    '@type': 'ProfilePage',
+    '@id': `${BASE_URL}${ficha}#webpage`,
+    url: `${BASE_URL}${ficha}`,
+    isPartOf: { '@id': `${BASE_URL}/#website` },
+    mainEntity: {
+      '@type': 'Person',
+      name: p.nombre,
+      image: absolutizar(p.imagen),
+      memberOf: { '@type': 'TVSeries', name: p.anime },
+    },
+  }
+}
+
+// Body SSR-light de una ficha: HTML semántico con estilos inline (el bundle CSS
+// aún no aplica durante el primer paint, así que el flash usa los tonos de marca
+// como literal — este .mjs no pasa por el guard de tokens, que solo cubre jsx).
+function seoBodyFor(p, desc) {
+  const img = escapeAttr(absolutizar(p.imagen))
+  const n = escapeText(p.nombre)
+  const a = escapeText(p.anime)
+  const d = escapeText(desc)
+  return (
+    '<main style="max-width:640px;margin:0 auto;padding:56px 20px;color:#d7dce7;' +
+    'font-family:system-ui,-apple-system,sans-serif;text-align:center">' +
+    `<img src="${img}" alt="${escapeAttr(p.nombre)}" width="280" height="280" ` +
+    'style="display:block;width:100%;max-width:280px;height:auto;margin:0 auto 24px;' +
+    'border-radius:16px;object-fit:cover" />' +
+    `<h1 style="font-size:2rem;font-weight:800;color:#f7f3ea;margin:0 0 6px">${n}</h1>` +
+    `<p style="color:#a8b1c3;margin:0 0 20px;font-weight:600">${a} · AnimeShowdown</p>` +
+    `<p style="line-height:1.7;margin:0 0 28px">${d}</p>` +
+    '<p style="color:#a8b1c3"><a href="/votar" style="color:#e85a64;font-weight:700">' +
+    'Vota duelos anime</a> · <a href="/ranking" style="color:#e85a64;font-weight:700">' +
+    'Ranking ELO</a> · <a href="/personajes" style="color:#e85a64;font-weight:700">' +
+    'Catálogo</a></p></main>'
+  )
 }
 
 function absolutizar(path) {
