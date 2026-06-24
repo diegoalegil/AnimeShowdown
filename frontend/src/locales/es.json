@@ -166,6 +166,7 @@
       "completedDetail": "Racha protegida. Mañana hay otra ronda.",
       "todayTitle": "Misión de hoy",
       "votesDetail": "Faltan {{count}} votos para cerrar la arena.",
+      "votesDetailSingular": "Falta {{count}} voto para cerrar la arena.",
       "gamesDetail": "Completa 1 daily trial para mantener el ritmo.",
       "rankingDetail": "Mira cómo se movió el ranking después de votar."
     }

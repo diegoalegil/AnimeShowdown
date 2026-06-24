@@ -460,6 +460,11 @@ function VotosPleat({ votosPeriodo, nombre }) {
   const actual = votosPeriodo?.votosPeriodoActual ?? 0
   const delta = votosPeriodo?.delta ?? 0
   const subio = delta > 0
+  // Formato de miles + signo limpio: antes un delta negativo salía como "– -1234"
+  // (en-dash + número negativo, sin separador de miles).
+  const flechaDelta = delta > 0 ? '▲' : delta < 0 ? '▼' : '–'
+  const signoDelta = delta > 0 ? '+' : delta < 0 ? '−' : ''
+  const deltaFmt = `${signoDelta}${Math.abs(delta).toLocaleString('es-ES')}`
   return (
     <div>
       <div className="mb-[18px] flex items-baseline justify-between gap-3">
@@ -472,7 +477,7 @@ function VotosPleat({ votosPeriodo, nombre }) {
           <p className="m-0 mt-1.5 font-mono text-[34px] font-bold tabular-nums text-fg-strong">{actual.toLocaleString('es-ES')}</p>
         </div>
         <span className={`inline-flex items-center gap-1.5 rounded-lg border border-border px-3 py-1.5 font-mono text-[13px] font-bold ${subio ? 'text-success' : 'text-fg-muted'}`}>
-          {subio ? '▲' : '–'} {subio ? `+${delta}` : delta} vs semana pasada
+          {flechaDelta} {deltaFmt} vs semana pasada
         </span>
       </div>
       {actual === 0 && (

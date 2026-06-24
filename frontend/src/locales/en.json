@@ -166,6 +166,7 @@
       "completedDetail": "Streak protected. Another round comes tomorrow.",
       "todayTitle": "Today's mission",
       "votesDetail": "{{count}} votes left to close the arena.",
+      "votesDetailSingular": "{{count}} vote left to close the arena.",
       "gamesDetail": "Complete 1 daily trial to keep the rhythm.",
       "rankingDetail": "See how the ranking moved after voting."
     }

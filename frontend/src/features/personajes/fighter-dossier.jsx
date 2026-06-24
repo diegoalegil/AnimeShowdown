@@ -142,8 +142,8 @@ export function PinceladaWinRate({ winRate, combates }) {
       role="img"
       aria-label={
         typeof combates === 'number'
-          ? `Win rate ${wr}% sobre ${combates} combates`
-          : `Win rate ${wr}%`
+          ? `Ratio de victorias ${wr}% sobre ${combates} combates`
+          : `Ratio de victorias ${wr}%`
       }
     >
       <span className="fdh-wr-label" aria-hidden="true">

@@ -100,7 +100,7 @@ function TorneosPage() {
         <CinematicHero
           visual={BRAND_VISUALS.torneos} lateralKanji={{left: "戦", right: "場"}}
           icon={Trophy}
-          eyebrow={isLoading ? t('torneos.loading') : t('torneos.contadorPlural', { count: total })}
+          eyebrow={isLoading ? t('torneos.loading') : t(total === 1 ? 'torneos.contadorSingular' : 'torneos.contadorPlural', { count: total })}
           title={t('torneos.tituloPagina')}
           subtitle={t('torneos.subtitulo')}
           actions={

@@ -166,6 +166,7 @@
       "completedDetail": "連続記録を守りました。明日も新しいラウンドがあります。",
       "todayTitle": "今日のミッション",
       "votesDetail": "アリーナを締めるまであと{{count}}票。",
+      "votesDetailSingular": "アリーナを締めるまであと{{count}}票。",
       "gamesDetail": "リズムを保つためにデイリーチャレンジを1つ完了しましょう。",
       "rankingDetail": "投票後にランキングがどう動いたか見てみましょう。"
     }
