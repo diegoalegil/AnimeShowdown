@@ -371,16 +371,18 @@ const pwaPlugin = VitePWA({
     navigateFallbackDenylist: [/^\/api\//],
     maximumFileSizeToCacheInBytes: 5 * 1024 * 1024,
     importScripts: ['push-sw.js'],
-    // Shell minimo sin HTML: CSS, fonts e icons que cambian poco entre deploys.
-    // Cuando el HTML cambia, el browser hace fetch nuevo y el SW solo provee
-    // assets estaticos compartidos.
+    // Shell minimo sin HTML: fonts e icons que cambian poco entre deploys.
+    // El CSS NO se precachea (eran ~764 KB / ~63 entradas de CSS de ruta en
+    // CADA install del SW, A10); se cachea en runtime por StaleWhileRevalidate
+    // conforme se visita cada ruta (ver runtimeCaching). Cuando el HTML cambia,
+    // el browser hace fetch nuevo y el SW solo provee assets estaticos.
     globPatterns: [
-      '**/*.{css,woff2}',
+      '**/*.woff2',
       'icon-*.png',
       'apple-touch-icon.png',
       'logo.webp',
     ],
-    globIgnores: ['img/**', 'assets/**.js', 'assets/**.svg', '**/*.html'],
+    globIgnores: ['img/**', 'assets/**.js', 'assets/**.svg', 'assets/**.css', '**/*.html'],
     runtimeCaching: [
       {
         // Los chunks JS usan NetworkFirst con timeout 3s. SWR
@@ -418,6 +420,31 @@ const pwaPlugin = VitePWA({
                 const ok = /^(application|text)\/(javascript|ecmascript)/.test(ct)
                   || /^image\/svg\+xml/.test(ct)
                 return ok ? response : null
+              },
+            },
+          ],
+        },
+      },
+      {
+        // CSS de ruta: NO se precachea (A10) y se cachea en runtime conforme se
+        // visita cada vista. SWR sirve el CSS cacheado al instante y revalida en
+        // segundo plano; como el HTML va siempre a red (navigateFallback:null)
+        // referencia el hash de CSS vigente, no hay riesgo de CSS fantasma. El
+        // guard de content-type evita guardar el fallback SPA (text/html 200 que
+        // Cloudflare sirve para un .css aun no desplegado) como si fuera CSS.
+        urlPattern: ({ url }) =>
+          url.pathname.startsWith('/assets/') && url.pathname.endsWith('.css'),
+        handler: 'StaleWhileRevalidate',
+        options: {
+          cacheName: 'estilos-css-v1',
+          expiration: { maxEntries: 60, maxAgeSeconds: 60 * 60 * 24 * 30 },
+          cacheableResponse: { statuses: [200] },
+          plugins: [
+            {
+              cacheWillUpdate: async ({ response }) => {
+                if (!response || response.status !== 200) return null
+                const ct = (response.headers.get('content-type') || '').toLowerCase()
+                return /^text\/css/.test(ct) ? response : null
               },
             },
           ],
