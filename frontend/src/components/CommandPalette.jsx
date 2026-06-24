@@ -394,7 +394,7 @@ function CommandPalette({ initialOpen = false } = {}) {
           {search.trim() === '' && (
             <Command.Group
               heading="Sugerencias"
-              className="font-mono text-[11px] text-gold/55"
+              className="font-mono text-[11px] text-fg-muted"
             >
               {sugerencias.map(({ to, label, icon: Icon, hint }) => (
                 <Command.Item
@@ -418,7 +418,7 @@ function CommandPalette({ initialOpen = false } = {}) {
           )}
           <Command.Group
             heading="Páginas"
-            className="font-mono text-[11px] text-gold/55"
+            className="font-mono text-[11px] text-fg-muted"
           >
             {rutas.map(({ to, label, icon: Icon, searchTerms = '' }) => (
               <Command.Item
@@ -471,7 +471,7 @@ function CommandPalette({ initialOpen = false } = {}) {
 
           <Command.Group
             heading="Acciones"
-            className="mt-2 font-mono text-[11px] text-gold/55"
+            className="mt-2 font-mono text-[11px] text-fg-muted"
           >
             <Command.Item
               value="sonido toggle"
@@ -520,7 +520,7 @@ function CommandPalette({ initialOpen = false } = {}) {
           {torneos.length > 0 && (
             <Command.Group
               heading="Torneos"
-              className="mt-2 font-mono text-[11px] text-gold/55"
+              className="mt-2 font-mono text-[11px] text-fg-muted"
             >
               {torneos.map((t) => (
                 <Command.Item
@@ -542,7 +542,7 @@ function CommandPalette({ initialOpen = false } = {}) {
           {queryPersonajes.length < 2 && (
             <Command.Group
               heading="Personajes"
-              className="mt-2 font-mono text-[11px] text-gold/55"
+              className="mt-2 font-mono text-[11px] text-fg-muted"
             >
               <Command.Item
                 disabled
@@ -564,7 +564,7 @@ function CommandPalette({ initialOpen = false } = {}) {
           <span>
             <kbd>esc</kbd> cerrar
           </span>
-          <span ref={counterRef} className="ml-auto text-gold/55" />
+          <span ref={counterRef} className="ml-auto text-fg-muted" />
         </div>
         {/* Corte de tinta: cover de entrada que se retira con filo dorado.
             Animación CSS de montaje — se reproduce en cada apertura porque
@@ -581,7 +581,7 @@ function PersonajesCommandGroup({ personajesPalette, go }) {
   return (
     <Command.Group
       heading="Personajes"
-      className="font-mono text-[11px] text-gold/55"
+      className="font-mono text-[11px] text-fg-muted"
     >
       {personajesPalette.length === 0 && (
         <Command.Item

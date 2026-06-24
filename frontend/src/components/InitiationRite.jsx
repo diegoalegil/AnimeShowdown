@@ -18,6 +18,7 @@ import { useSound } from '../contexts/SoundContext'
 import { startRitoAcunacionTransition } from '../lib/viewTransitions'
 import { markInitiationRiteSeen, RITE_T, riteTimings } from '../lib/initiationRite'
 import { EASE_BRUSH, EASE_LIFT } from '../lib/motion'
+import { useFocusTrap } from '../hooks/useFocusTrap'
 
 // Bezier con overshoot solo para la estampa del hanko: golpea, rebasa y
 // asienta. No vive en lib/motion porque es un acento puntual, no lenguaje.
@@ -27,6 +28,7 @@ export default function InitiationRite({ username, to = '/' }) {
   const navigate = useNavigate()
   const { play } = useSound()
   const plateRef = useRef(null)
+  const dialogRef = useRef(null)
   const finishedRef = useRef(false)
   const timersRef = useRef([])
 
@@ -76,13 +78,21 @@ export default function InitiationRite({ username, to = '/' }) {
     return () => window.removeEventListener('keydown', onKey)
   }, [finish])
 
+  // a11y de modal: el overlay declaraba role="dialog" aria-modal pero sin
+  // focus-trap, scroll-lock ni restauración de foco. Reutiliza el hook ya usado
+  // en DuelCeremony/ScoreScroll (Escape→finish, trap de Tab, body scroll-lock y
+  // devolución del foco al disparador al cerrar).
+  useFocusTrap(dialogRef, { onClose: finish })
+
   return (
     <div
+      ref={dialogRef}
       role="dialog"
       aria-modal="true"
       aria-label={`Bienvenido, ${username}`}
+      tabIndex={-1}
       onPointerDown={finish}
-      className="fixed inset-0 z-[80] flex cursor-pointer flex-col items-center justify-center bg-bg"
+      className="fixed inset-0 z-[80] flex cursor-pointer flex-col items-center justify-center bg-bg outline-none"
     >
       {/* Halo dorado estático, sin blur: gradiente pre-renderizado por el UA. */}
       <div
