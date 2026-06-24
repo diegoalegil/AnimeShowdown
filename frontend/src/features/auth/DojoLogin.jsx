@@ -285,7 +285,7 @@ function DojoLogin({
                   <div role="alert" className="dojo-login__error" key={`${error.kind}-${tremorTick}`}>
                     <span className="dojo-login__error-seal font-kanji-serif" aria-hidden="true">否</span>
                     <span>
-                      <span className="block text-[13px] font-semibold text-accent-text">{error.title}</span>
+                      <span className="block text-[13px] font-semibold text-danger">{error.title}</span>
                       <span className="mt-0.5 block text-[12px] leading-relaxed text-fg-muted">{error.body}</span>
                     </span>
                     <span className="dojo-login__error-cover" aria-hidden="true">
