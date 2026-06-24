@@ -129,7 +129,15 @@ public class SecurityConfig {
                         // el filtro denega siempre — modo seguro por defecto.
                         .requestMatchers("/actuator/health", "/actuator/info").permitAll()
                         .requestMatchers("/actuator/prometheus").permitAll()
-                        // Swagger/OpenAPI: requiere rol ADMIN en producción
+                        // El grupo PÚBLICO del OpenAPI (/v3/api-docs/public) se sirve
+                        // SIN auth: contrato de la API de lectura pública para terceros
+                        // (springdoc GroupedOpenApi "public" en OpenApiConfig, filtrado a
+                        // endpoints públicos y excluyendo admin/auth/me/cron). Debe ir
+                        // ANTES de la regla gated /v3/api-docs/** (match por orden). El
+                        // spec es solo documentación; no altera la seguridad de endpoints.
+                        .requestMatchers(HttpMethod.GET, "/v3/api-docs/public", "/v3/api-docs/public/**")
+                        .permitAll()
+                        // Swagger/OpenAPI completo: requiere rol ADMIN en producción
                         // para no exponer la estructura completa de API a público.
                         // En dev/local funciona sin login; el spec sigue accesible tras auth.
                         .requestMatchers("/v3/api-docs", "/v3/api-docs/**", "/v3/api-docs.yaml",

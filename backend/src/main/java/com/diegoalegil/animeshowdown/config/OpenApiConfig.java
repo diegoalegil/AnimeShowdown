@@ -1,5 +1,6 @@
 package com.diegoalegil.animeshowdown.config;
 
+import org.springdoc.core.models.GroupedOpenApi;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
@@ -65,5 +66,39 @@ public class OpenApiConfig {
                                 .bearerFormat("JWT")
                                 .description("JWT obtenido vía POST /api/auth/login")))
                 .addSecurityItem(new SecurityRequirement().addList("bearerAuth"));
+    }
+
+    /**
+     * Grupo "public": un spec OpenAPI filtrado a la superficie de LECTURA pública
+     * (catálogo, votos/ranking, torneos, enfrentamientos, eventos, logros, status,
+     * perfiles y tier-lists públicas), excluyendo explícitamente admin, auth, me,
+     * cron y los sub-endpoints autenticados. Se sirve en {@code /v3/api-docs/public}
+     * SIN autenticación (ver {@code SecurityConfig}) para que terceros consuman el
+     * contrato de la API pública; el spec COMPLETO y Swagger UI siguen detrás de
+     * ROLE_ADMIN en producción. El spec es solo documentación: no cambia la
+     * seguridad de ningún endpoint.
+     */
+    @Bean
+    public GroupedOpenApi publicApi() {
+        return GroupedOpenApi.builder()
+                .group("public")
+                .pathsToMatch(
+                        "/api/personajes/**",
+                        "/api/votos/**",
+                        "/api/torneos/**",
+                        "/api/enfrentamientos/**",
+                        "/api/eventos/**",
+                        "/api/logros/**",
+                        "/api/status",
+                        "/api/tier-lists/public/**",
+                        "/api/perfil/**",
+                        "/api/seguidores/**")
+                .pathsToExclude(
+                        "/api/admin/**",
+                        "/api/auth/**",
+                        "/api/me/**",
+                        "/api/cron/**",
+                        "/api/personajes/*/favorito")
+                .build();
     }
 }
