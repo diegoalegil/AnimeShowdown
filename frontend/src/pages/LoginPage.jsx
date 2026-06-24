@@ -98,6 +98,12 @@ function Step2Totp({ challenge, onSuccess, onCancel, completeLogin2fa }) {
       await completeLogin2fa(challenge.challengeToken, codigo, challenge.identificador)
       onSuccess()
     } catch (err) {
+      // Un error de red (status 0: timeout/cancelación/sin conexión) NO es un
+      // código incorrecto; etiquetarlo así confundía al usuario. Lo separamos.
+      if (err?.status === 0) {
+        setError('codigo', { message: 'Error de conexión. Inténtalo de nuevo.' })
+        return
+      }
       const intentosRestantes = err?.body?.intentosRestantes
       const msg =
         intentosRestantes === 0
