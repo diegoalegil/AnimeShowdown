@@ -49,6 +49,9 @@ async function preparePage(page) {
   await page.addInitScript(() => {
     localStorage.setItem('animeshowdown.muted', 'true')
     localStorage.setItem('i18nextLng', 'es')
+    // El kumite de onboarding tiene su propio spec; aquí se cierra para que no
+    // aparezca en /votar (ahora arranca también para invitados).
+    localStorage.setItem('onboarding.v1', 'done')
     sessionStorage.setItem('animeshowdown.splash.shown', 'true')
   })
 }

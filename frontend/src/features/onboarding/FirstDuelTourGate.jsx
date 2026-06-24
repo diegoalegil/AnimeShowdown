@@ -1,6 +1,5 @@
 import { Suspense, lazy, useState } from 'react'
 import { useLocation } from 'react-router-dom'
-import { useAuth } from '../../contexts/AuthContext'
 import { usePersonajesCatalogo } from '../../hooks/usePersonajesCatalogo'
 import { getGate, setGate } from './tour-core'
 
@@ -10,16 +9,17 @@ const TrainingKumite = lazy(() => import('./kumite/TrainingKumite'))
 
 /**
  * Decide si arranca el kumite de iniciación y carga su chunk SOLO entonces —
- * para el 99% de visitas (gate cerrado o invitado) esto es un null que no pesa.
- * Candidato = usuario autenticado + gate ausente + primer pisotón a /votar, y
- * con el catálogo ya cargado (≥3 personajes para la maqueta de práctica).
+ * para el 99% de visitas (gate cerrado) esto es un null que no pesa.
+ * Candidato = CUALQUIER visitante (con o sin cuenta) + gate ausente + primer
+ * pisotón a /votar, con el catálogo ya cargado (≥3 personajes para la maqueta).
+ * El invitado es justo quien más necesita el onboarding, y el kumite es puro
+ * cliente (catálogo público + localStorage), así que no requiere sesión.
  *
  * <p>El kumite NO escribe el gate (su persistencia es del padre): aquí lo
  * escribimos al completar ('done') o saltar ('skipped'), conservando la MISMA
  * clave de localStorage del onboarding existente (GATE_KEY en tour-core).
  */
 function FirstDuelTourGate() {
-  const { user } = useAuth()
   const location = useLocation()
   const { personajes } = usePersonajesCatalogo()
   const [gate, setGateState] = useState(() => getGate())
@@ -28,8 +28,9 @@ function FirstDuelTourGate() {
   const hayPracticantes = personajes.length >= 3
 
   // Ajuste durante el render (patrón React documentado): el kumite se enciende
-  // la primera vez que las condiciones coinciden, sin effects.
-  if (!montado && gate == null && user && location.pathname === '/votar' && hayPracticantes) {
+  // la primera vez que las condiciones coinciden, sin effects. No exige sesión:
+  // el invitado también recibe el onboarding (el kumite es puro cliente).
+  if (!montado && gate == null && location.pathname === '/votar' && hayPracticantes) {
     setMontado(true)
   }
 

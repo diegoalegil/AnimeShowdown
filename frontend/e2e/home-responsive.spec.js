@@ -6,6 +6,15 @@ import { test, expect } from '@playwright/test'
  * sin perder senal de regresiones globales de layout.
  */
 
+// El kumite de onboarding tiene su propio spec (onboarding.spec.js); aquí se
+// cierra para que no aparezca en /votar (ahora arranca también para invitados)
+// y altere el layout responsive medido.
+test.beforeEach(async ({ page }) => {
+  await page.addInitScript(() => {
+    localStorage.setItem('onboarding.v1', 'done')
+  })
+})
+
 const VIEWPORTS = [
   { name: 'mobile-320', width: 320, height: 740 },
   { name: 'android-compact', width: 360, height: 800 },
