@@ -75,7 +75,12 @@ function ColaComentariosPendientes() {
         <ComentarioRevisionCard
           key={comentario.id}
           comentario={comentario}
-          pending={cambiarEstado.isPending}
+          // Solo la tarjeta en curso se deshabilita: antes isPending (global)
+          // deshabilitaba TODA la cola al moderar un único comentario.
+          pending={
+            cambiarEstado.isPending &&
+            cambiarEstado.variables?.id === comentario.id
+          }
           onEstado={(estado) =>
             cambiarEstado.mutate({ id: comentario.id, estado })
           }
