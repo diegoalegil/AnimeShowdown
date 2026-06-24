@@ -19,6 +19,14 @@ public interface UsuarioRepository extends JpaRepository<Usuario, Long> {
 
     Optional<Usuario> findByUsername(String username);
 
+    /**
+     * Unicidad de username case-insensitive para el registro: sin esto el
+     * registro usaba {@code findByUsername} (exacto) mientras el cambio de
+     * username ya era IgnoreCase, así que 'Naruto' y 'naruto' coexistían y
+     * permitían suplantación visual en {@code /u/{username}}.
+     */
+    boolean existsByUsernameIgnoreCase(String username);
+
     Optional<Usuario> findByEmail(String email);
 
     @Lock(LockModeType.PESSIMISTIC_WRITE)

@@ -218,7 +218,10 @@ public class AuthController {
         // (Gmail, Outlook etc. tratan emails como case-insensitive — la BBDD también debe)
         String emailNormalizado = request.email() == null ? null : request.email().trim().toLowerCase();
 
-        if (usuarioRepository.findByUsername(request.username()).isPresent()) {
+        // Unicidad case-insensitive: el cambio de username ya era IgnoreCase, pero
+        // el registro usaba findByUsername (exacto), así que 'Naruto' y 'naruto'
+        // coexistían (suplantación visual en /u/{username}).
+        if (usuarioRepository.existsByUsernameIgnoreCase(request.username())) {
             log.warn("Intento de registro con username ya existente: {}", request.username());
             return ResponseEntity.status(HttpStatus.CONFLICT)
                     .body("El username ya existe");
