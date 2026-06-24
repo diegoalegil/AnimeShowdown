@@ -1,5 +1,7 @@
 package com.diegoalegil.animeshowdown.service;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -8,6 +10,7 @@ import com.diegoalegil.animeshowdown.repository.PersonajeVotoScoreRepository;
 @Service
 public class PersonajeVotoScoreService {
 
+    private static final Logger log = LoggerFactory.getLogger(PersonajeVotoScoreService.class);
     private static final double VOTO_NORMAL = 1.0d;
     private static final double VOTO_EMPATE = 0.5d;
 
@@ -51,7 +54,13 @@ public class PersonajeVotoScoreService {
             // sin excepción que envenene la transacción) y reintentamos el
             // incremento atómico, que ahora sí encuentra la fila.
             repository.insertarSiFalta(personajeId);
-            repository.incrementarScore(personajeId, delta);
+            if (repository.incrementarScore(personajeId, delta) == 0) {
+                // El 2º intento tampoco encontró la fila (insert no aplicó o una
+                // carrera la quitó): antes el delta se perdía en SILENCIO. Lo
+                // dejamos visible para no enmascarar un drift del score.
+                log.warn("Score no materializado para personaje {}: la fila sigue ausente "
+                        + "tras insertarSiFalta; se pierde delta={}", personajeId, delta);
+            }
         }
     }
 }

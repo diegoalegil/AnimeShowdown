@@ -416,7 +416,10 @@ public class CartaService {
         SobreApertura apertura = new SobreApertura(usuario, idem);
         apertura.setPrecio(0L);
         apertura.setPityAntes(0);
-        apertura.setEspecial(true);
+        // El flag debe reflejar el contenido real del pack, no asumirse true: si
+        // por lo que sea no sale ninguna ESPECIAL, marcarla mentía al registro y
+        // a la UI (la celebración de "¡Especial!" se mostraría sin carta especial).
+        apertura.setEspecial(pack.stream().anyMatch(c -> c.getRareza() == RarezaCarta.ESPECIAL));
 
         long monedasDuplicados = aplicarPack(usuario, idem, pack, apertura, true);
         saldo += monedasDuplicados;

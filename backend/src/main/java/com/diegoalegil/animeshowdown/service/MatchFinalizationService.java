@@ -94,6 +94,14 @@ public class MatchFinalizationService {
 
     /** Finaliza por abandono/walkover: el abandonador pierde, el rival gana. */
     public void finalizarWalkover(DueloLive duelo, Usuario abandonador, String reason) {
+        // Idempotencia ANTES de mutar/emitir: si el duelo ya estaba finalizado
+        // (p.ej. terminó normal por voto y llega un walkover tardío), no se debe
+        // sobrescribir el ganador/abandonador ni re-emitir métrica+WS. El check
+        // interno de aplicarEloYFinalizar solo protegía la aplicación de ELO.
+        if (duelo.getFinishedEn() != null) {
+            log.debug("finalizarWalkover: duelo={} ya estaba finalizado, skipping", duelo.getId());
+            return;
+        }
         boolean abandonadorEsJ1 = duelo.esJugador1(abandonador);
         duelo.setAbandonador(abandonador);
         duelo.setAbandonedEn(now());
