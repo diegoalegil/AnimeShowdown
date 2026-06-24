@@ -235,7 +235,7 @@ export default function OracleShrine({
                 <div key={question.id} ref={stripRef} className="orc-strip orc-strip-paper w-full max-w-[440px] rounded-md px-5 pb-5 pt-4">
                   <div className="orc-strip__text">
                     <div className="mb-3 flex items-center gap-2.5 border-b border-accent/35 pb-2">
-                      <span lang="ja" className="font-kanji-serif text-[17px] font-bold text-accent">問</span>
+                      <span lang="ja" className="font-kanji-serif text-[17px] font-bold text-accent-text">問</span>
                       <span className="font-mono text-2xs text-[color:var(--orc-ink-muted)]">
                         pregunta {String(question.ordinal).padStart(2, '0')}
                       </span>
@@ -359,7 +359,7 @@ export default function OracleShrine({
             transformOrigin: '0 0',
           }}
         >
-          <span lang="ja" className="font-kanji-serif text-2xl font-bold text-accent">{flight.glyph}</span>
+          <span lang="ja" className="font-kanji-serif text-2xl font-bold text-accent-text">{flight.glyph}</span>
         </div>
       )}
     </section>

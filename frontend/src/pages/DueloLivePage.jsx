@@ -276,6 +276,32 @@ function DueloLivePage() {
     }
   }
 
+  // Anuncio para lector de pantalla: el duelo en vivo no comunicaba NADA por SR.
+  // Un único live-region polite, montado siempre a nivel de página (antes de los
+  // arenas condicionales), refleja estado de la sesión + marcador. El string solo
+  // cambia cuando cambia algo real (fase o marcador), así que no spammea.
+  const anuncioDuelo = loading
+    ? 'Buscando una sesión de duelo activa.'
+    : !state
+      ? 'No hay duelo activo. Empareja para empezar.'
+      : state.estado === 'WAITING'
+        ? 'Emparejando: esperando a que entre un rival.'
+        : state.estado === 'FINISHED' || state.estado === 'ABANDONED'
+          ? `Duelo terminado. ${
+              state.miEloDelta == null
+                ? ''
+                : state.miEloDelta > 0
+                  ? 'Victoria. '
+                  : state.miEloDelta < 0
+                    ? 'Derrota. '
+                    : 'Empate. '
+            }Marcador ${state.miScore ?? 0} a ${state.rivalScore ?? 0}.${
+              state.miEloDelta == null
+                ? ''
+                : ` ${state.miEloDelta >= 0 ? '+' : ''}${state.miEloDelta} ELO PvP.`
+            }`
+          : `Ronda en juego. Marcador: tú ${state.miScore ?? 0}, rival ${state.rivalScore ?? 0}.`
+
   return (
     <VisualPageShell
       visual={{ ...BRAND_VISUALS.torneos, kanji: '決' }}
@@ -283,6 +309,7 @@ function DueloLivePage() {
       contentClassName="mx-auto max-w-6xl"
       lateralKanji={{ left: '対', right: '戦' }}
     >
+      <p className="sr-only" role="status" aria-live="polite">{anuncioDuelo}</p>
       <section className="mb-6 flex flex-col gap-4 md:flex-row md:items-end md:justify-between">
         <div>
           <p className="text-xs font-black text-gold">PvP live</p>

@@ -23,8 +23,11 @@
   --color-accent-soft: rgb(159 29 44 / 0.16);
   /* Carmesí como TEXTO: #9f1d2c da 2.52:1 sobre el lienzo (falla AA incluso
      en grande) — los usos text-accent migran a este tono; el #9f1d2c queda
-     para fondos y sellos (Kessen §1.1). */
-  --color-accent-text: #d4434f;
+     para fondos y sellos (Kessen §1.1). El tono anterior (#d4434f) seguía
+     bajo el umbral en superficies claras (~3.7:1 sobre --color-surface-alt,
+     ~4.1:1 sobre --color-surface); este (#e85a64) da ~4.8:1 sobre surface-alt
+     y ~5.2:1 sobre surface → AA normal (4.5:1) en todas las superficies. */
+  --color-accent-text: #e85a64;
   /* Bermellón del sello hanko, promovido a token al volverse sistema. */
   --color-hanko: #d62b2b;
   /* Canales RGB del oro de marca: ÚNICA fuente de verdad. El sólido, los
