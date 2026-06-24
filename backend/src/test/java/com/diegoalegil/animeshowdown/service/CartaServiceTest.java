@@ -216,6 +216,27 @@ class CartaServiceTest {
         org.mockito.Mockito.verifyNoMoreInteractions(usuarioRepository);
     }
 
+    @Test
+    void concederCartaEspecialEncuentraLaEspecialAunqueTengaVarianteNoVacia() {
+        Usuario usuario = new Usuario("fan", "hash", "fan@example.com");
+        usuario.setId(9L);
+        Personaje personaje = new Personaje("naruto", "Naruto", "Naruto", "desc", "/img/naruto.webp");
+        personaje.setId(50L);
+        Carta especialVariante = carta(personaje, 7L, RarezaCarta.ESPECIAL);
+
+        // La ESPECIAL de este personaje tiene variante no vacía: el finder antiguo
+        // (variante="") devolvía null; el variante-agnóstico la encuentra.
+        when(cartaRepository.findFirstByPersonajeSlugAndRarezaOrderByVarianteAsc("naruto", RarezaCarta.ESPECIAL))
+                .thenReturn(Optional.of(especialVariante));
+        when(usuarioCartaRepository.insertarPosesionSiFalta(
+                org.mockito.ArgumentMatchers.anyLong(), org.mockito.ArgumentMatchers.anyLong()))
+                .thenReturn(1);
+
+        Carta concedida = sut.concederCartaEspecialPorSlug(usuario, "naruto");
+
+        assertEquals(especialVariante, concedida);
+    }
+
     private static Carta carta(Personaje personaje, Long id, RarezaCarta rareza) {
         Carta carta = new Carta(personaje, rareza);
         carta.setId(id);

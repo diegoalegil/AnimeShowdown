@@ -453,8 +453,10 @@ public class CartaService {
         if (personajeSlug == null || personajeSlug.isBlank()) {
             return null;
         }
+        // Sin exigir variante="": un personaje cuya ESPECIAL tiene variante no
+        // vacía (p.ej. ":6-caminos") fallaba el premio de evento devolviendo null.
         Carta carta = cartaRepository
-                .findByPersonajeSlugAndRarezaAndVariante(personajeSlug, RarezaCarta.ESPECIAL, "")
+                .findFirstByPersonajeSlugAndRarezaOrderByVarianteAsc(personajeSlug, RarezaCarta.ESPECIAL)
                 .orElse(null);
         if (carta == null) {
             log.warn("Recompensa de evento: no existe carta ESPECIAL para slug={}", personajeSlug);
