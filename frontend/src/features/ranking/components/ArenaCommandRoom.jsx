@@ -381,7 +381,7 @@ function Territory({ t, index, kanji, ratio, drops }) {
         className="absolute right-2.5 top-2.5 font-mono text-[19px] font-semibold"
         style={{ color: oro ? 'var(--color-gold-bright)' : 'var(--color-elo-number)' }}
       >
-        {t.total}
+        {(t.total ?? 0).toLocaleString('es-ES')}
       </div>
     </div>
   );
@@ -406,7 +406,7 @@ function Confin({ confin }) {
           {confin.total > 0 ? 'universos menores, agrupados' : 'aguas tranquilas'}
         </div>
       </div>
-      <div className="font-mono text-[16px] font-semibold text-fg-muted">{confin.total}</div>
+      <div className="font-mono text-[16px] font-semibold text-fg-muted">{(confin.total ?? 0).toLocaleString('es-ES')}</div>
     </div>
   );
 }

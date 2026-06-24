@@ -274,7 +274,7 @@ function Ring({ items }) {
               {f.kanji}
             </span>
           </div>
-          <h3 className="text-[26px] font-semibold leading-tight">{f.name}</h3>
+          <h3 className="line-clamp-1 text-[26px] font-semibold leading-tight">{f.name}</h3>
           <div className="flex items-baseline gap-3">
             <span className="text-[12.5px] opacity-50">{f.anime}</span>
             <span className="font-mono text-sm text-electric" title="ELO base estimado por popularidad. El ranking competitivo real está en /ranking.">ELO base {f.elo}</span>
@@ -376,7 +376,7 @@ function RingCard({ c, i, rotation, front }) {
             {String(i + 1).padStart(2, "0")}
           </span>
           <div className="absolute inset-x-3.5 bottom-3 flex flex-col gap-1" style={SAFARI_FACE}>
-            <span className="text-[15px] font-semibold leading-tight">{c.name}</span>
+            <span className="truncate text-[15px] font-semibold leading-tight">{c.name}</span>
             <span className="flex items-baseline justify-between gap-2">
               <span className="truncate text-[11px] opacity-50">{c.anime}</span>
               <span className="font-mono text-xs text-gold">{c.elo}</span>

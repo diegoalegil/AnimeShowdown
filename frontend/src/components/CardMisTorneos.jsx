@@ -106,7 +106,7 @@ function ItemTorneo({ torneo }) {
           </p>
         )}
         {torneo.estadoRevision === 'RECHAZADO' && torneo.motivoRechazo && (
-          <p className="mt-1 text-[11px] text-danger/80">
+          <p className="mt-1 line-clamp-2 text-[11px] text-danger/80">
             <strong className="font-semibold">Motivo:</strong>{' '}
             {torneo.motivoRechazo}
           </p>
