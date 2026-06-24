@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { AlertTriangle, Lock, Save, Search, ShieldCheck, Sparkles, Trophy, WalletCards } from 'lucide-react'
@@ -55,9 +55,21 @@ function FantasyPage() {
   const equipoIds = useMemo(() => equipoItems.map((item) => item.personajeId), [equipoItems])
   const selectedIds = draftIds ?? equipoIds
 
+  // El input es inmediato (UX), pero la búsqueda de candidatos se debouncea para
+  // no lanzar una request por tecla. La query se cachea por el valor estable.
+  const [debouncedSearch, setDebouncedSearch] = useState('')
+  useEffect(() => {
+    const id = setTimeout(() => setDebouncedSearch(search), 300)
+    return () => clearTimeout(id)
+  }, [search])
+
   const candidatosQuery = useQuery({
-    queryKey: ['fantasy', 'candidatos', search],
-    queryFn: () => endpoints.fantasyCandidatos({ q: search.trim(), limit: search.trim() ? 60 : 120 }),
+    queryKey: ['fantasy', 'candidatos', debouncedSearch],
+    queryFn: () =>
+      endpoints.fantasyCandidatos({
+        q: debouncedSearch.trim(),
+        limit: debouncedSearch.trim() ? 60 : 120,
+      }),
     enabled: Boolean(user),
     staleTime: 45_000,
   })
