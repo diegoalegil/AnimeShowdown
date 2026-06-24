@@ -92,6 +92,11 @@ public class EnfrentamientoController {
     private final DropService dropService;
     private final String turnstileSitekey;
     private final boolean requiereEmailVerificado;
+    // Los advisory locks de Postgres (pg_advisory_xact_lock) no existen en H2
+    // (tests). Se gatea por el dialecto real de la datasource: en prod (Postgres)
+    // serializa los votos anónimos por sesión; en H2 se omite (los tests del
+    // controller no ejercitan la carrera y la query petaría).
+    private final boolean advisoryLocksSoportados;
 
     public EnfrentamientoController(EnfrentamientoRepository enfrentamientoRepository,
             VotoRepository votoRepository,
@@ -105,7 +110,9 @@ public class EnfrentamientoController {
             ClientIpExtractor clientIpExtractor,
             DropService dropService,
             @Value("${app.turnstile.sitekey:}") String turnstileSitekey,
+            @Value("${spring.datasource.url:}") String datasourceUrl,
             @Value("${app.email-verification.required-to-vote:true}") boolean requiereEmailVerificado) {
+        this.advisoryLocksSoportados = datasourceUrl != null && datasourceUrl.contains("postgresql");
         this.enfrentamientoRepository = enfrentamientoRepository;
         this.votoRepository = votoRepository;
         this.messaging = messaging;
@@ -338,6 +345,12 @@ public class EnfrentamientoController {
                                 "captchaRequired", true,
                                 "provider", "turnstile",
                                 "sitekey", turnstileSitekey));
+            }
+            // Serializa los votos concurrentes de esta sesión ANTES de contar el
+            // tope (solo Postgres; ver VotoRepository.lockSesionAnonima). votar es
+            // @Transactional → el lock se libera al cerrar la tx. En H2 se omite.
+            if (advisoryLocksSoportados) {
+                votoRepository.lockSesionAnonima(anon.sessionId());
             }
             votosAnonimosUsados = votoRepository.countByAnonSessionId(anon.sessionId());
             if (votosAnonimosUsados >= ANON_VOTE_LIMIT) {
