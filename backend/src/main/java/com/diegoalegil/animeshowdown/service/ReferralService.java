@@ -68,6 +68,35 @@ public class ReferralService {
     }
 
     /**
+     * Persiste al usuario tolerando la rarísima carrera del código referral.
+     * {@link #asignarCodigoSiHaceFalta} hace check-then-act sin lock: dos
+     * registros concurrentes podrían generar el mismo código (espacio 32^8 ≈
+     * 1.1·10¹², colisión ~imposible), ambos pasar el chequeo y uno colisionar al
+     * persistir contra el UNIQUE constraint. La unicidad la arbitra la BD, no la
+     * lectura previa; aquí, en vez de tumbar el registro con un 500, degradamos a
+     * sin-código (el backfill lo asigna luego). Una colisión de OTRO constraint
+     * (username/email) se propaga intacta.
+     *
+     * <p>Seguro SOLO en contexto NO transaccional: con id {@code IDENTITY} un
+     * INSERT fallido deja el id null, así el segundo save es un INSERT limpio que
+     * no duplica la fila. No usar dentro de una @Transactional (el DIV marcaría
+     * la tx rollback-only y el segundo save fallaría).
+     */
+    public Usuario guardarTolerandoColisionReferral(Usuario u) {
+        try {
+            return usuarioRepository.save(u);
+        } catch (DataIntegrityViolationException e) {
+            if (u.getReferralCode() == null || u.getReferralCode().isBlank()) {
+                throw e; // la colisión no era del código referral → propaga
+            }
+            log.warn("Colisión de referral code en carrera; guardo sin código (backfill lo asignará): {}",
+                    e.getMessage());
+            u.setReferralCode(null);
+            return usuarioRepository.save(u);
+        }
+    }
+
+    /**
      * Busca el usuario referrer si el código existe. Devuelve empty si
      * el código no se reconoce — el registro continúa sin vínculo.
      */

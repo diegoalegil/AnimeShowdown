@@ -164,7 +164,7 @@ public class PerfilController {
         if (usuario.getReferralCode() == null || usuario.getReferralCode().isBlank()) {
             referralService.asignarCodigoSiHaceFalta(usuario);
             if (usuario.getReferralCode() != null) {
-                usuarioRepository.save(usuario);
+                referralService.guardarTolerandoColisionReferral(usuario);
             }
         }
         return ResponseEntity.ok(referralService.stats(usuario));

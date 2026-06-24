@@ -257,7 +257,10 @@ public class AuthController {
         // Auto-genera su propio código (idempotente, no falla si ya tenía).
         referralService.asignarCodigoSiHaceFalta(nuevoUsuario);
 
-        Usuario guardado = usuarioRepository.save(nuevoUsuario);
+        // Guardado tolerante a la carrera ~imposible del código referral: si
+        // colisiona en el UNIQUE constraint, degrada a sin-código en vez de
+        // tumbar el registro (el backfill lo asigna). registro NO es @Transactional.
+        Usuario guardado = referralService.guardarTolerandoColisionReferral(nuevoUsuario);
         eventPublisher.publishEvent(new UsuarioRegistradoEvent(guardado.getId()));
 
         // Emite token de verificación + dispara email asíncrono. Si el envío
