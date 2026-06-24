@@ -25,8 +25,7 @@ import {
   listenLocalVotes,
   readLocalVotes,
 } from '../lib/localVoteRanking'
-import { recordDailyShare } from '../lib/dailyProgress'
-import { shareOrCopy } from '../lib/share'
+import { shareWithToast } from '../lib/shareWithToast'
 import PersonalDossier from '../features/miRanking/PersonalDossier'
 import { dossierStorage } from '../features/miRanking/dossierStorage'
 import {
@@ -135,20 +134,14 @@ function MiRankingPage() {
           `Total: ${stats.total} voto${stats.total === 1 ? '' : 's'} registrados en este navegador.`,
         ].join('\n')
       : 'Estoy creando mi ranking personal de personajes anime en AnimeShowdown. ¿Cuál sería tu top?'
-    try {
-      const result = await shareOrCopy({
-        title: 'Mi ranking anime',
-        text,
-        url: '/mi-ranking',
-      })
-      if (result === 'cancelled') return
-      recordDailyShare()
-      toast.success(result === 'native' ? 'Ranking compartido' : 'Ranking copiado')
-    } catch (error) {
-      toast.error('No se pudo compartir', {
-        description: error?.message || 'Copia el resultado manualmente.',
-      })
-    }
+    await shareWithToast(
+      { title: 'Mi ranking anime', text, url: '/mi-ranking' },
+      {
+        nativeSuccess: 'Ranking compartido',
+        clipboardSuccess: 'Ranking copiado',
+        errorDescription: 'Copia el resultado manualmente.',
+      },
+    )
   }
 
   const reiniciar = () => {

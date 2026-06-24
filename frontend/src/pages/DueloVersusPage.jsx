@@ -9,7 +9,6 @@ import {
   Swords,
   Trophy,
 } from 'lucide-react'
-import { toast } from 'sonner'
 import {
   getPersonajeBySlug,
   getPopularidad,
@@ -23,8 +22,7 @@ import JsonLd from '../components/JsonLd'
 import PersonajeImg from '../components/PersonajeImg'
 import VersusIntroOverlay from '../features/versus/VersusIntroOverlay'
 import NotFoundPage from './NotFoundPage'
-import { shareOrCopy } from '../lib/share'
-import { recordDailyShare } from '../lib/dailyProgress'
+import { shareWithToast } from '../lib/shareWithToast'
 import {
   listenLocalVotes,
   readLocalVotes,
@@ -89,14 +87,14 @@ function DueloVersusPage() {
   const sugerenciasB = getSugerenciasDuelo(personajeB, personajeA.slug)
   const votarDueloUrl = `/votar?personaje=${encodeURIComponent(personajeA.slug)}&rival=${encodeURIComponent(personajeB.slug)}`
   const compartirDuelo = async () => {
-    try {
-      const personalLine =
-        personalSignal.total > 0
-          ? personalSignal.leader
-            ? `En mi ranking local voy más con ${personalSignal.leader.nombre}: ${personalSignal.countA}-${personalSignal.countB}.`
-            : `En mi ranking local van empatados: ${personalSignal.countA}-${personalSignal.countB}.`
-          : null
-      const result = await shareOrCopy({
+    const personalLine =
+      personalSignal.total > 0
+        ? personalSignal.leader
+          ? `En mi ranking local voy más con ${personalSignal.leader.nombre}: ${personalSignal.countA}-${personalSignal.countB}.`
+          : `En mi ranking local van empatados: ${personalSignal.countA}-${personalSignal.countB}.`
+        : null
+    await shareWithToast(
+      {
         title: `${personajeA.nombre} vs ${personajeB.nombre}`,
         text: [
           `${personajeA.nombre} vs ${personajeB.nombre} en AnimeShowdown.`,
@@ -107,15 +105,13 @@ function DueloVersusPage() {
           .filter(Boolean)
           .join('\n'),
         url: `/versus/${personajeA.slug}-vs-${personajeB.slug}`,
-      })
-      if (result === 'cancelled') return
-      recordDailyShare()
-      toast.success(result === 'native' ? 'Duelo compartido' : 'Duelo copiado')
-    } catch (error) {
-      toast.error('No se pudo compartir el duelo', {
-        description: error?.message || 'Copia el enlace manualmente.',
-      })
-    }
+      },
+      {
+        nativeSuccess: 'Duelo compartido',
+        clipboardSuccess: 'Duelo copiado',
+        errorTitle: 'No se pudo compartir el duelo',
+      },
+    )
   }
 
   return (
