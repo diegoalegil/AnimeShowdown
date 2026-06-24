@@ -15,7 +15,7 @@ function RankingImportPanel({ totalVotes, topNames, canImport, onImport }) {
           </h2>
           <p className="mt-1 text-[13px] leading-5 text-fg-muted">
             {canImport
-              ? `${totalVotes} voto${totalVotes === 1 ? '' : 's'} locales detectados. ${
+              ? `${totalVotes} voto${totalVotes === 1 ? '' : 's'} local${totalVotes === 1 ? '' : 'es'} detectado${totalVotes === 1 ? '' : 's'}. ${
                   topNames.length > 0
                     ? `Empieza con ${topNames.join(', ')}.`
                     : 'Rellena los primeros puestos con tus personajes más votados.'

@@ -46,7 +46,12 @@ function getMissionPrompt(progress, t) {
       to: '/votar',
       icon: Swords,
       title: t('mobileNav.mission.todayTitle'),
-      detail: t('mobileNav.mission.votesDetail', { count: DAILY_VOTE_TARGET - votes }),
+      detail: t(
+        DAILY_VOTE_TARGET - votes === 1
+          ? 'mobileNav.mission.votesDetailSingular'
+          : 'mobileNav.mission.votesDetail',
+        { count: DAILY_VOTE_TARGET - votes },
+      ),
       percent,
       completed: false,
     }
