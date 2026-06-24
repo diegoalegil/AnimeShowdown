@@ -71,14 +71,12 @@ public class HttpCookieOAuth2AuthorizationRequestRepository
     public OAuth2AuthorizationRequest loadAuthorizationRequest(HttpServletRequest request) {
         Cookie cookie = WebUtils.getCookie(request, COOKIE_NAME);
         if (cookie == null) {
-            // Diagnóstico: si el cookie no llega, queremos saber qué cookies SÍ
-            // llegan, así sabemos si Safari las descartó todas o solo la nuestra.
-            String allCookies = request.getCookies() == null ? "[null]"
-                    : java.util.Arrays.stream(request.getCookies())
-                            .map(c -> c.getName() + "(" + c.getValue().length() + "b)")
-                            .reduce((a, b) -> a + ", " + b).orElse("[vacío]");
-            log.warn("OAuth load: cookie '{}' NO presente en el request. Cookies recibidas: {}",
-                    COOKIE_NAME, allCookies);
+            // Diagnóstico SIN enumerar nombres de cookies (no filtramos nombres de
+            // cookies de sesión/terceros a los logs): el conteo basta para
+            // distinguir "Safari las descartó todas" (0) de "solo la nuestra" (>0).
+            int recibidas = request.getCookies() == null ? 0 : request.getCookies().length;
+            log.warn("OAuth load: cookie '{}' NO presente en el request. {} cookie(s) recibida(s) en total.",
+                    COOKIE_NAME, recibidas);
             return null;
         }
         log.debug("OAuth load: cookie '{}' recibida con {} chars", COOKIE_NAME, cookie.getValue().length());

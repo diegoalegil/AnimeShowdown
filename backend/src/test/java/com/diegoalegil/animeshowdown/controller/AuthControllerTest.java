@@ -207,6 +207,27 @@ class AuthControllerTest {
     }
 
     @Test
+    void registroRechazaUsernameDuplicadoIgnorandoMayusculas() throws Exception {
+        // El username debe ser único case-insensitive: si existe 'Naruto', no se
+        // puede registrar 'naruto' (suplantación visual en /u/{username}).
+        mvc.perform(post("/api/auth/registro")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(json.writeValueAsString(Map.of(
+                        "username", "Naruto",
+                        "password", "secreta123",
+                        "email", "naruto1@example.com"))))
+                .andExpect(status().isCreated());
+
+        mvc.perform(post("/api/auth/registro")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(json.writeValueAsString(Map.of(
+                        "username", "naruto",
+                        "password", "secreta123",
+                        "email", "naruto2@example.com"))))
+                .andExpect(status().isConflict());
+    }
+
+    @Test
     void verifyConTokenValidoActivaUsuario() throws Exception {
         // Registramos un usuario; el flujo crea automáticamente la EmailVerification.
         Map<String, String> body = Map.of(

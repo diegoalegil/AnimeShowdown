@@ -333,9 +333,16 @@ class TorneoServiceTest {
     @Nested
     class Iniciar {
 
+        @BeforeEach
+        void torneoUnoExiste() {
+            // iniciar() comprueba existsById antes del lock (404 limpio); los
+            // tests de id=1L asumen que existe.
+            lenient().when(torneoRepository.existsById(1L)).thenReturn(true);
+        }
+
         @Test
         void lanzaCuandoTorneoNoExiste() {
-            when(torneoRepository.findById(99L)).thenReturn(Optional.empty());
+            when(torneoRepository.existsById(99L)).thenReturn(false);
 
             assertThrows(EntityNotFoundException.class, () -> service.iniciar(99L, null));
         }

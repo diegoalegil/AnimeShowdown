@@ -337,6 +337,18 @@ public class TorneoService {
     @Transactional
     @CacheEvict(value = "torneos-resumen", allEntries = true)
     public Torneo iniciar(Long id, TorneoIniciarRequest request) {
+        // Existencia primero (404 limpio; el lock tiene FK a torneos y reventaría
+        // con 500 ante un id inexistente). existsById es un COUNT: no mete la
+        // entidad en el contexto de persistencia, así que el findById de abajo
+        // sigue siendo la PRIMERA carga real → estado fresco tras el lock.
+        if (!torneoRepository.existsById(id)) {
+            throw new EntityNotFoundException("Torneo no encontrado: id=" + id);
+        }
+        // Lock antes de cargar: serializa con otras operaciones del mismo torneo.
+        // Sin esto, dos `iniciar` concurrentes del admin pasaban ambos el check
+        // SCHEDULED y creaban el bracket DOS veces; al leer la entidad tras el
+        // lock, el 2º hilo ve el estado IN_PROGRESS ya comprometido por el 1º.
+        torneoOperacionLockService.lock(id);
         Torneo torneo = torneoRepository.findById(id)
                 .orElseThrow(() -> new EntityNotFoundException("Torneo no encontrado: id=" + id));
 

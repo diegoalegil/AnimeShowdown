@@ -18,6 +18,7 @@ import org.springframework.transaction.annotation.Transactional;
 import com.diegoalegil.animeshowdown.event.UsuarioRegistradoEvent;
 import com.diegoalegil.animeshowdown.model.EstadoVerificacion;
 import com.diegoalegil.animeshowdown.model.Rol;
+import com.diegoalegil.animeshowdown.security.LogSanitizer;
 import com.diegoalegil.animeshowdown.model.Usuario;
 import com.diegoalegil.animeshowdown.repository.UsuarioRepository;
 import com.diegoalegil.animeshowdown.security.AdminEmails;
@@ -78,7 +79,8 @@ public class OAuthAccountService {
             // (no esta), y abajo re-leemos para devolver el usuario que creó la otra.
             return self.getObject().crearUsuarioOAuth(provider, emailNormalizado, attributes);
         } catch (DataIntegrityViolationException e) {
-            log.info("Carrera de primer login OAuth resuelta para {}: reuso el usuario ya creado", emailNormalizado);
+            log.info("Carrera de primer login OAuth resuelta para {}: reuso el usuario ya creado",
+                    LogSanitizer.email(emailNormalizado));
             return usuarioRepository.findByEmail(emailNormalizado)
                     .map(usuario -> new ResultadoOAuth(usuario, false))
                     .orElseThrow(() -> new IllegalStateException(

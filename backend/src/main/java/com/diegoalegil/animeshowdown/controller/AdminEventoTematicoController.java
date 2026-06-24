@@ -17,6 +17,7 @@ import com.diegoalegil.animeshowdown.dto.EventoTematicoRequest;
 import com.diegoalegil.animeshowdown.service.EventoTematicoService;
 
 import jakarta.persistence.EntityNotFoundException;
+import jakarta.validation.Valid;
 
 @RestController
 @RequestMapping("/api/admin/eventos")
@@ -29,7 +30,7 @@ public class AdminEventoTematicoController {
     }
 
     @PostMapping
-    public ResponseEntity<?> crear(@RequestBody EventoTematicoRequest request) {
+    public ResponseEntity<?> crear(@Valid @RequestBody EventoTematicoRequest request) {
         try {
             EventoTematicoDto creado = service.crear(request);
             return ResponseEntity.status(HttpStatus.CREATED).body(creado);
@@ -41,7 +42,7 @@ public class AdminEventoTematicoController {
     @PutMapping("/{slug}")
     public ResponseEntity<?> actualizar(
             @PathVariable String slug,
-            @RequestBody EventoTematicoRequest request) {
+            @Valid @RequestBody EventoTematicoRequest request) {
         try {
             return ResponseEntity.ok(service.actualizar(slug, request));
         } catch (EntityNotFoundException e) {
