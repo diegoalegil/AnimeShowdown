@@ -241,12 +241,17 @@ function PersonajeDetailPage() {
     () => getLocalVoteStats(localVotes),
     [localVotes],
   )
-  const detailContext = buildPersonajeDetailContext({
-    catalogo: personajes,
-    personaje,
-    slug,
-    idx,
-  })
+  // useMemo: buildPersonajeDetailContext ordena el catálogo completo dos veces
+  // (rankedGlobal/rankedAnime). Sin memo se re-ordenaba en cada render del padre
+  // aunque no cambiara nada relevante.
+  // `personajes` es un import de módulo estable (nunca cambia), pero va en deps
+  // para que el React Compiler pueda preservar la memoización; exhaustive-deps lo
+  // marca como innecesario (lo es, es inocuo) y se silencia puntualmente.
+  const detailContext = useMemo(
+    () => buildPersonajeDetailContext({ catalogo: personajes, personaje, slug, idx }),
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [personajes, personaje, slug, idx],
+  )
 
   if (idx !== -1 && slugParam !== slug) {
     return <Navigate to={`/personajes/${slug}`} replace />
