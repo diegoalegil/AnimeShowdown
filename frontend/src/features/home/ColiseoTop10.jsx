@@ -58,7 +58,7 @@ export default function ColiseoTop10({ items, onOpen }) {
 
 /* ───────────────────────── anillo 3D ───────────────────────── */
 
-function Ring({ items }) {
+function Ring({ items, onOpen }) {
   const rotation = useMotionValue(0); // grados — única fuente de verdad
   const [front, setFront] = useState(0);
   const mode = useRef("idle"); // idle | drag | settle | rest
@@ -66,6 +66,8 @@ function Ring({ items }) {
   const restTimer = useRef(null);
   const lastX = useRef(0);
   const vel = useRef(0); // °/frame aprox durante el drag
+  const pointerDownX = useRef(0); // x del pointerdown para distinguir tap de arrastre
+  const frontImgRef = useRef(null); // retrato de la carta frontal (origen del morph)
 
   // Gates del giro idle, todos por REF para no re-renderizar las 10 cartas
   // en cada cruce de borde (patrón AtmosphereEffects, versión sin estado):
@@ -177,11 +179,30 @@ function Ring({ items }) {
     [rotation, interrupt, rest]
   );
 
+  // Abre la ficha de la carta frontal (interacción estrella del podio). El
+  // retrato frontal viaja como morph hacia el hero del detalle (mismo gesto
+  // que el resto de la app vía markPersonajeHero).
+  const openFront = useCallback(() => {
+    const c = items[front];
+    if (c) onOpen?.(c.slug, frontImgRef.current);
+  }, [items, front, onOpen]);
+
+  // Un arrastre termina en un "click" sintético: solo abrimos si el puntero
+  // apenas se movió desde el pointerdown (fue un tap, no un giro).
+  const onFrontClick = useCallback(
+    (e) => {
+      if (Math.abs(e.clientX - pointerDownX.current) > 6) return;
+      openFront();
+    },
+    [openFront],
+  );
+
   const onPointerDown = (e) => {
     e.currentTarget.setPointerCapture(e.pointerId);
     interrupt();
     mode.current = "drag";
     lastX.current = e.clientX;
+    pointerDownX.current = e.clientX;
     vel.current = 0;
   };
   const onPointerMove = (e) => {
@@ -200,6 +221,10 @@ function Ring({ items }) {
   const onKeyDown = (e) => {
     if (e.key === "ArrowRight") goTo((front + 1) % items.length);
     else if (e.key === "ArrowLeft") goTo((front + items.length - 1) % items.length);
+    else if (e.key === "Enter" || e.key === " ") {
+      e.preventDefault();
+      openFront();
+    }
   };
 
   const ringTransform = useTransform(rotation, (r) => `rotateY(${r}deg)`);
@@ -219,7 +244,7 @@ function Ring({ items }) {
           </span>
           <span className="text-[15px] font-semibold">Coliseo de Leyendas</span>
         </div>
-        <span className="font-mono text-[11px] opacity-40">Top 10 · ELO base ·b</span>
+        <span className="font-mono text-[11px] opacity-40">Top 10 · ELO base</span>
       </header>
 
       {/* arena */}
@@ -258,7 +283,15 @@ function Ring({ items }) {
               style={{ ...PRESERVE_3D, transform: ringTransform }}
             >
               {items.map((c, i) => (
-                <RingCard key={c.slug} c={c} i={i} rotation={rotation} front={front === i} />
+                <RingCard
+                  key={c.slug}
+                  c={c}
+                  i={i}
+                  rotation={rotation}
+                  front={front === i}
+                  onFrontClick={front === i ? onFrontClick : undefined}
+                  imgRef={front === i ? frontImgRef : undefined}
+                />
               ))}
             </motion.div>
           </div>
@@ -304,7 +337,7 @@ function Ring({ items }) {
 
 /* ───────────────────────── carta ───────────────────────── */
 
-function RingCard({ c, i, rotation, front }) {
+function RingCard({ c, i, rotation, front, onFrontClick, imgRef }) {
   // frontalidad ∈ [0,1] por coseno del ángulo respecto a cámara
   const frontness = useTransform(rotation, (r) => (Math.cos(((i * STEP + r) * Math.PI) / 180) + 1) / 2);
   // Fog progresivo. OJO WebKit: una opacity animada sobre el nodo
@@ -351,9 +384,16 @@ function RingCard({ c, i, rotation, front }) {
         {/* cara frontal */}
         <motion.div
           className="absolute inset-0 overflow-hidden rounded-xl border bg-surface"
-          style={{ ...SAFARI_FACE, opacity, borderColor: "color-mix(in oklab, var(--color-gold) 22%, transparent)" }}
+          style={{
+            ...SAFARI_FACE,
+            opacity,
+            borderColor: "color-mix(in oklab, var(--color-gold) 22%, transparent)",
+            cursor: onFrontClick ? "pointer" : undefined,
+          }}
+          onClick={onFrontClick}
         >
           <img
+            ref={imgRef}
             src={img(c, 600)}
             srcSet={`${img(c, 300)} 300w, ${img(c, 600)} 600w`}
             sizes={`${CARD_W}px`}
@@ -427,7 +467,7 @@ function RingCard({ c, i, rotation, front }) {
 
 /* ─────────────── fallback prefers-reduced-motion: grid estático ─────────────── */
 
-function StaticGrid({ items }) {
+function StaticGrid({ items, onOpen }) {
   return (
     <section className="min-h-[60vh] bg-bg p-6 text-fg" aria-label="Top 10 — Coliseo de Leyendas">
       <header className="mx-auto mb-5 flex max-w-5xl items-baseline justify-between">
@@ -437,15 +477,18 @@ function StaticGrid({ items }) {
           </span>
           <span className="text-[15px] font-semibold">Coliseo de Leyendas</span>
         </div>
-        <span className="font-mono text-[11px] opacity-40">Top 10 · ELO base ·b</span>
+        <span className="font-mono text-[11px] opacity-40">Top 10 · ELO base</span>
       </header>
       <ul className="mx-auto grid max-w-5xl grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-5">
         {items.map((c, i) => (
-          <li
-            key={c.slug}
-            className="relative aspect-[2/3] overflow-hidden rounded-xl border bg-surface"
-            style={{ borderColor: "color-mix(in oklab, var(--color-gold) 20%, transparent)" }}
-          >
+          <li key={c.slug} className="relative aspect-[2/3]">
+            <button
+              type="button"
+              onClick={(e) => onOpen?.(c.slug, e.currentTarget.querySelector("img"))}
+              aria-label={`Ver ficha de ${c.name} (${c.anime})`}
+              className="absolute inset-0 block overflow-hidden rounded-xl border bg-surface text-left focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-gold"
+              style={{ borderColor: "color-mix(in oklab, var(--color-gold) 20%, transparent)" }}
+            >
             <img src={img(c, 300)} srcSet={`${img(c, 300)} 300w, ${img(c, 600)} 600w`} alt={c.name} loading="lazy" className="absolute inset-0 h-full w-full object-cover object-top" />
             <div
               className="absolute inset-0"
@@ -462,6 +505,7 @@ function StaticGrid({ items }) {
                 <span className="font-mono text-xs text-gold">{c.elo}</span>
               </span>
             </div>
+            </button>
           </li>
         ))}
       </ul>
