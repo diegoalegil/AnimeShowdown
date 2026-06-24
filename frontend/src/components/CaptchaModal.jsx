@@ -67,6 +67,14 @@ function loadTurnstileScript() {
 function CaptchaModal({ open, sitekey, onSuccess, onClose }) {
   const widgetRef = useRef(null)
   const widgetIdRef = useRef(null)
+  // onSuccess por ref: el efecto que renderiza el widget NO debe depender de su
+  // identidad. Si lo hiciera, un padre que pasa un callback inline (lo normal)
+  // re-renderizaba el widget de Turnstile en CADA render, reseteándolo y pudiendo
+  // bloquear al usuario en plena resolución.
+  const onSuccessRef = useRef(onSuccess)
+  useEffect(() => {
+    onSuccessRef.current = onSuccess
+  }, [onSuccess])
   // Estado del widget Turnstile. Lo manipulan los callbacks del API,
   // nunca el body del useEffect — eso satisface react-hooks/set-state-in-effect
   // y mantiene el ciclo de vida claro: render setup en el effect, status
@@ -102,7 +110,7 @@ function CaptchaModal({ open, sitekey, onSuccess, onClose }) {
             // Token válido — el padre re-emite el voto con el header
             // X-AS-Captcha-Token. El modal se cierra desde fuera tras
             // procesar el éxito para evitar flicker.
-            onSuccess(token)
+            onSuccessRef.current(token)
           },
           'error-callback': () => {
             setStatus('error')
@@ -140,7 +148,7 @@ function CaptchaModal({ open, sitekey, onSuccess, onClose }) {
         widgetIdRef.current = null
       }
     }
-  }, [open, sitekey, onSuccess])
+  }, [open, sitekey])
 
   return (
     <Dialog
