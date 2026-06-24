@@ -76,6 +76,14 @@ public class CartaTradingService {
         if (destinatario.getId().equals(solicitante.getId())) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "No puedes intercambiar contigo mismo");
         }
+        // Lock pesimista sobre la fila del destinatario ANTES de contar: serializa
+        // los trade-create concurrentes hacia el MISMO destinatario, así el
+        // check-then-act del tope de ofertas pendientes es atómico. Sin el lock,
+        // dos solicitantes podrían leer count<tope a la vez y ambos insertar,
+        // superándolo. Trades a destinatarios distintos no contienden (filas
+        // distintas).
+        usuarioRepository.findForUpdateById(destinatario.getId())
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Usuario destinatario no encontrado"));
         if (tradeRepository.countByEstadoAndDestinatario(CartaTradeEstado.PENDING, destinatario) >= MAX_PENDING_INCOMING) {
             throw new ResponseStatusException(HttpStatus.TOO_MANY_REQUESTS, "El destinatario tiene demasiadas ofertas pendientes");
         }
