@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react'
+import { useCallback, useEffect, useRef, useState } from 'react'
 import { useLocation } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
 import { ChevronDown, LogOut, Menu, Search, Shield, Shuffle, Swords, Volume2, VolumeX, X } from 'lucide-react'
@@ -127,7 +127,10 @@ function Header() {
       ({ to }) => pathname === to || pathname.startsWith(`${to}/`),
     )?.i18nKey ?? null
 
-  const closeMobile = () => setMobileOpen(false)
+  // useCallback: estabiliza la referencia de onClose que recibe NorenMobileMenu;
+  // sin esto, su efecto de focus-trap se re-ejecutaba en cada render del Header
+  // y re-robaba el foco al primer ítem del menú.
+  const closeMobile = useCallback(() => setMobileOpen(false), [])
   const openQuickSearch = () => {
     play('playClick')
     window.dispatchEvent(new CustomEvent(OPEN_COMMAND_PALETTE_EVENT))
