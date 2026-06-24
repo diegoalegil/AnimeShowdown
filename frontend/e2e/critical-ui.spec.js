@@ -42,6 +42,9 @@ async function prepareCriticalPage(page) {
     localStorage.setItem('animeshowdown.muted', 'true')
     localStorage.setItem('animeshowdown.votar.fast', 'false')
     localStorage.setItem('i18nextLng', 'es')
+    // El kumite de onboarding tiene su propio spec; aquí se cierra para que no
+    // tape el duelo en /votar (ahora arranca también para invitados).
+    localStorage.setItem('onboarding.v1', 'done')
     localStorage.setItem(CATALOG_STORAGE_KEY, JSON.stringify(catalog))
     sessionStorage.setItem('animeshowdown.splash.shown', 'true')
   }, CATALOG)
