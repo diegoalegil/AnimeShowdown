@@ -6,16 +6,30 @@
    Todo es transform/opacity; cero blur(), cero SVG filters.
    ============================================================ */
 
-/* Escenario: 680×470 de diseño; el padre lo escala (ver notas §mobile). */
+/* Escenario: 680×470 de diseño; el frame lo escala a fluido (ver §mobile). */
 .gs-root {
   display: flex;
   flex-direction: column;
   gap: 12px;
 }
+/* Marco fluido: ocupa el ancho disponible (tope 680) y reserva la altura por
+   aspect-ratio. El JS escribe --gs-scale = anchoDelMarco/680 (tope 1) y el
+   escenario interno —de 680px fijos— se escala a ese factor con origen
+   top-left, encajando exacto. overflow:hidden evita que la caja de 680px sin
+   escalar provoque scroll horizontal en el primer frame antes del observer. */
+.gs-stage-frame {
+  width: 100%;
+  max-width: 680px;
+  margin-inline: auto;
+  aspect-ratio: 680 / 470;
+  overflow: hidden;
+}
 .gs-stage {
   position: relative;
   width: 680px;
   height: 470px;
+  transform: scale(var(--gs-scale, 1));
+  transform-origin: top left;
 }
 .gs-armature {
   position: absolute;
