@@ -67,10 +67,13 @@ function MisionesPage() {
       isPast: i < arr.length - 1,
     }
   })
-  // Recompensa: completar la misi\u00f3n diaria acredita monedas (el backend la
-  // paga v\u00eda DropService -> DROP_MISION_DIARIA, idempotente por d\u00eda) adem\u00e1s
-  // de sellar la racha. La copia lo refleja sin clavar un n\u00famero exacto,
-  // porque el importe es configurable (app.cartas.drop.mision-diaria).
+  // Recompensa: las monedas de la misi\u00f3n diaria se acreditan AL VOTAR \u2014 el
+  // primer voto del d\u00eda dispara DROP_MISION_DIARIA (idempotente por d\u00eda, v\u00eda
+  // DropService.candidatosVoto) junto al drop por voto. Los otros dos pasos
+  // (daily trial y revisar ranking) sellan el ritual y la racha pero no pagan
+  // por s\u00ed mismos: solo ELO Duel acredita monedas, y lo hace en su propia
+  // pantalla. La copia de cada sello refleja eso para no prometer monedas
+  // donde no las hay.
   const cartillaMissions = [
     {
       id: 'votos',
@@ -85,7 +88,7 @@ function MisionesPage() {
       kanji: '\u6226',
       label: 'Juega un daily trial',
       progress: Math.min(progress.gamesCompleted, DAILY_GAME_TARGET) + '/' + DAILY_GAME_TARGET + ' juego',
-      reward: '+monedas',
+      reward: 'sella el ritual',
       state: progress.gamesCompleted >= DAILY_GAME_TARGET ? 'completed' : 'pending',
     },
     {
@@ -93,7 +96,7 @@ function MisionesPage() {
       kanji: '\u89a7',
       label: 'Revisa el ranking',
       progress: progress.rankingViewed ? 'visto' : 'pendiente',
-      reward: '+monedas',
+      reward: 'sella el ritual',
       state: progress.rankingViewed ? 'completed' : 'pending',
     },
   ]
