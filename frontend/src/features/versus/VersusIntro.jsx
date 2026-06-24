@@ -358,6 +358,17 @@ export default function VersusIntro({
       className={rootCls}
       onPointerDown={handleSkip}
       role={skippable ? 'button' : undefined}
+      tabIndex={skippable ? 0 : undefined}
+      onKeyDown={
+        skippable
+          ? (e) => {
+              if (e.key === 'Enter' || e.key === ' ') {
+                e.preventDefault()
+                handleSkip()
+              }
+            }
+          : undefined
+      }
       aria-label={skippable ? 'Intro del duelo — toca para saltar' : 'Intro del duelo'}
     >
       <Scene anim={!skipped} left={left} right={right} />
