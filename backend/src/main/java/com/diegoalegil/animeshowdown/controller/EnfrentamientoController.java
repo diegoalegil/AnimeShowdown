@@ -67,8 +67,12 @@ import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
 
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.tags.Tag;
+
 @RestController
 @RequestMapping("/api/enfrentamientos")
+@Tag(name = "Enfrentamientos", description = "Duelos 1v1 para votar: siguiente emparejamiento, aleatorio y registro de voto.")
 public class EnfrentamientoController {
 
     private static final Logger log = LoggerFactory.getLogger(EnfrentamientoController.class);
@@ -167,6 +171,8 @@ public class EnfrentamientoController {
      * respuesta pero delega en el contrato server-authoritative nuevo.
      */
     @GetMapping("/aleatorio")
+    @Operation(summary = "Duelo aleatorio",
+            description = "Devuelve un enfrentamiento 1v1 aleatorio para votar. Funciona con o sin sesión.")
     public ResponseEntity<EnfrentamientoDto> aleatorio(
             @AuthenticationPrincipal Usuario usuario,
             HttpServletRequest httpRequest) {

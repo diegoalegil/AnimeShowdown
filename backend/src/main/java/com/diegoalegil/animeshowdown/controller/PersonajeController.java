@@ -50,8 +50,12 @@ import com.diegoalegil.animeshowdown.service.VotosPeriodoService;
 import jakarta.persistence.EntityNotFoundException;
 import jakarta.validation.Valid;
 
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.tags.Tag;
+
 @RestController
 @RequestMapping("/api/personajes")
+@Tag(name = "Personajes", description = "Catálogo de personajes anime: listado paginado, búsqueda, fichas y ELO.")
 public class PersonajeController {
 
     private static final int DEFAULT_PAGE_SIZE = 50;
@@ -112,6 +116,8 @@ public class PersonajeController {
     @Cacheable(value = "personajes-listado",
             key = "T(com.diegoalegil.animeshowdown.controller.PersonajeController).listadoCacheKey(#anime, #page, #size)")
     @GetMapping
+    @Operation(summary = "Listar personajes",
+            description = "Público. Catálogo paginado con filtro opcional por anime. Soporta page/size.")
     public PageResponse<PersonajeCatalogoDto> listarTodos(
             @RequestParam(required = false) String anime,
             @RequestParam(defaultValue = "0") int page,

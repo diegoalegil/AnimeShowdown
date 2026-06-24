@@ -33,6 +33,9 @@ import com.diegoalegil.animeshowdown.service.TorneoService;
 
 import jakarta.validation.Valid;
 
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.tags.Tag;
+
 /**
  * Controller "delgado": solo orquesta HTTP y delega toda la lógica a
  * TorneoService. Los errores de negocio se propagan como excepciones que
@@ -42,6 +45,7 @@ import jakarta.validation.Valid;
  */
 @RestController
 @RequestMapping("/api/torneos")
+@Tag(name = "Torneos", description = "Torneos de eliminación directa: listado, detalle por slug y bracket en vivo.")
 public class TorneoController {
 
     private static final CacheControl LISTA_PUBLICA_CACHE = CacheControl
@@ -75,6 +79,8 @@ public class TorneoController {
      * internos). 1: el frontend lo consume con react-query.
      */
     @GetMapping
+    @Operation(summary = "Listar torneos",
+            description = "Público. Resumen de todos los torneos (activos, en curso y finalizados), cacheado.")
     public ResponseEntity<List<TorneoResumenDto>> listarTodos() {
         return ResponseEntity.ok()
                 .cacheControl(LISTA_PUBLICA_CACHE)

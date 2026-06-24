@@ -10,6 +10,9 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.tags.Tag;
+
 import com.diegoalegil.animeshowdown.dto.LogroDto;
 import com.diegoalegil.animeshowdown.model.Usuario;
 import com.diegoalegil.animeshowdown.service.BadgeService;
@@ -32,6 +35,7 @@ import com.diegoalegil.animeshowdown.service.BadgeService;
  */
 @RestController
 @RequestMapping("/api/logros")
+@Tag(name = "Logros", description = "Catálogo de badges/logros, progreso del usuario y rareza comunitaria.")
 public class LogroController {
 
     private final BadgeService badgeService;
@@ -41,6 +45,8 @@ public class LogroController {
     }
 
     @GetMapping
+    @Operation(summary = "Catálogo de logros",
+            description = "Público. Lista de badges con icono, descripción y rareza; inmutable salvo deploys.")
     public ResponseEntity<List<LogroDto>> catalogo() {
         return ResponseEntity.ok(
                 badgeService.listarCatalogo().stream().map(LogroDto::deCatalogo).toList());
