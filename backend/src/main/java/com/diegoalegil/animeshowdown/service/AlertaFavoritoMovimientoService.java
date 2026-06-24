@@ -17,6 +17,8 @@ import com.diegoalegil.animeshowdown.model.Personaje;
 import com.diegoalegil.animeshowdown.model.Usuario;
 import com.diegoalegil.animeshowdown.repository.PersonajeFavoritoRepository;
 import com.diegoalegil.animeshowdown.repository.PersonajeRepository;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 
 /**
  * Alertas de "tu favorito se está moviendo": cuando un personaje que el usuario
@@ -41,6 +43,10 @@ import com.diegoalegil.animeshowdown.repository.PersonajeRepository;
 public class AlertaFavoritoMovimientoService {
 
     private static final Logger log = LoggerFactory.getLogger(AlertaFavoritoMovimientoService.class);
+    // Serializa el payload por Jackson en vez de concatenar a mano: un slug con
+    // comillas/backslash rompería el JSON interpolado (y es entrada potencialmente
+    // no confiable). ObjectMapper es thread-safe para serializar.
+    private static final ObjectMapper JSON = new ObjectMapper();
 
     /** Tope de seguidores notificados por personaje y ejecución. */
     static final int MAX_FANOUT_POR_PERSONAJE = 500;
@@ -125,7 +131,7 @@ public class AlertaFavoritoMovimientoService {
                         + " días. ¡Apoya su racha con tu voto!"
                 : nombre + " bajó " + puestos + " puestos en los últimos " + ventanaDias
                         + " días. Necesita tus votos para remontar.";
-        String payload = "{\"slug\":\"" + personaje.getSlug() + "\",\"delta\":" + delta + "}";
+        String payload = construirPayload(personaje.getSlug(), delta);
         String eventoKey = "fav-mov:" + personajeId + ":" + dia + ":" + (subio ? "up" : "down");
 
         List<Usuario> seguidores = favoritoRepository.findUsuariosByPersonajeId(
@@ -138,5 +144,14 @@ public class AlertaFavoritoMovimientoService {
             }
         }
         return creadas;
+    }
+
+    private static String construirPayload(String slug, int delta) {
+        try {
+            return JSON.writeValueAsString(Map.of("slug", slug == null ? "" : slug, "delta", delta));
+        } catch (JsonProcessingException e) {
+            // Tipos triviales (String + int): no debería ocurrir. Fallback sin slug.
+            return "{\"delta\":" + delta + "}";
+        }
     }
 }
