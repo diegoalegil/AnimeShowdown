@@ -1,4 +1,5 @@
 import { fechaDelDia } from './games'
+import { api, getToken } from './api'
 
 export const DAILY_PROGRESS_EVENT = 'animeshowdown:daily-progress'
 export const DAILY_VOTE_TARGET = 10
@@ -153,17 +154,87 @@ export function recordDailyVote(count = 1) {
 }
 
 export function setDailyGamesCompleted(count) {
-  return updateDailyProgress((progress) => ({
+  const res = updateDailyProgress((progress) => ({
     ...progress,
     gamesCompleted: Math.max(progress.gamesCompleted, Number(count) || 0),
   }))
+  pushServerDaily('/api/me/daily/juego')
+  return res
 }
 
 export function recordDailyRankingView() {
-  return updateDailyProgress((progress) => ({
+  const res = updateDailyProgress((progress) => ({
     ...progress,
     rankingViewed: true,
   }))
+  pushServerDaily('/api/me/daily/ranking-visto')
+  return res
+}
+
+// --- Sincronización server-side (#1) -------------------------------------
+// Para usuarios con sesión, el backend es la verdad de la misión y la racha:
+// persiste, cruza dispositivos y habilita notificaciones. localStorage sigue
+// siendo la capa instantánea y el fallback para invitados. Los votos los
+// registra el backend solo (vía el evento de voto); aquí solo empujamos los
+// pasos client-side (juego, ranking) y tiramos del estado al iniciar sesión.
+
+function haySesion() {
+  return Boolean(getToken())
+}
+
+/**
+ * Mezcla la vista del servidor en localStorage. Los contadores del día no
+ * retroceden (max, por si el listener async aún no procesó un voto reciente);
+ * la racha la adopta del servidor, que es la autoridad del reinicio/continuación
+ * (un current local podría estar inflado tras saltarse un día).
+ */
+export function mergeServerDaily(server) {
+  if (!server || !server.progreso) {
+    return { progress: readDailyProgress(), streak: readDailyStreak() }
+  }
+  const fecha = server.progreso.fecha || fechaDelDia()
+  const local = readDailyProgress(fecha)
+  const merged = normalizeProgress(
+    {
+      ...local,
+      votes: Math.max(local.votes, Number(server.progreso.votos) || 0),
+      gamesCompleted: Math.max(local.gamesCompleted, Number(server.progreso.juegos) || 0),
+      rankingViewed: local.rankingViewed || Boolean(server.progreso.rankingVisto),
+    },
+    fecha,
+  )
+  safeSet(progressKey(fecha), JSON.stringify(merged))
+
+  const r = server.racha || {}
+  const longestLocal = normalizeStreak(readJson(STREAK_KEY, null)).longest
+  const streak = normalizeStreak({
+    current: Number(r.actual) || 0,
+    longest: Math.max(Number(r.record) || 0, longestLocal),
+    lastCompletedDate: r.ultimaFechaCompletada || null,
+  })
+  safeSet(STREAK_KEY, JSON.stringify(streak))
+
+  const vivo = readDailyStreak(fecha)
+  notify(merged, vivo)
+  return { progress: merged, streak: vivo }
+}
+
+/** Tira del progreso+racha del servidor y lo mezcla. Best-effort: si falla, el
+ * localStorage sigue funcionando. No hace nada para invitados. */
+export async function hydrateDailyFromServer() {
+  if (!haySesion()) return null
+  try {
+    return mergeServerDaily(await api.get('/api/me/daily'))
+  } catch {
+    return null
+  }
+}
+
+function pushServerDaily(path) {
+  if (!haySesion()) return
+  // Best-effort: no bloquea la UI ni propaga errores (el optimismo local ya
+  // actualizó el estado). El backend es idempotente por día.
+  Promise.resolve(api.post(path)).catch(() => {})
 }
 
 export function recordDailyShare() {
