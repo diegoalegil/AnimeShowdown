@@ -148,10 +148,12 @@ class ComentarioControllerTest {
 
         long id = crearComentario(autor, "Comentario visible pero polémico.");
 
+        // Un único reporte cuenta pero NO oculta el comentario (umbral por defecto = 3):
+        // antes un solo reporte de cualquiera lo pasaba a PENDIENTE_REVISION (censura trivial).
         mvc.perform(post("/api/comentarios/" + id + "/reportar")
                         .header("Authorization", "Bearer " + reportero))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.estado").value("PENDIENTE_REVISION"))
+                .andExpect(jsonPath("$.estado").value("VISIBLE"))
                 .andExpect(jsonPath("$.reportes").value(1));
 
         mvc.perform(delete("/api/comentarios/" + id)
@@ -159,6 +161,47 @@ class ComentarioControllerTest {
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.estado").value("ELIMINADO"))
                 .andExpect(jsonPath("$.contenido").value("[comentario eliminado]"));
+    }
+
+    @Test
+    void elComentarioSeOcultaSoloAlAlcanzarElUmbralDeReportes() throws Exception {
+        String autor = token("coment_umbral_autor");
+        long id = crearComentario(autor, "Comentario polemico pero visible.");
+
+        // Dos reportes de usuarios DISTINTOS: el comentario sigue VISIBLE (umbral = 3).
+        mvc.perform(post("/api/comentarios/" + id + "/reportar")
+                        .header("Authorization", "Bearer " + token("coment_umbral_r1")))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.estado").value("VISIBLE"))
+                .andExpect(jsonPath("$.reportes").value(1));
+        mvc.perform(post("/api/comentarios/" + id + "/reportar")
+                        .header("Authorization", "Bearer " + token("coment_umbral_r2")))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.estado").value("VISIBLE"))
+                .andExpect(jsonPath("$.reportes").value(2));
+
+        // Tercer reportero distinto → alcanza el umbral → PENDIENTE_REVISION.
+        mvc.perform(post("/api/comentarios/" + id + "/reportar")
+                        .header("Authorization", "Bearer " + token("coment_umbral_r3")))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.estado").value("PENDIENTE_REVISION"))
+                .andExpect(jsonPath("$.reportes").value(3));
+    }
+
+    @Test
+    void elMismoUsuarioNoPuedeReportarDosVecesNiInflarElContador() throws Exception {
+        String autor = token("coment_dedup_autor");
+        String reportero = token("coment_dedup_reportero");
+        long id = crearComentario(autor, "Comentario para dedup de reportes.");
+
+        mvc.perform(post("/api/comentarios/" + id + "/reportar")
+                        .header("Authorization", "Bearer " + reportero))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.reportes").value(1));
+        // Segundo reporte del MISMO usuario → 409, sin incrementar el contador.
+        mvc.perform(post("/api/comentarios/" + id + "/reportar")
+                        .header("Authorization", "Bearer " + reportero))
+                .andExpect(status().isConflict());
     }
 
     @Test
@@ -239,8 +282,11 @@ class ComentarioControllerTest {
 
             assertThat(statuses).containsExactly(200, 200);
             var comentario = comentarioRepository.findById(id).orElseThrow();
+            // Dos reportes concurrentes de usuarios DISTINTOS suman 2 sin perder
+            // incrementos. Con umbral 3 el comentario sigue VISIBLE (antes 1 reporte
+            // ya lo ocultaba); haría falta un 3er reportero distinto para PENDIENTE.
             assertThat(comentario.getReportes()).isEqualTo(2);
-            assertThat(comentario.getEstado()).isEqualTo(ComentarioEstado.PENDIENTE_REVISION);
+            assertThat(comentario.getEstado()).isEqualTo(ComentarioEstado.VISIBLE);
         } finally {
             executor.shutdownNow();
         }

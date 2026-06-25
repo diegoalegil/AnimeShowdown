@@ -134,10 +134,15 @@ public class PerfilService {
     @Transactional
     public Usuario actualizarBio(Usuario usuario, String bioRaw, HttpServletRequest request) {
         String limpia = sanitizarBio(bioRaw);
-        usuario.setBio(limpia.isEmpty() ? null : limpia);
-        usuarioRepository.save(usuario);
-        auditLogService.registrar(AuditEvento.BIO_CAMBIADA, usuario, null, request);
-        return usuario;
+        // Recargar la entidad gestionada: el principal del JWT puede estar desligado/
+        // obsoleto, y guardarlo haría merge de TODAS sus columnas, revirtiendo cambios
+        // concurrentes (p.ej. eloPvp/pvpPartidos de un duelo que terminó entre la carga
+        // del request y este save). Patrón de MarcoService.equipar.
+        Usuario gestionado = usuarioRepository.findById(usuario.getId()).orElse(usuario);
+        gestionado.setBio(limpia.isEmpty() ? null : limpia);
+        usuarioRepository.save(gestionado);
+        auditLogService.registrar(AuditEvento.BIO_CAMBIADA, gestionado, null, request);
+        return gestionado;
     }
 
     /**
@@ -157,16 +162,13 @@ public class PerfilService {
     public PerfilStatsDto stats(Usuario usuario) {
         long votosTotales = votoRepository.countByUsuario(usuario);
         long prediccionesAcertadas = prediccionRepository.countByUsuarioAndAcertadaTrue(usuario);
-        // Una pasada O(n) por todas las predicciones es aceptable porque el
-        // count de predicciones por usuario es siempre pequeño (decenas).
-        var todasMisPredicciones = prediccionRepository.findResueltasDelUsuarioDesc(
-                usuario, PageRequest.of(0, 10_000));
-        long prediccionesResueltas = todasMisPredicciones.size();
-        // prediccionesTotales requiere el count de TODAS (resueltas + pendientes).
-        // No tenemos un countByUsuario en PrediccionRepository — usamos una
-        // aproximación: las resueltas + 0 pendientes en stats actuales (las
-        // pendientes solo importan al user en el bracket activo, no aquí).
-        // Si en el futuro queremos exactitud, añadir Prediccion.countByUsuario.
+        // Count real de resueltas (antes se contaba el size() de una página capada a
+        // 10.000: con >10.000 resueltas el denominador se congelaba mientras el
+        // numerador seguía subiendo → el porcentaje del perfil podía superar el 100%,
+        // y además cargaba hasta 10.000 entidades solo para contar).
+        long prediccionesResueltas = prediccionRepository.countByUsuarioAndAcertadaIsNotNull(usuario);
+        // prediccionesTotales = resueltas (las pendientes solo importan en el bracket
+        // activo, no en este resumen de perfil).
         long prediccionesTotales = prediccionesResueltas;
         double porcentaje = prediccionesResueltas == 0
                 ? 0.0
