@@ -6,14 +6,18 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.diegoalegil.animeshowdown.model.Enfrentamiento;
@@ -56,6 +60,12 @@ public class ArenaService {
     private final int poolTarget;
     private final double resolveThreshold;
     private final int maxPorTick;
+    // Self-inyección para que crearArena() (REQUIRES_NEW) pase por el proxy de
+    // Spring: el INSERT de creación del arena corre en una tx AISLADA, así una
+    // colisión de slug en el primer arranque no aborta la tx externa.
+    @Autowired
+    @Lazy
+    private ArenaService self;
 
     public ArenaService(
             TorneoRepository torneoRepository,
@@ -79,18 +89,34 @@ public class ArenaService {
     /** Find-or-create del torneo Arena permanente (idempotente). */
     @Transactional
     public Torneo ensureArena() {
-        return torneoRepository.findBySlug(ARENA_SLUG).orElseGet(() -> {
-            Torneo arena = new Torneo(ARENA_SLUG, "Arena", "Duelos libres de todo el roster");
-            arena.setEstado(EstadoTorneo.IN_PROGRESS);
-            arena.setEsArena(true);
-            arena.setPublico(false); // no aparece en /torneos; es el backend del votar
-            try {
-                return torneoRepository.save(arena);
-            } catch (DataIntegrityViolationException e) {
-                // Carrera en el primer arranque: el UNIQUE de slug lo blinda.
-                return torneoRepository.findBySlug(ARENA_SLUG).orElseThrow(() -> e);
-            }
-        });
+        Optional<Torneo> existente = torneoRepository.findBySlug(ARENA_SLUG);
+        if (existente.isPresent()) {
+            return existente.get();
+        }
+        try {
+            // El INSERT corre en tx AISLADA (REQUIRES_NEW). Antes el save +
+            // catch + re-query ocurría en ESTA tx: en Postgres la violación del
+            // UNIQUE de slug aborta toda la transacción ("current transaction is
+            // aborted") y el re-query del catch fallaba (H2 no lo reproducía).
+            self.crearArena();
+        } catch (DataIntegrityViolationException e) {
+            // Otro arrancó el arena a la vez: su sub-tx abortó AISLADA, esta
+            // sigue sana para re-consultar abajo.
+            log.debug("Carrera al crear el arena; reuso el existente: {}", e.getMessage());
+        }
+        // Re-leemos SIEMPRE en esta tx (sana) → entidad gestionada aquí.
+        return torneoRepository.findBySlug(ARENA_SLUG)
+                .orElseThrow(() -> new IllegalStateException("No se pudo asegurar el torneo Arena"));
+    }
+
+    /** Crea el arena en una transacción AISLADA (ver {@link #ensureArena}). */
+    @Transactional(propagation = Propagation.REQUIRES_NEW)
+    public Torneo crearArena() {
+        Torneo arena = new Torneo(ARENA_SLUG, "Arena", "Duelos libres de todo el roster");
+        arena.setEstado(EstadoTorneo.IN_PROGRESS);
+        arena.setEsArena(true);
+        arena.setPublico(false); // no aparece en /torneos; es el backend del votar
+        return torneoRepository.save(arena);
     }
 
     /**
