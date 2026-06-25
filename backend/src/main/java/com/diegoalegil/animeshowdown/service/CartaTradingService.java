@@ -200,15 +200,26 @@ public class CartaTradingService {
             origen.setCantidad(origen.getCantidad() - 1);
             usuarioCartaRepository.save(origen);
         }
-        UsuarioCarta destinoCarta = usuarioCartaRepository
-                .findForUpdateByUsuarioIdAndCartaId(destino.getId(), carta.getId())
-                .orElseGet(() -> new UsuarioCarta(destino, carta));
-        if (destinoCarta.getId() == null) {
-            usuarioCartaRepository.save(destinoCarta);
-        } else {
-            destinoCarta.incrementar();
-            usuarioCartaRepository.save(destinoCarta);
+        // Acredita la copia al destino con el MISMO patrón atómico idempotente que
+        // la apertura de sobres (CartaService.registrarPosesion). Antes hacía un
+        // save() crudo cuando el destino no poseía la carta (findForUpdate vuelve
+        // vacío → no hay fila que bloquear): ese INSERT choca con uk_usuario_carta
+        // si una apertura de sobre concurrente del destino insertó (destino, carta)
+        // primero — esa ruta NO toma el lock de fila de usuario que sí toma el
+        // trade en lockParticipantes(), así que no se serializan. El DIV abortaría
+        // la tx del intercambio en Postgres ("current transaction is aborted") y un
+        // trade legítimo se caería con 500. incrementarCantidad (UPDATE atómico) /
+        // insertarPosesionSiFalta (INSERT ON CONFLICT DO NOTHING) arbitran la
+        // carrera sin lanzar.
+        if (usuarioCartaRepository.incrementarCantidad(destino, carta) > 0) {
+            return;
         }
+        if (usuarioCartaRepository.insertarPosesionSiFalta(destino.getId(), carta.getId()) > 0) {
+            return;
+        }
+        // Carrera: otra ruta insertó la posesión entre el UPDATE y el INSERT.
+        // Ahora sí existe → incremento atómico.
+        usuarioCartaRepository.incrementarCantidad(destino, carta);
     }
 
     private void auditarResolucion(CartaTrade trade, Usuario actor) {
