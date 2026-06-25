@@ -220,11 +220,31 @@ export function mergeServerDaily(server) {
 }
 
 /** Tira del progreso+racha del servidor y lo mezcla. Best-effort: si falla, el
- * localStorage sigue funcionando. No hace nada para invitados. */
+ * localStorage sigue funcionando. No hace nada para invitados.
+ *
+ * Migración (#1): en el primer login tras pasar la racha a server-side, el
+ * servidor arranca sin historial → adoptar su racha (0) borraría la racha viva
+ * que el usuario ya tenía en localStorage. Si la local está VIVA y el servidor
+ * aún no tiene racha, la sembramos una vez (el servidor la valida/capa) antes de
+ * mezclar, así no se pierde el gancho de retención justo al lanzar el feature. */
 export async function hydrateDailyFromServer() {
   if (!haySesion()) return null
   try {
-    return mergeServerDaily(await api.get('/api/me/daily'))
+    let server = await api.get('/api/me/daily')
+    const r = server?.racha || {}
+    const servidorSinRacha = !r.ultimaFechaCompletada && !(Number(r.actual) > 0)
+    const local = readDailyStreak() // ya aplica liveness: current>0 ⇒ viva (hoy/ayer)
+    if (servidorSinRacha && local.current > 0 && local.lastCompletedDate) {
+      try {
+        server = await api.post('/api/me/daily/migrar-racha', {
+          actual: local.current,
+          ultimaFechaCompletada: local.lastCompletedDate,
+        })
+      } catch {
+        // Best-effort: si el backfill falla, seguimos con la respuesta original.
+      }
+    }
+    return mergeServerDaily(server)
   } catch {
     return null
   }
