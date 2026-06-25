@@ -2,10 +2,8 @@ package com.diegoalegil.animeshowdown.service;
 
 import java.time.Clock;
 import java.time.LocalDate;
-import java.util.Optional;
 import java.util.function.Consumer;
 
-import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -14,6 +12,7 @@ import com.diegoalegil.animeshowdown.model.DailyProgress;
 import com.diegoalegil.animeshowdown.model.DailyStreak;
 import com.diegoalegil.animeshowdown.repository.DailyProgressRepository;
 import com.diegoalegil.animeshowdown.repository.DailyStreakRepository;
+import com.diegoalegil.animeshowdown.repository.UsuarioRepository;
 
 /**
  * Progreso de la misión diaria y racha SERVER-SIDE (#1 de la auditoría ultra).
@@ -37,13 +36,16 @@ public class DailyProgressService {
 
     private final DailyProgressRepository progressRepo;
     private final DailyStreakRepository streakRepo;
+    private final UsuarioRepository usuarioRepo;
     private final Clock clock;
 
     public DailyProgressService(DailyProgressRepository progressRepo,
             DailyStreakRepository streakRepo,
+            UsuarioRepository usuarioRepo,
             Clock clock) {
         this.progressRepo = progressRepo;
         this.streakRepo = streakRepo;
+        this.usuarioRepo = usuarioRepo;
         this.clock = clock;
     }
 
@@ -65,6 +67,51 @@ public class DailyProgressService {
     @Transactional
     public DailyProgressDto marcarRankingVisto(Long usuarioId) {
         return mutar(usuarioId, p -> p.setRankingVisto(true));
+    }
+
+    /**
+     * Semilla ÚNICA de la racha local al servidor (migración a server-side, #1).
+     * Sin esto, la racha viva de cada usuario existente se ponía a 0 en el primer
+     * login (el servidor arranca sin historial). El servidor es el guardián:
+     * <ul>
+     *   <li>solo si AÚN no hay racha en el servidor (one-time; nunca pisa una real);</li>
+     *   <li>solo si la racha local está VIVA (última jornada hoy o ayer); una más
+     *       antigua ya está muerta y no se importa;</li>
+     *   <li>capando {@code actual} a los días desde el registro (una racha no
+     *       puede ser más larga que la antigüedad de la cuenta) — así no se
+     *       infla ni contamina futuros leaderboards.</li>
+     * </ul>
+     * No-op idempotente en cualquier otro caso; devuelve siempre la vista actual.
+     */
+    @Transactional
+    public DailyProgressDto migrarRacha(Long usuarioId, int actualReclamado,
+            LocalDate ultimaLocal, LocalDate fechaRegistro) {
+        LocalDate hoy = LocalDate.now(clock);
+        boolean viva = ultimaLocal != null
+                && (ultimaLocal.equals(hoy) || ultimaLocal.equals(hoy.minusDays(1)));
+        if (viva) {
+            DailyStreak s = obtenerRachaConLock(usuarioId);
+            boolean servidorSinHistorial =
+                    s.getUltimaFechaCompletada() == null && s.getActual() == 0;
+            if (servidorSinHistorial) {
+                int tope = capPorAntiguedad(fechaRegistro, hoy);
+                int actual = Math.min(Math.max(1, actualReclamado), tope);
+                s.setActual(actual);
+                s.setRecord(Math.max(s.getRecord(), actual));
+                s.setUltimaFechaCompletada(ultimaLocal);
+                streakRepo.save(s);
+            }
+        }
+        return leer(usuarioId);
+    }
+
+    /** Tope = días desde el registro (inclusive), acotado a [1, 3650]. */
+    private int capPorAntiguedad(LocalDate fechaRegistro, LocalDate hoy) {
+        if (fechaRegistro == null) {
+            return 1;
+        }
+        long dias = java.time.temporal.ChronoUnit.DAYS.between(fechaRegistro, hoy) + 1;
+        return (int) Math.max(1, Math.min(3650, dias));
     }
 
     @Transactional(readOnly = true)
@@ -91,17 +138,20 @@ public class DailyProgressService {
         return vista(usuarioId, p, hoy);
     }
 
-    /** Fila de hoy con lock; la crea si no existe, resolviendo la carrera de creación. */
+    /**
+     * Fila de hoy con lock; la crea si no existe. Para resolver la carrera de
+     * creación bloquea PRIMERO la fila del usuario (patrón de
+     * {@code MonederoService.obtenerOCrearConLock}) en vez de capturar una
+     * violación de unique tras el INSERT: en Postgres real esa violación aborta
+     * TODA la transacción y el re-query del catch fallaría con "current
+     * transaction is aborted" (H2 no aborta, por eso solo se veía en prod). Con
+     * el lock del padre los creadores concurrentes se serializan ANTES del
+     * INSERT, así que el segundo encuentra la fila ya creada sin tocar el unique.
+     */
     private DailyProgress obtenerConLock(Long usuarioId, LocalDate hoy) {
-        Optional<DailyProgress> existente = progressRepo.lockByUsuarioYFecha(usuarioId, hoy);
-        if (existente.isPresent()) {
-            return existente.get();
-        }
-        try {
-            return progressRepo.saveAndFlush(new DailyProgress(usuarioId, hoy));
-        } catch (DataIntegrityViolationException carrera) {
-            return progressRepo.lockByUsuarioYFecha(usuarioId, hoy).orElseThrow(() -> carrera);
-        }
+        usuarioRepo.findForUpdateById(usuarioId);
+        return progressRepo.lockByUsuarioYFecha(usuarioId, hoy)
+                .orElseGet(() -> progressRepo.saveAndFlush(new DailyProgress(usuarioId, hoy)));
     }
 
     private void actualizarRacha(Long usuarioId, LocalDate hoy) {
@@ -119,16 +169,12 @@ public class DailyProgressService {
         streakRepo.save(s);
     }
 
+    /** Racha con lock; misma defensa que {@link #obtenerConLock}: bloquea la fila
+     * del usuario antes del INSERT en vez de capturar la violación de unique. */
     private DailyStreak obtenerRachaConLock(Long usuarioId) {
-        Optional<DailyStreak> existente = streakRepo.lockByUsuario(usuarioId);
-        if (existente.isPresent()) {
-            return existente.get();
-        }
-        try {
-            return streakRepo.saveAndFlush(new DailyStreak(usuarioId));
-        } catch (DataIntegrityViolationException carrera) {
-            return streakRepo.lockByUsuario(usuarioId).orElseThrow(() -> carrera);
-        }
+        usuarioRepo.findForUpdateById(usuarioId);
+        return streakRepo.lockByUsuario(usuarioId)
+                .orElseGet(() -> streakRepo.saveAndFlush(new DailyStreak(usuarioId)));
     }
 
     private DailyProgressDto vista(Long usuarioId, DailyProgress p, LocalDate hoy) {
