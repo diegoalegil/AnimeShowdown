@@ -72,8 +72,17 @@ public class CartaDropListener {
             // vive en DropService.candidatosVoto (fuente única que comparten este
             // listener y la previsualización del endpoint); aquí se APLICAN.
             long totalVotos = votoRepository.countByUsuario(usuario);
+            // Usa la fecha SELLADA en la tx del voto, no LocalDate.now(): este
+            // handler corre @Async tras el commit, así que un voto de las 23:59
+            // del día D procesado tras medianoche generaría la referencia de la
+            // misión diaria "dia:D+1". Cuando el usuario vota de verdad el día
+            // D+1, esa referencia ya existe -> MonederoService la trata como
+            // idempotente y NO paga la misión de D+1: pierde un día completo.
+            // Mismo blindaje que DailyProgressVoteListener (fallback a now() solo
+            // para eventos legacy sin fecha sellada).
+            LocalDate diaVoto = ev.fechaVoto() != null ? ev.fechaVoto() : LocalDate.now(clock);
             for (DropService.DropCandidato c :
-                    DropService.candidatosVoto(totalVotos, votoCadaN, LocalDate.now(clock))) {
+                    DropService.candidatosVoto(totalVotos, votoCadaN, diaVoto)) {
                 dropService.otorgar(usuario, c.motivo(), c.referencia());
             }
         } catch (Exception e) {
