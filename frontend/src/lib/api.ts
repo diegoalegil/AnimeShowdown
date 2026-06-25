@@ -399,6 +399,9 @@ async function request(
   // Antes pasar `signal` desactivaba el timeout y podia dejar requests
   // colgadas si el caller no abortaba manualmente.
   const requestSignal = createRequestSignal({ signal, timeoutMs })
+  // El reintento tras refresh usa una señal con timeout FRESCO; rastreamos cuál
+  // venció para que el mensaje de error siga siendo correcto.
+  let timedOut = () => requestSignal.timedOut()
 
   // Excluimos los endpoints de auth para no entrar en bucle de refresh.
   const esRutaAuth =
@@ -455,18 +458,28 @@ async function request(
     if (necesitaRefresh) {
       const refreshed = await intentarRefresh()
       if (refreshed?.token) {
-        res = await ejecutarFetch(path, {
-          method,
-          body,
-          headers,
-          signal: requestSignal.signal,
-          includeAuth: true,
-        })
+        // Señal/timeout FRESCOS para el reintento: reusar la original podía
+        // reintentar con un timeout casi agotado (o ya disparado) durante el
+        // refresh, abortando el reintento al instante. Conserva el signal del
+        // caller; el del reintento se limpia siempre.
+        const retrySignal = createRequestSignal({ signal, timeoutMs })
+        timedOut = () => requestSignal.timedOut() || retrySignal.timedOut()
+        try {
+          res = await ejecutarFetch(path, {
+            method,
+            body,
+            headers,
+            signal: retrySignal.signal,
+            includeAuth: true,
+          })
+        } finally {
+          retrySignal.cleanup()
+        }
       }
     }
   } catch (err) {
     if (err instanceof DOMException && err.name === 'AbortError') {
-      if (!requestSignal.timedOut()) {
+      if (!timedOut()) {
         throw new ApiError('La petición se canceló', 0, null)
       }
       throw new ApiError(
@@ -526,6 +539,7 @@ async function requestBlob(
   }: RequestOptions = {},
 ): Promise<BlobResult> {
   const requestSignal = createRequestSignal({ signal, timeoutMs })
+  let timedOut = () => requestSignal.timedOut()
   let res
   try {
     res = await ejecutarFetch(path, {
@@ -548,18 +562,25 @@ async function requestBlob(
     if (necesitaRefresh) {
       const refreshed = await intentarRefresh()
       if (refreshed?.token) {
-        res = await ejecutarFetch(path, {
-          method,
-          body,
-          headers,
-          signal: requestSignal.signal,
-          includeAuth: true,
-        })
+        // Señal/timeout frescos para el reintento (ver request()).
+        const retrySignal = createRequestSignal({ signal, timeoutMs })
+        timedOut = () => requestSignal.timedOut() || retrySignal.timedOut()
+        try {
+          res = await ejecutarFetch(path, {
+            method,
+            body,
+            headers,
+            signal: retrySignal.signal,
+            includeAuth: true,
+          })
+        } finally {
+          retrySignal.cleanup()
+        }
       }
     }
   } catch (err) {
     if (err instanceof DOMException && err.name === 'AbortError') {
-      if (!requestSignal.timedOut()) {
+      if (!timedOut()) {
         throw new ApiError('La petición se canceló', 0, null)
       }
       throw new ApiError(

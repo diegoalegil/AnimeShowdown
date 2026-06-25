@@ -83,10 +83,16 @@ function RuletaPage() {
     [navigate],
   )
 
-  // CTA «Votar con {nombre}» → arena de votación.
+  // CTA «Votar con {nombre}» → arena de votación CON el personaje sorteado
+  // (?personaje=slug lo lee useFixedDuelParams para fijar el duelo). Antes
+  // navegaba a /votar a secas, ignorando lo que cayó bajo el visor.
   const votar = useCallback(() => {
-    navigate('/votar')
-  }, [navigate])
+    if (resultado?.slug) {
+      navigate(`/votar?personaje=${encodeURIComponent(resultado.slug)}`)
+    } else {
+      navigate('/votar')
+    }
+  }, [navigate, resultado])
 
   if (roster.length < ROSTER_MINIMO) {
     return (
