@@ -25,10 +25,12 @@ import com.diegoalegil.animeshowdown.repository.UsuarioRepository;
  * materializado en {@code monedero} Y una fila en el ledger
  * {@code monedero_movimiento} dentro de la misma transacción.
  *
- * <p>Idempotencia de los créditos: pre-check por (usuario, motivo, referencia)
- * + UNIQUE constraint. En la carrera rara, el flush lanza
- * {@link DataIntegrityViolationException} y la transacción del crédito hace
- * rollback — el llamador de dominio (DropService) la captura fuera de la tx.
+ * <p>Idempotencia de los créditos: re-chequeo por (usuario, motivo, referencia)
+ * DENTRO del lock pesimista del monedero, con el UNIQUE constraint
+ * {@code uk_mon_mov_idem} como red final. Al serializar el chequeo bajo el lock,
+ * la carrera (dos créditos idénticos a la vez) NO llega a intentar el segundo
+ * INSERT, así que no lanza {@link DataIntegrityViolationException} ni aborta la
+ * transacción del llamador en Postgres.
  *
  * <p>Lost-update del saldo: {@code acreditar()} carga el monedero con
  * {@code findForUpdateByUsuarioId} (PESSIMISTIC_WRITE lock) antes del
@@ -84,14 +86,23 @@ public class MonederoService {
 
     /**
      * Acredita moneda de forma idempotente por (motivo, referencia). Si ese par
-     * ya se aplicó, no hace nada y devuelve {@code aplicado=false}. La carrera
-     * (dos créditos idénticos a la vez) la corta el UNIQUE: el flush lanza
-     * {@link DataIntegrityViolationException} y la tx hace rollback.
+     * ya se aplicó, no hace nada y devuelve {@code aplicado=false}.
      *
      * <p>El monedero se carga con {@code findForUpdateByUsuarioId}
      * (PESSIMISTIC_WRITE lock) para evitar lost-update en dos acreditaciones
      * concurrentes del mismo usuario. El lock asegura que la segunda lectura
      * espere a que la primera confirme su saldo antes de modificarlo.
+     *
+     * <p>El chequeo de idempotencia va DENTRO del lock (igual que
+     * {@link #acreditarDropConTopeDiario}): si lo hiciéramos antes de adquirirlo,
+     * dos créditos concurrentes del mismo (motivo, referencia) verían ambos
+     * {@code existsBy=false}, se serializarían en el lock, y el segundo intentaría
+     * el INSERT igualmente — violando {@code uk_mon_mov_idem} y ABORTANDO en
+     * Postgres la transacción del llamador ("current transaction is aborted").
+     * Con el re-chequeo dentro del lock el segundo ve la fila ya confirmada y
+     * devuelve {@code aplicado=false} sin tocar la BD; el UNIQUE queda solo como
+     * red final. (Esto evita un 500 en el doble-click de cofre diario / la doble
+     * entrega de recompensa de evento, que llaman este método dentro de SU tx.)
      */
     @Transactional
     public ResultadoCredito acreditar(Usuario usuario, MotivoMovimiento motivo,
@@ -99,10 +110,10 @@ public class MonederoService {
         if (cantidad <= 0) {
             return new ResultadoCredito(false, saldoActual(usuario));
         }
-        if (movimientoRepo.existsByUsuarioAndMotivoAndReferencia(usuario, motivo, referencia)) {
-            return new ResultadoCredito(false, saldoActual(usuario));
-        }
         Monedero monedero = obtenerOCrearConLock(usuario);
+        if (movimientoRepo.existsByUsuarioAndMotivoAndReferencia(usuario, motivo, referencia)) {
+            return new ResultadoCredito(false, monedero.getSaldo());
+        }
         long nuevoSaldo = monedero.getSaldo() + cantidad;
         monedero.setSaldo(nuevoSaldo);
         // save + flush: marca el dirty-check en el primer-level cache para que
