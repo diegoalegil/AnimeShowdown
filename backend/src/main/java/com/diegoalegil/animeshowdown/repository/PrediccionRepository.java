@@ -81,6 +81,10 @@ public interface PrediccionRepository extends JpaRepository<Prediccion, Long> {
     /** Total de predicciones acertadas de un usuario (badge profeta = 20+). */
     long countByUsuarioAndAcertadaTrue(Usuario usuario);
 
+    /** Total de predicciones RESUELTAS (acertada no nula) de un usuario. Para el
+     *  porcentaje de aciertos del perfil sin capar el denominador ni cargar filas. */
+    long countByUsuarioAndAcertadaIsNotNull(Usuario usuario);
+
     /**
      * Últimas predicciones resueltas del usuario, en orden cronológico
      * descendiente (más recientes primero). Para detectar streaks de

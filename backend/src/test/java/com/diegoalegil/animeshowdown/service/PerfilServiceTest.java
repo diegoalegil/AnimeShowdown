@@ -108,11 +108,7 @@ class PerfilServiceTest {
             when(votoRepository.countByUsuario(u)).thenReturn(50L);
             // acertadas must be <= resolved for percentage to not exceed 100
             when(prediccionRepository.countByUsuarioAndAcertadaTrue(u)).thenReturn(2L);
-            when(prediccionRepository.findResueltasDelUsuarioDesc(eq(u), any(PageRequest.class)))
-                    .thenReturn(List.of(
-                            makePrediccion(true),
-                            makePrediccion(false),
-                            makePrediccion(true)));
+            when(prediccionRepository.countByUsuarioAndAcertadaIsNotNull(u)).thenReturn(3L);
             when(prediccionRepository.puntosCampeonAcumulados(u)).thenReturn(20L);
             when(usuarioLogroRepository.countByUsuario(u)).thenReturn(3L);
             when(torneoRepository.countByCreadoPor(u)).thenReturn(2L);
