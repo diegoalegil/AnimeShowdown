@@ -442,8 +442,13 @@ public class EnfrentamientoController {
         // Evento de dominio. BadgeEventListener escucha tras
         // commit y desbloquea badges de umbral (primer_voto/cien/mil).
         // Diseño extensible — futuros listeners podrán reaccionar también.
+        // Día del voto SELLADO en la tx del voto (no recalculado en el hilo
+        // @Async): un listener que cruce medianoche debe contar el voto en su
+        // día REAL, no en el día en que se procese el evento.
+        java.time.LocalDate diaVoto = (guardado.getFecha() != null
+                ? guardado.getFecha() : java.time.LocalDateTime.now()).toLocalDate();
         if (usuario != null) {
-            eventPublisher.publishEvent(new VotoRegistradoEvent(usuario, enf, ganador));
+            eventPublisher.publishEvent(new VotoRegistradoEvent(usuario, enf, ganador, diaVoto));
         }
         eventPublisher.publishEvent(new EnfrentamientoVotadoEvent(enf.getTorneo().getId(), enf.getId()));
         // Materialización del score de personaje (V53) fuera de esta transacción:
@@ -453,8 +458,6 @@ public class EnfrentamientoController {
                 empate, guardado.getPersonaje().getId(), p1.getId(), p2.getId()));
         // Agregaciones diaria/por-torneo materializadas async (no las lee el DTO
         // ni el delta WS, solo rankings por ventana cacheados).
-        java.time.LocalDate diaVoto = (guardado.getFecha() != null
-                ? guardado.getFecha() : java.time.LocalDateTime.now()).toLocalDate();
         eventPublisher.publishEvent(new VotoAgregadoEvent(
                 stats.deltas().stream()
                         .map(d -> new VotoAgregadoEvent.DiaDelta(

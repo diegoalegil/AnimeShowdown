@@ -139,4 +139,48 @@ class DailyProgressServiceTest {
         assertThat(vista.progreso().completado()).isFalse();
         assertThat(vista.racha().actual()).isZero();
     }
+
+    @Test
+    void votoConFechaSelladaNoSeCuentaEnElDiaEquivocado() {
+        // Un voto sellado con la fecha de AYER (procesado @Async ya cruzada la
+        // medianoche) cuenta en AYER, no en HOY: hoy sigue a cero.
+        service.registrarVoto(usuarioId, LocalDate.of(2026, 6, 24), 3);
+        assertThat(service.leer(usuarioId).progreso().votos()).isZero();
+    }
+
+    // ─── migrarRacha (semilla única de la racha local) ───────────────────────
+
+    @Test
+    void migrarRachaSiembraLaRachaLocalVivaCuandoElServidorNoTiene() {
+        // Racha local viva (última = hoy), servidor sin historial → la adopta.
+        DailyProgressDto vista = service.migrarRacha(
+                usuarioId, 5, LocalDate.of(2026, 6, 25), LocalDate.of(2026, 6, 1));
+        assertThat(vista.racha().actual()).isEqualTo(5);
+        assertThat(vista.racha().record()).isEqualTo(5);
+    }
+
+    @Test
+    void migrarRachaCapaPorAntiguedadDeLaCuenta() {
+        // Reclama 100 pero la cuenta tiene 2 días (registro ayer) → capa a 2.
+        DailyProgressDto vista = service.migrarRacha(
+                usuarioId, 100, LocalDate.of(2026, 6, 25), LocalDate.of(2026, 6, 24));
+        assertThat(vista.racha().actual()).isEqualTo(2);
+    }
+
+    @Test
+    void migrarRachaNoImportaUnaRachaMuerta() {
+        // Última jornada local anterior a ayer → muerta → no se importa.
+        DailyProgressDto vista = service.migrarRacha(
+                usuarioId, 9, LocalDate.of(2026, 6, 20), LocalDate.of(2026, 6, 1));
+        assertThat(vista.racha().actual()).isZero();
+    }
+
+    @Test
+    void migrarRachaEsNoOpSiElServidorYaTieneRacha() {
+        completarHoy(); // racha server = 1
+        DailyProgressDto vista = service.migrarRacha(
+                usuarioId, 99, LocalDate.of(2026, 6, 25), LocalDate.of(2026, 6, 1));
+        // No pisa la racha real del servidor.
+        assertThat(vista.racha().actual()).isEqualTo(1);
+    }
 }

@@ -1,10 +1,23 @@
-import { afterEach, beforeEach, describe, expect, it } from 'vitest'
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
+
+const apiMocks = vi.hoisted(() => ({
+  get: vi.fn(),
+  post: vi.fn(),
+  getToken: vi.fn(),
+}))
+vi.mock('./api', () => ({
+  api: { get: apiMocks.get, post: apiMocks.post },
+  getToken: apiMocks.getToken,
+}))
 
 import {
   mergeServerDaily,
   readDailyProgress,
   readDailyStreak,
+  hydrateDailyFromServer,
 } from './dailyProgress'
+
+const STREAK_KEY = 'animeshowdown.daily-streak.v1'
 
 // El servidor manda su propia `fecha`; para que el test sea determinista la
 // igualamos al día local (mergeServerDaily escribe bajo esa fecha y la leemos
@@ -65,5 +78,60 @@ describe('mergeServerDaily', () => {
     const out = mergeServerDaily(null)
     expect(out.progress).toBeDefined()
     expect(out.streak).toBeDefined()
+  })
+})
+
+describe('hydrateDailyFromServer — backfill de racha (migración server-side)', () => {
+  beforeEach(() => {
+    localStorage.clear()
+    vi.clearAllMocks()
+    apiMocks.getToken.mockReturnValue('tok') // sesión presente
+  })
+  afterEach(() => localStorage.clear())
+
+  const sinRacha = (fecha: string) => ({
+    progreso: { fecha, votos: 0, juegos: 0, rankingVisto: false, completado: false },
+    racha: { actual: 0, record: 0, ultimaFechaCompletada: null },
+  })
+
+  it('siembra la racha local VIVA cuando el servidor no tiene racha', async () => {
+    const fecha = hoy()
+    localStorage.setItem(STREAK_KEY, JSON.stringify({ current: 4, longest: 4, lastCompletedDate: fecha }))
+    apiMocks.get.mockResolvedValue(sinRacha(fecha))
+    apiMocks.post.mockResolvedValue({
+      progreso: sinRacha(fecha).progreso,
+      racha: { actual: 4, record: 4, ultimaFechaCompletada: fecha },
+    })
+
+    await hydrateDailyFromServer()
+
+    expect(apiMocks.post).toHaveBeenCalledWith('/api/me/daily/migrar-racha', {
+      actual: 4,
+      ultimaFechaCompletada: fecha,
+    })
+    expect(readDailyStreak(fecha).current).toBe(4)
+  })
+
+  it('NO siembra si el servidor ya tiene racha', async () => {
+    const fecha = hoy()
+    localStorage.setItem(STREAK_KEY, JSON.stringify({ current: 4, longest: 4, lastCompletedDate: fecha }))
+    apiMocks.get.mockResolvedValue({
+      progreso: sinRacha(fecha).progreso,
+      racha: { actual: 2, record: 5, ultimaFechaCompletada: fecha },
+    })
+
+    await hydrateDailyFromServer()
+
+    expect(apiMocks.post).not.toHaveBeenCalled()
+  })
+
+  it('NO siembra una racha local MUERTA (última completada antigua)', async () => {
+    const fecha = hoy()
+    localStorage.setItem(STREAK_KEY, JSON.stringify({ current: 4, longest: 4, lastCompletedDate: '2000-01-01' }))
+    apiMocks.get.mockResolvedValue(sinRacha(fecha))
+
+    await hydrateDailyFromServer()
+
+    expect(apiMocks.post).not.toHaveBeenCalled()
   })
 })
