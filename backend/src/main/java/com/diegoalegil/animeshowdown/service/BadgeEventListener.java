@@ -76,7 +76,10 @@ public class BadgeEventListener {
         if (totalVotos >= 1000) {
             badgeService.desbloquear(usuario, "mil_votos");
         }
-        madrugadorService.registrarPrimerVotoDelDia(usuario, ev.personaje());
+        // Propaga la fecha sellada en la tx del voto: este listener corre @Async
+        // tras el commit, y un voto de las 23:59 procesado tras medianoche no debe
+        // registrarse como el madrugador del día siguiente (ni quemar su clave).
+        madrugadorService.registrarPrimerVotoDelDia(usuario, ev.personaje(), ev.fechaVoto());
     }
 
     /**

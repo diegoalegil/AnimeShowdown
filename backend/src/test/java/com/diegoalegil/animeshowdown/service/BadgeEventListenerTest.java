@@ -6,6 +6,7 @@ import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
+import java.time.LocalDate;
 import java.util.Optional;
 
 import org.junit.jupiter.api.Test;
@@ -15,6 +16,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 
 import com.diegoalegil.animeshowdown.event.PrediccionResueltaEvent;
 import com.diegoalegil.animeshowdown.event.VotoRegistradoEvent;
+import com.diegoalegil.animeshowdown.model.Personaje;
 import com.diegoalegil.animeshowdown.model.Usuario;
 import com.diegoalegil.animeshowdown.repository.UsuarioRepository;
 import com.diegoalegil.animeshowdown.repository.VotoRepository;
@@ -41,7 +43,22 @@ class BadgeEventListenerTest {
         verify(badgeService).desbloquear(u, "primer_voto");
         verify(badgeService, never()).desbloquear(u, "cien_votos");
         verify(badgeService, never()).desbloquear(u, "mil_votos");
-        verify(madrugadorService).registrarPrimerVotoDelDia(u, null);
+        verify(madrugadorService).registrarPrimerVotoDelDia(u, null, null);
+    }
+
+    @Test
+    void propagaLaFechaSelladaDelVotoAlMadrugador() {
+        // El listener corre @Async tras el commit: debe pasar la fecha sellada en
+        // la tx del voto (no recalcular now()) para no atribuir un voto de las
+        // 23:59 al día siguiente si el procesamiento cruza medianoche.
+        Usuario u = mock(Usuario.class);
+        Personaje personaje = mock(Personaje.class);
+        LocalDate fechaVoto = LocalDate.of(2026, 6, 1);
+        when(votoRepository.countByUsuario(u)).thenReturn(1L);
+
+        listener().onVoto(new VotoRegistradoEvent(u, null, personaje, fechaVoto));
+
+        verify(madrugadorService).registrarPrimerVotoDelDia(u, personaje, fechaVoto);
     }
 
     @Test

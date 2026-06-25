@@ -8,7 +8,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
-import org.springframework.dao.DuplicateKeyException;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -103,29 +102,54 @@ public class VotoStatsService {
         return List.of(new PersonajeDelta(personaje, VOTO_NORMAL, peso));
     }
 
+    // Upsert atómico idempotente (mismo patrón que CartaService.registrarPosesion):
+    // incrementa; si la fila no existe, inserta con INSERT ... ON CONFLICT DO NOTHING;
+    // si una votación concurrente la creó primero (0 filas insertadas), incrementa de
+    // nuevo. Antes el patrón era UPDATE -> INSERT plano -> catch(DuplicateKey) ->
+    // RECURSIÓN: en Postgres la violación de la PK del INSERT ABORTA toda la tx
+    // ("current transaction is aborted"), así que el UPDATE de la recursión fallaba
+    // -> el voto reventaba en la carrera de la primera fila (H2 no aborta la tx
+    // entera, por eso los tests pasaban). El ON CONFLICT DO NOTHING nunca lanza.
+
     private void upsertPersonaje(Long personajeId, BigDecimal scoreDelta, BigDecimal pesoDelta) {
-        int updated = jdbcTemplate.update("""
+        if (incrementaPersonaje(personajeId, scoreDelta, pesoDelta) > 0) return;
+        int insertadas = jdbcTemplate.update("""
+                INSERT INTO voto_personaje_stats
+                    (personaje_id, votos_score, peso_votos, updated_at)
+                VALUES (?, ?, ?, CURRENT_TIMESTAMP)
+                ON CONFLICT DO NOTHING
+                """, personajeId, scoreDelta, pesoDelta);
+        if (insertadas == 0) {
+            incrementaPersonaje(personajeId, scoreDelta, pesoDelta);
+        }
+    }
+
+    private int incrementaPersonaje(Long personajeId, BigDecimal scoreDelta, BigDecimal pesoDelta) {
+        return jdbcTemplate.update("""
                 UPDATE voto_personaje_stats
                 SET votos_score = votos_score + ?,
                     peso_votos = peso_votos + ?,
                     updated_at = CURRENT_TIMESTAMP
                 WHERE personaje_id = ?
                 """, scoreDelta, pesoDelta, personajeId);
-        if (updated > 0) return;
-        try {
-            jdbcTemplate.update("""
-                    INSERT INTO voto_personaje_stats
-                        (personaje_id, votos_score, peso_votos, updated_at)
-                    VALUES (?, ?, ?, CURRENT_TIMESTAMP)
-                    """, personajeId, scoreDelta, pesoDelta);
-        } catch (DuplicateKeyException ex) {
-            upsertPersonaje(personajeId, scoreDelta, pesoDelta);
-        }
     }
 
     private void upsertPersonajeDia(Long personajeId, LocalDate dia, BigDecimal scoreDelta, BigDecimal pesoDelta) {
         Date sqlDia = Date.valueOf(dia);
-        int updated = jdbcTemplate.update("""
+        if (incrementaPersonajeDia(personajeId, sqlDia, scoreDelta, pesoDelta) > 0) return;
+        int insertadas = jdbcTemplate.update("""
+                INSERT INTO voto_personaje_dia_stats
+                    (personaje_id, dia, votos_score, peso_votos, updated_at)
+                VALUES (?, ?, ?, ?, CURRENT_TIMESTAMP)
+                ON CONFLICT DO NOTHING
+                """, personajeId, sqlDia, scoreDelta, pesoDelta);
+        if (insertadas == 0) {
+            incrementaPersonajeDia(personajeId, sqlDia, scoreDelta, pesoDelta);
+        }
+    }
+
+    private int incrementaPersonajeDia(Long personajeId, Date sqlDia, BigDecimal scoreDelta, BigDecimal pesoDelta) {
+        return jdbcTemplate.update("""
                 UPDATE voto_personaje_dia_stats
                 SET votos_score = votos_score + ?,
                     peso_votos = peso_votos + ?,
@@ -133,54 +157,50 @@ public class VotoStatsService {
                 WHERE personaje_id = ?
                   AND dia = ?
                 """, scoreDelta, pesoDelta, personajeId, sqlDia);
-        if (updated > 0) return;
-        try {
-            jdbcTemplate.update("""
-                    INSERT INTO voto_personaje_dia_stats
-                        (personaje_id, dia, votos_score, peso_votos, updated_at)
-                    VALUES (?, ?, ?, ?, CURRENT_TIMESTAMP)
-                    """, personajeId, sqlDia, scoreDelta, pesoDelta);
-        } catch (DuplicateKeyException ex) {
-            upsertPersonajeDia(personajeId, dia, scoreDelta, pesoDelta);
-        }
     }
 
     private void upsertEnfrentamiento(Long enfrentamientoId, Long personajeId, BigDecimal scoreDelta) {
-        int updated = jdbcTemplate.update("""
+        if (incrementaEnfrentamiento(enfrentamientoId, personajeId, scoreDelta) > 0) return;
+        int insertadas = jdbcTemplate.update("""
+                INSERT INTO voto_enfrentamiento_stats
+                    (enfrentamiento_id, personaje_id, votos_score, updated_at)
+                VALUES (?, ?, ?, CURRENT_TIMESTAMP)
+                ON CONFLICT DO NOTHING
+                """, enfrentamientoId, personajeId, scoreDelta);
+        if (insertadas == 0) {
+            incrementaEnfrentamiento(enfrentamientoId, personajeId, scoreDelta);
+        }
+    }
+
+    private int incrementaEnfrentamiento(Long enfrentamientoId, Long personajeId, BigDecimal scoreDelta) {
+        return jdbcTemplate.update("""
                 UPDATE voto_enfrentamiento_stats
                 SET votos_score = votos_score + ?,
                     updated_at = CURRENT_TIMESTAMP
                 WHERE enfrentamiento_id = ?
                   AND personaje_id = ?
                 """, scoreDelta, enfrentamientoId, personajeId);
-        if (updated > 0) return;
-        try {
-            jdbcTemplate.update("""
-                    INSERT INTO voto_enfrentamiento_stats
-                        (enfrentamiento_id, personaje_id, votos_score, updated_at)
-                    VALUES (?, ?, ?, CURRENT_TIMESTAMP)
-                    """, enfrentamientoId, personajeId, scoreDelta);
-        } catch (DuplicateKeyException ex) {
-            upsertEnfrentamiento(enfrentamientoId, personajeId, scoreDelta);
-        }
     }
 
     private void upsertTorneo(Long torneoId) {
-        int updated = jdbcTemplate.update("""
+        if (incrementaTorneo(torneoId) > 0) return;
+        int insertadas = jdbcTemplate.update("""
+                INSERT INTO voto_torneo_stats (torneo_id, votos_total, updated_at)
+                VALUES (?, 1, CURRENT_TIMESTAMP)
+                ON CONFLICT DO NOTHING
+                """, torneoId);
+        if (insertadas == 0) {
+            incrementaTorneo(torneoId);
+        }
+    }
+
+    private int incrementaTorneo(Long torneoId) {
+        return jdbcTemplate.update("""
                 UPDATE voto_torneo_stats
                 SET votos_total = votos_total + 1,
                     updated_at = CURRENT_TIMESTAMP
                 WHERE torneo_id = ?
                 """, torneoId);
-        if (updated > 0) return;
-        try {
-            jdbcTemplate.update("""
-                    INSERT INTO voto_torneo_stats (torneo_id, votos_total, updated_at)
-                    VALUES (?, 1, CURRENT_TIMESTAMP)
-                    """, torneoId);
-        } catch (DuplicateKeyException ex) {
-            upsertTorneo(torneoId);
-        }
     }
 
     private Map<Long, Double> scoresPorPersonaje(Enfrentamiento enfrentamiento) {
