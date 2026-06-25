@@ -11,6 +11,15 @@ const BASE_URL = 'https://animeshowdown.dev'
 // Las imágenes OG dinámicas las sirve el API (no el front): /api/og vive en
 // api.animeshowdown.dev. Mismo criterio que useSeo.absolutizar en el cliente.
 const API_BASE_URL = 'https://api.animeshowdown.dev'
+// CDN de imágenes del catálogo (mismo env que vite.config). En prod /img/* del
+// front es solo un 302 al CDN; las og:image/JSON-LD de las fichas deben apuntar
+// DIRECTO al CDN para no depender de ese redirect. Sin CDN configurado, se
+// mantiene el comportamiento anterior (animeshowdown.dev/img → 302/local).
+const IMG_CDN_BASE_URL = (
+  process.env.ANIMESHOWDOWN_IMG_CDN_BASE_URL ||
+  process.env.ANIMESHOWDOWN_IMAGE_CDN_BASE_URL ||
+  ''
+).trim().replace(/\/+$/, '')
 const BRAND_TITLE = 'AnimeShowdown'
 
 const INDEX_PATH = join(DIST, 'index.html')
@@ -244,31 +253,26 @@ function renderRoute(route) {
   return html
 }
 
+// Orden de los "Top" prerenderizados: por POPULARIDAD curada (señal real y
+// estable), no por un ELO sintético. Antes el orden lo decidía un estimatedElo
+// con jitter de hash (ruido), que presentaba un orden arbitrario como si fuera
+// el ranking competitivo real (riesgo de cloaking + el ItemList no publica el
+// número de ELO, solo la posición). El ranking ELO real es server-side.
+function popularidadDe(slug) {
+  return POPULARIDAD_DESTACADA[slug] ?? 30
+}
+
 function topGlobal(limit) {
   return [...personajes]
-    .sort((a, b) => estimatedElo(b.slug) - estimatedElo(a.slug) || a.nombre.localeCompare(b.nombre, 'es'))
+    .sort((a, b) => popularidadDe(b.slug) - popularidadDe(a.slug) || a.nombre.localeCompare(b.nombre, 'es'))
     .slice(0, limit)
 }
 
 function topAnime(anime, limit) {
   return personajes
     .filter((p) => p.anime === anime)
-    .sort((a, b) => estimatedElo(b.slug) - estimatedElo(a.slug) || a.nombre.localeCompare(b.nombre, 'es'))
+    .sort((a, b) => popularidadDe(b.slug) - popularidadDe(a.slug) || a.nombre.localeCompare(b.nombre, 'es'))
     .slice(0, limit)
-}
-
-function estimatedElo(slug) {
-  const popularidad = POPULARIDAD_DESTACADA[slug] ?? 30
-  return 1500 + popularidad * 7 + (hashSlug(slug) % 16 - 8)
-}
-
-function hashSlug(slug) {
-  let h = 0
-  for (let i = 0; i < slug.length; i++) {
-    h = (h << 5) - h + slug.charCodeAt(i)
-    h |= 0
-  }
-  return Math.abs(h)
 }
 
 function slugifyAnime(nombre) {
@@ -384,7 +388,11 @@ function seoBodyFor(p, desc) {
   const a = escapeText(p.anime)
   const d = escapeText(desc)
   return (
-    '<main style="max-width:640px;margin:0 auto;padding:56px 20px;color:#d7dce7;' +
+    // aria-hidden + data-ssr-light: este body solo existe para crawlers sin JS
+    // (que leen el HTML igual); React lo reemplaza al montar. Marcarlo evita que
+    // un lector de pantalla lo anuncie durante el flash previo al montaje.
+    '<main data-ssr-light aria-hidden="true" ' +
+    'style="max-width:640px;margin:0 auto;padding:56px 20px;color:#d7dce7;' +
     'font-family:system-ui,-apple-system,sans-serif;text-align:center">' +
     `<img src="${img}" alt="${escapeAttr(p.nombre)}" width="280" height="280" ` +
     'style="display:block;width:100%;max-width:280px;height:auto;margin:0 auto 24px;' +
@@ -402,6 +410,10 @@ function seoBodyFor(p, desc) {
 function absolutizar(path) {
   if (!path) return `${BASE_URL}/logo.webp`
   if (/^https?:\/\//.test(path)) return path
+  // Imágenes del catálogo: directo al CDN (como la app), no al 302 del front.
+  if (IMG_CDN_BASE_URL && path.startsWith('/img/')) {
+    return `${IMG_CDN_BASE_URL}${path.slice('/img'.length)}`
+  }
   return `${BASE_URL}${path.startsWith('/') ? '' : '/'}${path}`
 }
 

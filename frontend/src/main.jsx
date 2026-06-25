@@ -111,6 +111,13 @@ startWebVitals()
 //
 // ErrorBoundary es lo más externo posible para atrapar errores síncronos
 // de cualquier provider o componente descendiente.
+// El prerender SSR-light inyecta un bloque JSON-LD (#seo-prerender-jsonld) en el
+// HTML para crawlers sin JS. Al arrancar la SPA, JsonLd.jsx inyecta su propio
+// JSON-LD por ruta → un crawler que ejecuta JS (Googlebot) vería DOS bloques. Lo
+// retiramos en el boot: el crawler sin JS conserva el prerenderizado (esto no se
+// ejecuta para él) y el que ejecuta JS se queda solo con el de ruta.
+document.getElementById('seo-prerender-jsonld')?.remove()
+
 createRoot(document.getElementById('root')).render(
   <StrictMode>
     <ErrorBoundary>
