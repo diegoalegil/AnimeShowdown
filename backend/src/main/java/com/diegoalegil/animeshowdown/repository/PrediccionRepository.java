@@ -96,6 +96,25 @@ public interface PrediccionRepository extends JpaRepository<Prediccion, Long> {
             org.springframework.data.domain.Pageable pageable);
 
     /**
+     * Igual que {@link #findResueltasDelUsuarioDesc} pero precargando en UNA query
+     * las asociaciones que el feed de actividad navega por fila (personaje
+     * predicho, enfrentamiento y su torneo), evitando el N+1. Todas son @ManyToOne
+     * (to-one), así que el JOIN FETCH es seguro con paginación (sin producto
+     * cartesiano). La query ligera de arriba se mantiene para los usos que solo
+     * leen el count / el flag de acierto (stats y detección de rachas).
+     */
+    @Query("""
+            SELECT p FROM Prediccion p
+            LEFT JOIN FETCH p.personajePredicho
+            LEFT JOIN FETCH p.enfrentamiento e
+            LEFT JOIN FETCH e.torneo
+            WHERE p.usuario = :usuario AND p.acertada IS NOT NULL
+            ORDER BY p.fecha DESC
+            """)
+    List<Prediccion> findResueltasDelUsuarioDescFetch(@Param("usuario") Usuario usuario,
+            org.springframework.data.domain.Pageable pageable);
+
+    /**
      * Leaderboard del último mes: top N usuarios por número de predicciones
      * acertadas en un rango. Devuelve {usuarioId, username, totalAciertos}.
      */

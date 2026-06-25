@@ -294,8 +294,10 @@ public class PerfilService {
         }
 
         // Predicciones acertadas — sub-stream del historial de predicciones
-        // del usuario. Filtramos por acertada=true.
-        for (Prediccion pred : prediccionRepository.findResueltasDelUsuarioDesc(
+        // del usuario. Filtramos por acertada=true. Variante con JOIN FETCH:
+        // este bucle navega personajePredicho/enfrentamiento/torneo por fila, así
+        // que las precargamos en una sola query (evita el N+1 del feed de perfil).
+        for (Prediccion pred : prediccionRepository.findResueltasDelUsuarioDescFetch(
                 usuario, PageRequest.of(0, n * 2))) {
             if (!Boolean.TRUE.equals(pred.getAcertada())) continue;
             Map<String, Object> payload = new HashMap<>();
