@@ -6,6 +6,8 @@ import java.time.LocalDateTime;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Propagation;
@@ -49,6 +51,12 @@ public class BadgeService {
     private final NotificacionService notificacionService;
     private final AuditLogService auditLogService;
     private final SeguidorFanOutService seguidorFanOutService;
+    // Self-inyección para que la creación del Logro madrugador (REQUIRES_NEW)
+    // pase por el proxy: el INSERT corre en tx AISLADA, así una colisión de
+    // código no aborta la tx que registra el UsuarioLogro.
+    @Autowired
+    @Lazy
+    private BadgeService self;
 
     public BadgeService(LogroRepository logroRepo,
             UsuarioLogroRepository usuarioLogroRepo,
@@ -135,19 +143,33 @@ public class BadgeService {
 
     private Logro obtenerOCrearLogroMadrugador(Personaje personaje, LocalDateTime hora) {
         String codigo = codigoMadrugador(personaje.getSlug());
+        Optional<Logro> existente = logroRepo.findByCodigo(codigo);
+        if (existente.isPresent()) {
+            return existente.get();
+        }
+        try {
+            // INSERT en tx AISLADA (REQUIRES_NEW vía proxy). Antes el saveAndFlush
+            // + catch + re-query corría en ESTA tx: en Postgres la violación del
+            // UNIQUE aborta toda la transacción y el re-query del catch fallaba
+            // (H2 no lo reproducía).
+            self.crearLogroMadrugadorAislado(personaje, codigo, hora);
+        } catch (DataIntegrityViolationException e) {
+            // Otro hilo creó el logro a la vez: su sub-tx abortó AISLADA, esta
+            // sigue sana para re-consultar.
+            log.debug("Carrera al crear el logro madrugador {}; reuso el existente: {}",
+                    codigo, e.getMessage());
+        }
         return logroRepo.findByCodigo(codigo)
-                .orElseGet(() -> crearLogroMadrugador(personaje, codigo, hora));
+                .orElseThrow(() -> new IllegalStateException("No se pudo asegurar el logro madrugador " + codigo));
     }
 
-    private Logro crearLogroMadrugador(Personaje personaje, String codigo, LocalDateTime hora) {
+    /** Crea el logro madrugador en una transacción AISLADA (ver el find-or-create). */
+    @Transactional(propagation = Propagation.REQUIRES_NEW)
+    public Logro crearLogroMadrugadorAislado(Personaje personaje, String codigo, LocalDateTime hora) {
         String nombre = "Madrugador - " + left(personaje.getNombre(), 82);
         String descripcion = "Primera persona en votar a " + left(personaje.getNombre(), 170)
                 + " en el dia UTC.";
-        try {
-            return logroRepo.saveAndFlush(new Logro(codigo, nombre, descripcion, "Sunrise", (short) 3));
-        } catch (DataIntegrityViolationException e) {
-            return logroRepo.findByCodigo(codigo).orElseThrow(() -> e);
-        }
+        return logroRepo.saveAndFlush(new Logro(codigo, nombre, descripcion, "Sunrise", (short) 3));
     }
 
     private static String codigoMadrugador(String slug) {

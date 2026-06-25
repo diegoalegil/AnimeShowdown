@@ -126,7 +126,13 @@ public class ReferralService {
      * Best-effort; se ejecuta una vez por boot (asíncrono no necesario, son
      * decenas de filas como mucho hasta que la migración baja todo a 0).
      */
-    @Transactional
+    // SIN @Transactional a propósito: cada save va en su propia tx. Antes este
+    // batch era @Transactional y capturaba el DIV de colisión dentro de la tx,
+    // pero en Postgres un INSERT que viola el UNIQUE ABORTA toda la transacción
+    // ("current transaction is aborted") → el save de la SIGUIENTE iteración
+    // fallaba y el resto del batch se perdía en silencio (H2 no lo reproducía).
+    // El propio guardarTolerandoColisionReferral lo advierte: "no usar dentro de
+    // una @Transactional". Cada save independiente + ese método seguro lo blinda.
     public int backfillCodigos() {
         List<Usuario> sinCodigo = usuarioRepository.findByReferralCodeIsNull();
         if (sinCodigo.isEmpty()) return 0;
@@ -134,13 +140,10 @@ public class ReferralService {
         for (Usuario u : sinCodigo) {
             asignarCodigoSiHaceFalta(u);
             if (u.getReferralCode() == null) continue;
-            try {
-                usuarioRepository.save(u);
-                asignados++;
-            } catch (DataIntegrityViolationException e) {
-                log.warn("Backfill referral code colisión para usuario={}: {}",
-                        u.getUsername(), e.getMessage());
-            }
+            // En colisión, guarda al usuario SIN código (lo reintenta el próximo
+            // backfill) en vez de envenenar la transacción del batch.
+            Usuario guardado = guardarTolerandoColisionReferral(u);
+            if (guardado.getReferralCode() != null) asignados++;
         }
         log.info("ReferralService backfill: {} códigos asignados", asignados);
         return asignados;
