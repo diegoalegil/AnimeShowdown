@@ -33,13 +33,15 @@ public class ComentarioService {
     private final JdbcTemplate jdbcTemplate;
     private final List<String> profanityStems;
     private final int rateLimitPorHora;
+    private final int reportesUmbral;
 
     public ComentarioService(
             ComentarioRepository comentarioRepository,
             PersonajeRepository personajeRepository,
             JdbcTemplate jdbcTemplate,
             @Value("${app.comentarios.profanity-stems:puta,puto,mierd,joder,cabron,imbecil,pendej,cojon,fuck,shit,bitch,asshole,bastard,cunt,dick}") String profanityCsv,
-            @Value("${app.comentarios.rate-limit-per-hour:5}") int rateLimitPorHora) {
+            @Value("${app.comentarios.rate-limit-per-hour:5}") int rateLimitPorHora,
+            @Value("${app.comentarios.reportes-umbral:3}") int reportesUmbral) {
         this.comentarioRepository = comentarioRepository;
         this.personajeRepository = personajeRepository;
         this.jdbcTemplate = jdbcTemplate;
@@ -49,6 +51,7 @@ public class ComentarioService {
                 .map(ComentarioService::normalizar)
                 .toList();
         this.rateLimitPorHora = Math.max(1, rateLimitPorHora);
+        this.reportesUmbral = Math.max(1, reportesUmbral);
     }
 
     @Transactional(readOnly = true)
@@ -115,8 +118,17 @@ public class ComentarioService {
         if (comentario.getEstado() == ComentarioEstado.ELIMINADO) {
             throw new ResponseStatusException(HttpStatus.CONFLICT, "El comentario ya fue eliminado");
         }
-        int actualizados = comentarioRepository.incrementarReporte(
+        // Dedup: un usuario solo puede reportar una vez (uk_reporte_comentario). Así el
+        // contador refleja reportantes DISTINTOS y nadie lo infla con clics repetidos.
+        if (comentarioRepository.insertarReporteSiFalta(id, usuario.getId()) == 0) {
+            throw new ResponseStatusException(HttpStatus.CONFLICT, "Ya reportaste este comentario");
+        }
+        // El comentario solo se oculta (PENDIENTE_REVISION) al alcanzar el umbral de
+        // reportantes distintos; antes un único reporte ocultaba cualquier comentario
+        // del público al instante (censura trivial por cualquier cuenta).
+        int actualizados = comentarioRepository.incrementarReporteConUmbral(
                 id,
+                reportesUmbral,
                 ComentarioEstado.PENDIENTE_REVISION,
                 ComentarioEstado.ELIMINADO);
         if (actualizados == 0) {
