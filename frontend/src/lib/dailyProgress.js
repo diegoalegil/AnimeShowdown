@@ -192,7 +192,12 @@ export function mergeServerDaily(server) {
   if (!server || !server.progreso) {
     return { progress: readDailyProgress(), streak: readDailyStreak() }
   }
-  const fecha = server.progreso.fecha || fechaDelDia()
+  // Clave por la fecha LOCAL del navegador (fechaDelDia), NO por server.progreso.fecha
+  // (la fecha UTC del servidor): el resto de la página lee/escribe el progreso bajo la
+  // clave local, así que si difieren (usuario cerca de medianoche en una zona != UTC)
+  // la hidratación quedaba escrita bajo una clave que la página nunca lee → invisible.
+  // El servidor solo devuelve el progreso de "hoy", así que lo reflejamos en hoy-local.
+  const fecha = fechaDelDia()
   const local = readDailyProgress(fecha)
   const merged = normalizeProgress(
     {
