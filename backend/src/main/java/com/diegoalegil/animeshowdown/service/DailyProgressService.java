@@ -51,8 +51,20 @@ public class DailyProgressService {
 
     @Transactional
     public DailyProgressDto registrarVoto(Long usuarioId, int n) {
+        return registrarVoto(usuarioId, null, n);
+    }
+
+    /**
+     * Registra un voto en el día {@code fechaVoto} (sellado por el productor del
+     * evento). Si es null, cae a la fecha del servidor. Sellar la fecha evita que
+     * un voto cerca de medianoche, procesado @Async ya en el día siguiente, se
+     * cuente en el día equivocado.
+     */
+    @Transactional
+    public DailyProgressDto registrarVoto(Long usuarioId, LocalDate fechaVoto, int n) {
         int delta = Math.max(1, n);
-        return mutar(usuarioId, p -> p.setVotos(p.getVotos() + delta));
+        LocalDate dia = fechaVoto != null ? fechaVoto : LocalDate.now(clock);
+        return mutarEnFecha(usuarioId, dia, p -> p.setVotos(p.getVotos() + delta));
     }
 
     @Transactional
@@ -122,9 +134,14 @@ public class DailyProgressService {
         return vista(usuarioId, p, hoy);
     }
 
+    /** Mutación sobre el día del SERVIDOR (pasos reportados por el cliente). */
     private DailyProgressDto mutar(Long usuarioId, Consumer<DailyProgress> mutacion) {
-        LocalDate hoy = LocalDate.now(clock);
-        DailyProgress p = obtenerConLock(usuarioId, hoy);
+        return mutarEnFecha(usuarioId, LocalDate.now(clock), mutacion);
+    }
+
+    /** Mutación sobre un día EXPLÍCITO (el voto sella su fecha; ver registrarVoto). */
+    private DailyProgressDto mutarEnFecha(Long usuarioId, LocalDate dia, Consumer<DailyProgress> mutacion) {
+        DailyProgress p = obtenerConLock(usuarioId, dia);
         mutacion.accept(p);
         p.tocar();
         boolean cumpleAhora = p.getVotos() >= OBJETIVO_VOTOS
@@ -132,10 +149,17 @@ public class DailyProgressService {
                 && p.isRankingVisto();
         if (cumpleAhora && !p.isCompletado()) {
             p.setCompletado(true);
-            actualizarRacha(usuarioId, hoy);
+            actualizarRacha(usuarioId, dia);
         }
         progressRepo.save(p);
-        return vista(usuarioId, p, hoy);
+        // La vista siempre refleja el día del SERVIDOR (lo que ve el usuario hoy),
+        // no necesariamente el día mutado (que pudo ser ayer para un voto tardío).
+        LocalDate hoy = LocalDate.now(clock);
+        DailyProgress vistaProgreso = dia.equals(hoy)
+                ? p
+                : progressRepo.findByUsuarioIdAndFecha(usuarioId, hoy)
+                        .orElseGet(() -> new DailyProgress(usuarioId, hoy));
+        return vista(usuarioId, vistaProgreso, hoy);
     }
 
     /**

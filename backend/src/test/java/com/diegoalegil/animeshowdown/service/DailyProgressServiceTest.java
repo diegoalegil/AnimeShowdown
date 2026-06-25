@@ -140,6 +140,14 @@ class DailyProgressServiceTest {
         assertThat(vista.racha().actual()).isZero();
     }
 
+    @Test
+    void votoConFechaSelladaNoSeCuentaEnElDiaEquivocado() {
+        // Un voto sellado con la fecha de AYER (procesado @Async ya cruzada la
+        // medianoche) cuenta en AYER, no en HOY: hoy sigue a cero.
+        service.registrarVoto(usuarioId, LocalDate.of(2026, 6, 24), 3);
+        assertThat(service.leer(usuarioId).progreso().votos()).isZero();
+    }
+
     // ─── migrarRacha (semilla única de la racha local) ───────────────────────
 
     @Test

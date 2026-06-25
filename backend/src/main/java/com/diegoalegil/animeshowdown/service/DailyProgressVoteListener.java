@@ -34,7 +34,9 @@ public class DailyProgressVoteListener {
             return;
         }
         try {
-            dailyProgressService.registrarVoto(evento.usuario().getId(), 1);
+            // fechaVoto va sellada desde la tx del voto; si es null (eventos
+            // legacy) el servicio cae a la fecha del servidor.
+            dailyProgressService.registrarVoto(evento.usuario().getId(), evento.fechaVoto(), 1);
         } catch (RuntimeException e) {
             // El progreso diario es un nice-to-have: nunca debe tumbar el voto.
             log.warn("No se pudo registrar el voto en daily_progress (usuario {}): {}",
