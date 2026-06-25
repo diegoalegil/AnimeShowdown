@@ -1,5 +1,9 @@
 package com.diegoalegil.animeshowdown.config;
 
+import java.util.ArrayList;
+import java.util.List;
+
+import org.springdoc.core.customizers.OpenApiCustomizer;
 import org.springdoc.core.models.GroupedOpenApi;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -97,8 +101,44 @@ public class OpenApiConfig {
                         "/api/admin/**",
                         "/api/auth/**",
                         "/api/me/**",
+                        // El perfil privado del usuario (stats, historial, migración,
+                        // referral) cuelga de /api/perfil/me/**, NO de /api/me/**, así
+                        // que la exclusión anterior no lo cubría y se filtraba al spec.
+                        "/api/perfil/me/**",
                         "/api/cron/**",
                         "/api/personajes/*/favorito")
+                .addOpenApiCustomizer(soloLecturaPublica())
                 .build();
+    }
+
+    /**
+     * El grupo público documenta el CONTRATO DE LECTURA: deja solo operaciones
+     * GET y elimina toda mutación que comparta path con un GET público (crear/
+     * iniciar/finalizar torneo, CRUD de personaje, seguir/dejar de seguir,
+     * etc.). springdoc no filtra por método en {@code pathsToMatch}, así que sin
+     * esto el spec sin auth publicaba la superficie de escritura autenticada/admin
+     * (mapa para un atacante). El spec es solo documentación: no cambia la
+     * seguridad de ningún endpoint.
+     */
+    private static OpenApiCustomizer soloLecturaPublica() {
+        return openApi -> {
+            if (openApi.getPaths() == null) {
+                return;
+            }
+            List<String> vacios = new ArrayList<>();
+            openApi.getPaths().forEach((ruta, item) -> {
+                item.setPost(null);
+                item.setPut(null);
+                item.setDelete(null);
+                item.setPatch(null);
+                item.setHead(null);
+                item.setOptions(null);
+                item.setTrace(null);
+                if (item.readOperations().isEmpty()) {
+                    vacios.add(ruta);
+                }
+            });
+            vacios.forEach(openApi.getPaths()::remove);
+        };
     }
 }
