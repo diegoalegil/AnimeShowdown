@@ -59,5 +59,20 @@ class PublicOpenApiGroupTest {
         assertThat(keys).noneMatch(k -> k.startsWith("/api/auth"));
         assertThat(keys).noneMatch(k -> k.startsWith("/api/me"));
         assertThat(keys).noneMatch(k -> k.startsWith("/api/cron"));
+        // El perfil PRIVADO cuelga de /api/perfil/me/** (no de /api/me/**) y no
+        // debe filtrarse aunque el grupo matchee /api/perfil/**.
+        assertThat(keys).noneMatch(k -> k.startsWith("/api/perfil/me"));
+
+        // Es un CONTRATO DE LECTURA: ninguna operación de escritura. Así no se
+        // documenta la superficie de mutación autenticada/admin (crear/iniciar
+        // torneo, CRUD de personaje, seguir/dejar de seguir) que comparte path
+        // con un GET público.
+        for (String ruta : keys) {
+            JsonNode item = paths.path(ruta);
+            assertThat(item.has("post")).as("POST documentado en %s", ruta).isFalse();
+            assertThat(item.has("put")).as("PUT documentado en %s", ruta).isFalse();
+            assertThat(item.has("delete")).as("DELETE documentado en %s", ruta).isFalse();
+            assertThat(item.has("patch")).as("PATCH documentado en %s", ruta).isFalse();
+        }
     }
 }
