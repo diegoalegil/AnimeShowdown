@@ -70,9 +70,13 @@ function TrainingKumite({ izquierda, derecha, objetivo, onGesto, onComplete, onS
         return
       }
       if (e.key !== 'Tab') return
-      const foco = el.querySelectorAll(
-        'button, [href], input, [tabindex]:not([tabindex="-1"])',
-      )
+      // Excluye disabled e invisibles: un botón deshabilitado como primero/último
+      // del set rompía el trap (no recibe foco) y dejaba escapar el Tab del modal.
+      const foco = Array.from(
+        el.querySelectorAll(
+          'button:not([disabled]), [href], input:not([disabled]), [tabindex]:not([tabindex="-1"])',
+        ),
+      ).filter((node) => node.offsetParent !== null)
       if (foco.length === 0) return
       const primero = foco[0]
       const ultimo = foco[foco.length - 1]
