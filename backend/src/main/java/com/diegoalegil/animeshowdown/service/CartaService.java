@@ -1,8 +1,12 @@
 package com.diegoalegil.animeshowdown.service;
 
+import java.nio.charset.StandardCharsets;
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
 import java.time.Clock;
 import java.time.LocalDate;
 import java.util.ArrayList;
+import java.util.Base64;
 import java.util.Comparator;
 import java.util.EnumMap;
 import java.util.HashMap;
@@ -633,9 +637,38 @@ public class CartaService {
         MonederoService.ResultadoCredito credito = monederoService.acreditar(
                 usuario,
                 MotivoMovimiento.DUPLICADO_CARTA,
-                "duplicado:%s:%d:%d".formatted(idem, carta.getId(), posicion),
+                referenciaDuplicado(idem, carta.getId(), posicion),
                 recompensaDuplicado);
         return credito.aplicado() ? recompensaDuplicado : 0L;
+    }
+
+    /**
+     * Referencia idempotente del crédito por carta duplicada. El {@code idem} lo
+     * controla el cliente (hasta 80 chars), así que la forma directa
+     * {@code "duplicado:"+idem+":"+cartaId+":"+posicion} podía superar el VARCHAR(96)
+     * de {@code monedero_movimiento.referencia} → DataIntegrityViolation → 500
+     * irrecuperable al abrir el sobre (el reintento determinista vuelve a desbordar).
+     * Si la forma directa cabe, se usa tal cual (UUID normal de 36 chars); si no,
+     * se acota con un hash del idem — mismo patrón que
+     * {@link EventoRecompensaService#referenciaEvento}. La idempotencia primaria del
+     * sobre la garantiza {@code uk_sobre_apertura_idem} (abrirSobre corta antes de
+     * re-pagar), así que el cambio de forma de la referencia es seguro.
+     */
+    static String referenciaDuplicado(String idem, long cartaId, int posicion) {
+        String ref = "duplicado:" + idem + ":" + cartaId + ":" + posicion;
+        if (ref.length() <= 96) {
+            return ref;
+        }
+        return "duplicado:" + hashIdem(idem) + ":" + cartaId + ":" + posicion;
+    }
+
+    private static String hashIdem(String idem) {
+        try {
+            byte[] h = MessageDigest.getInstance("SHA-256").digest(idem.getBytes(StandardCharsets.UTF_8));
+            return Base64.getUrlEncoder().withoutPadding().encodeToString(h); // 43 chars
+        } catch (NoSuchAlgorithmException e) {
+            throw new IllegalStateException("SHA-256 no disponible", e); // nunca: algoritmo estándar
+        }
     }
 
     private AbrirSobreResultadoDto dtoDesdeApertura(Usuario usuario, SobreApertura apertura) {

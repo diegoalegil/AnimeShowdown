@@ -2,6 +2,7 @@ package com.diegoalegil.animeshowdown.service;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.inOrder;
@@ -241,5 +242,20 @@ class CartaServiceTest {
         Carta carta = new Carta(personaje, rareza);
         carta.setId(id);
         return carta;
+    }
+
+    @Test
+    void referenciaDuplicadoSeAcotaAlMaximoDeLaColumna() {
+        // monedero_movimiento.referencia es VARCHAR(96). El idem lo controla el
+        // cliente (hasta 80 chars); con un cartaId de muchos dígitos la forma directa
+        // "duplicado:"+idem+":"+cartaId+":"+posicion desbordaba → DataIntegrityViolation
+        // → 500 irrecuperable al abrir el sobre (reintento determinista re-desborda).
+        // Con idem máximo + cartaId/posicion extremos debe acotarse por debajo de 96.
+        String idemMax = "x".repeat(80);
+        assertTrue(CartaService.referenciaDuplicado(idemMax, Long.MAX_VALUE, 99).length() <= 96);
+        // El caso normal (UUID de 36 chars) mantiene la forma directa intacta.
+        String uuid = "123e4567-e89b-12d3-a456-426614174000";
+        assertEquals("duplicado:" + uuid + ":42:3",
+                CartaService.referenciaDuplicado(uuid, 42L, 3));
     }
 }
