@@ -180,9 +180,14 @@ public class DailyProgressService {
 
     private void actualizarRacha(Long usuarioId, LocalDate hoy) {
         DailyStreak s = obtenerRachaConLock(usuarioId);
-        // Idempotencia: si ya contamos hoy, no re-incrementar (carreras de doble
-        // completado en el mismo instante).
-        if (hoy.equals(s.getUltimaFechaCompletada())) {
+        // Solo cuenta un día que AVANZA la racha. Ignora cualquier completado cuyo
+        // día NO sea posterior al último contado. Cubre dos casos:
+        //  (1) idempotencia: el mismo día completado dos veces (carrera de doble voto);
+        //  (2) voto tardío que cruza medianoche: registrarVoto sella la fecha del voto
+        //      (puede ser AYER) y el pool @Async puede procesarlo DESPUÉS de haber
+        //      contado un día posterior. Sin esta guarda, ese completado tardío
+        //      retrocedería ultimaFechaCompletada y resetearía la racha viva a 1.
+        if (s.getUltimaFechaCompletada() != null && !hoy.isAfter(s.getUltimaFechaCompletada())) {
             return;
         }
         boolean continua = hoy.minusDays(1).equals(s.getUltimaFechaCompletada());

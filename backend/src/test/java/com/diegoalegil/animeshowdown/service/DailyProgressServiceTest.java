@@ -148,6 +148,39 @@ class DailyProgressServiceTest {
         assertThat(service.leer(usuarioId).progreso().votos()).isZero();
     }
 
+    @Test
+    void completadoTardioDeUnDiaAnteriorNoRetrocedeNiMataLaRachaViva() {
+        // Regresión (interacción del sellado de fechaVoto + listener @Async): un
+        // voto sellado de un día ANTERIOR, procesado tras haber completado días
+        // posteriores, completaría ese día viejo y —sin la guarda en
+        // actualizarRacha— retrocedería ultimaFechaCompletada, matando la racha
+        // viva. Montaje: progreso parcial el 06-23; racha 2 con 06-24+06-25; luego
+        // llega el voto tardío que completa el 06-23. La racha debe seguir en 2.
+        LocalDate d23 = LocalDate.of(2026, 6, 23);
+        LocalDate d24 = LocalDate.of(2026, 6, 24);
+        LocalDate d25 = LocalDate.of(2026, 6, 25);
+
+        // 06-23: parcial (juego + ranking + votos < objetivo) → NO completa.
+        ahora = d23.atStartOfDay(ZoneOffset.UTC).toInstant();
+        service.marcarJuego(usuarioId);
+        service.marcarRankingVisto(usuarioId);
+        service.registrarVoto(usuarioId, DailyProgressService.OBJETIVO_VOTOS - 1);
+
+        // 06-24 y 06-25 completos y consecutivos → racha 2, última = 06-25.
+        ahora = d24.atStartOfDay(ZoneOffset.UTC).toInstant();
+        completarHoy();
+        ahora = d25.atStartOfDay(ZoneOffset.UTC).toInstant();
+        assertThat(completarHoy().racha().actual()).isEqualTo(2);
+
+        // Voto TARDÍO sellado el 06-23 (cruzó medianoche) que ahora lo completa.
+        service.registrarVoto(usuarioId, d23, 1);
+
+        // La racha viva NO retrocede ni muere: sigue en 2 con última = 06-25.
+        DailyProgressDto vista = service.leer(usuarioId);
+        assertThat(vista.racha().actual()).isEqualTo(2);
+        assertThat(vista.racha().record()).isEqualTo(2);
+    }
+
     // ─── migrarRacha (semilla única de la racha local) ───────────────────────
 
     @Test
