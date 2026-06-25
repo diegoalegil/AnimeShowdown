@@ -35,12 +35,20 @@ public class MadrugadorService {
     }
 
     @Transactional
-    public Optional<MadrugadorDia> registrarPrimerVotoDelDia(Usuario usuario, Personaje personaje) {
+    public Optional<MadrugadorDia> registrarPrimerVotoDelDia(
+            Usuario usuario, Personaje personaje, LocalDate fechaVoto) {
         if (usuario == null || personaje == null || personaje.getSlug() == null) {
             return Optional.empty();
         }
 
-        LocalDate fechaUtc = LocalDate.ofInstant(clock.instant(), ZoneOffset.UTC);
+        // La fecha viene SELLADA en la tx del voto (BadgeEventListener corre @Async
+        // tras el commit). Sin ella, un voto de las 23:59 procesado tras medianoche
+        // UTC se registraría como el madrugador del día siguiente y quemaría su
+        // clave idempotente, robándole el reconocimiento al primer votante real de
+        // ese día. Fallback a now() solo para eventos legacy sin fecha sellada.
+        LocalDate fechaUtc = fechaVoto != null
+                ? fechaVoto
+                : LocalDate.ofInstant(clock.instant(), ZoneOffset.UTC);
         LocalDateTime horaUtc = LocalDateTime.ofInstant(clock.instant(), ZoneOffset.UTC);
         String slug = personaje.getSlug();
 
