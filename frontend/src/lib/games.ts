@@ -273,17 +273,22 @@ export function impostorDelDia(
 
   const [animeElegido, lista] = animesGrandes[Math.floor(rand() * animesGrandes.length)]
 
-  // 4 del anime elegido
-  const baraja = [...lista].sort(() => rand() - 0.5).slice(0, 4)
+  // 4 del anime elegido. shuffleDeterministic (Fisher-Yates) en vez de
+  // sort(() => rand()-0.5): este último está sesgado Y consume un número de
+  // llamadas a rand() que depende del algoritmo de sort del MOTOR (V8 vs
+  // SpiderMonkey difieren), así que el "diario" salía distinto en cada navegador
+  // y rompía la ronda compartible. Fisher-Yates consume exactamente n-1 rand().
+  const baraja = shuffleDeterministic(lista, rand).slice(0, 4)
 
   // 1 impostor de otro anime cualquiera (no del mismo)
   const otros = personajes.filter((p) => p.anime !== animeElegido)
   const impostor = otros[Math.floor(rand() * otros.length)]
 
-  // Mix + shuffle determinístico
-  const items = [...baraja, impostor]
-      .map((p) => ({ ...p, esImpostor: p.slug === impostor.slug }))
-      .sort(() => rand() - 0.5)
+  // Mix + shuffle determinístico (mismo motivo que arriba).
+  const items = shuffleDeterministic(
+      [...baraja, impostor].map((p) => ({ ...p, esImpostor: p.slug === impostor.slug })),
+      rand,
+  )
 
   return { anime: animeElegido, items }
 }
