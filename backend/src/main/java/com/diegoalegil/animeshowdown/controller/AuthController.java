@@ -594,10 +594,14 @@ public class AuthController {
         if (invalido != null) {
             return invalido;
         }
-        usuario.setAvatarUrl(avatarNormalizado);
-        usuarioRepository.save(usuario);
-        log.info("Avatar actualizado: username={}", usuario.getUsername());
-        return ResponseEntity.ok(new UsuarioRespuesta(usuario));
+        // Recargar la entidad gestionada antes de mutar: guardar el principal del JWT
+        // (desligado/obsoleto) haría merge de TODAS sus columnas y revertiría cambios
+        // concurrentes como eloPvp/pvpPartidos. Patrón de MarcoService.equipar.
+        Usuario gestionado = usuarioRepository.findById(usuario.getId()).orElse(usuario);
+        gestionado.setAvatarUrl(avatarNormalizado);
+        usuarioRepository.save(gestionado);
+        log.info("Avatar actualizado: username={}", gestionado.getUsername());
+        return ResponseEntity.ok(new UsuarioRespuesta(gestionado));
     }
 
     /**
@@ -619,10 +623,13 @@ public class AuthController {
         if (invalido != null) {
             return invalido;
         }
-        usuario.setBannerUrl(bannerNormalizado);
-        usuarioRepository.save(usuario);
-        log.info("Banner actualizado: username={}", usuario.getUsername());
-        return ResponseEntity.ok(new UsuarioRespuesta(usuario));
+        // Recargar la entidad gestionada antes de mutar (ver actualizarAvatar): evita
+        // que el merge del principal desligado revierta columnas concurrentes.
+        Usuario gestionado = usuarioRepository.findById(usuario.getId()).orElse(usuario);
+        gestionado.setBannerUrl(bannerNormalizado);
+        usuarioRepository.save(gestionado);
+        log.info("Banner actualizado: username={}", gestionado.getUsername());
+        return ResponseEntity.ok(new UsuarioRespuesta(gestionado));
     }
 
     private static String normalizarImagenUrl(String imagenUrl) {
