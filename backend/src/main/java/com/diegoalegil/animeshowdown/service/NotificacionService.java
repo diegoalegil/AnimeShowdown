@@ -9,6 +9,7 @@ import java.util.Optional;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -16,6 +17,8 @@ import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.transaction.support.TransactionSynchronization;
+import org.springframework.transaction.support.TransactionSynchronizationManager;
 
 import com.diegoalegil.animeshowdown.dto.NotificacionDto;
 import com.diegoalegil.animeshowdown.model.Notificacion;
@@ -58,6 +61,12 @@ public class NotificacionService {
     private final PushSubscriptionRepository pushSubscriptionRepository;
     private final WebPushService webPushService;
     private final UsuarioRepository usuarioRepository;
+    // Self-inyección para que el batch de Web Push (REQUIRES_NEW, tras el commit)
+    // pase por el proxy de Spring: la entrega HTTP corre fuera de la tx del fan-out
+    // y de los locks de fila de usuario.
+    @Autowired
+    @Lazy
+    private NotificacionService self;
 
     /**
      * SimpMessagingTemplate viene de spring-websocket. Lo dejamos
@@ -167,6 +176,7 @@ public class NotificacionService {
         String payload = payloadDeTorneo(torneo);
         String eventoKey = payload;
         int creadas = 0;
+        List<PushSubscription> aEntregar = new java.util.ArrayList<>();
         for (List<PushSubscription> subsUsuario : porUsuario.values()) {
             Usuario usuario = subsUsuario.get(0).getUsuario();
             Usuario usuarioBloqueado = usuarioRepository.findForUpdateById(usuario.getId())
@@ -180,16 +190,58 @@ public class NotificacionService {
                     new Notificacion(usuarioBloqueado, tipo, titulo, mensaje, payload, eventoKey));
             pushUsuario(usuarioBloqueado, NotificacionDto.from(guardada));
             creadas++;
-
-            for (PushSubscription sub : subsUsuario) {
-                var result = webPushService.enviar(sub, webPayload);
-                if (result.removeSubscription()) {
-                    pushSubscriptionRepository.delete(sub);
-                }
-            }
+            aEntregar.addAll(subsUsuario);
         }
+        // El Web Push (HTTP BLOQUEANTE a FCM/Mozilla/Apple) se entrega TRAS el commit,
+        // fuera de la tx del fan-out y de los locks de fila de usuario. Antes corría
+        // dentro del loop CON el lock pesimista tomado: un proveedor de push lento
+        // congelaba cualquier operación (voto, compra, racha, monedero) que necesitara
+        // la fila de ese usuario, durante todo el fan-out a todos los suscriptores.
+        entregarPushTrasCommit(aEntregar, webPayload);
         log.info("Notificacion {} fan-out: torneo={} usuarios={}", tipo, torneo.getId(), creadas);
         return creadas;
+    }
+
+    /** Registra la entrega de los Web Push para después del commit (o ya, si no hay tx). */
+    private void entregarPushTrasCommit(List<PushSubscription> subs, WebPushPayload payload) {
+        if (subs.isEmpty()) return;
+        if (TransactionSynchronizationManager.isSynchronizationActive()) {
+            TransactionSynchronizationManager.registerSynchronization(new TransactionSynchronization() {
+                @Override
+                public void afterCommit() {
+                    self.entregarPushBatch(subs, payload);
+                }
+            });
+        } else {
+            self.entregarPushBatch(subs, payload);
+        }
+    }
+
+    /**
+     * Entrega los Web Push por HTTP SIN transacción (no se sostiene ninguna conexión
+     * ni lock durante el envío bloqueante) y, al final, borra en una tx corta las
+     * suscripciones que el proveedor reportó como muertas (410/404).
+     */
+    public void entregarPushBatch(List<PushSubscription> subs, WebPushPayload payload) {
+        List<Long> muertas = new java.util.ArrayList<>();
+        for (PushSubscription sub : subs) {
+            try {
+                var result = webPushService.enviar(sub, payload);
+                if (result.removeSubscription()) {
+                    muertas.add(sub.getId());
+                }
+            } catch (RuntimeException e) {
+                log.warn("Web Push falló (sub {}): {}", sub.getId(), e.getMessage());
+            }
+        }
+        if (!muertas.isEmpty()) {
+            self.eliminarSubscripciones(muertas);
+        }
+    }
+
+    @Transactional(propagation = Propagation.REQUIRES_NEW)
+    public void eliminarSubscripciones(List<Long> ids) {
+        pushSubscriptionRepository.deleteAllById(ids);
     }
 
     /**
