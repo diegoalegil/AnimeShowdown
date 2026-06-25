@@ -345,7 +345,18 @@ public class DueloLiveService {
         } else if (ronda.getVotoJugador2() == null && duelo.getJugador2() != null) {
             abandonador = duelo.getJugador2();
         } else {
-            resolverRonda(duelo, ronda, now);
+            // Ambos votaron → resolver la ronda. El scheduler la leyó vía findExpiradas
+            // SIN lock, así que recargamos la ronda activa CON lock pesimista para
+            // serializarnos con la vía del voto (findRondaActivaForUpdate): sin esto, el
+            // tick del scheduler y un voto que cierra la ronda podían resolverla a la vez
+            // (DueloLiveRonda no tiene @Version), duplicando score/rondasValidas y
+            // abriendo dos rondas. Si entre medias el voto ya la resolvió/avanzó, la
+            // ronda activa será otra (o ninguna) → no hacemos nada.
+            DueloLiveRonda activa = rondaRepository.findRondaActivaForUpdate(duelo.getId())
+                    .stream().findFirst().orElse(null);
+            if (activa != null && activa.getId().equals(ronda.getId())) {
+                resolverRonda(duelo, activa, now);
+            }
             return notifier.estadoPara(duelo, duelo.getJugador1(), "ROUND_END", "Ronda resuelta");
         }
         // Recargar duelo con lock antes de finalizar para evitar carrera
