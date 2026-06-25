@@ -18,6 +18,7 @@ import {
 } from '../lib/api'
 import { playMagic } from '../lib/sounds'
 import { queryClient } from '../lib/queryClient'
+import { hydrateDailyFromServer } from '../lib/dailyProgress'
 
 const AuthContext = createContext(null)
 const STORAGE_KEY = 'animeshowdown.user'
@@ -180,6 +181,13 @@ export function AuthProvider({ children }) {
     } else {
       localStorage.removeItem(STORAGE_KEY)
     }
+  }, [user])
+
+  // Al iniciar sesión (o validarla por refresh), tira del progreso diario y la
+  // racha del servidor: la verdad server-side (#1) sana un localStorage limpiado
+  // y sincroniza entre dispositivos. Best-effort: no bloquea ni rompe nada.
+  useEffect(() => {
+    if (user) hydrateDailyFromServer()
   }, [user])
 
   // Helper interno: aplica el resultado de un login exitoso (token + user)
