@@ -445,7 +445,10 @@ public class TorneoService {
      * fallar fuerte a dejar el torneo a medias.
      */
     @Transactional
-    @CacheEvict(value = "torneos-resumen", allEntries = true)
+    // og-torneo: al finalizar, la OG image cacheada (TTL 7d) seguía mostrando el
+    // bracket sin campeón; hay que invalidarla para que se re-renderice con el
+    // ganador. (El auto-avance hace lo equivalente en TorneoAutoAdvanceService.)
+    @CacheEvict(value = {"torneos-resumen", "og-torneo"}, allEntries = true)
     public Torneo finalizar(Long id) {
         Torneo torneo = torneoRepository.findById(id)
                 .orElseThrow(() -> new EntityNotFoundException("Torneo no encontrado: id=" + id));
