@@ -19,6 +19,7 @@ import org.junit.jupiter.api.Test;
 import com.diegoalegil.animeshowdown.dto.PersonajeActualizarRequest;
 import com.diegoalegil.animeshowdown.dto.PersonajeCrearRequest;
 import com.diegoalegil.animeshowdown.model.Personaje;
+import com.diegoalegil.animeshowdown.repository.FantasyEquipoItemRepository;
 import com.diegoalegil.animeshowdown.repository.PersonajeRepository;
 
 import jakarta.persistence.EntityNotFoundException;
@@ -32,13 +33,16 @@ class PersonajeAdminServiceTest {
 
     private PersonajeRepository personajeRepository;
     private PersonajeBusquedaService personajeBusquedaService;
+    private FantasyEquipoItemRepository fantasyEquipoItemRepository;
     private PersonajeAdminService service;
 
     @BeforeEach
     void setUp() {
         personajeRepository = mock(PersonajeRepository.class);
         personajeBusquedaService = mock(PersonajeBusquedaService.class);
-        service = new PersonajeAdminService(personajeRepository, personajeBusquedaService);
+        fantasyEquipoItemRepository = mock(FantasyEquipoItemRepository.class);
+        service = new PersonajeAdminService(
+                personajeRepository, personajeBusquedaService, fantasyEquipoItemRepository);
         when(personajeRepository.save(any(Personaje.class))).thenAnswer(inv -> inv.getArgument(0));
     }
 
@@ -71,6 +75,22 @@ class PersonajeAdminServiceTest {
         when(personajeRepository.existsById(7L)).thenReturn(false);
 
         assertThat(service.eliminar(7L)).isFalse();
+        verify(personajeRepository, never()).deleteById(anyLong());
+        verify(personajeBusquedaService, never()).invalidateIndex();
+    }
+
+    @Test
+    void eliminarPersonajeFichadoEnFantasyRechazaCon409SinBorrar() {
+        // La FK fantasy_equipo_item.personaje_id es ON DELETE CASCADE (V52): borrar
+        // el personaje encogería los equipos en silencio. Se rechaza con 409.
+        when(personajeRepository.existsById(7L)).thenReturn(true);
+        when(fantasyEquipoItemRepository.existsByPersonajeId(7L)).thenReturn(true);
+
+        assertThatThrownBy(() -> service.eliminar(7L))
+                .isInstanceOf(org.springframework.web.server.ResponseStatusException.class)
+                .satisfies(e -> assertThat(
+                        ((org.springframework.web.server.ResponseStatusException) e).getStatusCode().value())
+                        .isEqualTo(409));
         verify(personajeRepository, never()).deleteById(anyLong());
         verify(personajeBusquedaService, never()).invalidateIndex();
     }
