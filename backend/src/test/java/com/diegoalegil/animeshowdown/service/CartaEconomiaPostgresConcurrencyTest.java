@@ -135,6 +135,34 @@ class CartaEconomiaPostgresConcurrencyTest extends PostgresIntegrationTestBase {
         assertThat(cantidadDe(usuario, carta)).isEqualTo(concurrentes);
     }
 
+    @Test
+    void dosCreditosConcurrentesConMismaReferenciaNoAbortanLaTx() throws Exception {
+        // Aborted-tx de acreditar(): dos créditos concurrentes del mismo
+        // (motivo, referencia) — p.ej. doble-click en el cofre diario. Antes el
+        // chequeo de idempotencia iba ANTES del lock del monedero: ambos veían
+        // existsBy=false, se serializaban en el lock, y el segundo intentaba el
+        // INSERT igualmente, violando uk_mon_mov_idem -> DataIntegrityViolationException
+        // que en Postgres ABORTA la tx ("current transaction is aborted") -> el
+        // segundo crédito reventaba con 500. Con el re-chequeo DENTRO del lock, el
+        // segundo ve la fila ya confirmada y devuelve aplicado=false sin tocar la BD.
+        Usuario usuario = crearUsuario("monedero_pg_idem");
+        monederoService.acreditar(usuario, MotivoMovimiento.DROP_VOTO, "seed:monedero_pg_idem", 50L);
+
+        List<MonederoService.ResultadoCredito> resultados = acreditarConcurrente(
+                usuario.getId(), MotivoMovimiento.COFRE_DIARIO, "cofre:pg:1", 30L, 2);
+
+        // Ninguno revienta (sin ExecutionException) y EXACTAMENTE uno aplica.
+        assertThat(resultados).hasSize(2);
+        long aplicados = resultados.stream()
+                .filter(MonederoService.ResultadoCredito::aplicado)
+                .count();
+        assertThat(aplicados).isEqualTo(1L);
+        // Un solo movimiento de cofre y el saldo crece exactamente una vez.
+        assertThat(movimientos(usuario, MotivoMovimiento.COFRE_DIARIO)).isEqualTo(1L);
+        assertThat(monederoRepository.findByUsuarioId(usuario.getId()).orElseThrow().getSaldo())
+                .isEqualTo(80L);
+    }
+
     private Usuario crearUsuario(String username) {
         Usuario usuario = new Usuario(username, "{noop}pass", username + "@example.test");
         return usuarioRepository.saveAndFlush(usuario);
@@ -169,6 +197,32 @@ class CartaEconomiaPostgresConcurrencyTest extends PostgresIntegrationTestBase {
             Usuario usuario = usuarioRepository.findById(usuarioId).orElseThrow();
             return cartaService.abrirSobre(usuario, key);
         };
+    }
+
+    private List<MonederoService.ResultadoCredito> acreditarConcurrente(
+            Long usuarioId, MotivoMovimiento motivo, String referencia, long cantidad, int veces)
+            throws Exception {
+        CountDownLatch start = new CountDownLatch(1);
+        var executor = Executors.newFixedThreadPool(veces);
+        try {
+            List<Future<MonederoService.ResultadoCredito>> futures = new ArrayList<>();
+            for (int i = 0; i < veces; i++) {
+                futures.add(executor.submit(() -> {
+                    assertThat(start.await(3, TimeUnit.SECONDS)).isTrue();
+                    Usuario usuario = usuarioRepository.findById(usuarioId).orElseThrow();
+                    return monederoService.acreditar(usuario, motivo, referencia, cantidad);
+                }));
+            }
+            start.countDown();
+
+            List<MonederoService.ResultadoCredito> resultados = new ArrayList<>();
+            for (Future<MonederoService.ResultadoCredito> future : futures) {
+                resultados.add(future.get(15, TimeUnit.SECONDS));
+            }
+            return resultados;
+        } finally {
+            executor.shutdownNow();
+        }
     }
 
     private long aperturas(Usuario usuario) {

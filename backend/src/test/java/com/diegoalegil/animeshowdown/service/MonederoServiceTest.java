@@ -33,8 +33,9 @@ import com.diegoalegil.animeshowdown.repository.UsuarioRepository;
  * que acreditar invoca el finder con lock y nunca el finder sin lock.
  *
  * <p>El test {@code mismaReferenciaSoloSeAcreditaUnaVez} verifica idempotencia
- * por (motivo, referencia) — la defensa en BD (UNIQUE constraint) + pre-check en
- * service.
+ * por (motivo, referencia) — re-chequeo DENTRO del lock del monedero + UNIQUE
+ * constraint como red final. {@code idempotenciaSeChequeaDentroDelLockDeMonedero}
+ * fija ese orden (lock antes del chequeo) contra regresiones.
  */
 @SpringBootTest
 @ActiveProfiles("test")
@@ -103,8 +104,9 @@ class MonederoServiceTest {
 
     /**
      * Idempotencia: dos acreditaciones identicas con la misma referencia
-     * deben creditr SOLO una vez. El UNIQUE(motivo, referencia) es la defensa
-     * en BD; el pre-check en service es optimizacion de lectura.
+     * deben creditr SOLO una vez. El re-chequeo dentro del lock devuelve
+     * {@code aplicado=false} en la repetición; el UNIQUE(motivo, referencia) es
+     * la red final en BD.
      */
     @Test
     void mismaReferenciaSoloSeAcreditaUnaVez() {
@@ -191,6 +193,30 @@ class MonederoServiceTest {
         InOrder inOrder = inOrder(monederoRepo, movimientoRepo);
         inOrder.verify(monederoRepo).findForUpdateByUsuarioId(usuario.getId());
         inOrder.verify(movimientoRepo).countDropsDesde(eq(usuario), any(), eq(desde));
+    }
+
+    /**
+     * Regresión del fix aborted-tx: el chequeo de idempotencia de {@code acreditar}
+     * debe ocurrir DENTRO del lock del monedero — {@code findForUpdateByUsuarioId}
+     * ANTES de {@code existsByUsuarioAndMotivoAndReferencia}. Si se hiciera antes de
+     * adquirir el lock (como antes), dos créditos concurrentes del mismo
+     * (motivo, referencia) pasarían ambos el chequeo, se serializarían en el lock y
+     * el segundo intentaría el INSERT igualmente — violando {@code uk_mon_mov_idem}
+     * y abortando la tx del llamador en Postgres (cofre diario / recompensa de
+     * evento → 500). Mismo blindaje que {@code acreditarDropConTopeDiario}.
+     */
+    @Test
+    void idempotenciaSeChequeaDentroDelLockDeMonedero() {
+        Usuario usuario = crearUsuario("idem_lock_order");
+        monederoService.crearMonederoParaTest(usuario);
+        clearInvocations(monederoRepo, movimientoRepo);
+
+        monederoService.acreditar(usuario, MotivoMovimiento.COFRE_DIARIO, "cofre:idem-lock:1", 7L);
+
+        InOrder inOrder = inOrder(monederoRepo, movimientoRepo);
+        inOrder.verify(monederoRepo).findForUpdateByUsuarioId(usuario.getId());
+        inOrder.verify(movimientoRepo).existsByUsuarioAndMotivoAndReferencia(
+                eq(usuario), eq(MotivoMovimiento.COFRE_DIARIO), eq("cofre:idem-lock:1"));
     }
 
     @Test
