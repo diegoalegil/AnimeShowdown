@@ -11,6 +11,15 @@ const BASE_URL = 'https://animeshowdown.dev'
 // Las imágenes OG dinámicas las sirve el API (no el front): /api/og vive en
 // api.animeshowdown.dev. Mismo criterio que useSeo.absolutizar en el cliente.
 const API_BASE_URL = 'https://api.animeshowdown.dev'
+// CDN de imágenes del catálogo (mismo env que vite.config). En prod /img/* del
+// front es solo un 302 al CDN; las og:image/JSON-LD de las fichas deben apuntar
+// DIRECTO al CDN para no depender de ese redirect. Sin CDN configurado, se
+// mantiene el comportamiento anterior (animeshowdown.dev/img → 302/local).
+const IMG_CDN_BASE_URL = (
+  process.env.ANIMESHOWDOWN_IMG_CDN_BASE_URL ||
+  process.env.ANIMESHOWDOWN_IMAGE_CDN_BASE_URL ||
+  ''
+).trim().replace(/\/+$/, '')
 const BRAND_TITLE = 'AnimeShowdown'
 
 const INDEX_PATH = join(DIST, 'index.html')
@@ -402,6 +411,10 @@ function seoBodyFor(p, desc) {
 function absolutizar(path) {
   if (!path) return `${BASE_URL}/logo.webp`
   if (/^https?:\/\//.test(path)) return path
+  // Imágenes del catálogo: directo al CDN (como la app), no al 302 del front.
+  if (IMG_CDN_BASE_URL && path.startsWith('/img/')) {
+    return `${IMG_CDN_BASE_URL}${path.slice('/img'.length)}`
+  }
   return `${BASE_URL}${path.startsWith('/') ? '' : '/'}${path}`
 }
 
