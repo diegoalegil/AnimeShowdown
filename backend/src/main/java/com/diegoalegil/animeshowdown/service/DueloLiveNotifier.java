@@ -2,11 +2,14 @@ package com.diegoalegil.animeshowdown.service;
 
 import java.time.Clock;
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.List;
 
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.stereotype.Component;
+import org.springframework.transaction.support.TransactionSynchronization;
+import org.springframework.transaction.support.TransactionSynchronizationManager;
 
 import com.diegoalegil.animeshowdown.dto.DueloLiveRoundDto;
 import com.diegoalegil.animeshowdown.dto.DueloLiveStateDto;
@@ -76,13 +79,43 @@ public class DueloLiveNotifier {
     }
 
     public void emitirEstado(DueloLive duelo, String event, String message) {
+        // Construye los payloads AHORA (sesión abierta → sin LazyInit sobre las
+        // asociaciones del duelo) pero ENVÍALOS tras el commit. Emitir dentro de la
+        // tx del scheduler/voto arriesga una transición fantasma (MATCH_FOUND /
+        // ROUND_END / MATCH_END): si la tx hace rollback después, el cliente ya
+        // habría recibido por WS un cambio de estado que la BBDD nunca persistió.
+        // Si no hay tx activa (llamada fuera de @Transactional), envía directo.
+        List<Runnable> envios = new ArrayList<>(2);
         if (duelo.getJugador1() != null) {
-            messaging.convertAndSendToUser(duelo.getJugador1().getUsername(), "/queue/duelo",
-                    estadoPara(duelo, duelo.getJugador1(), event, message));
+            String username = duelo.getJugador1().getUsername();
+            DueloLiveStateDto dto = estadoPara(duelo, duelo.getJugador1(), event, message);
+            envios.add(() -> messaging.convertAndSendToUser(username, "/queue/duelo", dto));
         }
         if (duelo.getJugador2() != null) {
-            messaging.convertAndSendToUser(duelo.getJugador2().getUsername(), "/queue/duelo",
-                    estadoPara(duelo, duelo.getJugador2(), event, message));
+            String username = duelo.getJugador2().getUsername();
+            DueloLiveStateDto dto = estadoPara(duelo, duelo.getJugador2(), event, message);
+            envios.add(() -> messaging.convertAndSendToUser(username, "/queue/duelo", dto));
+        }
+        enviarTrasCommit(envios);
+    }
+
+    /**
+     * Envía los WS ya construidos tras el commit de la tx activa (preservando el
+     * orden de registro); si no hay sincronización de tx activa, envía directo.
+     */
+    private void enviarTrasCommit(List<Runnable> envios) {
+        if (envios.isEmpty()) {
+            return;
+        }
+        if (TransactionSynchronizationManager.isSynchronizationActive()) {
+            TransactionSynchronizationManager.registerSynchronization(new TransactionSynchronization() {
+                @Override
+                public void afterCommit() {
+                    envios.forEach(Runnable::run);
+                }
+            });
+        } else {
+            envios.forEach(Runnable::run);
         }
     }
 
