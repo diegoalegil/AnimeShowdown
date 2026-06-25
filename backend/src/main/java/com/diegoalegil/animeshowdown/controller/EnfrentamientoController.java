@@ -94,6 +94,7 @@ public class EnfrentamientoController {
     private final AnonymousAbuseThrottleService abuseThrottle;
     private final ClientIpExtractor clientIpExtractor;
     private final DropService dropService;
+    private final java.time.Clock clock;
     private final String turnstileSitekey;
     private final boolean requiereEmailVerificado;
     // Los advisory locks de Postgres (pg_advisory_xact_lock) no existen en H2
@@ -113,6 +114,7 @@ public class EnfrentamientoController {
             AnonymousAbuseThrottleService abuseThrottle,
             ClientIpExtractor clientIpExtractor,
             DropService dropService,
+            java.time.Clock clock,
             @Value("${app.turnstile.sitekey:}") String turnstileSitekey,
             @Value("${spring.datasource.url:}") String datasourceUrl,
             @Value("${app.email-verification.required-to-vote:true}") boolean requiereEmailVerificado) {
@@ -127,6 +129,7 @@ public class EnfrentamientoController {
         this.abuseThrottle = abuseThrottle;
         this.clientIpExtractor = clientIpExtractor;
         this.dropService = dropService;
+        this.clock = clock;
         this.turnstileSitekey = turnstileSitekey == null ? "" : turnstileSitekey.trim();
         this.metrics = metrics;
         this.requiereEmailVerificado = requiereEmailVerificado;
@@ -373,6 +376,12 @@ public class EnfrentamientoController {
         }
 
         Voto voto = new Voto(empate ? enf.getPersonaje1() : ganador, usuario, enf);
+        // Sella el instante del voto desde el Clock inyectado (la única autoridad
+        // de tiempo), no desde el LocalDateTime.now() del @PrePersist. Así la fecha
+        // del voto, la misión diaria, la racha y el madrugador comparten la misma
+        // base temporal testeable, y el sellado de fechaVoto que viaja en el evento
+        // refleja el día real del voto (no el del procesamiento @Async).
+        voto.setFecha(java.time.LocalDateTime.now(clock));
         voto.setEmpate(empate);
         if (usuario == null) {
             voto.setPeso(empate ? ANON_VOTE_WEIGHT.multiply(HALF_VOTE_WEIGHT) : ANON_VOTE_WEIGHT);
@@ -446,7 +455,7 @@ public class EnfrentamientoController {
         // @Async): un listener que cruce medianoche debe contar el voto en su
         // día REAL, no en el día en que se procese el evento.
         java.time.LocalDate diaVoto = (guardado.getFecha() != null
-                ? guardado.getFecha() : java.time.LocalDateTime.now()).toLocalDate();
+                ? guardado.getFecha() : java.time.LocalDateTime.now(clock)).toLocalDate();
         if (usuario != null) {
             eventPublisher.publishEvent(new VotoRegistradoEvent(usuario, enf, ganador, diaVoto));
         }
