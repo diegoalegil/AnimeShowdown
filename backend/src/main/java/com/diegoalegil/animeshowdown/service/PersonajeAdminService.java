@@ -4,11 +4,14 @@ import java.util.List;
 
 import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.Caching;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
+import org.springframework.web.server.ResponseStatusException;
 
 import com.diegoalegil.animeshowdown.dto.PersonajeActualizarRequest;
 import com.diegoalegil.animeshowdown.dto.PersonajeCrearRequest;
 import com.diegoalegil.animeshowdown.model.Personaje;
+import com.diegoalegil.animeshowdown.repository.FantasyEquipoItemRepository;
 import com.diegoalegil.animeshowdown.repository.PersonajeRepository;
 
 import jakarta.persistence.EntityNotFoundException;
@@ -29,11 +32,14 @@ public class PersonajeAdminService {
 
     private final PersonajeRepository personajeRepository;
     private final PersonajeBusquedaService personajeBusquedaService;
+    private final FantasyEquipoItemRepository fantasyEquipoItemRepository;
 
     public PersonajeAdminService(PersonajeRepository personajeRepository,
-            PersonajeBusquedaService personajeBusquedaService) {
+            PersonajeBusquedaService personajeBusquedaService,
+            FantasyEquipoItemRepository fantasyEquipoItemRepository) {
         this.personajeRepository = personajeRepository;
         this.personajeBusquedaService = personajeBusquedaService;
+        this.fantasyEquipoItemRepository = fantasyEquipoItemRepository;
     }
 
     @Caching(evict = {
@@ -81,6 +87,17 @@ public class PersonajeAdminService {
     public boolean eliminar(Long id) {
         if (!personajeRepository.existsById(id)) {
             return false;
+        }
+        // No borrar si el personaje está fichado en algún equipo fantasy: la FK
+        // fantasy_equipo_item.personaje_id es ON DELETE CASCADE (V52), así que el
+        // borrado encogería los equipos en SILENCIO —incluidos los de semanas vivas/
+        // bloqueadas— corrompiendo la puntuación. Se rechaza con 409 para que el admin
+        // saque al personaje de los equipos (o cierre la semana) antes; nunca destruye
+        // equipos sin querer.
+        if (fantasyEquipoItemRepository.existsByPersonajeId(id)) {
+            throw new ResponseStatusException(HttpStatus.CONFLICT,
+                    "No se puede borrar: el personaje está fichado en equipos fantasy. "
+                            + "Sácalo de los equipos o cierra la semana antes de borrarlo.");
         }
         personajeRepository.deleteById(id);
         personajeBusquedaService.invalidateIndex();
