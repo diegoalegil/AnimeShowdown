@@ -116,7 +116,11 @@ function LogrosPage() {
     })).filter((shelf) => shelf.items.length > 0)
   }, [fuente, i18n.language, stats, user, vistosIniciales, primeraVisita])
 
-  const total = catalogo?.length ?? 16
+  // Con sesión el total sale de `mios` (catálogo + badges madrugador del usuario),
+  // NO del catálogo estático: así desbloqueados y total cuentan AMBOS los madrugador
+  // y la barra nunca pasa del 100% (antes total venía del catálogo SIN madrugador
+  // mientras desbloqueados SÍ los contaba → >100%). El total es por-usuario a propósito.
+  const total = (user ? mios?.length : catalogo?.length) ?? 16
   const desbloqueados = mios?.filter((l) => l.desbloqueadoEn).length ?? 0
   const logroDestacado = searchParams.get('logro')
 
@@ -125,7 +129,7 @@ function LogrosPage() {
   // sin tener que leer todo el catálogo.
   const legendariosDesbloqueados = mios?.filter((l) => l.desbloqueadoEn && l.rareza === 5).length ?? 0
   const legendariosTotal = catalogo?.filter((l) => l.rareza === 5).length ?? 0
-  const progresoPct = total > 0 ? Math.round((desbloqueados / total) * 100) : 0
+  const progresoPct = total > 0 ? Math.min(100, Math.round((desbloqueados / total) * 100)) : 0
 
   useEffect(() => {
     if (!logroDestacado || estanterias.length === 0) return undefined
