@@ -23,9 +23,17 @@ import com.diegoalegil.animeshowdown.repository.EmailFailureRepository;
  * reiniciaran la app en bucle (un reboot no arregla un env var ausente). Igual
  * que {@code CatalogoHealthIndicator} con su status {@code DRIFT}, usamos el
  * status custom {@code DEGRADED} mapeado explícitamente a HTTP 200 en
- * {@code application.properties}. Con el {@code SimpleStatusAggregator} por
- * defecto, {@code DEGRADED} (status desconocido) es menos severo que {@code UP},
- * así que tampoco enmascara un {@code DOWN} real de otro indicador.
+ * {@code application.properties}.
+ *
+ * <p><b>Por qué es seguro:</b> el {@code SimpleStatusAggregator} por defecto
+ * solo considera los status de su orden estándar {@code [DOWN, OUT_OF_SERVICE,
+ * UP, UNKNOWN]}; un status no estándar como {@code DEGRADED} queda <em>filtrado
+ * fuera</em> de la agregación (no participa), así que el agregado nunca es
+ * {@code DEGRADED} mientras exista cualquier indicador estándar (db, ping,
+ * catalogo) — y un {@code DOWN} real sigue ganando. El mapping
+ * {@code DEGRADED=200} es defensa en profundidad. OJO: si alguien añadiera
+ * {@code DEGRADED} a un {@code management.endpoint.health.status.order} custom,
+ * el comparador lo ordenaría como MÁS severo (indexOf=-1), invirtiendo esto.
  *
  * <p>Expuesto en {@code /actuator/health} con la key {@code email}.
  */
@@ -40,7 +48,7 @@ public class EmailHealthIndicator implements HealthIndicator {
      * DEGRADED. Por debajo basta con mostrar el conteo (uno o dos pueden ser
      * direcciones inválidas puntuales, no un fallo sistémico).
      */
-    private static final long UMBRAL_FALLOS_PENDIENTES = 10;
+    private static final int UMBRAL_FALLOS_PENDIENTES = 10;
 
     private final EmailFailureRepository emailFailureRepository;
     private final boolean habilitado;
@@ -78,7 +86,11 @@ public class EmailHealthIndicator implements HealthIndicator {
 
         long pendientes;
         try {
-            pendientes = emailFailureRepository.countByReintentadoFalse();
+            // Acotado a UMBRAL: solo nos importa si hay "demasiados". El LIMIT
+            // corta el escaneo en UMBRAL filas, así que un /actuator/health
+            // público no amplifica a un seq-scan de toda la cola durante una
+            // caída de Resend (la tabla no tiene índice en reintentado).
+            pendientes = emailFailureRepository.countPendientesHasta(UMBRAL_FALLOS_PENDIENTES);
         } catch (Exception e) {
             // No tumbamos el health por un fallo de lectura de la cola: el
             // envío puede estar sano. Reportamos UP con la incidencia.
@@ -90,7 +102,7 @@ public class EmailHealthIndicator implements HealthIndicator {
         if (pendientes >= UMBRAL_FALLOS_PENDIENTES) {
             return Health.status("DEGRADED")
                     .withDetail("from", from)
-                    .withDetail("fallos_pendientes", pendientes)
+                    .withDetail("fallos_pendientes", "≥ " + UMBRAL_FALLOS_PENDIENTES)
                     .withDetail("razon",
                             "Demasiados emails en email_failed_queue — Resend caído o "
                                     + "configuración inválida; revisa as.funnel.email.fallo")
