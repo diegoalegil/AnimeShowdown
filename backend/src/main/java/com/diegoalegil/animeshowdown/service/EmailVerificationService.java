@@ -11,6 +11,8 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.transaction.support.TransactionSynchronization;
+import org.springframework.transaction.support.TransactionSynchronizationManager;
 
 import com.diegoalegil.animeshowdown.event.EmailVerificacionEmitidaEvent;
 import com.diegoalegil.animeshowdown.model.EmailVerification;
@@ -85,6 +87,29 @@ public class EmailVerificationService {
     }
 
     /**
+     * Incrementa una métrica de embudo SOLO si la transacción actual hace
+     * commit. Los Counter de Micrometer no son transaction-aware: contar inline
+     * sobrecuenta cuando la tx hace rollback después — p.ej. la notificación de
+     * bienvenida de verificar() falla y tumba la tx (el usuario NO queda ACTIVO
+     * pero el KPI ya se contó), o el commit del token de emitir() revienta (el
+     * email no sale por AFTER_COMMIT pero el "sent" ya se contó). Si no hay tx
+     * activa, incrementa ya. Mismo principio "contar lo que de verdad persistió"
+     * que el listener AFTER_COMMIT del registro.
+     */
+    private void contarTrasCommit(Runnable incremento) {
+        if (TransactionSynchronizationManager.isSynchronizationActive()) {
+            TransactionSynchronizationManager.registerSynchronization(new TransactionSynchronization() {
+                @Override
+                public void afterCommit() {
+                    incremento.run();
+                }
+            });
+        } else {
+            incremento.run();
+        }
+    }
+
+    /**
      * Crea token nuevo, invalida los anteriores activos, dispara email.
      * Llamada típicamente desde AuthController.registro y resend-verification.
      */
@@ -107,7 +132,9 @@ public class EmailVerificationService {
         // token quedó persistido — el link del email siempre existe en BBDD.
         eventPublisher.publishEvent(new EmailVerificacionEmitidaEvent(
                 usuarioBloqueado.getEmail(), usuarioBloqueado.getUsername(), link));
-        metrics.emailVerificacionEmitida();
+        // Cuenta el "sent" cuando la tx commitea (el email sale en AFTER_COMMIT):
+        // si el commit revienta no hay email, tampoco contador. Incluye reenvíos.
+        contarTrasCommit(metrics::emailVerificacionEmitida);
         log.info("EmailVerification emitida: usuario={} expira={}", usuarioBloqueado.getUsername(), expira);
     }
 
@@ -154,7 +181,11 @@ public class EmailVerificationService {
             log.info("Auto-promoción a ADMIN tras verificar email: usuario={}", u.getUsername());
         }
         usuarioRepository.save(u);
-        metrics.emailVerificacionConfirmada();
+        // Cuenta el KPI de éxito SOLO si la tx commitea: la notificación de
+        // bienvenida de abajo es @Transactional (REQUIRED) y, si su insert
+        // falla, tumba todo verificar() — el usuario no queda ACTIVO, así que
+        // tampoco debe contar como verificación confirmada.
+        contarTrasCommit(metrics::emailVerificacionConfirmada);
         log.info("Email verificado: usuario={}", u.getUsername());
 
         // Notificación de bienvenida tras verificación. Es

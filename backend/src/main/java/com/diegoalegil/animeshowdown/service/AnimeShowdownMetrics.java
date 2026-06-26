@@ -61,7 +61,7 @@ public class AnimeShowdownMetrics {
                 .description("Registros de usuario completados (email + OAuth)")
                 .register(registry);
         this.funnelEmailEmitida = Counter.builder("as.funnel.email.verificacion.emitida")
-                .description("Emails de verificación encolados tras el registro")
+                .description("Emails de verificación encolados (registro + reenvíos; NO dividir por registro)")
                 .register(registry);
         this.funnelEmailConfirmada = Counter.builder("as.funnel.email.verificacion.confirmada")
                 .description("Verificaciones de email confirmadas (cuenta activada)")
@@ -105,7 +105,11 @@ public class AnimeShowdownMetrics {
         funnelRegistro.increment();
     }
 
-    /** Embudo: se encoló un email de verificación tras el registro. */
+    /**
+     * Embudo: se encoló un email de verificación. Cuenta tanto el del registro
+     * como los reenvíos (resend-verification), así que NO es un conteo
+     * por-registro y emitida/registro puede ser &gt; 1.
+     */
     public void emailVerificacionEmitida() {
         funnelEmailEmitida.increment();
     }
