@@ -180,3 +180,31 @@ test('panel de navegacion movil mantiene touch targets de al menos 44px', async 
   await expect(page.getByRole('dialog', { name: /Menú de navegación|Menu de navegacion/i })).toBeVisible()
   await expectVisibleTouchTargets(page, `mobile-nav ${TOUCH_VIEWPORT.name}`)
 })
+
+test('los inputs de auth llegan a 16px en tactil (sin zoom iOS en el embudo)', async ({ page }, testInfo) => {
+  // iOS Safari hace zoom al enfocar un input <16px. La regla anti-zoom vive en
+  // @media (pointer: coarse), que SOLO emula el proyecto movil (Pixel 7); el
+  // proyecto desktop tiene pointer:fine y no la aplicaria.
+  test.skip(
+    testInfo.project.name !== 'chromium-mobile',
+    'Solo el proyecto movil emula pointer:coarse, donde aplica la regla anti-zoom.',
+  )
+
+  await settleRoute(page, '/register')
+  const pequenos = await page.evaluate(() => {
+    const sel =
+      'input:not([type="checkbox"]):not([type="radio"]):not([type="range"]):not([type="file"]),textarea,select'
+    return Array.from(document.querySelectorAll(sel))
+      .filter((el) => {
+        const r = el.getBoundingClientRect()
+        const s = window.getComputedStyle(el)
+        return r.width > 0 && r.height > 0 && s.display !== 'none' && s.visibility !== 'hidden'
+      })
+      .map((el) => ({
+        type: el.getAttribute('type') || el.tagName.toLowerCase(),
+        fontSize: Math.round(parseFloat(window.getComputedStyle(el).fontSize)),
+      }))
+      .filter((i) => i.fontSize < 16)
+  })
+  expect(pequenos, 'Inputs <16px en /register disparan zoom al enfocar en iOS').toEqual([])
+})
