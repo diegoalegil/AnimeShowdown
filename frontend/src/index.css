@@ -7,6 +7,21 @@
    culpables medidos de la lentitud global percibida en Safari. */
 @custom-variant pointer-fine (@media (hover: hover) and (pointer: fine));
 
+/* iOS Safari hace zoom al enfocar un <input> con font-size < 16px — fricción
+   justo en el embudo de registro/login (PasswordInput y varios campos de auth
+   usan text-sm = 14px). En puntero grueso (táctil) forzamos 16px en los
+   controles de texto para que NO haya zoom al enfocar. Va SIN @layer a
+   propósito: así gana a las utilidades text-sm/text-xs (que en Tailwind v4
+   viven en una capa) sin tener que tocar cada input. Desktop (pointer:fine)
+   queda intacto. Excluimos los controles sin texto (checkbox/radio/range/file). */
+@media (pointer: coarse) {
+  input:not([type='checkbox']):not([type='radio']):not([type='range']):not([type='file']),
+  textarea,
+  select {
+    font-size: 16px;
+  }
+}
+
 @theme {
   /* Lienzo real bajo el fondo de página: html/body y la barra de Safari
      (theme-color) beben de aquí — un solo punto de verdad (Kessen §1.1). */
