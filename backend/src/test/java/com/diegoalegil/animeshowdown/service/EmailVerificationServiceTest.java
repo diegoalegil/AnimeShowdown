@@ -39,6 +39,7 @@ class EmailVerificationServiceTest {
     @Autowired private PasswordEncoder passwordEncoder;
     @Autowired private PlatformTransactionManager transactionManager;
     @MockitoSpyBean private EmailService emailService;
+    @MockitoSpyBean private AnimeShowdownMetrics metrics;
 
     @Test
     void emitirEnviaElEmailConElLinkTrasElCommit() {
@@ -48,6 +49,8 @@ class EmailVerificationServiceTest {
 
         verify(emailService, timeout(5000)).enviarVerificacion(
                 eq(usuario.getEmail()), eq(usuario.getUsername()), contains("/verify?token="));
+        // El embudo cuenta el email de verificación encolado (KPI email_verify_sent).
+        verify(metrics).emailVerificacionEmitida();
     }
 
     @Test

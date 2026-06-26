@@ -10,6 +10,8 @@ import io.micrometer.core.instrument.MeterRegistry;
 import io.micrometer.core.instrument.Timer;
 import java.util.concurrent.atomic.AtomicInteger;
 
+import com.diegoalegil.animeshowdown.model.EmailTipo;
+
 @Component
 public class AnimeShowdownMetrics {
 
@@ -19,6 +21,13 @@ public class AnimeShowdownMetrics {
     private final DistributionSummary dueloLiveWaitingSeconds;
     private final DistributionSummary dueloLiveRoundDecisionMs;
     private final AtomicInteger dueloLiveActiveMatches = new AtomicInteger(0);
+    // Embudo de adquisición: antes había métricas de engagement pero CERO del
+    // funnel registro→verificación→voto. Estos contadores hacen visible en
+    // Prometheus dónde se cae el embudo — la pregunta que el producto no podía
+    // responder ("de 100 visitas, cuántas registran y verifican").
+    private final Counter funnelRegistro;
+    private final Counter funnelEmailEmitida;
+    private final Counter funnelEmailConfirmada;
     private final MeterRegistry registry;
 
     public AnimeShowdownMetrics(MeterRegistry registry) {
@@ -47,6 +56,15 @@ public class AnimeShowdownMetrics {
                 .register(registry);
         io.micrometer.core.instrument.Gauge.builder("as.duelo.live.active.matches", dueloLiveActiveMatches, AtomicInteger::get)
                 .description("Duelos PvP activos ahora")
+                .register(registry);
+        this.funnelRegistro = Counter.builder("as.funnel.registro.completado")
+                .description("Registros de usuario completados (email + OAuth)")
+                .register(registry);
+        this.funnelEmailEmitida = Counter.builder("as.funnel.email.verificacion.emitida")
+                .description("Emails de verificación encolados tras el registro")
+                .register(registry);
+        this.funnelEmailConfirmada = Counter.builder("as.funnel.email.verificacion.confirmada")
+                .description("Verificaciones de email confirmadas (cuenta activada)")
                 .register(registry);
     }
 
@@ -80,5 +98,51 @@ public class AnimeShowdownMetrics {
 
     public void dueloLiveRoundDecisionMs(long ms) {
         dueloLiveRoundDecisionMs.record(Math.max(0, ms));
+    }
+
+    /** Embudo: un registro de usuario se completó (email/password u OAuth). */
+    public void registroCompletado() {
+        funnelRegistro.increment();
+    }
+
+    /** Embudo: se encoló un email de verificación tras el registro. */
+    public void emailVerificacionEmitida() {
+        funnelEmailEmitida.increment();
+    }
+
+    /** Embudo: el usuario confirmó su email y la cuenta pasó a ACTIVO. */
+    public void emailVerificacionConfirmada() {
+        funnelEmailConfirmada.increment();
+    }
+
+    /** Email entregado a Resend sin error (segmentado por tipo). */
+    public void emailEnviado(EmailTipo tipo) {
+        Counter.builder("as.funnel.email.enviado")
+                .description("Emails entregados a Resend sin error")
+                .tag("tipo", tipo == null ? "desconocido" : tipo.name())
+                .register(registry)
+                .increment();
+    }
+
+    /**
+     * Email que agotó los reintentos y cayó en email_failed_queue. Es la
+     * señal de alerta que el roadmap pide ({@code email_verification_send_failures}):
+     * si esto sube, el 100% de los registros quedan PENDIENTE en silencio.
+     */
+    public void emailFallo(EmailTipo tipo) {
+        Counter.builder("as.funnel.email.fallo")
+                .description("Emails que agotaron los reintentos (cayeron en email_failed_queue)")
+                .tag("tipo", tipo == null ? "desconocido" : tipo.name())
+                .register(registry)
+                .increment();
+    }
+
+    /** Embudo: voto persistido, segmentado por tipo de votante. */
+    public void votoFunnel(String tipo) {
+        Counter.builder("as.funnel.voto")
+                .description("Votos persistidos por tipo de votante (anonimo/registrado/empate)")
+                .tag("tipo", tipo == null ? "desconocido" : tipo)
+                .register(registry)
+                .increment();
     }
 }

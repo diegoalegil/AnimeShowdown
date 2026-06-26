@@ -415,6 +415,9 @@ public class EnfrentamientoController {
                             : "Ya has votado este enfrentamiento como invitado");
         }
         metrics.votoRegistrado();
+        // Embudo: segmenta el voto por tipo de votante para ver la conversión
+        // invitado→registrado (el voto anónimo "vale menos" y no retiene).
+        metrics.votoFunnel(usuario == null ? "anonimo" : (empate ? "empate" : "registrado"));
         VotoStatsSnapshot stats = votoStatsService.registrar(guardado);
 
         Personaje p1 = enf.getPersonaje1();
