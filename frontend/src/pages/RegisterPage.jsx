@@ -1,10 +1,11 @@
-import { useCallback, useState } from 'react'
+import { useCallback, useEffect, useState } from 'react'
 import { useNavigate, useSearchParams } from 'react-router-dom'
 import { useReducedMotion } from 'framer-motion'
 import { toast } from 'sonner'
 import { useAuth } from '../contexts/AuthContext'
 import { useSeo } from '../hooks/useSeo'
 import { useSound } from '../contexts/SoundContext'
+import { track, FUNNEL_EVENTS } from '../lib/analytics'
 import RegisterRite from '../features/auth/RegisterRite'
 // Import ESTÁTICO a propósito: el rito de iniciación es el primer
 // momento-recompensa de la cuenta y los flujos de recompensa no van detrás
@@ -42,6 +43,11 @@ function RegisterPage() {
   const [searchParams] = useSearchParams()
   const refDeQuery = searchParams.get('ref') ?? ''
   const next = sanitizeNext(searchParams.get('next'))
+  useEffect(() => {
+    // Embudo: llegada con código de referido (entrada del loop viral, hoy
+    // divorciada de los artefactos compartidos — la métrica lo hace medible).
+    if (refDeQuery) track(FUNNEL_EVENTS.REFERRAL_LANDING)
+  }, [refDeQuery])
   // Username recién registrado mientras corre el rito de acuñación; el
   // propio rito navega al terminar.
   const [acunando, setAcunando] = useState(null)

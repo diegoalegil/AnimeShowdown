@@ -1,8 +1,9 @@
-import { useMemo } from 'react'
+import { useEffect, useMemo } from 'react'
 import { motion } from 'framer-motion'
 import { useNavigate } from 'react-router-dom'
 import { useSeo } from '../hooks/useSeo'
 import { organizationSchema, webSiteSchema } from '../lib/schema'
+import { track, FUNNEL_EVENTS } from '../lib/analytics'
 import JsonLd from '../components/JsonLd'
 import {
   AlertTriangle,
@@ -70,6 +71,10 @@ function InicioPage() {
     isError: isCatalogError,
     refetch: refetchCatalogo,
   } = usePersonajesCatalogo()
+  useEffect(() => {
+    // Embudo: visita a la home (tope del funnel que el servidor no ve).
+    track(FUNNEL_EVENTS.LANDING_VIEW)
+  }, [])
   const carousels = useMemo(
     () => getHomeCarousels(catalogoPersonajes),
     [catalogoPersonajes],
