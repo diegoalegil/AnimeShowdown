@@ -63,6 +63,9 @@ class EmailVerificationServiceTest {
         });
 
         verify(emailService, never()).enviarVerificacion(any(), any(), any());
+        // El contador del embudo se incrementa en afterCommit: si la tx hace
+        // rollback NO debe contarse (no se envió ningún email).
+        verify(metrics, never()).emailVerificacionEmitida();
     }
 
     private Usuario guardarUsuario(String prefijo) {

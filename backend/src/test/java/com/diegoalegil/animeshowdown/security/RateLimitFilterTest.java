@@ -191,6 +191,17 @@ class RateLimitFilterTest {
     }
 
     @Test
+    void funnelBeaconLimitaSesentaPostPorMinutoConBucketPropio() throws Exception {
+        // POST /api/funnel/event (beacon anónimo de embudo): 60/min por IP.
+        for (int i = 0; i < 60; i++) {
+            assertEquals(200, post("/api/funnel/event").getStatus());
+        }
+        assertEquals(429, post("/api/funnel/event").getStatus());
+        // Bucket independiente por policyId: agotar el funnel no afecta a votos.
+        assertEquals(200, post("/api/personajes/1/votar").getStatus());
+    }
+
+    @Test
     void tokenAdminSaltaRateLimitEnPoliciesNoAuth() throws Exception {
         Usuario admin = new Usuario("admin", "password", "admin@example.com");
         admin.setRol(Rol.ADMIN);

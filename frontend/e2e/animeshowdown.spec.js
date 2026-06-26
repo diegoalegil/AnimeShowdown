@@ -6,6 +6,14 @@ async function preparePage(page) {
     if (msg.type() === 'error') consoleErrors.push(msg.text())
   })
   page.on('pageerror', (err) => consoleErrors.push(err.message))
+  // El beacon de embudo (navigator.sendBeacon → POST /api/funnel/event) es
+  // telemetría fire-and-forget. En e2e el front se sirve en 127.0.0.1, que es
+  // cross-site respecto al API, así que el POST se bloquea con
+  // ERR_BLOCKED_BY_RESPONSE.NotSameSite y ensucia la aserción "sin errores de
+  // consola". En prod front y API son same-site (*.animeshowdown.dev) y el
+  // endpoint responde 204 — lo replicamos aquí para no medir la peculiaridad
+  // del entorno de test.
+  await page.route('**/api/funnel/event**', (route) => route.fulfill({ status: 204 }))
   await page.addInitScript(() => {
     localStorage.setItem('animeshowdown.muted', 'true')
     localStorage.setItem('animeshowdown.votar.fast', 'false')

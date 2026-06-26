@@ -45,6 +45,7 @@ import { formatPersonalVoteImpact, formatVoteScore } from '../features/votar/vot
 import { incrementarContadorLocalVotos } from '../features/votar/vote-local-counter'
 import { getArenaDescription, getArenaStatusLabel } from '../features/votar/arena-labels'
 import { VOTO_REGISTRADO_EVENT, emitAppEvent } from '../lib/app-events'
+import { track, FUNNEL_EVENTS } from '../lib/analytics'
 import { warmPersonajeImage } from '../lib/personaje-img-srcset'
 import { imagenPersonaje } from '../lib/personajes-core'
 import { toFighter } from '../features/versus/versus-fighter'
@@ -251,6 +252,11 @@ function VotarPage() {
   // Se resetea cuando llega un nuevo enfrentamiento o tras saltar.
   const [voteResult, setVoteResult] = useState(null)
   const [showAnonLimitModal, setShowAnonLimitModal] = useState(false)
+  useEffect(() => {
+    // Embudo: el invitado chocó con el muro de 5 votos (fricción de activación
+    // clave). Se cuenta al abrir el muro, una vez por transición a visible.
+    if (showAnonLimitModal) track(FUNNEL_EVENTS.VOTE_WALL_HIT)
+  }, [showAnonLimitModal])
   // Cuando el backend devuelve 428, guardamos el voto pendiente (sitekey,
   // ids del enfrentamiento y personaje) y abrimos el captcha modal. Tras
   // éxito, re-emitimos la mutation con el header X-AS-Captcha-Token.

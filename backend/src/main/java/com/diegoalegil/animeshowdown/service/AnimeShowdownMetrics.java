@@ -61,7 +61,7 @@ public class AnimeShowdownMetrics {
                 .description("Registros de usuario completados (email + OAuth)")
                 .register(registry);
         this.funnelEmailEmitida = Counter.builder("as.funnel.email.verificacion.emitida")
-                .description("Emails de verificación encolados tras el registro")
+                .description("Emails de verificación encolados (registro + reenvíos; NO dividir por registro)")
                 .register(registry);
         this.funnelEmailConfirmada = Counter.builder("as.funnel.email.verificacion.confirmada")
                 .description("Verificaciones de email confirmadas (cuenta activada)")
@@ -105,7 +105,11 @@ public class AnimeShowdownMetrics {
         funnelRegistro.increment();
     }
 
-    /** Embudo: se encoló un email de verificación tras el registro. */
+    /**
+     * Embudo: se encoló un email de verificación. Cuenta tanto el del registro
+     * como los reenvíos (resend-verification), así que NO es un conteo
+     * por-registro y emitida/registro puede ser &gt; 1.
+     */
     public void emailVerificacionEmitida() {
         funnelEmailEmitida.increment();
     }
@@ -142,6 +146,20 @@ public class AnimeShowdownMetrics {
         Counter.builder("as.funnel.voto")
                 .description("Votos persistidos por tipo de votante (anonimo/registrado/empate)")
                 .tag("tipo", tipo == null ? "desconocido" : tipo)
+                .register(registry)
+                .increment();
+    }
+
+    /**
+     * Embudo client-side: paso del funnel que el servidor no ve (landing, muro
+     * de votos, share, llegada con referral). El nombre llega ya validado contra
+     * un whitelist en {@code FunnelController}, así que la cardinalidad del tag
+     * está acotada (no hay explosión de series en Prometheus).
+     */
+    public void clientEvent(String evento) {
+        Counter.builder("as.funnel.client")
+                .description("Pasos del embudo reportados por el navegador via beacon")
+                .tag("evento", evento == null ? "desconocido" : evento)
                 .register(registry)
                 .increment();
     }

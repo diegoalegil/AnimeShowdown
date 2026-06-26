@@ -1,6 +1,7 @@
 import { useCallback, useMemo, useState } from 'react'
 import { toast } from 'sonner'
 import { recordDailyShare } from '../../../lib/dailyProgress'
+import { track, FUNNEL_EVENTS } from '../../../lib/analytics'
 import { imagenPersonaje } from '../../../lib/personajes-core'
 import { shareOrCopy } from '../../../lib/share'
 import { shareWithToast } from '../../../lib/shareWithToast'
@@ -34,6 +35,8 @@ export function useVotarShare({
   // pinta la card de duelo (/api/og/duelo/a/vs/b.png) en la preview social.
   const handleChallenge = useCallback(() => {
     if (!a?.slug || !b?.slug) return undefined
+    // Embudo: gesto de compartir (semilla del loop viral).
+    track(FUNNEL_EVENTS.SHARE_CLICK)
     return shareWithToast(
       {
         title: `Reto: ${a.nombre} vs ${b.nombre}`,
@@ -50,6 +53,8 @@ export function useVotarShare({
 
   const handleShareVote = useCallback(async () => {
     if (!votedPersonaje) return
+    // Embudo: gesto de compartir el resultado del voto (semilla del loop viral).
+    track(FUNNEL_EVENTS.SHARE_CLICK)
     const personalLine = personalVoteImpact?.slug === votedPersonaje.slug
       ? `En mi ranking personal va #${personalVoteImpact.rank} con ${personalVoteImpact.count} votos míos.`
       : ''
@@ -145,6 +150,8 @@ export function useVotarShare({
   // Abre la hoja de impresión para la card del duelo.
   const handleShareResultImage = useCallback(() => {
     if (!votedPersonaje || !losingPersonaje) return
+    // Embudo: gesto de compartir la imagen del duelo (semilla del loop viral).
+    track(FUNNEL_EVENTS.SHARE_CLICK)
     setDueloShareOpen(true)
   }, [losingPersonaje, votedPersonaje])
 
@@ -153,6 +160,8 @@ export function useVotarShare({
 
   const handleShareSessionRecap = useCallback(async () => {
     if (sessionStats.total <= 0) return
+    // Embudo: gesto de compartir el recap de sesión (semilla del loop viral).
+    track(FUNNEL_EVENTS.SHARE_CLICK)
     const top = Object.values(sessionStats.bySlug || {})
       .sort((x, y) => y.count - x.count)
       .slice(0, 5)

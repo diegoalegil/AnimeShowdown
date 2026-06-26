@@ -1,6 +1,7 @@
 package com.diegoalegil.animeshowdown.health;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.ArgumentMatchers.anyInt;
 import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.when;
 
@@ -47,7 +48,8 @@ class EmailHealthIndicatorTest {
 
     @Test
     void bienConfiguradoYColaSanaDevuelveUp() {
-        when(emailFailureRepository.countByReintentadoFalse()).thenReturn(2L);
+        // Por debajo del umbral el conteo acotado es exacto.
+        when(emailFailureRepository.countPendientesHasta(anyInt())).thenReturn(2L);
         Health h = indicator("re_live_key", "envios@animeshowdown.dev").health();
         assertThat(h.getStatus()).isEqualTo(Status.UP);
         assertThat(h.getDetails().get("fallos_pendientes")).isEqualTo(2L);
@@ -55,15 +57,16 @@ class EmailHealthIndicatorTest {
 
     @Test
     void colaDeFallosSaturadaDevuelveDegraded() {
-        when(emailFailureRepository.countByReintentadoFalse()).thenReturn(25L);
+        // El conteo acotado satura en el umbral (10): igualar el umbral = DEGRADED.
+        when(emailFailureRepository.countPendientesHasta(anyInt())).thenReturn(10L);
         Health h = indicator("re_live_key", "envios@animeshowdown.dev").health();
         assertThat(h.getStatus()).isEqualTo(new Status("DEGRADED"));
-        assertThat(h.getDetails().get("fallos_pendientes")).isEqualTo(25L);
+        assertThat(h.getDetails().get("fallos_pendientes").toString()).contains("10");
     }
 
     @Test
     void siLaColaNoSeConsultaSigueUpSinReventar() {
-        lenient().when(emailFailureRepository.countByReintentadoFalse())
+        lenient().when(emailFailureRepository.countPendientesHasta(anyInt()))
                 .thenThrow(new RuntimeException("db down"));
         Health h = indicator("re_live_key", "envios@animeshowdown.dev").health();
         assertThat(h.getStatus()).isEqualTo(Status.UP);

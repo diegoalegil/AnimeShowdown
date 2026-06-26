@@ -91,6 +91,13 @@ public class RateLimitFilter extends OncePerRequestFilter {
     // para el scheduler legítimo (corre puntualmente) y corta el abuso.
     private static final RateLimitPolicy CRON = new RateLimitPolicy(
             "cron", 6, Duration.ofHours(1));
+    // Beacon de embudo (POST /api/funnel/event, permitAll sin auth): el navegador
+    // reporta pasos del funnel que el servidor no ve (landing, muro de votos,
+    // share, referral). El nombre va contra un whitelist en el controller, así
+    // que el abuso solo infla un contador agregado (sin explosión de cardinalidad);
+    // aun así 60/min por IP corta el martilleo de bots que ensuciaría la métrica.
+    private static final RateLimitPolicy FUNNEL = new RateLimitPolicy(
+            "funnel", 60, Duration.ofMinutes(1));
 
     // Policies donde el bypass de admin NO aplica — el límite es UNIVERSAL:
     //   · auth (login/2fa/registro/reset): fuerza-bruta sobre credenciales; un
@@ -116,6 +123,7 @@ public class RateLimitFilter extends OncePerRequestFilter {
     private static final String RUTA_OG_PREFIJO = "/api/og/";
     private static final String RUTA_CARTAS_PREFIJO = "/api/me/cartas/";
     private static final String RUTA_DESCARGA_SUFIJO = "/descargar";
+    private static final String RUTA_FUNNEL_PREFIJO = "/api/funnel/";
     private static final String RUTA_REACCIONES = "/api/reacciones";
     private static final String RUTA_COMENTARIOS_SUFIJO = "/comentarios";
     private static final String RUTA_SEGUIDORES_PREFIJO = "/api/seguidores/";
@@ -246,6 +254,9 @@ public class RateLimitFilter extends OncePerRequestFilter {
         }
         if (coincide(uri, "/api/newsletter")) {
             return NEWSLETTER;
+        }
+        if (uri.startsWith(RUTA_FUNNEL_PREFIJO)) {
+            return FUNNEL;
         }
         if (uri.startsWith(RUTA_VOTAR_PREFIJO) && uri.endsWith(RUTA_VOTAR_SUFIJO)) {
             return VOTOS;

@@ -6,6 +6,7 @@ import { z } from 'zod'
 import PasswordInput from '../../components/PasswordInput'
 import AuthSocialButtons from '../../components/AuthSocialButtons'
 import AuthLegalNote from '../../components/AuthLegalNote'
+import { track, FUNNEL_EVENTS } from '../../lib/analytics'
 import './register-rite.css'
 
 // Estilos: register-rite.css (colocado, importado aquí — mismo patrón que
@@ -153,6 +154,9 @@ function RegisterRite({
   const oathRef = useRef(null)
 
   useEffect(() => {
+    // Embudo: el formulario de registro se abrió (register_start), paso previo
+    // al submit que el servidor solo ve cuando ya se completó con éxito.
+    track(FUNNEL_EVENTS.REGISTER_START)
     const ids = [
       setTimeout(() => setRiteIn(true), 30),
       setTimeout(() => setFocus('username'), prefersReducedMotion ? 80 : 700),
