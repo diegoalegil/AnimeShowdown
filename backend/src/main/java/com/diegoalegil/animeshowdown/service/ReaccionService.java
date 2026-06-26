@@ -41,18 +41,15 @@ public class ReaccionService {
     private final PersonajeRepository personajeRepository;
     private final TorneoRepository torneoRepository;
     private final EnfrentamientoRepository enfrentamientoRepository;
-    private final SocialOperationLock socialOperationLock;
 
     public ReaccionService(ReaccionRepository repo,
             PersonajeRepository personajeRepository,
             TorneoRepository torneoRepository,
-            EnfrentamientoRepository enfrentamientoRepository,
-            SocialOperationLock socialOperationLock) {
+            EnfrentamientoRepository enfrentamientoRepository) {
         this.repo = repo;
         this.personajeRepository = personajeRepository;
         this.torneoRepository = torneoRepository;
         this.enfrentamientoRepository = enfrentamientoRepository;
-        this.socialOperationLock = socialOperationLock;
     }
 
     @Transactional
@@ -72,7 +69,6 @@ public class ReaccionService {
             throw new IllegalArgumentException(
                     "Target inexistente: " + targetType + ":" + targetId);
         }
-        socialOperationLock.reacciones();
         Optional<Reaccion> existente = repo.findByUsuarioAndTargetTypeAndTargetId(
                 usuario, targetType, targetId);
 
@@ -94,11 +90,22 @@ public class ReaccionService {
             return Optional.of(guardada);
         }
 
-        Reaccion nueva = new Reaccion(usuario, tipo, targetType, targetId);
-        Reaccion guardada = repo.saveAndFlush(nueva);
+        // Nueva reacción: insert atómico idempotente (ON CONFLICT DO NOTHING sobre
+        // uk_reacciones_par) en vez del mutex global + insert. Si una petición
+        // concurrente del MISMO (usuario, target) la creó a la vez (0 filas), re-leemos
+        // y reconciliamos el tipo. El ON CONFLICT no lanza → no aborta la tx (a
+        // diferencia de un insert plano + catch).
+        repo.insertarSiFalta(usuario.getId(), tipo.name(), targetType.name(), targetId);
+        Reaccion r = repo.findByUsuarioAndTargetTypeAndTargetId(usuario, targetType, targetId)
+                .orElseThrow(() -> new IllegalStateException(
+                        "Reacción no encontrada tras insertarSiFalta: " + targetType + ":" + targetId));
+        if (r.getTipo() != tipo) {
+            r.setTipo(tipo);
+            r = repo.saveAndFlush(r);
+        }
         log.debug("Reaccion nueva: usuario={} target={}:{} tipo={}",
                 usuario.getUsername(), targetType, targetId, tipo);
-        return Optional.of(guardada);
+        return Optional.of(r);
     }
 
     private boolean existeTarget(ReaccionTargetType type, Long id) {
