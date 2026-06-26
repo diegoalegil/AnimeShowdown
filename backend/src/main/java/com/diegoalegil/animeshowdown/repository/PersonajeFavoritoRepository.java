@@ -47,6 +47,19 @@ public interface PersonajeFavoritoRepository
             @Param("usuario") Usuario usuario,
             @Param("personaje") Personaje personaje);
 
+    /**
+     * Inserta el favorito de forma atómica idempotente (ON CONFLICT DO NOTHING):
+     * 1 si era nuevo, 0 si ya existía o si dos peticiones carreran. No lanza, así que
+     * NO necesita el mutex global: la PK (usuario_id, personaje_id) arbitra la carrera.
+     */
+    @Modifying
+    @Query(value = """
+            INSERT INTO personajes_favoritos (usuario_id, personaje_id, created_at)
+            VALUES (:usuarioId, :personajeId, CURRENT_TIMESTAMP)
+            ON CONFLICT DO NOTHING
+            """, nativeQuery = true)
+    int insertarSiFalta(@Param("usuarioId") Long usuarioId, @Param("personajeId") Long personajeId);
+
     /** Total de favoritos del usuario — útil para el header de "mi roster". */
     long countByUsuario(Usuario usuario);
 

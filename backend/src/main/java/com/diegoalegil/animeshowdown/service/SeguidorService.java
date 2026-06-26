@@ -9,7 +9,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.diegoalegil.animeshowdown.model.NotificacionTipo;
-import com.diegoalegil.animeshowdown.model.Seguidor;
 import com.diegoalegil.animeshowdown.model.Usuario;
 import com.diegoalegil.animeshowdown.repository.SeguidorRepository;
 import com.diegoalegil.animeshowdown.repository.UsuarioRepository;
@@ -34,16 +33,13 @@ public class SeguidorService {
     private final SeguidorRepository repo;
     private final UsuarioRepository usuarioRepository;
     private final NotificacionService notificacionService;
-    private final SocialOperationLock socialOperationLock;
 
     public SeguidorService(SeguidorRepository repo,
             UsuarioRepository usuarioRepository,
-            NotificacionService notificacionService,
-            SocialOperationLock socialOperationLock) {
+            NotificacionService notificacionService) {
         this.repo = repo;
         this.usuarioRepository = usuarioRepository;
         this.notificacionService = notificacionService;
-        this.socialOperationLock = socialOperationLock;
     }
 
     @Transactional
@@ -56,12 +52,13 @@ public class SeguidorService {
         if (seguidoOpt.isEmpty()) {
             throw new IllegalArgumentException("Usuario a seguir no encontrado");
         }
-        socialOperationLock.seguidores();
-        if (repo.existsByIdSeguidorIdAndIdSeguidoId(seguidor.getId(), seguidoId)) {
+        // Insert atómico idempotente (ON CONFLICT DO NOTHING) en vez del mutex global
+        // + existsBy + insert: la PK (seguidor_id, seguido_id) arbitra la carrera, así
+        // que ya no serializamos TODOS los follows de la app sobre una única fila.
+        if (repo.insertarSiFalta(seguidor.getId(), seguidoId) == 0) {
             return false; // Ya lo sigue
         }
         Usuario seguido = seguidoOpt.get();
-        repo.saveAndFlush(new Seguidor(seguidor, seguido));
         log.info("Follow: {} → {}", seguidor.getUsername(), seguido.getUsername());
 
         // 13 + §4.5: notifica al seguido. Best-effort.
@@ -81,7 +78,7 @@ public class SeguidorService {
     @Transactional
     public boolean dejarDeSeguir(Usuario seguidor, Long seguidoId) {
         if (seguidor == null || seguidoId == null) return false;
-        socialOperationLock.seguidores();
+        // deleteRelacion es idempotente (DELETE WHERE → 0/1 filas): no necesita lock.
         int n = repo.deleteRelacion(seguidor.getId(), seguidoId);
         return n > 0;
     }

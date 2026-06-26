@@ -7,7 +7,6 @@ import org.springframework.transaction.annotation.Transactional;
 
 import com.diegoalegil.animeshowdown.dto.FavoritoItemDto;
 import com.diegoalegil.animeshowdown.model.Personaje;
-import com.diegoalegil.animeshowdown.model.PersonajeFavorito;
 import com.diegoalegil.animeshowdown.model.Usuario;
 import com.diegoalegil.animeshowdown.repository.PersonajeFavoritoRepository;
 import com.diegoalegil.animeshowdown.repository.PersonajeRepository;
@@ -31,14 +30,11 @@ public class PersonajeFavoritoService {
 
     private final PersonajeFavoritoRepository favoritoRepository;
     private final PersonajeRepository personajeRepository;
-    private final SocialOperationLock socialOperationLock;
 
     public PersonajeFavoritoService(PersonajeFavoritoRepository favoritoRepository,
-            PersonajeRepository personajeRepository,
-            SocialOperationLock socialOperationLock) {
+            PersonajeRepository personajeRepository) {
         this.favoritoRepository = favoritoRepository;
         this.personajeRepository = personajeRepository;
-        this.socialOperationLock = socialOperationLock;
     }
 
     /** Roster del usuario. Vacío si aún no sigue a nadie. */
@@ -60,12 +56,9 @@ public class PersonajeFavoritoService {
     @Transactional
     public boolean seguir(Usuario usuario, String slug) {
         Personaje personaje = personajeBySlug(slug);
-        socialOperationLock.favoritos();
-        if (favoritoRepository.existsByUsuarioAndPersonaje(usuario, personaje)) {
-            return false;
-        }
-        favoritoRepository.saveAndFlush(new PersonajeFavorito(usuario, personaje));
-        return true;
+        // Insert atómico idempotente (ON CONFLICT DO NOTHING) en vez del mutex global
+        // + existsBy + insert: la PK (usuario_id, personaje_id) arbitra la carrera.
+        return favoritoRepository.insertarSiFalta(usuario.getId(), personaje.getId()) > 0;
     }
 
     /**
@@ -78,7 +71,7 @@ public class PersonajeFavoritoService {
     @Transactional
     public boolean dejarDeSeguir(Usuario usuario, String slug) {
         Personaje personaje = personajeBySlug(slug);
-        socialOperationLock.favoritos();
+        // deleteByUsuarioAndPersonaje es idempotente (DELETE WHERE → 0/1): sin lock.
         int borradas = favoritoRepository.deleteByUsuarioAndPersonaje(usuario, personaje);
         return borradas > 0;
     }
