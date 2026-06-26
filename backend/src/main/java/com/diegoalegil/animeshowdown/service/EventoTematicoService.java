@@ -118,7 +118,7 @@ public class EventoTematicoService {
 
     public EventoTematicoDto toDto(EventoTematico evento) {
         Object valor = switch (evento.getFiltroKind()) {
-            case ANIME -> valores(evento.getFiltroValor()).stream().findFirst().orElse("");
+            case ANIME, CATEGORIA -> valores(evento.getFiltroValor()).stream().findFirst().orElse("");
             case ANIMES, SLUGS -> valores(evento.getFiltroValor());
         };
         return new EventoTematicoDto(
@@ -144,6 +144,9 @@ public class EventoTematicoService {
                     : personajeRepository.findByAnime(valores.get(0));
             case ANIMES -> personajeRepository.findByAnimeIn(valores);
             case SLUGS -> ordenarPorFiltro(personajeRepository.findBySlugIn(valores), valores);
+            case CATEGORIA -> valores.isEmpty()
+                    ? List.of()
+                    : personajeRepository.findByCategoria(valores.get(0));
         };
     }
 
@@ -227,6 +230,7 @@ public class EventoTematicoService {
             case "anime" -> EventoFiltroKind.ANIME;
             case "animes" -> EventoFiltroKind.ANIMES;
             case "slugs" -> EventoFiltroKind.SLUGS;
+            case "categoria" -> EventoFiltroKind.CATEGORIA;
             default -> throw new IllegalArgumentException("tipo.kind no soportado: " + tipo.kind());
         };
     }
@@ -234,8 +238,9 @@ public class EventoTematicoService {
     private static String normalizarValor(EventoFiltroKind kind, Object raw) {
         List<String> valores = valoresDesde(raw);
         if (valores.isEmpty()) throw new IllegalArgumentException("tipo.valor requerido");
-        if (kind == EventoFiltroKind.ANIME && valores.size() > 1) {
-            throw new IllegalArgumentException("tipo.valor para anime debe ser un string");
+        if ((kind == EventoFiltroKind.ANIME || kind == EventoFiltroKind.CATEGORIA)
+                && valores.size() > 1) {
+            throw new IllegalArgumentException("tipo.valor para anime/categoria debe ser un string");
         }
         return String.join(",", valores);
     }
@@ -267,6 +272,7 @@ public class EventoTematicoService {
             case ANIME -> "anime";
             case ANIMES -> "animes";
             case SLUGS -> "slugs";
+            case CATEGORIA -> "categoria";
         };
     }
 
