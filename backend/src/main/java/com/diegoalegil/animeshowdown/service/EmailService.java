@@ -63,6 +63,7 @@ public class EmailService {
 
     private final RestClient restClient;
     private final EmailFailureRepository emailFailureRepository;
+    private final AnimeShowdownMetrics metrics;
     private final String apiKey;
     private final String from;
     private final boolean enabled;
@@ -80,9 +81,11 @@ public class EmailService {
 
     public EmailService(
             EmailFailureRepository emailFailureRepository,
+            AnimeShowdownMetrics metrics,
             @Value("${email.resend.api-key:}") String apiKey,
             @Value("${email.resend.from:onboarding@resend.dev}") String from) {
         this.emailFailureRepository = emailFailureRepository;
+        this.metrics = metrics;
         this.apiKey = apiKey;
         this.from = from;
         this.enabled = apiKey != null && !apiKey.isBlank();
@@ -180,6 +183,7 @@ public class EmailService {
                 .retrieve()
                 .toBodilessEntity();
         log.info("Email {} enviado a {} vía Resend", tipo, LogSanitizer.email(to));
+        metrics.emailEnviado(tipo);
     }
 
     /**
@@ -195,6 +199,7 @@ public class EmailService {
     public void onEnvioFallido(Exception ex, EmailTipo tipo, String to, String subject, String text) {
         log.error("EmailService: fallo tras 3 reintentos. tipo={} to={} error={}",
                 tipo, LogSanitizer.email(to), ex.getMessage());
+        metrics.emailFallo(tipo);
         try {
             emailFailureRepository.save(new EmailFailure(tipo, to, subject, text, ex.getMessage()));
         } catch (Exception persistError) {

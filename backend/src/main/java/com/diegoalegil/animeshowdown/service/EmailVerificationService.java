@@ -55,6 +55,7 @@ public class EmailVerificationService {
     private final BadgeService badgeService;
     private final ReferralService referralService;
     private final AdminEmails adminEmails;
+    private final AnimeShowdownMetrics metrics;
     private final String frontendBaseUrl;
     private final long ttlHoras;
 
@@ -66,6 +67,7 @@ public class EmailVerificationService {
             BadgeService badgeService,
             ReferralService referralService,
             AdminEmails adminEmails,
+            AnimeShowdownMetrics metrics,
             @Value("${app.frontend-base-url:https://animeshowdown.dev}") String frontendBaseUrl,
             @Value("${app.email-verification.ttl-hours:24}") long ttlHoras) {
         this.repository = repository;
@@ -75,6 +77,7 @@ public class EmailVerificationService {
         this.badgeService = badgeService;
         this.referralService = referralService;
         this.adminEmails = adminEmails;
+        this.metrics = metrics;
         this.frontendBaseUrl = frontendBaseUrl.endsWith("/")
                 ? frontendBaseUrl.substring(0, frontendBaseUrl.length() - 1)
                 : frontendBaseUrl;
@@ -104,6 +107,7 @@ public class EmailVerificationService {
         // token quedó persistido — el link del email siempre existe en BBDD.
         eventPublisher.publishEvent(new EmailVerificacionEmitidaEvent(
                 usuarioBloqueado.getEmail(), usuarioBloqueado.getUsername(), link));
+        metrics.emailVerificacionEmitida();
         log.info("EmailVerification emitida: usuario={} expira={}", usuarioBloqueado.getUsername(), expira);
     }
 
@@ -150,6 +154,7 @@ public class EmailVerificationService {
             log.info("Auto-promoción a ADMIN tras verificar email: usuario={}", u.getUsername());
         }
         usuarioRepository.save(u);
+        metrics.emailVerificacionConfirmada();
         log.info("Email verificado: usuario={}", u.getUsername());
 
         // Notificación de bienvenida tras verificación. Es
