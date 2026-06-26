@@ -150,6 +150,8 @@ export function useVotarShare({
   // Abre la hoja de impresión para la card del duelo.
   const handleShareResultImage = useCallback(() => {
     if (!votedPersonaje || !losingPersonaje) return
+    // Embudo: gesto de compartir la imagen del duelo (semilla del loop viral).
+    track(FUNNEL_EVENTS.SHARE_CLICK)
     setDueloShareOpen(true)
   }, [losingPersonaje, votedPersonaje])
 
@@ -158,6 +160,8 @@ export function useVotarShare({
 
   const handleShareSessionRecap = useCallback(async () => {
     if (sessionStats.total <= 0) return
+    // Embudo: gesto de compartir el recap de sesión (semilla del loop viral).
+    track(FUNNEL_EVENTS.SHARE_CLICK)
     const top = Object.values(sessionStats.bySlug || {})
       .sort((x, y) => y.count - x.count)
       .slice(0, 5)
