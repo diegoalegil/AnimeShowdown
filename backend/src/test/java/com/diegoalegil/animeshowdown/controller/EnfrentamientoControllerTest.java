@@ -689,10 +689,13 @@ class EnfrentamientoControllerTest {
                 votoRepository.sumaPesoByPersonajeId(ids[0]), 0.001);
         org.junit.jupiter.api.Assertions.assertEquals(pesoAntesB + 0.5,
                 votoRepository.sumaPesoByPersonajeId(ids[1]), 0.001);
+        // Cargamos el Enfrentamiento directamente (su personaje1 sigue EAGER) en
+        // vez de navegar voto.getEnfrentamiento(), que ahora es LAZY y fuera de
+        // sesión lanzaría LazyInitializationException (open-in-view=false).
+        var enfEmpate = enfrentamientoRepository.findById(enfId).orElseThrow();
         org.junit.jupiter.api.Assertions.assertEquals(0.5,
                 votoRepository.scoreByEnfrentamientoAndPersonaje(
-                        votoRepository.findById(votoId).orElseThrow().getEnfrentamiento(),
-                        votoRepository.findById(votoId).orElseThrow().getEnfrentamiento().getPersonaje1()),
+                        enfEmpate, enfEmpate.getPersonaje1()),
                 0.001);
         var captor = org.mockito.ArgumentCaptor.forClass(RankingDeltaEvent.class);
         verify(messaging, times(2)).convertAndSend(eq("/topic/ranking-delta"), captor.capture());

@@ -2,6 +2,7 @@ import { defineConfig } from 'vite'
 import react from '@vitejs/plugin-react'
 import tailwindcss from '@tailwindcss/vite'
 import { VitePWA } from 'vite-plugin-pwa'
+import { sentryVitePlugin } from '@sentry/vite-plugin'
 import { createHash } from 'node:crypto'
 import { fileURLToPath } from 'node:url'
 import { dirname, resolve, join, basename } from 'node:path'
@@ -595,6 +596,26 @@ export default defineConfig({
     // criticalCssPlugin va al final con enforce:'post' para que Vite ya
     // haya emitido el HTML cuando lo procesamos.
     criticalCssPlugin(),
+    // Sube los sourcemaps 'hidden' al release de Sentry para desminificar los
+    // stack traces de producción (hoy se generan y se borran sin subir: los
+    // errores del embudo llegan ilegibles). Corre durante `vite build`, ANTES de
+    // strip-deploy-sourcemaps.mjs (que los borra del artefacto desplegado).
+    //
+    // INERTE sin SENTRY_AUTH_TOKEN: `disable` apaga el plugin por completo, así
+    // que el build de CI/Cloudflare actual (sin token) NO cambia ni un byte. Se
+    // activa poniendo SENTRY_AUTH_TOKEN + SENTRY_ORG + SENTRY_PROJECT en el
+    // entorno de build. El release lo inyecta el plugin y el SDK (lib/sentry) lo
+    // lee automáticamente, así que los .map cuadran con el bundle desplegado.
+    sentryVitePlugin({
+      org: process.env.SENTRY_ORG,
+      project: process.env.SENTRY_PROJECT,
+      authToken: process.env.SENTRY_AUTH_TOKEN,
+      disable: !process.env.SENTRY_AUTH_TOKEN,
+      telemetry: false,
+      sourcemaps: {
+        assets: ['./dist/**'],
+      },
+    }),
   ],
   build: {
     // 'hidden' emite los .map SIN referenciarlos desde el bundle: los stack

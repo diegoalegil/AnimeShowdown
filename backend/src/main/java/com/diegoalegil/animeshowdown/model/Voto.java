@@ -4,6 +4,7 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
+import jakarta.persistence.FetchType;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
@@ -75,18 +76,27 @@ public class Voto {
     @Setter
     private boolean empate = false;
 
-    @ManyToOne
+    // LAZY (no el EAGER por defecto de @ManyToOne): con open-in-view=false, los
+    // únicos accesos fuera de transacción a estas asociaciones son los feeds
+    // públicos (VotoFeedItem / feedVotos / historial), y sus queries ya hacen
+    // LEFT JOIN FETCH de personaje/usuario/enfrentamiento — así que las inicializan
+    // antes de cerrar la sesión. El resto de accesos son in-tx (voto recién creado,
+    // stats). LAZY ahorra los selects secundarios en las rutas que cargan Voto sin
+    // leer las asociaciones (PATCH categoría set-once, migrar votos anónimos).
+    // OJO: NO quitar esos JOIN FETCH sin re-mirar VotoFeedItem (rompería con
+    // LazyInitializationException). Cubierto por VotoLazyFetchFeedTest.
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "personaje_id", nullable = false)
     @Setter
     private Personaje personaje;
 
     @JsonIgnore
-    @ManyToOne
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "usuario_id", nullable = true)
     @Setter
     private Usuario usuario;
 
-    @ManyToOne
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "enfrentamiento_id", nullable = true)
     @Setter
     private Enfrentamiento enfrentamiento;
