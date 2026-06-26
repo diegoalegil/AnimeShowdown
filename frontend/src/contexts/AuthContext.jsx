@@ -14,11 +14,11 @@ import {
   refreshSession,
   setLoggingOut,
   bumpSessionEpoch,
-  ApiError,
 } from '../lib/api'
 import { playMagic } from '../lib/sounds'
 import { queryClient } from '../lib/queryClient'
 import { hydrateDailyFromServer } from '../lib/dailyProgress'
+import { buildLocalUser, describeError } from './auth-helpers'
 
 const AuthContext = createContext(null)
 const STORAGE_KEY = 'animeshowdown.user'
@@ -47,65 +47,6 @@ function disconnectRealtime() {
  *   3. logout llama POST /api/auth/logout para que el backend revoque
  *      la entrada y limpie la cookie del navegador.
  */
-
-function buildLocalUser(payload) {
-  if (!payload) return null
-  // Antes solo persistíamos id/username/email/
-  // avatarUrl/rol. Faltaban estadoVerificacion (rompía el banner de
-  // EmailVerifyBanner que tenía que asumir PENDIENTE por defecto) y
-  // totpHabilitado (Card2faSeguridad pintaba 2FA como desactivado
-  // aunque el usuario lo tuviera puesto). Ambos vienen en el payload
-  // del login y del refresh — no hay coste en propagarlos al estado.
-  return {
-    id: payload.id,
-    username: payload.username,
-    email: payload.email,
-    avatarUrl: payload.avatarUrl,
-    // B7 §1a: bio pública editable. Puede venir null (usuario sin bio).
-    bio: payload.bio ?? null,
-    rol: payload.rol || 'USER',
-    estadoVerificacion: payload.estadoVerificacion || 'PENDIENTE',
-    totpHabilitado: payload.totpHabilitado === true,
-    // V-8: true mientras el usuario (típicamente OAuth con username
-    // autogenerado) no haya pasado/saltado el onboarding. Dispara el
-    // OnboardingModal una vez. Se refresca desde /me en cada bootstrap.
-    needsOnboarding: payload.needsOnboarding === true,
-    // V72: marco de avatar equipado (cosmético coin-sink). null = ninguno.
-    // Avatar.jsx lo lee para pintar el aro/aura del usuario propio.
-    marcoAvatar: payload.marcoAvatar ?? null,
-  }
-}
-
-function describeError(err) {
-  if (err instanceof ApiError) {
-    if (err.status === 401) {
-      return {
-        title: 'Credenciales inválidas',
-        description: 'Revisa tu username/email y contraseña.',
-      }
-    }
-    if (err.status === 409) {
-      return {
-        title: 'Usuario o email ya registrado',
-        description: 'Prueba con otros datos o entra desde Login.',
-      }
-    }
-    if (err.status >= 400 && err.status < 500) {
-      return {
-        title: 'Datos inválidos',
-        description: err.message || 'Revisa los campos del formulario.',
-      }
-    }
-    return {
-      title: 'Error en el servidor',
-      description: `${err.status} · ${err.message || 'Inténtalo en unos segundos.'}`,
-    }
-  }
-  return {
-    title: 'No se pudo conectar al servidor',
-    description: 'Verifica tu conexión o inténtalo en unos segundos.',
-  }
-}
 
 export function AuthProvider({ children }) {
   const [user, setUser] = useState(() => {
