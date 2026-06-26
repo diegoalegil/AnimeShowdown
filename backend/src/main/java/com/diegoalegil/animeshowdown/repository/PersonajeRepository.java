@@ -19,6 +19,15 @@ public interface PersonajeRepository extends JpaRepository<Personaje, Long> {
 
     List<Personaje> findByAnimeIn(Collection<String> animes);
 
+    /** Personajes de una categoría (husbando, villain, waifu, …) — une con
+     *  personaje_categoria (V80). Devuelve [] si la categoría no tiene mapeos. */
+    @Query(value = """
+            SELECT p.* FROM personajes p
+            JOIN personaje_categoria pc ON pc.personaje_slug = p.slug
+            WHERE pc.categoria = :categoria
+            """, nativeQuery = true)
+    List<Personaje> findByCategoria(@Param("categoria") String categoria);
+
     Page<Personaje> findByAnime(String anime, Pageable pageable);
 
     @Query("SELECT p FROM Personaje p ORDER BY p.slug ASC")

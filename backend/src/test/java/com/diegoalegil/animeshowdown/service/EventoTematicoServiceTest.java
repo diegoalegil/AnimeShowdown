@@ -59,6 +59,30 @@ class EventoTematicoServiceTest {
     }
 
     @Test
+    void participantesPorCategoriaUsanLaTablaDeCategorias() {
+        EventoTematicoService service = service();
+        EventoTematico evento = evento("arco-husbandos", EventoFiltroKind.CATEGORIA, "husbando");
+        when(personajeRepository.findByCategoria("husbando"))
+                .thenReturn(List.of(personaje("luffy"), personaje("zoro"), personaje("levi_ackerman")));
+
+        List<Personaje> seleccionados = service.seleccionarParticipantes(evento, 3);
+
+        assertThat(seleccionados).extracting(Personaje::getSlug)
+                .containsExactlyInAnyOrder("luffy", "zoro", "levi_ackerman");
+    }
+
+    @Test
+    void dtoExponeCategoriaComoStringYKindCategoria() {
+        EventoTematicoService service = service();
+        EventoTematico evento = evento("arco-husbandos", EventoFiltroKind.CATEGORIA, "husbando");
+
+        var dto = service.toDto(evento);
+
+        assertThat(dto.tipo().kind()).isEqualTo("categoria");
+        assertThat(dto.tipo().valor()).isEqualTo("husbando");
+    }
+
+    @Test
     void actualizarRechazaSlugDuplicadoAntesDeLlegarALaBaseDeDatos() {
         EventoTematicoService service = service();
         when(eventoRepository.findBySlug("copa-villanos"))
