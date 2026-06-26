@@ -262,6 +262,12 @@ public class SecurityConfig {
                         // Pages; público porque sitemaps son públicos por definición.
                         .requestMatchers(HttpMethod.GET, "/api/sitemap/**").permitAll()
                         .requestMatchers(HttpMethod.GET, "/api/status").permitAll()
+                        // Beacon de eventos de embudo (anónimo): el navegador reporta
+                        // pasos que el servidor no ve (landing, muro de votos, share,
+                        // referral). Sin auth y rate-limitado; el nombre va contra un
+                        // whitelist en el controller — sin PII, solo incrementa un
+                        // contador agregado de Prometheus.
+                        .requestMatchers(HttpMethod.POST, "/api/funnel/event").permitAll()
                         .requestMatchers("/api/duelo-live/**").authenticated()
                         .requestMatchers("/api/auth/me", "/api/auth/me/**").authenticated()
                         // §SEC-003: estas rutas modifican el 2FA o las sesiones del

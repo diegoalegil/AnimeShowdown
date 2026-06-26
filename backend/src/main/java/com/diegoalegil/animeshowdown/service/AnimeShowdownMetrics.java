@@ -145,4 +145,18 @@ public class AnimeShowdownMetrics {
                 .register(registry)
                 .increment();
     }
+
+    /**
+     * Embudo client-side: paso del funnel que el servidor no ve (landing, muro
+     * de votos, share, llegada con referral). El nombre llega ya validado contra
+     * un whitelist en {@code FunnelController}, así que la cardinalidad del tag
+     * está acotada (no hay explosión de series en Prometheus).
+     */
+    public void clientEvent(String evento) {
+        Counter.builder("as.funnel.client")
+                .description("Pasos del embudo reportados por el navegador via beacon")
+                .tag("evento", evento == null ? "desconocido" : evento)
+                .register(registry)
+                .increment();
+    }
 }
