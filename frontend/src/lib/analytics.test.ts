@@ -21,14 +21,14 @@ describe('analytics track()', () => {
     window.localStorage.clear()
   })
 
-  it('envía un beacon a /api/funnel/event para un evento del whitelist', () => {
+  it('envía un beacon a /api/funnel/event con el evento en el query param y sin cuerpo', () => {
     track(FUNNEL_EVENTS.LANDING_VIEW)
     expect(beacon).toHaveBeenCalledTimes(1)
-    const [url, blob] = beacon.mock.calls[0]
-    expect(String(url)).toContain('/api/funnel/event')
-    expect(blob).toBeInstanceOf(Blob)
-    // application/json para que el @RequestBody del backend parsee el beacon.
-    expect((blob as Blob).type).toBe('application/json')
+    const [url, body] = beacon.mock.calls[0]
+    expect(String(url)).toContain('/api/funnel/event?e=landing_view')
+    // Sin cuerpo: el evento va en la URL, así sendBeacon (text/plain) no choca
+    // con el content-type del backend.
+    expect(body).toBeUndefined()
   })
 
   it('ignora eventos fuera del whitelist sin tocar la red', () => {
@@ -49,9 +49,8 @@ describe('analytics track()', () => {
     expect(beacon).toHaveBeenCalledTimes(2)
   })
 
-  it('el cuerpo del beacon es JSON con solo el nombre del evento', async () => {
+  it('codifica el nombre del evento en el query param', () => {
     track(FUNNEL_EVENTS.REGISTER_START)
-    const blob = beacon.mock.calls[0][1] as Blob
-    expect(JSON.parse(await blob.text())).toEqual({ event: 'register_start' })
+    expect(String(beacon.mock.calls[0][0])).toContain('?e=register_start')
   })
 })

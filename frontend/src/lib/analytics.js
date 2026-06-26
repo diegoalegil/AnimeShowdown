@@ -41,13 +41,14 @@ function consentidoParaMedir() {
   }
 }
 
-function enviarBeacon(payload) {
-  const cuerpo = JSON.stringify(payload)
+function enviarBeacon(event) {
+  // El evento viaja en el query param `e`, SIN cuerpo de petición. Así
+  // sendBeacon (que manda text/plain por defecto) no choca nunca con el
+  // content-type del backend: el endpoint siempre responde 204.
+  const url = `${BEACON_URL}?e=${encodeURIComponent(event)}`
   try {
     if (typeof navigator !== 'undefined' && typeof navigator.sendBeacon === 'function') {
-      // Blob con type application/json para que el @RequestBody del backend parsee.
-      const blob = new Blob([cuerpo], { type: 'application/json' })
-      if (navigator.sendBeacon(BEACON_URL, blob)) return
+      if (navigator.sendBeacon(url)) return
     }
   } catch {
     /* sendBeacon puede lanzar en algunos navegadores: caemos a fetch */
@@ -55,13 +56,7 @@ function enviarBeacon(payload) {
   try {
     if (typeof fetch === 'function') {
       // keepalive: el beacon sobrevive a la navegación que descarga la página.
-      fetch(BEACON_URL, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: cuerpo,
-        keepalive: true,
-        credentials: 'omit',
-      }).catch(() => {})
+      fetch(url, { method: 'POST', keepalive: true, credentials: 'omit' }).catch(() => {})
     }
   } catch {
     /* la telemetría JAMÁS rompe la app */
@@ -79,5 +74,5 @@ function enviarBeacon(payload) {
 export function track(event /* , props */) {
   if (!EVENTOS_VALIDOS.has(event)) return
   if (!consentidoParaMedir()) return
-  enviarBeacon({ event })
+  enviarBeacon(event)
 }

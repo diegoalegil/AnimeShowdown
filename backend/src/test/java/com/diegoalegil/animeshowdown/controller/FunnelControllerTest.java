@@ -12,7 +12,6 @@ import org.mockito.junit.jupiter.MockitoExtension;
 
 import org.springframework.http.HttpStatus;
 
-import com.diegoalegil.animeshowdown.controller.FunnelController.FunnelEventRequest;
 import com.diegoalegil.animeshowdown.service.AnimeShowdownMetrics;
 
 @ExtendWith(MockitoExtension.class)
@@ -23,7 +22,7 @@ class FunnelControllerTest {
 
     @Test
     void eventoEnWhitelistIncrementaElContadorYDevuelve204() {
-        var resp = controller.evento(new FunnelEventRequest("vote_wall_hit"));
+        var resp = controller.evento("vote_wall_hit");
         assertThat(resp.getStatusCode()).isEqualTo(HttpStatus.NO_CONTENT);
         verify(metrics).clientEvent("vote_wall_hit");
     }
@@ -31,16 +30,15 @@ class FunnelControllerTest {
     @Test
     void eventoFueraDelWhitelistSeIgnoraSinContarPeroDevuelve204() {
         // Cardinalidad acotada: un nombre arbitrario NO debe crear una serie nueva.
-        var resp = controller.evento(new FunnelEventRequest("hacker_event_xyz"));
+        var resp = controller.evento("hacker_event_xyz");
         assertThat(resp.getStatusCode()).isEqualTo(HttpStatus.NO_CONTENT);
         verifyNoInteractions(metrics);
     }
 
     @Test
-    void cuerpoNuloOEventoNuloNoRevientaYDevuelve204() {
+    void eventoNuloOVacioNoRevientaYDevuelve204() {
         assertThat(controller.evento(null).getStatusCode()).isEqualTo(HttpStatus.NO_CONTENT);
-        assertThat(controller.evento(new FunnelEventRequest(null)).getStatusCode())
-                .isEqualTo(HttpStatus.NO_CONTENT);
+        assertThat(controller.evento("").getStatusCode()).isEqualTo(HttpStatus.NO_CONTENT);
         verifyNoInteractions(metrics);
     }
 }

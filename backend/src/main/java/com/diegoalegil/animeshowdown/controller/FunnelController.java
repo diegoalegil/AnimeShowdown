@@ -4,8 +4,8 @@ import java.util.Set;
 
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.diegoalegil.animeshowdown.service.AnimeShowdownMetrics;
@@ -21,12 +21,21 @@ import com.diegoalegil.animeshowdown.service.AnimeShowdownMetrics;
  * el Prometheus que ya existe, sin depender de ninguna herramienta de analítica
  * de terceros (que se podrá añadir luego como sink adicional).
  *
- * <p>Diseño defensivo: endpoint público sin auth pero (a) rate-limitado en
- * {@code RateLimitFilter} (policy {@code funnel}) y (b) con el nombre del evento
- * validado contra un <b>whitelist</b> cerrado — así la cardinalidad del tag de
- * Prometheus está acotada (un nombre arbitrario reventaría la métrica con series
- * infinitas). No persiste nada por usuario: solo incrementa un contador
- * agregado, sin PII ni cookie.
+ * <p>Diseño defensivo:
+ * <ul>
+ *   <li>Endpoint público sin auth pero rate-limitado en {@code RateLimitFilter}
+ *       (policy {@code funnel}).</li>
+ *   <li>El nombre del evento va en el query param {@code e} y se valida contra un
+ *       <b>whitelist</b> cerrado — la cardinalidad del tag de Prometheus queda
+ *       acotada (un nombre arbitrario reventaría la métrica con series infinitas).</li>
+ *   <li>Sin cuerpo de petición: el evento es un query param, no un
+ *       {@code @RequestBody}. Así {@code sendBeacon} (que por defecto manda
+ *       {@code text/plain}) no provoca un 415/500 con stack-trace por
+ *       content-type — el endpoint SIEMPRE responde 204, de verdad
+ *       fire-and-forget, sea cual sea el cliente.</li>
+ *   <li>No persiste nada por usuario: solo incrementa un contador agregado, sin
+ *       PII ni cookie.</li>
+ * </ul>
  */
 @RestController
 @RequestMapping("/api/funnel")
@@ -51,15 +60,12 @@ public class FunnelController {
     }
 
     @PostMapping("/event")
-    public ResponseEntity<Void> evento(@RequestBody(required = false) FunnelEventRequest req) {
-        if (req != null && req.event() != null && EVENTOS_PERMITIDOS.contains(req.event())) {
-            metrics.clientEvent(req.event());
+    public ResponseEntity<Void> evento(@RequestParam(name = "e", required = false) String event) {
+        if (event != null && EVENTOS_PERMITIDOS.contains(event)) {
+            metrics.clientEvent(event);
         }
         // Siempre 204: fire-and-forget. No diferenciamos por status si el evento
         // entró o no en el whitelist (no filtramos la lista hacia fuera).
         return ResponseEntity.noContent().build();
-    }
-
-    public record FunnelEventRequest(String event) {
     }
 }
