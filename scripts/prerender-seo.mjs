@@ -300,6 +300,10 @@ function renderRoute(route) {
   html = setLinkRel(html, 'canonical', canonical)
   // og:locale por idioma de la ruta (antes clavado a es_ES en el HTML base).
   const lang = route.lang || 'es'
+  // El template base declara <html lang="es">; en las variantes /en hay que
+  // reescribir el atributo para no contradecir el title/og:locale/hreflang en
+  // inglés (Google usa el lang del documento como señal del idioma de la página).
+  html = html.replace(/(<html\b[^>]*\blang=["'])[^"']*(["'])/i, `$1${lang}$2`)
   html = setMetaProperty(html, 'og:locale',
     lang === 'en' ? 'en_US' : lang === 'ja' ? 'ja_JP' : 'es_ES')
   // hreflang recíproco solo en las páginas con alternante (money pages EN-first);
