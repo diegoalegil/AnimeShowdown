@@ -21,6 +21,15 @@ public interface TorneoRepository extends JpaRepository<Torneo, Long> {
     /** Lookup por slug URL-safe — usado por el endpoint público GET /api/torneos/slug/{slug}. */
     Optional<Torneo> findBySlug(String slug);
 
+    /**
+     * Como findBySlug pero con JOIN FETCH del ganadorPersonaje. Para
+     * OgImageService.renderTorneo, que NO es @Transactional (es @Cacheable) y
+     * lee t.getGanadorPersonaje() fuera de sesión: con esa asociación en LAZY y
+     * open-in-view=false, sin este fetch lanzaría LazyInitializationException.
+     */
+    @Query("SELECT t FROM Torneo t LEFT JOIN FETCH t.ganadorPersonaje WHERE t.slug = :slug")
+    Optional<Torneo> findBySlugFetchGanador(@Param("slug") String slug);
+
     @Lock(LockModeType.PESSIMISTIC_WRITE)
     @Query("SELECT t FROM Torneo t WHERE t.id = :id")
     Optional<Torneo> findForUpdateById(@Param("id") Long id);

@@ -686,7 +686,13 @@ public class EnfrentamientoController {
         return enfrentamientoRepository.findSiguienteAbiertoDesde(
                 cursor, usuarioId, anonSessionId, safeExcludeIds, excludeIdsSize)
                 .or(() -> enfrentamientoRepository.findSiguienteAbiertoAntes(
-                        cursor, usuarioId, anonSessionId, safeExcludeIds, excludeIdsSize));
+                        cursor, usuarioId, anonSessionId, safeExcludeIds, excludeIdsSize))
+                // Las @ManyToOne de Enfrentamiento son LAZY y siguiente() mapea el
+                // DTO FUERA de tx (open-in-view=false): las queries nativas de
+                // arriba devuelven proxies, así que rehidratamos con JOIN FETCH —
+                // igual que /siguientes — antes de cerrar la sesión.
+                .flatMap(e -> enfrentamientoRepository.findByIdInFetch(List.of(e.getId()))
+                        .stream().findFirst());
     }
 
     private List<Long> parseExcludeIds(List<String> rawValues) {

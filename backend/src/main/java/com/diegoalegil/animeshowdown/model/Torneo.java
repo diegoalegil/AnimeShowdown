@@ -11,6 +11,7 @@ import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;
+import jakarta.persistence.FetchType;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
@@ -67,7 +68,7 @@ public class Torneo {
     // (TorneoMioDto/Resumen/Detalle con ganadorSlug ya proyectado); la relación
     // cruda nunca debe serializarse aunque algún endpoint devuelva la entidad.
     @JsonIgnore
-    @ManyToOne
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "ganador_personaje_id")
     private Personaje ganadorPersonaje;
 
@@ -79,7 +80,7 @@ public class Torneo {
     // entidad se serializa por accidente. El owner se proyecta en DTOs cuando
     // hace falta; nunca debe viajar el Usuario completo en una respuesta pública.
     @JsonIgnore
-    @ManyToOne
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "created_by_user_id")
     private Usuario creadoPor;
 
