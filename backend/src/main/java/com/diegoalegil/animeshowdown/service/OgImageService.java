@@ -161,7 +161,10 @@ public class OgImageService {
      */
     @Cacheable(value = "og-torneo", key = "#slug", unless = "#result == null")
     public byte[] renderTorneo(String slug) {
-        Torneo t = torneoRepository.findBySlug(slug).orElse(null);
+        // findBySlugFetchGanador (no findBySlug): este método NO es @Transactional
+        // y lee t.getGanadorPersonaje() fuera de sesión; con la asociación en LAZY
+        // hay que traerla por JOIN FETCH o reventaría con LazyInitializationException.
+        Torneo t = torneoRepository.findBySlugFetchGanador(slug).orElse(null);
         if (t == null) {
             return renderFallback("Torneo anime", "Bracket visual en AnimeShowdown");
         }

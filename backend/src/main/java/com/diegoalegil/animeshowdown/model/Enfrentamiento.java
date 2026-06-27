@@ -4,6 +4,7 @@ import java.time.LocalDateTime;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
+import jakarta.persistence.FetchType;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
@@ -35,7 +36,13 @@ public class Enfrentamiento {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @ManyToOne
+    // LAZY (no el EAGER por defecto): con open-in-view=false los accesos fuera
+    // de tx a estas 4 asociaciones (feed, /siguiente, fichas, matchups) van
+    // SIEMPRE por queries que ya hacen LEFT JOIN FETCH (findByIdInFetch,
+    // findRecentesParaFeed, findHistorialPorPersonaje, findByTorneo*Fetch...).
+    // El resto son in-tx, y los enfrentamientos recién creados llevan instancias
+    // concretas (no proxies). Mapeo verificado por workflow + verify completo.
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "torneo_id", nullable = false)
     private Torneo torneo;
 
@@ -44,15 +51,15 @@ public class Enfrentamiento {
      * bracket se precomputan con slots vacíos y se rellenan al determinar
      * el ganador de la ronda anterior.
      */
-    @ManyToOne
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "personaje1_id")
     private Personaje personaje1;
 
-    @ManyToOne
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "personaje2_id")
     private Personaje personaje2;
 
-    @ManyToOne
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "ganador_id", nullable = true)
     private Personaje ganador;
 
