@@ -2,6 +2,7 @@
   "compilerOptions": {
     "target": "ES2022",
     "useDefineForClassFields": true,
+    "jsx": "react-jsx",
     "lib": ["DOM", "DOM.Iterable", "ES2022"],
     "allowJs": true,
     "checkJs": false,
@@ -17,15 +18,11 @@
     "types": ["vite/client", "react", "react-dom", "node"]
   },
   "include": [
-    "src/lib/api.ts",
-    "src/lib/queryClient.ts",
-    "src/lib/personajes-core.ts",
-    "src/lib/localVoteRanking.ts",
-    "src/lib/games.ts",
-    "src/lib/torneosQueries.ts",
-    "src/lib/share.ts",
-    "src/lib/types.ts",
-    "src/lib/**/*.test.ts",
-    "src/test/**/*.ts"
+    "src/lib/**/*.ts",
+    "src/test/**/*.ts",
+    "src/features/cartas/forge/forge-core.ts",
+    "src/components/GameCatalogLoading.tsx",
+    "src/components/MonedaIcon.tsx",
+    "src/components/Skeleton.tsx"
   ]
 }
