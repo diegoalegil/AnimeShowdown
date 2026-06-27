@@ -199,7 +199,65 @@ const personajeRoutes = personajes.map((p) => {
   }
 })
 
-const routes = [...staticRoutes, ...animeRoutes, ...versusRoutes, ...personajeRoutes]
+// EN-first (Fase 1): variantes /en de las páginas money para captar búsqueda en
+// inglés (el nicho "who would win / strongest" busca en EN). Genera la meta EN
+// (title/description/og:locale) + hreflang recíproco es<->en. El shell ya está
+// i18n'd (en.json completo); el cuerpo se traduce por fases. Reutiliza el JSON-LD
+// (la señal de ranking principal es title/description en inglés).
+const EN_COPY = {
+  '/': {
+    title: 'AnimeShowdown — Anime character battle tournaments',
+    description: 'Over 1000 anime characters, live ELO ranking and visual brackets. Vote for your favorites and move the meta every week.',
+  },
+  '/ranking': {
+    title: 'Anime ELO ranking · AnimeShowdown',
+    description: 'Top anime characters ranked by competitive signals, community votes and base ELO on AnimeShowdown.',
+  },
+  '/personajes': {
+    title: 'Anime characters · AnimeShowdown',
+    description: 'Browsable catalog of anime characters with profile, image, universe and ELO ranking on AnimeShowdown.',
+  },
+  '/animes': {
+    title: 'Anime universes · AnimeShowdown',
+    description: 'Anime universes with their roster, ELO top 10 and featured duels inside AnimeShowdown.',
+  },
+  '/comparar': {
+    title: 'Compare anime characters · AnimeShowdown',
+    description: 'Build a versus between two anime characters and compare ELO, popularity and community signals.',
+  },
+  '/votar': {
+    title: 'Vote anime duels · AnimeShowdown',
+    description: 'Anime duel arena: pick the winners, move the ELO ranking and discover new matchups.',
+  },
+  '/games': {
+    title: 'Anime games · AnimeShowdown',
+    description: 'AnimeShowdown daily games: Shadow Guess, Anime Reveal, AniGrid, Impostor Trial and ELO Duel.',
+  },
+  '/juegos/anime': {
+    title: 'Anime games online · AnimeShowdown',
+    description: 'Online anime games with daily challenges, ranking, ELO Duel and otaku knowledge quizzes.',
+  },
+}
+
+// Marca cada money page ES con su alternante EN y genera la variante /en.
+for (const r of staticRoutes) {
+  if (!EN_COPY[r.path]) continue
+  r.lang = 'es'
+  r.alt = { es: r.path, en: r.path === '/' ? '/en' : `/en${r.path}` }
+}
+const enStaticRoutes = staticRoutes
+  .filter((r) => EN_COPY[r.path])
+  .map((r) => ({
+    path: r.alt.en,
+    title: EN_COPY[r.path].title,
+    description: EN_COPY[r.path].description,
+    image: r.image,
+    jsonLd: r.jsonLd,
+    lang: 'en',
+    alt: r.alt,
+  }))
+
+const routes = [...staticRoutes, ...enStaticRoutes, ...animeRoutes, ...versusRoutes, ...personajeRoutes]
 
 for (const route of routes) {
   writeRoute(route, renderRoute(route))
@@ -240,7 +298,18 @@ function renderRoute(route) {
   html = setMetaName(html, 'twitter:description', description)
   html = setMetaName(html, 'twitter:image', image)
   html = setLinkRel(html, 'canonical', canonical)
-  html = stripHreflang(html)
+  // og:locale por idioma de la ruta (antes clavado a es_ES en el HTML base).
+  const lang = route.lang || 'es'
+  html = setMetaProperty(html, 'og:locale',
+    lang === 'en' ? 'en_US' : lang === 'ja' ? 'ja_JP' : 'es_ES')
+  // hreflang recíproco solo en las páginas con alternante (money pages EN-first);
+  // el resto sigue mono-idioma y se le quita cualquier alternate heredado.
+  if (route.alt) {
+    html = setMetaProperty(html, 'og:locale:alternate', lang === 'en' ? 'es_ES' : 'en_US')
+    html = setHreflang(html, route.alt)
+  } else {
+    html = stripHreflang(html)
+  }
   html = setJsonLd(html, {
     '@context': 'https://schema.org',
     '@graph': graph.filter(Boolean),
@@ -453,6 +522,17 @@ function setJsonLd(html, schema) {
 
 function stripHreflang(html) {
   return html.replace(/\s*<link\s+[^>]*rel=["']alternate["'][^>]*hreflang=["'][^"']+["'][^>]*>\n?/gi, '')
+}
+
+// Emite los <link rel="alternate" hreflang> recíprocos es/en + x-default (→ ES,
+// el idioma por defecto). alt = { es: '/ranking', en: '/en/ranking' }.
+function setHreflang(html, alt) {
+  const links = [
+    `<link rel="alternate" hreflang="es" href="${escapeAttr(BASE_URL + alt.es)}" />`,
+    `<link rel="alternate" hreflang="en" href="${escapeAttr(BASE_URL + alt.en)}" />`,
+    `<link rel="alternate" hreflang="x-default" href="${escapeAttr(BASE_URL + alt.es)}" />`,
+  ].join('\n    ')
+  return stripHreflang(html).replace('</head>', `    ${links}\n  </head>`)
 }
 
 function replaceOrInsert(html, pattern, tag) {
