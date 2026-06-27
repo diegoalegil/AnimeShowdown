@@ -45,6 +45,16 @@
 /votar                    /votar/index.html 200
 /games                    /games/index.html 200
 /juegos/anime             /juegos/anime/index.html 200
+# EN-first: money pages prerenderizadas en inglés (meta + hreflang). Cada /en/X
+# sirve su propio HTML inicial EN, como sus equivalentes ES de arriba.
+/en                       /en/index.html 200
+/en/personajes            /en/personajes/index.html 200
+/en/animes                /en/animes/index.html 200
+/en/comparar              /en/comparar/index.html 200
+/en/ranking               /en/ranking/index.html 200
+/en/votar                 /en/votar/index.html 200
+/en/games                 /en/games/index.html 200
+/en/juegos/anime          /en/juegos/anime/index.html 200
 
 # Rutas reales de la SPA. Las enumeramos para que una URL inventada no
 # devuelva 200 con la shell de React: Cloudflare servirá 404.html al final.

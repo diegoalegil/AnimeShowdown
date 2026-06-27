@@ -228,6 +228,20 @@ function useQueryLanguageSync(search) {
   }, [search])
 }
 
+// EN-first SEO: las rutas /en/* están prerenderizadas en inglés (meta + hreflang)
+// para captar búsqueda anglófona. Al cargarlas en el SPA forzamos el shell a EN
+// para que el contenido no contradiga la meta indexada. El resto de rutas respeta
+// la elección del usuario (localStorage / ?lang); como i18next persiste el idioma,
+// navegar de una /en/* a una ruta normal mantiene el inglés.
+function usePathLanguageSync(pathname) {
+  useEffect(() => {
+    if (pathname !== '/en' && !pathname.startsWith('/en/')) return
+    const current = normalizeRouteLanguage(i18n.resolvedLanguage || i18n.language)
+    if (current === 'en') return
+    i18n.changeLanguage('en').catch(() => {})
+  }, [pathname])
+}
+
 function App() {
   const location = useLocation()
   const { calm } = useCalmMode()
@@ -237,6 +251,7 @@ function App() {
     enabled: shouldPrimeCatalog(location.pathname),
   })
   useQueryLanguageSync(location.search)
+  usePathLanguageSync(location.pathname)
   // Rutas fullscreen sin chrome global (TV mode, etc.). Si el usuario
   // navega aquí queremos que el viewport sea solo del contenido — sin
   // header global, sin bottom nav móvil, sin footer.
@@ -446,6 +461,18 @@ function App() {
                   navegación caliente se dejan pintar y cargan el catálogo en
                   background; cada página gestiona su skeleton o fallback local. */}
               <Route path="/" element={catalogAware(<InicioPage />)} />
+              {/* EN-first (SEO): /en/* están prerenderizadas en inglés (meta +
+                  hreflang) para captar búsqueda anglófona. Renderizan la MISMA
+                  página con el shell forzado a EN (usePathLanguageSync). Las 8
+                  money pages = EN_COPY en scripts/prerender-seo.mjs. */}
+              <Route path="/en" element={catalogAware(<InicioPage />)} />
+              <Route path="/en/personajes" element={catalogAware(<PersonajesPage />)} />
+              <Route path="/en/animes" element={catalogAware(<AnimesPage />)} />
+              <Route path="/en/comparar" element={catalogAware(<CompararPage />)} />
+              <Route path="/en/ranking" element={catalogAware(<RankingPage />)} />
+              <Route path="/en/votar" element={catalogAware(<VotarPage />)} />
+              <Route path="/en/games" element={catalogAware(<GamesHubPage />)} />
+              <Route path="/en/juegos/anime" element={<JuegosAnimePage />} />
               <Route path="/personajes" element={catalogAware(<PersonajesPage />)} />
               <Route path="/personajes/:slug" element={catalogAware(<PersonajeDetailPage />)} />
               <Route path="/animes" element={catalogAware(<AnimesPage />)} />
