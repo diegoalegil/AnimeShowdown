@@ -215,7 +215,14 @@ function lastmodOf(value) {
   return String(value).slice(0, 10) || today
 }
 
-function urlBlock(loc, priority, changefreq, lastmod = today, images = []) {
+// EN-first: las money pages tienen variante /en con hreflang recíproco.
+const EN_PATHS = new Set(['/', '/personajes', '/animes', '/comparar', '/ranking', '/votar', '/games', '/juegos/anime'])
+function altOf(path) {
+  if (!EN_PATHS.has(path)) return null
+  return { es: path, en: path === '/' ? '/en' : `/en${path}` }
+}
+
+function urlBlock(loc, priority, changefreq, lastmod = today, images = [], alt = null) {
   const imageTags = images
       .map(
           (img) => `    <image:image>
@@ -225,11 +232,20 @@ function urlBlock(loc, priority, changefreq, lastmod = today, images = []) {
     </image:image>`,
       )
       .join('\n')
+  // hreflang recíproco es/en + x-default (→ ES), recomendado por Google en el
+  // sitemap además de en el HTML. Cada lado del par lleva el mismo bloque.
+  const altTags = alt
+      ? [
+          `    <xhtml:link rel="alternate" hreflang="es" href="${BASE_URL}${alt.es}"/>`,
+          `    <xhtml:link rel="alternate" hreflang="en" href="${BASE_URL}${alt.en}"/>`,
+          `    <xhtml:link rel="alternate" hreflang="x-default" href="${BASE_URL}${alt.es}"/>`,
+        ].join('\n')
+      : ''
   return `  <url>
     <loc>${BASE_URL}${loc}</loc>
     <lastmod>${lastmod}</lastmod>
     <changefreq>${changefreq}</changefreq>
-    <priority>${priority}</priority>${imageTags ? '\n' + imageTags : ''}
+    <priority>${priority}</priority>${altTags ? '\n' + altTags : ''}${imageTags ? '\n' + imageTags : ''}
   </url>`
 }
 
@@ -302,8 +318,10 @@ function torneoImages(torneo) {
 const xml = `<?xml version="1.0" encoding="UTF-8"?>
 <urlset
   xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"
-  xmlns:image="http://www.google.com/schemas/sitemap-image/1.1">
-${staticRoutes.map((r) => urlBlock(r.path, r.priority, r.changefreq)).join('\n')}
+  xmlns:image="http://www.google.com/schemas/sitemap-image/1.1"
+  xmlns:xhtml="http://www.w3.org/1999/xhtml">
+${staticRoutes.map((r) => urlBlock(r.path, r.priority, r.changefreq, today, [], altOf(r.path))).join('\n')}
+${staticRoutes.filter((r) => EN_PATHS.has(r.path)).map((r) => urlBlock(altOf(r.path).en, r.priority, r.changefreq, today, [], altOf(r.path))).join('\n')}
 ${personajesCatalogo
     .map((p) =>
       urlBlock(`/personajes/${p.slug}`, '0.6', 'monthly', today, [
