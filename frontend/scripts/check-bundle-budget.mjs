@@ -169,6 +169,17 @@ if (personaje3dChunks.length === 0) {
   fail('no se encontró chunk personaje3d-*.js')
 } else {
   console.log(`personaje3d chunks: ${personaje3dChunks.join(', ')}`)
+  // Techo de tamaño del chunk 3D (three.js + react-three/fiber): es el más
+  // pesado de la app y, al ser lazy, no tenía guard — podía crecer sin que
+  // nadie lo viera. Generoso (hoy ~876KB raw); salta sólo ante crecimiento real.
+  const maxPersonaje3dRawKb = Number(process.env.MAX_PERSONAJE3D_RAW_KB || 1100)
+  for (const chunk of personaje3dChunks) {
+    const rawKb = sizeKb(statSync(join(assetsDir, chunk)).size)
+    console.log(`  ${chunk}: raw=${rawKb.toFixed(1)}KB budget=${maxPersonaje3dRawKb}KB`)
+    if (rawKb > maxPersonaje3dRawKb) {
+      fail(`personaje3d chunk ${chunk} raw ${rawKb.toFixed(1)}KB > ${maxPersonaje3dRawKb}KB`)
+    }
+  }
 }
 
 const realtimeChunks = files.filter((file) => /^realtime-.*\.js$/.test(file))
