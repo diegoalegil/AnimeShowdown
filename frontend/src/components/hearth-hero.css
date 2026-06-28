@@ -470,6 +470,28 @@
   border-color: var(--color-border-gold);
 }
 
+/* CTA primaria del hero: jerarquía visual para el recién llegado. Borde y halo
+   dorados + chip de kanji relleno, todo desde tokens (sin hex nuevos). */
+.hearth-tablilla--primary {
+  border-color: var(--color-border-gold);
+  background:
+    linear-gradient(180deg, var(--color-gold-soft), transparent 72%),
+    var(--color-surface);
+  box-shadow:
+    var(--inset-shadow-hairline),
+    0 18px 50px -36px rgb(var(--color-gold-rgb) / 0.6);
+}
+
+.hearth-tablilla--primary .hearth-tablilla__kanji {
+  color: var(--color-bg);
+  background: var(--color-gold);
+  border-color: var(--color-gold);
+}
+
+.hearth-tablilla--primary .hearth-tablilla__label {
+  color: var(--color-gold);
+}
+
 .hearth-tablilla:focus-visible {
   outline: 2px solid var(--color-gold);
   outline-offset: 2px;

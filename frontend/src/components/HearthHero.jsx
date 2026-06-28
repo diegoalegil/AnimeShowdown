@@ -234,8 +234,11 @@ function HearthHeroView({
 
 /* Kanji con significado: 票 voto · 戦 batalla · 遊 juego.
    Copys vía hero.* de los locales (paridad es/en/ja). */
+// `primary` marca la acción dominante para el visitante nuevo: votar es el
+// bucle núcleo (se hace sin cuenta). Antes las 3 tablillas eran visualmente
+// idénticas, sin jerarquía → el recién llegado no sabía por dónde empezar.
 const TABLILLAS = [
-  { to: '/votar', kanji: '票', labelKey: 'hero.tablillaVotarLabel', descKey: 'hero.tablillaVotarDesc' },
+  { to: '/votar', kanji: '票', labelKey: 'hero.tablillaVotarLabel', descKey: 'hero.tablillaVotarDesc', primary: true },
   { to: '/torneos', kanji: '戦', labelKey: 'hero.tablillaTorneosLabel', descKey: 'hero.tablillaTorneosDesc' },
   { to: '/games', kanji: '遊', labelKey: 'hero.tablillaJuegosLabel', descKey: 'hero.tablillaJuegosDesc' },
 ]
@@ -275,7 +278,7 @@ function HearthTablilla({ tablilla, index }) {
   return (
     <AppLink
       to={tablilla.to}
-      className="hearth-tablilla hearth-rise"
+      className={`hearth-tablilla hearth-rise${tablilla.primary ? ' hearth-tablilla--primary' : ''}`}
       style={{ '--rise-delay': `${600 + index * 60}ms` }}
       onPointerDown={press.onPointerDown}
       onClick={press.onClick}
