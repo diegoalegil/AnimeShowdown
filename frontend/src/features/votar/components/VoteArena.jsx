@@ -75,12 +75,12 @@ const VoteArena = memo(function VoteArena({
   const isTie = tieResolved || tiePending
   const leftVoteResult = tieResolved
     ? { ...voteResult, delta: 0.5, votosGanador: voteResult?.votosGanador }
-    : voteResult?.ganadorSlug === a.slug
+    : voteResult?.ganadorSlug === a?.slug
       ? voteResult
       : null
   const rightVoteResult = tieResolved
     ? { ...voteResult, delta: 0.5, votosGanador: voteResult?.votosPerdedor, votosPerdedor: voteResult?.votosGanador }
-    : voteResult?.ganadorSlug === b.slug
+    : voteResult?.ganadorSlug === b?.slug
       ? voteResult
       : null
 

@@ -117,8 +117,10 @@ export function useVotarShare({
         image: imagen600(losingPersonaje.slug),
       },
       // Sin totales del backend (modo casual): 51/49 simbólico para que
-      // el oro caiga del lado votado sin inventar una paliza.
-      leftPct: total > 0 ? (votosGanador / total) * 100 : 51,
+      // el oro caiga del lado votado sin inventar una paliza. El ganador (lado
+      // izq.) nunca baja del 50%: si el backend sólo manda el total del perdedor
+      // sin coaccionar daría 0% en quien justamente ganó.
+      leftPct: total > 0 ? Math.max(50, ((votosGanador ?? 0) / total) * 100) : 51,
     }
     const canvas = document.createElement('canvas')
     canvas.width = DUEL_CARD_SIZE
