@@ -12,7 +12,7 @@ import { ActividadItem } from './ActividadItem'
  * (/feed) usa el mismo componente con showAuthor para no duplicar el render.
  */
 function CardActividadReciente() {
-  const { data, isLoading } = usePerfilActividad({ limit: 15 })
+  const { data, isLoading, isError } = usePerfilActividad({ limit: 15 })
 
   return (
     <div className="rounded-2xl border border-border bg-surface p-6">
@@ -24,6 +24,10 @@ function CardActividadReciente() {
         <div className="flex items-center justify-center py-6">
           <div className="h-6 w-6 animate-spin rounded-full border-2 border-accent border-t-transparent" />
         </div>
+      ) : isError ? (
+        <p className="rounded-lg border border-danger/30 bg-danger/5 p-3 text-[13px] text-danger">
+          No se pudo cargar tu actividad. Recarga la página.
+        </p>
       ) : !data || data.length === 0 ? (
         <p className="text-[13px] text-fg-muted">
           Todavía no tienes actividad registrada. Empieza{' '}
