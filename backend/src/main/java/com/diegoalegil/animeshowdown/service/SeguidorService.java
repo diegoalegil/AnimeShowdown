@@ -29,6 +29,12 @@ import com.diegoalegil.animeshowdown.repository.UsuarioRepository;
 public class SeguidorService {
 
     private static final Logger log = LoggerFactory.getLogger(SeguidorService.class);
+    // Tope de las listas públicas de seguidores/seguidos: un perfil muy seguido
+    // devolvía la relación entera (miles de DTOs) sin paginar. Mismo límite que
+    // FeedService.MAX_SEGUIDOS. NO se aplica a la consulta compartida del repo
+    // (el fan-out de notificaciones necesita TODOS los seguidores), solo a estas
+    // dos rutas públicas.
+    private static final int MAX_LISTA_PUBLICA = 200;
 
     private final SeguidorRepository repo;
     private final UsuarioRepository usuarioRepository;
@@ -61,9 +67,13 @@ public class SeguidorService {
         Usuario seguido = seguidoOpt.get();
         log.info("Follow: {} → {}", seguidor.getUsername(), seguido.getUsername());
 
-        // 13 + §4.5: notifica al seguido. Best-effort.
+        // 13 + §4.5: notifica al seguido. Best-effort y AISLADA en su propia tx
+        // (REQUIRES_NEW): si el insert de la notificación falla, en Postgres
+        // abortaría la tx COMPARTIDA y el follow no commitearía pese a este
+        // try/catch (H2 no lo reproduce; solo rompía en prod). Aislada, el fallo
+        // se queda en su tx y el follow se confirma igual.
         try {
-            notificacionService.crear(
+            notificacionService.crearAislada(
                     seguido,
                     NotificacionTipo.SEGUIDOR_NUEVO,
                     "Tienes un nuevo seguidor",
@@ -85,12 +95,12 @@ public class SeguidorService {
 
     @Transactional(readOnly = true)
     public List<Usuario> listarSeguidos(Usuario usuario) {
-        return repo.seguidosDe(usuario);
+        return repo.seguidosDe(usuario).stream().limit(MAX_LISTA_PUBLICA).toList();
     }
 
     @Transactional(readOnly = true)
     public List<Usuario> listarSeguidores(Usuario usuario) {
-        return repo.seguidoresDe(usuario);
+        return repo.seguidoresDe(usuario).stream().limit(MAX_LISTA_PUBLICA).toList();
     }
 
     @Transactional(readOnly = true)
