@@ -12,6 +12,8 @@ describe('catalog-route-policy', () => {
     expect(bypassCatalogGateForPath('/torneos')).toBe(true)
     expect(bypassCatalogGateForPath('/torneos/shonen-showdown')).toBe(true)
     expect(bypassCatalogGateForPath('/duel-live')).toBe(true)
+    // ELO Duel es server-driven (no lee el catálogo) → no debe gatearse.
+    expect(bypassCatalogGateForPath('/games/elo-duel')).toBe(true)
   })
 
   it('mantiene gate en rutas que sí necesitan catálogo completo antes de pintar', () => {
@@ -19,7 +21,6 @@ describe('catalog-route-policy', () => {
     expect(shouldGateCatalogRoute('/personajes/luffy')).toBe(true)
     expect(shouldGateCatalogRoute('/animes/one-piece')).toBe(true)
     expect(shouldGateCatalogRoute('/torneos/crear')).toBe(true)
-    expect(shouldGateCatalogRoute('/games/elo-duel')).toBe(true)
   })
 
   it('NO ceba el catálogo en rutas sin personajes (auth/legal)', () => {

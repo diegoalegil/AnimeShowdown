@@ -357,14 +357,14 @@ function EmptyState({ user, t }) {
 /**
  * Card "Bracket sugerido" — no es un torneo real (no tiene slug en BD).
  * Visualmente parecida a TorneoCard pero con tono "futuro" y CTA distinta:
- *   - User logueado: "Crear con este preset" → /torneos/crear?preset=<slug>
- *     (CrearTorneoPage decide si soporta presets; por ahora solo navega).
+ *   - User logueado: "Crear un torneo" → /torneos/crear (el formulario aún no
+ *     precarga presets, así que el CTA no lo promete para no engañar).
  *   - User invitado: "Vota duelos abiertos" → /votar
  */
 function SugerenciaCard({ sugerencia, user, t }) {
   const { titulo, descripcion, cast } = sugerencia
   const presetSlug = titulo.toLowerCase().replace(/\s+/g, '-').replace(/[^a-z0-9-]/g, '')
-  const destino = user ? `/torneos/crear?preset=${presetSlug}` : '/votar'
+  const destino = user ? '/torneos/crear' : '/votar'
   const ctaLabel = user
     ? t('torneos.sugerenciaCtaCrear')
     : t('torneos.sugerenciaCtaVotar')

@@ -861,7 +861,11 @@ function VotarPage() {
   })
 
   const needsCasualPair = !modoBackend && !modoSugerido && (!a || !b)
-  const controlsDisabled = isVotePending || isAdvancing || isFetching || isFetchingDueloSugerido
+  // Tras topar el muro de invitado, deshabilitamos la arena: antes seguía
+  // interactiva y cada intento solo re-spameaba el toast/modal (callejón sin
+  // salida). El AnonVoteLimitModal y el banner de login son la salida real.
+  const atAnonCeiling = modoBackend && !user && getAnonymousVotesCount() >= ANON_VOTE_LIMIT
+  const controlsDisabled = atAnonCeiling || isVotePending || isAdvancing || isFetching || isFetchingDueloSugerido
   const identitiesHidden = blindMode && !votedFor
   const handleVoteLeft = useCallback(() => {
     if (a) handleVote(a)
@@ -1034,12 +1038,11 @@ function VotarPage() {
           </p>
         </header>
 
-        {votoInvitadoActivo && (
+        {votoInvitadoActivo && sessionStats.total > 0 && (
           <div className="rounded-lg border border-gold/40 bg-gold-soft px-4 py-3 text-center text-[13px] font-medium text-gold">
-            Modo invitado: tus primeros {ANON_VOTE_LIMIT} votos cuentan, pero
-            valen menos que los de una cuenta.
+            Modo invitado: tus primeros {ANON_VOTE_LIMIT} votos ya cuentan.
             <Link to="/login?next=%2Fvotar" className="ml-1 underline decoration-gold/50 underline-offset-4 hover:text-fg-strong">
-              Entra para voto completo e historial.
+              Entra para que pesen al 100%, con racha e historial.
             </Link>
           </div>
         )}

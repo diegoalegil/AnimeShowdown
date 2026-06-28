@@ -142,16 +142,21 @@ function DailyMissionPanel({ compact = false, className = '' }) {
     }
   }, [])
 
-  const votes = clamp(progress.votes, DAILY_VOTE_TARGET)
+  // Un invitado solo puede llegar a su tope (ANON_VOTE_CAP) de votos; medirlo
+  // contra 10 dejaba la barra matemáticamente imposible. La barra/stat/etiqueta
+  // se miden contra el objetivo ALCANZABLE de cada quien (solo display; la
+  // compleción y la racha server-side siguen exigiendo los 10 votos + sesión).
+  const voteTarget = user ? DAILY_VOTE_TARGET : ANON_VOTE_CAP
+  const votes = clamp(progress.votes, voteTarget)
   const games = clamp(progress.gamesCompleted, DAILY_GAME_TARGET)
   const rankingViewed = Boolean(progress.rankingViewed)
   const completed = progress.completed
   const progressPct = useMemo(() => {
-    const votePart = votes / DAILY_VOTE_TARGET
+    const votePart = votes / voteTarget
     const gamePart = games / DAILY_GAME_TARGET
     const rankingPart = rankingViewed ? 1 : 0
     return Math.round(((votePart + gamePart + rankingPart) / 3) * 100)
-  }, [votes, games, rankingViewed])
+  }, [votes, voteTarget, games, rankingViewed])
 
   useEffect(() => {
     if (!completed) return
@@ -211,7 +216,7 @@ function DailyMissionPanel({ compact = false, className = '' }) {
         </div>
         <div className="grid min-w-[13rem] grid-cols-3 overflow-hidden rounded-xl border border-border bg-bg/45 text-center">
           <div className="px-3 py-3">
-            <p className="font-mono text-xl font-black text-fg-strong">{votes}/{DAILY_VOTE_TARGET}</p>
+            <p className="font-mono text-xl font-black text-fg-strong">{votes}/{voteTarget}</p>
             <p className="text-[10px] text-fg-muted">votos</p>
           </div>
           <div className="border-x border-border px-3 py-3">
@@ -235,15 +240,15 @@ function DailyMissionPanel({ compact = false, className = '' }) {
       <div className="mt-5 grid gap-3 md:grid-cols-3">
         <MissionItem
           icon={Swords}
-          label={`Vota ${DAILY_VOTE_TARGET} duelos`}
+          label={`Vota ${voteTarget} duelos`}
           detail={
-            votes >= DAILY_VOTE_TARGET
-              ? 'Listo por hoy'
-              : !user && votes >= ANON_VOTE_CAP
-                ? `Tope de invitado (${ANON_VOTE_CAP}) — entra para seguir`
-                : `Te faltan ${DAILY_VOTE_TARGET - votes}`
+            !user && votes >= ANON_VOTE_CAP
+              ? `Tope de invitado (${ANON_VOTE_CAP}) — entra para seguir`
+              : votes >= voteTarget
+                ? 'Listo por hoy'
+                : `Te faltan ${voteTarget - votes}`
           }
-          done={votes >= DAILY_VOTE_TARGET}
+          done={votes >= voteTarget}
           to="/votar"
         />
         <MissionItem
