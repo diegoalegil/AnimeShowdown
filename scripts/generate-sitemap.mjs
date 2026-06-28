@@ -210,6 +210,16 @@ const staticRoutes = [
 ]
 
 const today = new Date().toISOString().split('T')[0]
+// Fecha estable de la última revisión del catálogo y páginas perennes. Se
+// bumpea a mano cuando cambia el contenido, en vez de estampar la fecha de
+// build a las ~1300 URLs: un lastmod que salta a "hoy" en cada deploy es una
+// señal ruidosa (Google lo descuenta) y además generaba ~2700 líneas de churn
+// en cada regeneración del sitemap. Las rutas que cambian de verdad a diario
+// (rankings, home, juegos diarios) sí llevan build-date honesto.
+const CONTENT_REV = '2026-06-28'
+function staticLastmod(changefreq) {
+  return changefreq === 'daily' ? today : CONTENT_REV
+}
 function lastmodOf(value) {
   if (!value) return today
   return String(value).slice(0, 10) || today
@@ -320,11 +330,11 @@ const xml = `<?xml version="1.0" encoding="UTF-8"?>
   xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"
   xmlns:image="http://www.google.com/schemas/sitemap-image/1.1"
   xmlns:xhtml="http://www.w3.org/1999/xhtml">
-${staticRoutes.map((r) => urlBlock(r.path, r.priority, r.changefreq, today, [], altOf(r.path))).join('\n')}
-${staticRoutes.filter((r) => EN_PATHS.has(r.path)).map((r) => urlBlock(altOf(r.path).en, r.priority, r.changefreq, today, [], altOf(r.path))).join('\n')}
+${staticRoutes.map((r) => urlBlock(r.path, r.priority, r.changefreq, staticLastmod(r.changefreq), [], altOf(r.path))).join('\n')}
+${staticRoutes.filter((r) => EN_PATHS.has(r.path)).map((r) => urlBlock(altOf(r.path).en, r.priority, r.changefreq, staticLastmod(r.changefreq), [], altOf(r.path))).join('\n')}
 ${personajesCatalogo
     .map((p) =>
-      urlBlock(`/personajes/${p.slug}`, '0.6', 'monthly', today, [
+      urlBlock(`/personajes/${p.slug}`, '0.6', 'monthly', CONTENT_REV, [
         {
           loc: `${BASE_URL}${p.imagen}`,
           title: p.nombre,
@@ -339,7 +349,7 @@ ${animesUnicos
         `/animes/${slugifyAnime(anime)}`,
         '0.7',
         'weekly',
-        today,
+        CONTENT_REV,
         [animeImage(anime)].filter(Boolean),
       ),
     )
@@ -350,7 +360,7 @@ ${animesUnicos
         `/animes/${slugifyAnime(anime)}/ranking`,
         '0.65',
         'weekly',
-        today,
+        CONTENT_REV,
         [animeImage(anime)].filter(Boolean),
       ),
     )
@@ -361,7 +371,7 @@ ${versusCurados
         `/versus/${a.slug}-vs-${b.slug}`,
         '0.55',
         'monthly',
-        today,
+        CONTENT_REV,
         [a, b]
           .filter((p) => p.imagen)
           .map((p) => ({
