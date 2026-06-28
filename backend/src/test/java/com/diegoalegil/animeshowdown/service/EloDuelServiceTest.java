@@ -84,7 +84,22 @@ class EloDuelServiceTest {
         assertTrue(result.challengerElo() >= 1500);
         assertTrue(result.eloDiff() > 0);
         assertNotNull(result.nextRound());
-        verify(personajeScoreQueryService, atLeast(2)).topConPuntuacionYRecencia(any(), anyInt());
+        // El pool se cachea (TTL corto); ya no se re-agrega por ronda. La consulta
+        // se ejecuta al menos una vez para abrir la primera ronda.
+        verify(personajeScoreQueryService, atLeastOnce()).topConPuntuacionYRecencia(any(), anyInt());
+    }
+
+    @Test
+    void poolSeCacheaEntreRondasDentroDelTtl() {
+        when(personajeScoreQueryService.topConPuntuacionYRecencia(any(), anyInt())).thenReturn(pool);
+
+        // Reloj fijo (mismo instante < TTL): iniciarRonda + el siguiente round del
+        // acierto comparten el pool cacheado, así que la consulta cara de
+        // agregación se ejecuta UNA sola vez en vez de una por ronda.
+        EloDuelRoundDto round = sut.iniciarRonda();
+        sut.resolver(new EloDuelGuessRequest(round.roundToken(), expectedChoice(round)), null);
+
+        verify(personajeScoreQueryService, times(1)).topConPuntuacionYRecencia(any(), anyInt());
     }
 
     @Test

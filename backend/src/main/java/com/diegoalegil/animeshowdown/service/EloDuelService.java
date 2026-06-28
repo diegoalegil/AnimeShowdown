@@ -5,6 +5,7 @@ import java.security.GeneralSecurityException;
 import java.security.MessageDigest;
 import java.security.SecureRandom;
 import java.time.Clock;
+import java.time.Duration;
 import java.time.Instant;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
@@ -43,6 +44,10 @@ public class EloDuelService {
     private static final String TOKEN_VERSION = "v1";
     private static final String SCORE_LABEL = "ELO competitivo";
     private static final String ALGORITHM = "server_vote_score_balanced";
+    // TTL corto del pool: la consulta de agregación de votos de 24h es cara y
+    // se pedía sin cachear en cada /round y en cada /guess acertado (una racha
+    // re-agregaba por cada paso). Mismo patrón que DueloSugeridoService.
+    private static final Duration POOL_TTL = Duration.ofSeconds(30);
 
     private static final Logger LOG = LoggerFactory.getLogger(EloDuelService.class);
 
@@ -51,6 +56,9 @@ public class EloDuelService {
     private final SecureRandom secureRandom;
     private final Clock clock;
     private final SecretKeySpec tokenKey;
+
+    private final Object poolCacheLock = new Object();
+    private volatile CachedPool cachedPool;
 
     @Autowired
     public EloDuelService(PersonajeScoreQueryService personajeScoreQueryService, DropService dropService,
@@ -186,7 +194,29 @@ public class EloDuelService {
                 "ELO Duel necesita al menos dos personajes con puntuacion distinta");
     }
 
+    // Cacheado con TTL corto: /round y los /guess de una racha comparten la misma
+    // ventana de 24h, así que se reutiliza el pool en vez de re-agregar la consulta
+    // de votos por cada llamada. Doble comprobación con lock (igual que
+    // DueloSugeridoService.poolReciente). Un pool insuficiente lanza 404 sin
+    // cachear, así que el caché sólo guarda pools válidos.
     private List<PersonajeScoreItem> poolConSenal() {
+        Instant now = clock.instant();
+        CachedPool snapshot = cachedPool;
+        if (snapshot != null && now.isBefore(snapshot.expiresAt())) {
+            return snapshot.items();
+        }
+        synchronized (poolCacheLock) {
+            snapshot = cachedPool;
+            if (snapshot != null && now.isBefore(snapshot.expiresAt())) {
+                return snapshot.items();
+            }
+            List<PersonajeScoreItem> fresh = fetchPoolConSenal();
+            cachedPool = new CachedPool(fresh, now.plus(POOL_TTL));
+            return fresh;
+        }
+    }
+
+    private List<PersonajeScoreItem> fetchPoolConSenal() {
         List<PersonajeScoreItem> pool = personajeScoreQueryService.topConPuntuacionYRecencia(
                 LocalDateTime.now(clock).minusHours(24),
                 TOP_POOL);
@@ -204,6 +234,8 @@ public class EloDuelService {
         }
         return elegibles;
     }
+
+    private record CachedPool(List<PersonajeScoreItem> items, Instant expiresAt) {}
 
     private PersonajeScoreItem elegirRivalBalanceado(List<PersonajeScoreItem> pool, PersonajeScoreItem reference) {
         int referenceElo = eloCompetitivo(reference);
