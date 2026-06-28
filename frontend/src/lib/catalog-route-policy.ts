@@ -1,5 +1,9 @@
 const CRITICAL_CATALOG_BYPASS_EXACT = new Set([
   '/duel-live',
+  // ELO Duel es server-driven: pide su propia ronda al backend y no lee el
+  // catálogo global. Gatearlo lo rompía si el catálogo fallaba pese a no usarlo;
+  // la página ya trae sus propios estados de carga/indisponible.
+  '/games/elo-duel',
   '/ranking',
   '/torneos',
   '/votar',
