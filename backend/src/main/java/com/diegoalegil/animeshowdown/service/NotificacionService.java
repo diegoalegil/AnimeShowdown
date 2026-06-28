@@ -97,6 +97,21 @@ public class NotificacionService {
     }
 
     /**
+     * Variante best-effort en su PROPIA tx ({@code REQUIRES_NEW}) para
+     * side-effects de notificación no críticos disparados DENTRO de otra
+     * {@code @Transactional} (p.ej. el follow). Si el insert falla, solo revienta
+     * esta tx aislada: en Postgres un statement fallido aborta TODA la tx
+     * compartida, así que sin aislar, una notificación rota tumbaba la operación
+     * del llamador pese a su try/catch. El llamador debe capturar la excepción
+     * para ignorarla. (Misma convención que {@link #crearSiNoExiste}.)
+     */
+    @Transactional(propagation = Propagation.REQUIRES_NEW)
+    public Notificacion crearAislada(Usuario usuario, NotificacionTipo tipo,
+            String titulo, String mensaje, String payload) {
+        return crear(usuario, tipo, titulo, mensaje, payload);
+    }
+
+    /**
      * Crea una notificación idempotente por {@code eventoKey}: si ya existe una
      * del mismo usuario+tipo+eventoKey no hace nada y devuelve {@code false}. La
      * unicidad la respalda el índice {@code uk_notif_usuario_tipo_evento}; el
