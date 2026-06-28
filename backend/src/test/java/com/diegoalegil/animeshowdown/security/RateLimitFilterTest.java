@@ -82,6 +82,21 @@ class RateLimitFilterTest {
     }
 
     @Test
+    void newsletterCubreSubEndpointsDeToken() throws Exception {
+        // /confirmar (GET) y /unsubscribe (POST) validan token: antes saltaban el
+        // rate-limit por el match exacto de la base. Ahora comparten el bucket
+        // "newsletter" (5/hora por IP).
+        assertEquals(200, get("/api/newsletter/confirmar").getStatus());
+        assertEquals(200, post("/api/newsletter/unsubscribe").getStatus());
+        assertEquals(200, post("/api/newsletter").getStatus());
+        assertEquals(200, post("/api/newsletter").getStatus());
+        assertEquals(200, post("/api/newsletter").getStatus());
+        // 5 consumidos; el 6º topa en cualquiera de los tres endpoints.
+        assertEquals(429, get("/api/newsletter/confirmar").getStatus());
+        assertEquals(429, post("/api/newsletter/unsubscribe").getStatus());
+    }
+
+    @Test
     void ogImagePermiteSesentaPeticionesPorMinuto() throws Exception {
         for (int i = 0; i < 60; i++) {
             assertEquals(200, get("/api/og/duelo/naruto/vs/luffy.png").getStatus());

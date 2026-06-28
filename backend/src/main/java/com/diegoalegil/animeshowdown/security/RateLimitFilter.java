@@ -124,6 +124,9 @@ public class RateLimitFilter extends OncePerRequestFilter {
     private static final String RUTA_CARTAS_PREFIJO = "/api/me/cartas/";
     private static final String RUTA_DESCARGA_SUFIJO = "/descargar";
     private static final String RUTA_FUNNEL_PREFIJO = "/api/funnel/";
+    // Sub-endpoints de newsletter (/confirmar GET, /unsubscribe POST): validan
+    // un token y antes saltaban el rate-limit por el match exacto de la base.
+    private static final String RUTA_NEWSLETTER_PREFIJO = "/api/newsletter/";
     private static final String RUTA_REACCIONES = "/api/reacciones";
     private static final String RUTA_COMENTARIOS_SUFIJO = "/comentarios";
     private static final String RUTA_SEGUIDORES_PREFIJO = "/api/seguidores/";
@@ -210,6 +213,10 @@ public class RateLimitFilter extends OncePerRequestFilter {
             if (uri.startsWith(RUTA_WRAPPED_PUBLICO_PREFIJO)) {
                 return WRAPPED;
             }
+            // GET /api/newsletter/confirmar (validación de token por enlace).
+            if (uri.startsWith(RUTA_NEWSLETTER_PREFIJO)) {
+                return NEWSLETTER;
+            }
             return null;
         }
 
@@ -252,7 +259,8 @@ public class RateLimitFilter extends OncePerRequestFilter {
         if (uri.startsWith("/api/auth/2fa/")) {
             return TWO_FACTOR;
         }
-        if (coincide(uri, "/api/newsletter")) {
+        // Base (suscribir) + sub-endpoints POST (/unsubscribe): mismo bucket.
+        if (coincide(uri, "/api/newsletter") || uri.startsWith(RUTA_NEWSLETTER_PREFIJO)) {
             return NEWSLETTER;
         }
         if (uri.startsWith(RUTA_FUNNEL_PREFIJO)) {
