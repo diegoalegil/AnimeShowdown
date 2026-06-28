@@ -170,12 +170,22 @@ function AnimesPage() {
   )
 }
 
+// Esqueleto con la MISMA forma que UniverseLibrary (barra de búsqueda/orden +
+// estantería de lomos verticales), no una rejilla de cartas: así no salta de
+// layout al resolver (era la causa del CLS). Tailwind puro, sin depender del
+// CSS de la biblioteca.
 function CatalogoSkeletonGrid() {
   return (
-    <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
-      {Array.from({ length: 6 }).map((_, i) => (
-        <Skeleton key={i} variant="card" />
-      ))}
+    <div className="flex flex-col gap-5" aria-hidden="true">
+      <div className="flex flex-wrap items-center gap-3">
+        <Skeleton variant="box" className="h-11 min-w-[16rem] flex-1 rounded-lg" />
+        <Skeleton variant="box" className="h-10 w-56 rounded-lg" />
+      </div>
+      <div className="flex flex-wrap gap-3">
+        {Array.from({ length: 10 }).map((_, i) => (
+          <Skeleton key={i} variant="box" className="h-56 w-12 flex-none rounded-md sm:h-64" />
+        ))}
+      </div>
     </div>
   )
 }
