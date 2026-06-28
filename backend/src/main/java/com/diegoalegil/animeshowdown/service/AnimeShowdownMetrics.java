@@ -163,4 +163,18 @@ public class AnimeShowdownMetrics {
                 .register(registry)
                 .increment();
     }
+
+    /**
+     * Beacon cliente con un nombre FUERA del whitelist. Tag FIJO (una sola serie,
+     * cardinalidad acotada) para detectar drift cliente↔backend —p.ej. un deploy
+     * del front que emite un evento que el backend aún no reconoce— sin abrir la
+     * métrica a nombres arbitrarios.
+     */
+    public void clientEventRechazado() {
+        Counter.builder("as.funnel.client")
+                .description("Pasos del embudo reportados por el navegador via beacon")
+                .tag("evento", "otro_no_reconocido")
+                .register(registry)
+                .increment();
+    }
 }

@@ -3,6 +3,7 @@ package com.diegoalegil.animeshowdown.controller;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
+import static org.mockito.Mockito.verifyNoMoreInteractions;
 
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -28,11 +29,13 @@ class FunnelControllerTest {
     }
 
     @Test
-    void eventoFueraDelWhitelistSeIgnoraSinContarPeroDevuelve204() {
-        // Cardinalidad acotada: un nombre arbitrario NO debe crear una serie nueva.
+    void eventoFueraDelWhitelistCuentaEnElContadorAcotadoYDevuelve204() {
+        // Cardinalidad acotada: un nombre arbitrario NO crea una serie por su
+        // nombre; cae en el contador 'rechazado' de tag fijo (detecta drift).
         var resp = controller.evento("hacker_event_xyz");
         assertThat(resp.getStatusCode()).isEqualTo(HttpStatus.NO_CONTENT);
-        verifyNoInteractions(metrics);
+        verify(metrics).clientEventRechazado();
+        verifyNoMoreInteractions(metrics);
     }
 
     @Test
