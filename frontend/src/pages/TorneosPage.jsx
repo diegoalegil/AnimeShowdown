@@ -312,7 +312,7 @@ function EmptyState({ user, t }) {
         <div className="relative flex flex-wrap items-center justify-center gap-3">
           <Link
             to="/votar"
-            className="inline-flex items-center gap-1.5 rounded-lg bg-accent px-5 py-2.5 text-sm font-semibold text-bg transition-colors hover:bg-accent-hover"
+            className="inline-flex items-center gap-1.5 rounded-lg bg-accent px-5 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-accent-hover"
           >
             <Swords className="h-4 w-4" />
             {t('torneos.vacioCtaVotar')}

@@ -1119,9 +1119,15 @@ function VotarPage() {
             vivo para los rankings por categoría; si se recupera, debe ser en
             un punto sin fricción (p.ej. perfil o ficha del personaje). */}
 
-        {sessionStats.total > 0 && sessionStats.total % 10 === 0 && (
-          <SessionRecap stats={sessionStats} onShare={handleShareSessionRecap} />
-        )}
+        {/* Recap con CTAs de compartir / Top 5 cada 10 votos. Para invitados,
+            que topan a ANON_VOTE_LIMIT votos, también lo mostramos al llegar al
+            techo: así el muro de 5 votos se convierte en un momento viral /
+            de creación de Top 5, no solo en una petición de cuenta. */}
+        {sessionStats.total > 0 &&
+          (sessionStats.total % 10 === 0 ||
+            (!user && sessionStats.total === ANON_VOTE_LIMIT)) && (
+            <SessionRecap stats={sessionStats} onShare={handleShareSessionRecap} />
+          )}
 
         {/* Modos rápidos + misión diaria — en móvil colapsados para que
             la arena y el panel de resultado quepan sin scroll */}

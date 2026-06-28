@@ -46,7 +46,7 @@ function CardMisTorneos() {
           </p>
           <Link
             to="/torneos/crear"
-            className="inline-flex items-center gap-2 rounded-lg bg-accent px-3.5 py-2 text-[13px] font-semibold text-bg transition-colors hover:bg-accent-hover"
+            className="inline-flex items-center gap-2 rounded-lg bg-accent px-3.5 py-2 text-[13px] font-semibold text-white transition-colors hover:bg-accent-hover"
           >
             <Sparkles className="h-3.5 w-3.5" />
             Crear mi primer torneo

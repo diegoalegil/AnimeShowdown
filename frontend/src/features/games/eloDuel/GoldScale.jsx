@@ -357,8 +357,9 @@ function GoldScale({
       <button
         type="button"
         onClick={() => handlePick(side)}
-        aria-label={`Elegir a ${char.nombre}`}
+        disabled={!canPick}
         aria-disabled={!canPick}
+        aria-label={`Elegir a ${char.nombre} de ${char.anime}${shownElo == null ? '' : `, ELO ${shownElo}`}`}
         className="gs-pan-btn focus-visible:outline-2 focus-visible:outline-electric"
       >
         <span className={`gs-card ${picked === side && !landed ? 'gs-card--picked' : ''}`}>

@@ -40,6 +40,8 @@ function Avatar({ user, size = 32, className = '', marco }) {
         alt={label ? `Avatar de ${label}` : 'Avatar'}
         width={size}
         height={size}
+        loading="lazy"
+        decoding="async"
         onError={() => setFailedSrc(src)}
         className={`shrink-0 rounded-full object-cover ${className}`}
         style={{ width: size, height: size }}

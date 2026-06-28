@@ -28,7 +28,7 @@ export function getArenaStatusLabel({
             ? 'Duelo interno a ciegas'
             : `Duelo interno · ${fixedAnime}`
           : modoSugerido
-            ? `Duelo ELO equilibrado · Δ ${dueloSugerido.eloDiff}`
+            ? `Duelo ELO equilibrado${Number.isFinite(dueloSugerido?.eloDiff) ? ` · Δ ${dueloSugerido.eloDiff}` : ''}`
             : 'Enfrentamiento aleatorio'
 }
 
