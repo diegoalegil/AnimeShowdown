@@ -63,6 +63,11 @@ public class FunnelController {
     public ResponseEntity<Void> evento(@RequestParam(name = "e", required = false) String event) {
         if (event != null && EVENTOS_PERMITIDOS.contains(event)) {
             metrics.clientEvent(event);
+        } else if (event != null && !event.isBlank()) {
+            // Nombre fuera del whitelist: lo contamos en un contador de tag FIJO
+            // (una sola serie, cardinalidad acotada) para detectar drift
+            // cliente↔backend. null/vacío = sin evento, no cuenta.
+            metrics.clientEventRechazado();
         }
         // Siempre 204: fire-and-forget. No diferenciamos por status si el evento
         // entró o no en el whitelist (no filtramos la lista hacia fuera).

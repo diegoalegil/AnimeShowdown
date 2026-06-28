@@ -48,6 +48,17 @@ class AnimeShowdownMetricsTest {
     }
 
     @Test
+    void clientEventRechazadoSeAgregaEnUnaSerieDeTagFijo() {
+        metrics.clientEvent("landing_view");
+        metrics.clientEventRechazado();
+        metrics.clientEventRechazado();
+        // El conocido va por su nombre; los desconocidos NO crean serie por nombre,
+        // se acumulan en el tag fijo 'otro_no_reconocido' (cardinalidad acotada).
+        assertThat(contador("as.funnel.client", "evento", "landing_view")).isEqualTo(1.0);
+        assertThat(contador("as.funnel.client", "evento", "otro_no_reconocido")).isEqualTo(2.0);
+    }
+
+    @Test
     void emailEnviadoYFalloSeSegmentanPorTipo() {
         metrics.emailEnviado(EmailTipo.VERIFICACION);
         metrics.emailFallo(EmailTipo.VERIFICACION);
