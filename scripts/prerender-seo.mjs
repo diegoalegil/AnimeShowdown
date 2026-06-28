@@ -252,7 +252,13 @@ const enStaticRoutes = staticRoutes
     title: EN_COPY[r.path].title,
     description: EN_COPY[r.path].description,
     image: r.image,
-    jsonLd: r.jsonLd,
+    // Reusa el grafo ES pero declara el idioma del contenido como inglés: sin
+    // inLanguage el JSON-LD de /en afirma implícitamente contenido ES y
+    // contradice <html lang="en"> + og:locale en_US. Los tipos de las money
+    // pages (WebSite/ItemList/CollectionPage/WebPage) soportan inLanguage.
+    jsonLd: (Array.isArray(r.jsonLd) ? r.jsonLd : r.jsonLd ? [r.jsonLd] : []).map(
+      (node) => ({ ...node, inLanguage: 'en' }),
+    ),
     lang: 'en',
     alt: r.alt,
   }))

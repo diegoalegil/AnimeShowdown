@@ -38,6 +38,49 @@ const SITIO = 'https://animeshowdown.dev'
 // para crawlers.
 const LANGS = ['es', 'en', 'ja']
 
+// EN-first money pages: el prerender (scripts/prerender-seo.mjs → EN_COPY) ya
+// emite la meta EN correcta (title/description/canonical self-referente/
+// og:locale/<html lang="en">). Pero /en y /x montan el MISMO componente, que
+// pasa a useSeo el copy ES de su gemela. Al hidratar, sin esto useSeo revertía
+// el canonical de /en a la URL ES → Google canoniza /en a la versión ES y deja
+// de indexar la variante inglesa (anula toda la Fase 1 EN-first). Aquí
+// mantenemos las señales en inglés en /en. MANTENER EN SYNC con EN_COPY del
+// prerender.
+const EN_MONEY_COPY = {
+  '/en': {
+    title: 'AnimeShowdown — Anime character battle tournaments',
+    description: 'Over 1000 anime characters, live ELO ranking and visual brackets. Vote for your favorites and move the meta every week.',
+  },
+  '/en/ranking': {
+    title: 'Anime ELO ranking · AnimeShowdown',
+    description: 'Top anime characters ranked by competitive signals, community votes and base ELO on AnimeShowdown.',
+  },
+  '/en/personajes': {
+    title: 'Anime characters · AnimeShowdown',
+    description: 'Browsable catalog of anime characters with profile, image, universe and ELO ranking on AnimeShowdown.',
+  },
+  '/en/animes': {
+    title: 'Anime universes · AnimeShowdown',
+    description: 'Anime universes with their roster, ELO top 10 and featured duels inside AnimeShowdown.',
+  },
+  '/en/comparar': {
+    title: 'Compare anime characters · AnimeShowdown',
+    description: 'Build a versus between two anime characters and compare ELO, popularity and community signals.',
+  },
+  '/en/votar': {
+    title: 'Vote anime duels · AnimeShowdown',
+    description: 'Anime duel arena: pick the winners, move the ELO ranking and discover new matchups.',
+  },
+  '/en/games': {
+    title: 'Anime games · AnimeShowdown',
+    description: 'AnimeShowdown daily games: Shadow Guess, Anime Reveal, AniGrid, Impostor Trial and ELO Duel.',
+  },
+  '/en/juegos/anime': {
+    title: 'Anime games online · AnimeShowdown',
+    description: 'Online anime games with daily challenges, ranking, ELO Duel and otaku knowledge quizzes.',
+  },
+}
+
 export function useSeo({
   title,
   description,
@@ -48,13 +91,25 @@ export function useSeo({
   noindex = false,
 } = {}) {
   useEffect(() => {
-    const tituloCompleto = title
-      ? `${title} · ${BASE}`
-      : `${BASE} — Torneos de personajes de anime`
+    // Evaluado al montar: en una carga fresca prerenderizada (caso que importa
+    // para crawlers) el pathname ya es el definitivo de la ruta.
+    const path = typeof window !== 'undefined' ? window.location.pathname : '/'
+    const enCopy = EN_MONEY_COPY[path] ?? null
+
+    const tituloCompleto = enCopy
+      ? enCopy.title
+      : title
+        ? `${title} · ${BASE}`
+        : `${BASE} — Torneos de personajes de anime`
     const tituloOriginal = document.title
     document.title = tituloCompleto
 
-    const url = canonical ?? `${SITIO}${window.location.pathname}`
+    const desc = enCopy ? enCopy.description : description
+    // En /en el canonical es self-referente (no la URL ES gemela) y el og:locale
+    // es inglés, coherente con el HTML prerenderizado.
+    const url = enCopy ? `${SITIO}${path}` : canonical ?? `${SITIO}${path}`
+    const ogLocale = enCopy ? 'en_US' : 'es_ES'
+    const ogLocaleAlt = enCopy ? 'es_ES' : 'en_US'
     const img = absolutizar(image ?? '/logo.webp')
     const hreflangLangs = hreflang === true
       ? LANGS
@@ -63,19 +118,19 @@ export function useSeo({
         : []
 
     const restoradores = [
-      setMetaName('description', description),
+      setMetaName('description', desc),
       setLink('canonical', url),
       setMetaProperty('og:title', tituloCompleto),
-      setMetaProperty('og:description', description),
+      setMetaProperty('og:description', desc),
       setMetaProperty('og:url', url),
       setMetaProperty('og:image', img),
       setMetaProperty('og:type', type),
       setMetaProperty('og:site_name', BASE),
-      setMetaProperty('og:locale', 'es_ES'),
-      setMetaProperty('og:locale:alternate', 'en_US'),
+      setMetaProperty('og:locale', ogLocale),
+      setMetaProperty('og:locale:alternate', ogLocaleAlt),
       setMetaName('twitter:card', 'summary_large_image'),
       setMetaName('twitter:title', tituloCompleto),
-      setMetaName('twitter:description', description),
+      setMetaName('twitter:description', desc),
       setMetaName('twitter:image', img),
       noindex
         ? setMetaName('robots', 'noindex,nofollow')
