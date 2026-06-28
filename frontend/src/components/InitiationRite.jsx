@@ -180,7 +180,7 @@ export default function InitiationRite({ username, to = '/' }) {
         </motion.div>
       </motion.div>
 
-      <p className="pointer-events-none absolute bottom-9 font-mono text-xs text-fg-muted/60">
+      <p className="pointer-events-none absolute bottom-9 font-mono text-xs text-fg-muted/80">
         toca para saltar
       </p>
     </div>

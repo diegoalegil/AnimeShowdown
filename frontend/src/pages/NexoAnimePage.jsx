@@ -319,7 +319,7 @@ function NexoAnimeGame({ todayKey, catalogoPersonajes, dailyRound }) {
                         <span className="font-mono text-3xl font-black text-fg-muted/75">
                           {iniciales(card.nombre)}
                         </span>
-                        <span className="px-3 text-[11px] font-semibold text-fg-muted/65">
+                        <span className="px-3 text-[11px] font-semibold text-fg-muted/80">
                           Nexo pendiente
                         </span>
                       </div>

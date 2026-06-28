@@ -120,6 +120,7 @@ function EmptyState({
   if (scene) {
     return (
       <div
+        role="status"
         className={`relative flex min-h-80 flex-col items-center justify-center gap-4 overflow-hidden rounded-3xl border border-dashed border-white/12 bg-surface/50 p-8 text-center sm:p-12 ${className}`}
         style={{
           '--empty-accent': visual?.accentRgb ?? '159 29 44',

@@ -764,7 +764,7 @@ function TierRow({
         data-tier-row={readOnly ? undefined : tier}
       >
         {items.length === 0 ? (
-          <span className="flex min-h-24 items-center px-2 font-mono text-xs text-fg-muted/55">
+          <span className="flex min-h-24 items-center px-2 font-mono text-xs text-fg-muted/80">
             {isHot ? 'suelta aquí' : 'vacío'}
           </span>
         ) : (
