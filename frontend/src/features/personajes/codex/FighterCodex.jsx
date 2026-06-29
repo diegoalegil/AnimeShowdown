@@ -291,9 +291,24 @@ export default function FighterCodex({
       <meta itemProp="url" content={`https://animeshowdown.dev/personajes/${personaje.slug}`} />
 
       {/* ===================== HERO: frontispicio + cubierta ===================== */}
-      <div ref={heroMorphRef} className="codex__hero h-[clamp(420px,70vh,520px)]">
+      <div ref={heroMorphRef} className="codex__hero h-[clamp(340px,56vh,460px)]">
         {/* FRONTISPICIO (debajo, revelado al abrir) */}
         <div className="absolute inset-0 flex flex-col justify-between overflow-hidden bg-surface-alt p-[clamp(20px,4vw,40px)]">
+          {/* Arte del personaje de fondo: el hero ya no es una barra gris vacía
+              (queja: anticlimático al entrar). Tenue + scrim para que nombre y
+              sellos sigan legibles; decorativo. */}
+          <PersonajeImg
+            slug={personaje.slug}
+            alt=""
+            loading="eager"
+            sizes="(min-width: 880px) 880px, 100vw"
+            className="pointer-events-none absolute inset-0 h-full w-full object-cover object-top opacity-[0.22]"
+          />
+          <div
+            aria-hidden="true"
+            className="pointer-events-none absolute inset-0"
+            style={{ background: 'linear-gradient(180deg, color-mix(in srgb, var(--color-surface-alt) 52%, transparent), color-mix(in srgb, var(--color-surface-alt) 90%, transparent))' }}
+          />
           <span
             aria-hidden="true"
             className="pointer-events-none absolute -bottom-[14%] -right-[2%] font-display text-[clamp(13rem,30vw,22rem)] font-black leading-none"
@@ -302,7 +317,7 @@ export default function FighterCodex({
             {universoKanji}
           </span>
 
-          <div ref={(el) => (riseRefs.current[0] = el)} className="codex__rise flex items-center gap-3">
+          <div ref={(el) => (riseRefs.current[0] = el)} className="codex__rise relative flex items-center gap-3">
             <span className="inline-flex items-center gap-2.5 font-mono text-xs text-gold">
               <span className="h-px w-5 bg-border-gold" />
               {personaje.anime}
@@ -404,7 +419,7 @@ export default function FighterCodex({
           ))}
         </div>
 
-        <div className="relative min-h-[clamp(380px,52vh,520px)] flex-1 overflow-hidden bg-bg">
+        <div className="relative min-h-[clamp(300px,42vh,420px)] flex-1 overflow-hidden bg-bg">
           <CodexPleat
             ref={panelRef}
             id={`codex-panel-${activePleat}-${uid}`}
