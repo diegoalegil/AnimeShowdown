@@ -142,7 +142,12 @@ public class SugerenciaPersonajeService {
     private void notificar(SugerenciaPersonaje s, NotificacionTipo tipo, String titulo, String mensaje) {
         try {
             String payload = "{\"sugerenciaId\":" + s.getId() + "}";
-            notificacionService.crear(s.getUsuario(), tipo, titulo, mensaje, payload);
+            // crearAislada (REQUIRES_NEW): la notificación es best-effort y corre
+            // DENTRO de la tx @Transactional de aprobar()/rechazar(). En Postgres
+            // un insert fallido aborta TODA la tx compartida, así que con crear()
+            // (REQUIRED) este catch era una falsa red — la moderación commiteada
+            // se perdía. Aislada, un fallo solo revierte su propia tx.
+            notificacionService.crearAislada(s.getUsuario(), tipo, titulo, mensaje, payload);
         } catch (Exception e) {
             // La notificación es best-effort: no debe tumbar la moderación.
             log.warn("Notificación de sugerencia {} falló: {}", tipo, e.getMessage());

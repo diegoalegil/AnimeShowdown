@@ -301,7 +301,11 @@ public class TorneoService {
         Usuario creador = torneo.getCreadoPor();
         if (creador == null) return; // legacy / huérfano
         try {
-            notificacionService.crear(creador, tipo, titulo, mensaje, payload);
+            // crearAislada (REQUIRES_NEW): notificación best-effort dentro de la tx
+            // @Transactional de aprobar()/rechazar(). En Postgres un insert fallido
+            // aborta toda la tx compartida; con crear() (REQUIRED) este catch no
+            // protegía la moderación. Aislada, el fallo solo revierte su tx.
+            notificacionService.crearAislada(creador, tipo, titulo, mensaje, payload);
         } catch (Exception e) {
             log.warn("Notificación {} falló para torneo {}: {}",
                     tipo, torneo.getId(), e.getMessage());
