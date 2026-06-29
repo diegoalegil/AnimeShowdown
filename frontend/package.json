@@ -39,7 +39,8 @@
     "lint": "eslint . && node ../scripts/check-color-literals.mjs && node scripts/subset-display-font.mjs --check",
     "typecheck": "tsc --noEmit",
     "preview": "cross-env NODE_OPTIONS=--disable-warning=DEP0205 vite preview",
-    "qa:a11y": "npx --yes @axe-core/cli@4.11.0 http://localhost:4173/ http://localhost:4173/personajes http://localhost:4173/animes http://localhost:4173/torneos http://localhost:4173/ranking http://localhost:4173/login http://localhost:4173/register --tags wcag2a,wcag2aa,wcag21a,wcag21aa --exit"
+    "qa:a11y": "npx --yes @axe-core/cli@4.11.0 http://localhost:4173/ http://localhost:4173/personajes http://localhost:4173/animes http://localhost:4173/torneos http://localhost:4173/ranking http://localhost:4173/login http://localhost:4173/register --tags wcag2a,wcag2aa,wcag21a,wcag21aa --exit",
+    "qa:assets": "node scripts/check-asset-integrity.mjs"
   },
   "dependencies": {
     "@react-three/fiber": "^9.6.1",
