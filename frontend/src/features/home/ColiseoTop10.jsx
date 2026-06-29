@@ -233,7 +233,7 @@ function Ring({ items, onOpen }) {
   return (
     <section
       ref={sectionRef}
-      className="flex h-[680px] min-h-[580px] flex-col overflow-hidden rounded-3xl border border-white/10 bg-bg text-fg select-none"
+      className="flex flex-col overflow-hidden rounded-3xl border border-white/10 bg-bg text-fg select-none [container-type:inline-size]"
       aria-label="Top 10 — Coliseo de Leyendas"
     >
       {/* cabecera */}
@@ -249,8 +249,16 @@ function Ring({ items, onOpen }) {
 
       {/* arena */}
       <div
-        className="relative flex min-h-0 flex-1 cursor-grab items-center justify-center overflow-hidden active:cursor-grabbing [container-type:inline-size]"
-        style={{ touchAction: "pan-y" }}
+        className="relative flex cursor-grab items-center justify-center overflow-hidden active:cursor-grabbing [container-type:inline-size]"
+        // Altura de la arena = altura VISUAL de la escena escalada (no flex-1 de
+        // una sección de alto fijo): la escena 1000×620 se escala por
+        // clamp(0.4, 100cqw/1000, 1) ⇒ alto visual = clamp(248px, 62cqw, 620px).
+        // El 62cqw resuelve contra la SECCIÓN (container-type), no contra la
+        // propia arena. El tope 466px = ventana de recorte del diseño en
+        // desktop (idéntico a la flex-1 anterior); en móvil la arena encoge con
+        // la escena y desaparece la franja vacía. La cabecera/footer quedan
+        // naturales (el footer envuelve a 2 filas en móvil sin romper el cálculo).
+        style={{ touchAction: "pan-y", height: "clamp(248px, 62cqw, 466px)" }}
         role="listbox"
         aria-label="Carrusel del top 10 — gira para elegir personaje"
         aria-activedescendant={`coliseo-card-${front}`}
