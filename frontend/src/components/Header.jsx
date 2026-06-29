@@ -6,7 +6,7 @@ import { AppLink, AppNavLink } from './AppLink'
 import { useAuth } from '../contexts/AuthContext'
 import { useSound } from '../contexts/SoundContext'
 import Avatar from './Avatar'
-import LanguageToggle from './LanguageToggle'
+// LanguageToggle aparcado (ES-first): ver nota donde estaba montado.
 import CalmLantern from './CalmLantern'
 import NotifBell from './NotifBell'
 import SaldoChip from './SaldoChip'
@@ -219,7 +219,11 @@ function Header() {
             ⌘K
           </kbd>
         </button>
-        <LanguageToggle />
+        {/* Toggle de idioma APARCADO: ES-first hasta que el cuerpo (fichas,
+            animes, versus) tenga cobertura real EN/JA. Ofrecerlo cuando solo
+            ~4% de la UI está traducida prometía un inglés que no existe. El
+            componente LanguageToggle, el catálogo i18n y las rutas /en siguen
+            vivos (SEO); re-montar aquí cuando se complete la traducción. */}
         <button
           type="button"
           onClick={() => {
@@ -389,7 +393,7 @@ function Header() {
         </div>
         <NorenTablilla index={primaryNavLinks.length + moreNavLinks.length + 3}>
           <div className="mt-3 flex items-center gap-2 border-t border-border pt-3">
-            <LanguageToggle />
+            {/* Toggle de idioma aparcado (ES-first) — ver nota en la barra desktop. */}
             <button
               type="button"
               onClick={() => { toggleMute(); if (muted) play('playClick') }}
