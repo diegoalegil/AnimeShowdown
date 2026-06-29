@@ -9,7 +9,6 @@ import java.util.Set;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.dao.DuplicateKeyException;
 import org.springframework.dao.EmptyResultDataAccessException;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -165,15 +164,20 @@ public class SugerenciaPersonajeService {
         if (usados != null) {
             return false;
         }
-        try {
-            jdbcTemplate.update("""
-                    INSERT INTO sugerencia_rate_limit (usuario_id, ventana_inicio, usados, actualizado_en)
-                    VALUES (?, ?, 1, ?)
-                    """, usuarioId, ventana, ahora);
+        // INSERT idempotente (ON CONFLICT DO NOTHING) en vez de try/catch sobre
+        // DuplicateKeyException: en Postgres un INSERT que viola la PK aborta TODA
+        // la tx del @Transactional del llamador, así que el catch + UPDATE siguiente
+        // fallaba con "current transaction is aborted" (H2 no lo reproduce). No lanza.
+        int insertadas = jdbcTemplate.update("""
+                INSERT INTO sugerencia_rate_limit (usuario_id, ventana_inicio, usados, actualizado_en)
+                VALUES (?, ?, 1, ?)
+                ON CONFLICT DO NOTHING
+                """, usuarioId, ventana, ahora);
+        if (insertadas == 1) {
             return true;
-        } catch (DuplicateKeyException ignored) {
-            return incrementarCupo(usuarioId, ventana, ahora);
         }
+        // Otro request creó la fila en la carrera: ahora incrementamos sobre ella.
+        return incrementarCupo(usuarioId, ventana, ahora);
     }
 
     private boolean incrementarCupo(Long usuarioId, LocalDateTime ventana, LocalDateTime ahora) {
