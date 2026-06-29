@@ -64,6 +64,7 @@ export default function VoiceWall({
   title = 'El muro de voces',
   footer = null,
   pending = false,
+  isError = false,
 }) {
   const [localVoices, setLocalVoices] = useState([]) // optimistas + confirmadas aún no presentes en props
   const [pendingFlight, setPendingFlight] = useState(null) // { id, from }
@@ -326,7 +327,16 @@ export default function VoiceWall({
         </div>
       )}
 
-      {merged.length === 0 && !pending ? (
+      {merged.length === 0 && !pending && isError ? (
+        // Sin voces Y la query falló: NO mostramos "Sé la primera voz" (mentiría
+        // diciendo que no hay comentarios cuando en realidad la carga falló).
+        <div className="vw-empty" role="alert">
+          <p className="vw-empty-title">No se pudieron cargar los comentarios.</p>
+          <p className="vw-empty-sub">
+            Algo falló al traer el muro. Vuelve a intentarlo en un momento.
+          </p>
+        </div>
+      ) : merged.length === 0 && !pending ? (
         <div className="vw-empty">
           <span className="vw-empty-kanji" aria-hidden="true">
             空

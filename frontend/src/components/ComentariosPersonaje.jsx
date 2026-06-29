@@ -179,6 +179,7 @@ function ComentariosPersonaje({ slug, nombre }) {
         title={`Comentarios sobre ${nombre}`}
         footer={footer}
         pending={comentariosQuery.isLoading}
+        isError={comentariosQuery.isError}
       />
     </section>
   )
