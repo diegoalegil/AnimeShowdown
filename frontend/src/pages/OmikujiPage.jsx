@@ -4,7 +4,7 @@ import { motion } from 'framer-motion'
 import { toast } from 'sonner'
 import { ArrowLeft, Copy, Sparkles } from 'lucide-react'
 import { useSeo } from '../hooks/useSeo'
-import { breadcrumbsSchema } from '../lib/schema'
+import { breadcrumbsSchema, gameWebApplicationSchema } from '../lib/schema'
 import JsonLd from '../components/JsonLd'
 import KanjiStroke from '../components/KanjiStroke'
 import { VisualPageShell } from '../components/VisualSystem'
@@ -215,6 +215,23 @@ function OmikujiPage() {
           { label: 'Inicio', path: '/' },
           { label: 'Omikuji', path: '/omikuji' },
         ])}
+      />
+      <JsonLd
+        id="game-omikuji"
+        schema={gameWebApplicationSchema({
+          name: 'Omikuji diario',
+          alternateName: 'Suerte japonesa diaria',
+          path: '/omikuji',
+          description:
+            'Suerte japonesa del día estilo santuario: 大吉, 中吉, 小吉, 末吉 o 凶. Tira tu palito y descubre qué te depara el día en AnimeShowdown.',
+          featureList: [
+            'Suerte determinista diaria',
+            'Cinco fortunas tradicionales con su kanji',
+            'Animación de cilindro de palitos',
+            'Resultado compartible',
+          ],
+          keywords: ['omikuji', 'suerte japonesa', 'fortuna diaria anime', 'omikuji online'],
+        })}
       />
       <div className="mx-auto max-w-2xl">
         <Link

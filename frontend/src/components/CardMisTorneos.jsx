@@ -14,7 +14,7 @@ import { pickVacio } from './Kaomoji'
  * padre PerfilPage redirige a /login) no renderiza nada.
  */
 function CardMisTorneos() {
-  const { data: torneos, isLoading } = useMisTorneos()
+  const { data: torneos, isLoading, isError } = useMisTorneos()
 
   return (
     <div className="rounded-2xl border border-border bg-surface p-6">
@@ -35,6 +35,10 @@ function CardMisTorneos() {
         <div className="flex items-center justify-center py-6">
           <KanjiSpinner size="sm" />
         </div>
+      ) : isError ? (
+        <p className="rounded-lg border border-danger/30 bg-danger/5 p-3 text-[13px] text-danger">
+          No se pudieron cargar tus torneos. Recarga la página.
+        </p>
       ) : !torneos || torneos.length === 0 ? (
         <div className="flex flex-col items-center gap-3 py-6 text-center text-fg-muted">
           <p className="font-mono text-2xl text-fg-muted/80">

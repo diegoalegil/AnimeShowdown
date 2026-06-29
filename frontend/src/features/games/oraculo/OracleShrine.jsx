@@ -271,6 +271,8 @@ export default function OracleShrine({
                         src={verdict.imageSrc}
                         srcSet={verdict.imageSrcSet}
                         alt={verdict.character.name}
+                        loading="lazy"
+                        decoding="async"
                         className="as-img-reveal h-full w-full rounded-xl object-cover"
                       />
                       <div className="absolute inset-x-0 bottom-0 rounded-b-xl bg-gradient-to-t from-canvas/95 to-transparent px-3 pb-2.5 pt-7 text-center font-mono text-xs text-fg-strong">

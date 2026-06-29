@@ -40,7 +40,7 @@ import PersonajeImg from './PersonajeImg'
  */
 function FavoritosPulsoBanner() {
   const { user } = useAuth()
-  const { data: favoritos, isLoading: favLoading } = useMisFavoritos()
+  const { data: favoritos, isLoading: favLoading, isError: favError } = useMisFavoritos()
   // Reuso del cache de Pulso. Si Pulso ya cargó la query, este hook
   // devuelve los datos al instante; si no, dispara fetch.
   const { data: movimientos } = useQuery({
@@ -95,6 +95,10 @@ function FavoritosPulsoBanner() {
 
   if (!user) return null
   if (favLoading) return <BannerSkeleton />
+  // Si la query de favoritos falló, ocultamos el banner en vez de mostrar el
+  // estado "sigue personajes" (que daría a entender, en falso, que no sigues a
+  // nadie). Es secundario, así que no vale la pena un estado de error propio.
+  if (favError) return null
 
   const totalFavoritos = favoritos?.length ?? 0
   if (totalFavoritos === 0) return <BannerSinFavoritos />

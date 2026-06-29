@@ -54,6 +54,7 @@ function ProfileBanner({
             src={src}
             alt={alt}
             loading="lazy"
+            decoding="async"
             onError={() => setFailed(true)}
             onLoad={(e) => {
               const { naturalWidth: w, naturalHeight: h } = e.currentTarget
