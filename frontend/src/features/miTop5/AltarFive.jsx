@@ -378,7 +378,7 @@ export default function AltarFive({
     >
       <div className="af-bg" aria-hidden="true">
         {bgSceneSrc ? (
-          <img className="af-bg__img" src={bgSceneSrc} alt={bgAlt} />
+          <img className="af-bg__img" src={bgSceneSrc} alt={bgAlt} loading="lazy" decoding="async" />
         ) : null}
         <div className="af-bg__scrim"></div>
       </div>

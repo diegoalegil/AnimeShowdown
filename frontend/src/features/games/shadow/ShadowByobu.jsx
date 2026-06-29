@@ -159,6 +159,7 @@ export default function ShadowByobu({
               <img
                 src={arteSrc}
                 alt={personaje.nombre}
+                decoding="async"
                 className="h-full w-full rounded-t-md object-cover shadow-elev-2"
               />
               <div className="sb-scrim-nombre absolute inset-x-0 bottom-0 px-3.5 pb-3 pt-9">
