@@ -108,4 +108,17 @@ describe('ComentariosPersonaje (Muro de voces)', () => {
     renderMuro()
     expect(await screen.findByText('Sé la primera voz.')).toBeInTheDocument()
   })
+
+  it('si la carga falla muestra un error, NO "sé la primera voz"', async () => {
+    h.user.value = { id: 1, username: 'goku' }
+    h.endpoints.comentariosPersonaje.mockRejectedValue(new h.ApiError('boom', 500))
+    renderMuro()
+    // El estado de error es honesto y accesible (role=alert), no finge "no hay
+    // comentarios todavía".
+    expect(
+      await screen.findByText('No se pudieron cargar los comentarios.'),
+    ).toBeInTheDocument()
+    expect(screen.getByRole('alert')).toBeInTheDocument()
+    expect(screen.queryByText('Sé la primera voz.')).not.toBeInTheDocument()
+  })
 })
