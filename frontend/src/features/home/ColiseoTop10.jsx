@@ -249,7 +249,7 @@ function Ring({ items, onOpen }) {
 
       {/* arena */}
       <div
-        className="relative flex min-h-0 flex-1 cursor-grab items-center justify-center overflow-hidden active:cursor-grabbing"
+        className="relative flex min-h-0 flex-1 cursor-grab items-center justify-center overflow-hidden active:cursor-grabbing [container-type:inline-size]"
         style={{ touchAction: "pan-y" }}
         role="listbox"
         aria-label="Carrusel del top 10 — gira para elegir personaje"
@@ -261,8 +261,11 @@ function Ring({ items, onOpen }) {
         onPointerUp={onPointerUp}
         onPointerCancel={onPointerUp}
       >
-        {/* escena con cámara fija; escala fluida para mobile (390px sin desbordes) */}
-        <div className="shrink-0" style={{ width: 1000, height: 620, scale: "clamp(0.4, 100vw / 1000px, 1)" }}>
+        {/* escena con cámara fija; escala al CONTENEDOR (la arena con clip), no al
+            viewport: con 100vw la escena de 1000px era más ancha que el panel
+            (max-w-7xl menos padding) y las cartas laterales se recortaban. cqw =
+            ancho de la arena (container-type:inline-size en el padre). */}
+        <div className="shrink-0" style={{ width: 1000, height: 620, scale: "clamp(0.4, 100cqw / 1000px, 1)" }}>
           <div className="relative h-full w-full" style={{ perspective: 1300, perspectiveOrigin: "50% 36%" }}>
             {/* suelo de la arena */}
             <div
