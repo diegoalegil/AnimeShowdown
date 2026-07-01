@@ -65,7 +65,7 @@ jobs:
       DISCORD_CLIENT_SECRET: ci-dummy-discord-secret
 
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v7
 
       - name: Set up Java 21
         uses: actions/setup-java@v5
