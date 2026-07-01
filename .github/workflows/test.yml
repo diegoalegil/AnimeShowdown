@@ -32,7 +32,7 @@ jobs:
       run:
         working-directory: backend
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v7
         with:
           fetch-depth: 0
 
@@ -89,7 +89,7 @@ jobs:
       # origin/main...HEAD`; con el shallow clone por defecto origin/main no
       # resuelve, el diff sale vacío y el guard pasa en silencio sin mirar
       # nada. El job backend ya usa fetch-depth: 0 por el guardrail de Flyway.
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v7
         with:
           fetch-depth: 0
 
@@ -187,7 +187,7 @@ jobs:
     name: sync-personajes (--check drift)
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v7
 
       - name: Set up Node 22 LTS
         uses: actions/setup-node@v6
