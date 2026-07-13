@@ -88,7 +88,7 @@
 		<dependency>
 			<groupId>org.bouncycastle</groupId>
 			<artifactId>bcprov-jdk18on</artifactId>
-			<version>1.84</version>
+			<version>1.85</version>
 		</dependency>
 		<!-- Lombok: @Getter/@Setter en entidades JPA para recortar boilerplate.
 		     scope provided + optional => NO se empaqueta en el jar; solo procesa
