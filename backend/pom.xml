@@ -178,7 +178,7 @@
 		<dependency>
 			<groupId>com.twelvemonkeys.imageio</groupId>
 			<artifactId>imageio-webp</artifactId>
-			<version>3.13.1</version>
+			<version>3.14.0</version>
 		</dependency>
 
 		<!-- Bucket4j para rate limiting in-memory. Protege /auth/login,
