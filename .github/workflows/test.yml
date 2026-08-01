@@ -47,7 +47,7 @@ jobs:
           ../scripts/check-flyway-migrations.sh "$BASE_SHA"
 
       - name: Set up Java 21
-        uses: actions/setup-java@v5
+        uses: actions/setup-java@v5.6.0
         with:
           distribution: temurin
           java-version: '21'
