@@ -1,0 +1,370 @@
+/* ==========================================================================
+   AnimeShowdown — sistema de diseño
+   Papel (washi) y tinta (sumi) como base; bermellón (shu) solo en sellos,
+   estados activos y foco; noche (yoru) para los momentos de contraste.
+   ========================================================================== */
+
+/* Tipografías autoalojadas. Solo se descargan los rangos que la página usa:
+   latin/latin-ext para el texto y, para el japonés, los ~120 trozos con
+   unicode-range del mincho (normalmente uno o dos por página). */
+@import '@fontsource/newsreader/latin-400.css';
+@import '@fontsource/newsreader/latin-ext-400.css';
+@import '@fontsource/newsreader/latin-500.css';
+@import '@fontsource/newsreader/latin-ext-500.css';
+@import '@fontsource/newsreader/latin-400-italic.css';
+@import '@fontsource/ibm-plex-sans/latin-400.css';
+@import '@fontsource/ibm-plex-sans/latin-ext-400.css';
+@import '@fontsource/ibm-plex-sans/latin-500.css';
+@import '@fontsource/ibm-plex-sans/latin-ext-500.css';
+@import '@fontsource/shippori-mincho/400.css';
+
+@import 'tailwindcss' source(none);
+@source '../index.html';
+@source './**/*.{js,jsx}';
+
+@theme static {
+  /* Reinicia la paleta por defecto: solo existen los colores de la casa. */
+  --color-*: initial;
+
+  /* Papel */
+  --color-washi: #f3efe6;
+  --color-kinu: #faf8f2;
+  --color-hoshi: #ebe5d8;
+  --color-sen: #d4ccbb;
+
+  /* Tinta */
+  --color-sumi: #1c1a17;
+  --color-sumi-2: #3a3631;
+  --color-nezumi: #5e584e;
+  --color-hai: #8a8374;
+
+  /* Bermellón */
+  --color-shu: #c23b22;
+  --color-shu-fuka: #93301e;
+  --color-shu-akari: #e8664a;
+
+  /* Noche */
+  --color-yoru: #121110;
+  --color-yoru-2: #1b1917;
+  --color-yoru-3: #28251f;
+  --color-yoru-sen: #3b3630;
+  --color-gofun: #eee8dc;
+  --color-gofun-2: #aaa192;
+
+  --color-transparent: transparent;
+  --color-current: currentColor;
+
+  /* Tipografía */
+  --font-serif: 'Newsreader', 'Shippori Mincho', Georgia, 'Times New Roman', serif;
+  --font-sans: 'IBM Plex Sans', system-ui, -apple-system, 'Segoe UI', sans-serif;
+  --font-jp: 'Shippori Mincho', 'Hiragino Mincho ProN', 'Yu Mincho', 'Noto Serif JP', serif;
+
+  --text-2xs: 0.6875rem;
+  --text-2xs--line-height: 1.35;
+  --text-xs: 0.75rem;
+  --text-xs--line-height: 1.4;
+  --text-sm: 0.8125rem;
+  --text-sm--line-height: 1.45;
+  --text-base: 0.9375rem;
+  --text-base--line-height: 1.55;
+  --text-lg: 1.0625rem;
+  --text-lg--line-height: 1.35;
+  --text-xl: 1.25rem;
+  --text-xl--line-height: 1.3;
+  --text-2xl: 1.625rem;
+  --text-2xl--line-height: 1.15;
+  --text-3xl: 2.25rem;
+  --text-3xl--line-height: 1.06;
+  --text-4xl: 3rem;
+  --text-4xl--line-height: 1.02;
+  --text-5xl: 4rem;
+  --text-5xl--line-height: 0.98;
+
+  --tracking-tight: -0.018em;
+  --tracking-wide: 0.06em;
+  --tracking-jp: 0.14em;
+
+  /* Esquinas rectas como una obra enmarcada; solo los sellos se redondean un poco. */
+  --radius-none: 0;
+  --radius-sello: 3px;
+
+  --container-page: 80rem;
+  --container-prosa: 38rem;
+
+  --ease-sumi: cubic-bezier(0.22, 1, 0.36, 1);
+  --ease-fude: cubic-bezier(0.65, 0, 0.35, 1);
+  --ease-hane: cubic-bezier(0.34, 1.4, 0.64, 1);
+
+  --shadow-lamina: 0 1px 2px rgb(28 26 23 / 0.16);
+  --shadow-alzada: 0 18px 30px -18px rgb(28 26 23 / 0.45);
+}
+
+:root {
+  /* Movimiento: duraciones compartidas por CSS y por la API de animaciones. */
+  --dur-1: 120ms;
+  --dur-2: 220ms;
+  --dur-3: 380ms;
+  --dur-4: 620ms;
+  --dur-5: 900ms;
+
+  --gutter: 1rem;
+  --foco: var(--color-shu-fuka);
+  --papel: url('/washi.png');
+
+  color-scheme: light;
+}
+
+@media (min-width: 48rem) {
+  :root {
+    --gutter: 2.5rem;
+  }
+}
+
+@media (min-width: 75rem) {
+  :root {
+    --gutter: 3.5rem;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  :root {
+    --dur-3: 160ms;
+    --dur-4: 200ms;
+    --dur-5: 240ms;
+  }
+}
+
+/* --------------------------------------------------------------------------
+   Base
+   -------------------------------------------------------------------------- */
+@layer base {
+  html {
+    -webkit-text-size-adjust: 100%;
+    text-size-adjust: 100%;
+    scrollbar-gutter: stable;
+    background-color: var(--color-yoru);
+  }
+
+  body {
+    min-height: 100dvh;
+    margin: 0;
+    background-color: var(--color-washi);
+    background-image: var(--papel);
+    color: var(--color-sumi);
+    font-family: var(--font-sans);
+    font-size: var(--text-base);
+    line-height: var(--text-base--line-height);
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    font-synthesis-weight: none;
+    overflow-x: clip;
+  }
+
+  :lang(ja) {
+    font-family: var(--font-jp);
+    font-feature-settings: 'palt' 0;
+  }
+
+  h1,
+  h2,
+  h3 {
+    font-family: var(--font-serif);
+    font-weight: 400;
+    letter-spacing: var(--tracking-tight);
+    text-wrap: balance;
+  }
+
+  a {
+    color: inherit;
+    text-decoration: none;
+  }
+
+  img {
+    display: block;
+    max-width: 100%;
+  }
+
+  button {
+    cursor: pointer;
+  }
+
+  ::selection {
+    background-color: var(--color-shu);
+    color: var(--color-kinu);
+  }
+
+  :focus-visible {
+    outline: 2px solid var(--foco);
+    outline-offset: 3px;
+  }
+
+  .yoru {
+    --foco: var(--color-shu-akari);
+    --papel: none;
+    background-color: var(--color-yoru);
+    color: var(--color-gofun);
+  }
+
+  .yoru ::selection {
+    background-color: var(--color-shu-akari);
+    color: var(--color-yoru);
+  }
+}
+
+/* --------------------------------------------------------------------------
+   Utilidades propias
+   -------------------------------------------------------------------------- */
+@utility wrap {
+  width: 100%;
+  max-width: var(--container-page);
+  margin-inline: auto;
+  padding-inline: var(--gutter);
+}
+
+@utility tate {
+  writing-mode: vertical-rl;
+  text-orientation: mixed;
+  font-family: var(--font-jp);
+  letter-spacing: var(--tracking-jp);
+  line-height: 1;
+}
+
+@utility cifra {
+  font-variant-numeric: tabular-nums lining-nums;
+  font-feature-settings: 'tnum' 1;
+}
+
+@utility filete {
+  /* Filete fino, como el borde irregular de una hoja de washi. */
+  height: 1px;
+  border: 0;
+  background-color: var(--color-sen);
+}
+
+@utility solo-lectores {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  margin: -1px;
+  padding: 0;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+  border: 0;
+}
+
+/* --------------------------------------------------------------------------
+   Movimiento
+   -------------------------------------------------------------------------- */
+
+/* Pincelada: el título se descubre bajo una capa de papel que se retira con
+   un borde de trazo de pincel. Solo se anima transform, una vez. */
+@utility pincel {
+  position: relative;
+  display: inline-block;
+  overflow: clip;
+  overflow-clip-margin: 0.15em;
+  padding-block-end: 0.06em;
+
+  &::after {
+    content: '';
+    position: absolute;
+    /* El borde de pincel ocupa el primer 20 % de la capa: empieza fuera del texto. */
+    inset: -0.1em -0.2em -0.1em -24%;
+    background-color: var(--pincel-fondo, var(--color-washi));
+    background-image: var(--papel);
+    mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 120 100' preserveAspectRatio='none'%3E%3Cpath d='M14 0H120V100H6Q14 94 10 86Q4 78 13 70Q20 62 11 55Q5 47 15 40Q22 33 12 26Q6 18 16 11Q20 5 14 0Z'/%3E%3C/svg%3E");
+    mask-size: 100% 100%;
+    transform: translate3d(0, 0, 0);
+    animation: pincel-retira var(--dur-5) var(--ease-fude) 80ms both;
+    pointer-events: none;
+  }
+}
+
+@keyframes pincel-retira {
+  to {
+    transform: translate3d(105%, 0, 0);
+  }
+}
+
+/* Entrada escalonada de elementos al llegar al viewport (ver lib/motion). */
+[data-revelar] {
+  opacity: 0;
+  transform: translate3d(0, 18px, 0);
+}
+
+[data-revelar='visto'] {
+  opacity: 1;
+  transform: none;
+  transition:
+    opacity var(--dur-4) var(--ease-sumi) var(--retardo, 0ms),
+    transform var(--dur-4) var(--ease-sumi) var(--retardo, 0ms);
+}
+
+@keyframes aparece {
+  from {
+    opacity: 0;
+    transform: translate3d(0, 10px, 0);
+  }
+}
+
+@keyframes funde {
+  from {
+    opacity: 0;
+  }
+}
+
+/* Transiciones entre rutas (View Transitions API). */
+::view-transition-old(root) {
+  animation: var(--dur-2) var(--ease-fude) both vt-sale;
+}
+
+::view-transition-new(root) {
+  animation: var(--dur-3) var(--ease-sumi) 60ms both vt-entra;
+}
+
+::view-transition-group(carta) {
+  animation-duration: var(--dur-4);
+  animation-timing-function: var(--ease-sumi);
+}
+
+@keyframes vt-sale {
+  to {
+    opacity: 0;
+    transform: translate3d(0, -6px, 0);
+  }
+}
+
+@keyframes vt-entra {
+  from {
+    opacity: 0;
+    transform: translate3d(0, 12px, 0);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  [data-revelar] {
+    transform: none;
+  }
+
+  [data-revelar='visto'] {
+    transition: opacity var(--dur-2) linear;
+  }
+
+  .pincel::after {
+    animation: funde var(--dur-2) linear reverse both;
+  }
+
+  *,
+  ::before,
+  ::after {
+    animation-delay: 0ms !important;
+    transition-delay: 0ms !important;
+  }
+
+  ::view-transition-group(*),
+  ::view-transition-old(*),
+  ::view-transition-new(*) {
+    animation: none !important;
+  }
+}
