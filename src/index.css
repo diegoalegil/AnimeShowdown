@@ -4,9 +4,8 @@
    estados activos y foco; noche (yoru) para los momentos de contraste.
    ========================================================================== */
 
-/* Tipografías autoalojadas. Solo se descargan los rangos que la página usa:
-   latin/latin-ext para el texto y, para el japonés, los ~120 trozos con
-   unicode-range del mincho (normalmente uno o dos por página). */
+/* Tipografías autoalojadas: solo se descargan los rangos que la página usa.
+   El mincho japonés vive en fuentes-jp.css y se carga aparte (ver main.jsx). */
 @import '@fontsource/newsreader/latin-400.css';
 @import '@fontsource/newsreader/latin-ext-400.css';
 @import '@fontsource/newsreader/latin-500.css';
@@ -16,7 +15,6 @@
 @import '@fontsource/ibm-plex-sans/latin-ext-400.css';
 @import '@fontsource/ibm-plex-sans/latin-500.css';
 @import '@fontsource/ibm-plex-sans/latin-ext-500.css';
-@import '@fontsource/shippori-mincho/400.css';
 
 @import 'tailwindcss' source(none);
 @source '../index.html';

@@ -9,3 +9,5 @@ createRoot(document.getElementById('root')).render(
     </main>
   </StrictMode>,
 )
+
+import('./fuentes-jp.css')
