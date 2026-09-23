@@ -20,7 +20,7 @@ const LUFFY_G5 = {
   variante: 'Gear 5',
   anime: 'One Piece',
   animeId: 'one-piece',
-  img: 'img/especiales/luffy__gear5.webp',
+  img: 'img/especiales/luffy__gear5',
 }
 
 const pintar = (elemento) => renderToStaticMarkup(elemento)
@@ -68,7 +68,7 @@ describe('Carta', () => {
     expect(especial).toContain('data-especial="true"')
     expect(especial).toContain('>E-49<')
     expect(especial).toContain('Especial · Gear 5')
-    expect(especial).not.toContain('srcSet')
+    expect(especial).toContain('luffy__gear5-300.webp 300w')
   })
 
   it('se prepara para la entrada escalonada y las rejillas largas', () => {

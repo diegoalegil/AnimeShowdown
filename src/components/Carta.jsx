@@ -45,7 +45,7 @@ export function Carta({
         <img
           src={img.src}
           srcSet={img.srcSet}
-          sizes={img.srcSet ? TAMANOS[tamano] : undefined}
+          sizes={TAMANOS[tamano]}
           width={img.width}
           height={img.height}
           alt={cartela ? '' : `Carta de ${carta.nombre}, de ${carta.anime}`}

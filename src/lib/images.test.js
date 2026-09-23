@@ -19,9 +19,10 @@ describe('imagenCarta', () => {
     expect(img.width / img.height).toBeCloseTo(2 / 3)
   })
 
-  it('usa el archivo único de las especiales', () => {
-    const img = imagenCarta({ img: 'img/especiales/luffy__gear5.webp' }, '/')
-    expect(img).toEqual({ src: '/img/especiales/luffy__gear5.webp', srcSet: undefined, width: 1024, height: 1536 })
+  it('trata igual a las especiales', () => {
+    const img = imagenCarta({ img: 'img/especiales/luffy__gear5' }, '/')
+    expect(img.src).toBe('/img/especiales/luffy__gear5-600.webp')
+    expect(img.srcSet).toContain('/img/especiales/luffy__gear5-300.webp 300w')
   })
 })
 

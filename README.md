@@ -63,7 +63,9 @@ El despliegue a GitHub Pages lo hace `.github/workflows/deploy.yml` en cada push
    También se ejecuta al construir: si falta un archivo o un campo, el build falla.
 
 Las cartas especiales viven en `src/data/especiales.json` y `public/img/especiales/`,
-con un único archivo por carta.
+con los mismos tres tamaños. Basta con copiar la ilustración original y ejecutar
+`node scripts/generate-especiales.mjs` (necesita `cwebp` y `dwebp`): crea las versiones
+de 300 y 600 px y anota en los datos la ruta y el tono dominante.
 
 ## Derechos
 

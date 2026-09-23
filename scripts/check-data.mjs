@@ -81,14 +81,18 @@ for (const a of animes) {
 }
 
 // Especiales
-checkRequired(especiales, 'especiales', ['id', 'nombre', 'anime', 'animeId', 'img'])
+checkRequired(especiales, 'especiales', ['id', 'nombre', 'anime', 'animeId', 'img', 'color'])
 checkUnique(especiales, 'especiales', new Set(ids))
 checkNumbering(especiales, 'especiales')
 for (const e of especiales) {
   if (!e.id?.startsWith('e-')) fail(`especiales: "${e.id}" debe empezar por "e-"`)
   if (e.personajeId !== undefined && !ids.has(e.personajeId)) fail(`especiales: "${e.id}" personajeId desconocido "${e.personajeId}"`)
   if (!animeById.has(e.animeId)) fail(`especiales: "${e.id}" animeId desconocido "${e.animeId}"`)
-  if (isText(e.img)) checkFile(e.img, `especiales "${e.id}"`)
+  if (e.color && !HEX.test(e.color)) fail(`especiales: "${e.id}" color inválido "${e.color}"`)
+  if (isText(e.img)) {
+    if (/\.\w+$/.test(e.img)) fail(`especiales: "${e.id}" img debe ir sin extensión`)
+    for (const suffix of ['', '-300', '-600']) checkFile(`${e.img}${suffix}.webp`, `especiales "${e.id}"`)
+  }
 }
 
 if (errors.length) {

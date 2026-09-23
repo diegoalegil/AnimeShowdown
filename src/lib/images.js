@@ -1,6 +1,6 @@
-// URLs de las ilustraciones. Los personajes tienen tres tamaños en public/img
-// (<ruta>-300.webp, <ruta>-600.webp y <ruta>.webp, ~1024 px de ancho); las
-// especiales tienen un único archivo con extensión en el propio dato.
+// URLs de las ilustraciones. Cada carta, personaje o especial, tiene tres
+// tamaños en public/img: <ruta>-300.webp, <ruta>-600.webp y <ruta>.webp
+// (~1024 px de ancho).
 
 const ANCHO_ORIGINAL = 1024
 
@@ -24,10 +24,6 @@ export function urlPublica(ruta, base = import.meta.env.BASE_URL) {
  */
 export function imagenCarta(carta, base) {
   const ruta = carta.img
-  if (/\.\w+$/.test(ruta)) {
-    // Especial: un único archivo de 1024 × 1536.
-    return { src: urlPublica(ruta, base), srcSet: undefined, width: 1024, height: 1536 }
-  }
   const url = (sufijo) => urlPublica(`${ruta}${sufijo}.webp`, base)
   return {
     src: url('-600'),
