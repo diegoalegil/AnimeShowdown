@@ -44,7 +44,7 @@ export const Hoja = memo(function Hoja({ hoja, tengo, porPegar = '', recientes =
         <div className="hoja-lomo-fijo">
           {numero && <span className="hoja-orden cifra">{numero}</span>}
           {nativo && (
-            <span lang="ja" className="tate hoja-lomo-ja">
+            <span lang="ja" className="hoja-lomo-ja">
               {nativo}
             </span>
           )}
@@ -124,7 +124,7 @@ function BolsilloVacio({ carta }) {
       <span className="bolsillo-hueco" aria-hidden="true">
         <span className="bolsillo-numero cifra">{numero}</span>
         {carta.nativo && (
-          <span lang="ja" className="tate bolsillo-ja">
+          <span lang="ja" className="bolsillo-ja">
             {carta.nativo}
           </span>
         )}

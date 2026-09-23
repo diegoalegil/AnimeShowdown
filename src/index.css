@@ -63,6 +63,11 @@
   --font-serif: 'Newsreader', 'Shippori Mincho', Georgia, 'Times New Roman', serif;
   --font-sans: 'IBM Plex Sans', system-ui, -apple-system, 'Segoe UI', sans-serif;
   --font-jp: 'Shippori Mincho', 'Hiragino Mincho ProN', 'Yu Mincho', 'Noto Serif JP', serif;
+  /* Rótulos japoneses pequeños y muy repetidos (cientos en el álbum): primero
+     el mincho del sistema. Con la fuente web, cada tramo de caracteres nuevo
+     es una descarga y un nuevo cálculo del texto, y Safari da tirones al
+     hacer scroll por listas largas. */
+  --font-jp-rotulo: 'Hiragino Mincho ProN', 'Yu Mincho', 'YuMincho', 'Shippori Mincho', 'Noto Serif JP', serif;
 
   --text-2xs: 0.6875rem;
   --text-2xs--line-height: 1.35;

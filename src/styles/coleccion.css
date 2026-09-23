@@ -413,8 +413,12 @@
   }
 
   .hoja-lomo-ja {
+    writing-mode: vertical-rl;
+    text-orientation: mixed;
     color: var(--color-sumi-2);
+    font-family: var(--font-jp-rotulo);
     font-size: var(--text-base);
+    line-height: 1;
     letter-spacing: 0.18em;
   }
 
@@ -449,6 +453,7 @@
 .hoja-nativo {
   grid-column: 1;
   color: var(--color-nezumi);
+  font-family: var(--font-jp-rotulo);
   font-size: var(--text-sm);
   letter-spacing: 0.08em;
 }
@@ -589,8 +594,12 @@
   right: 0.5rem;
   max-block-size: calc(100% - 1.25rem);
   overflow: hidden;
+  writing-mode: vertical-rl;
+  text-orientation: mixed;
   color: var(--color-hai);
+  font-family: var(--font-jp-rotulo);
   font-size: 0.625rem;
+  line-height: 1;
   letter-spacing: 0.12em;
   white-space: nowrap;
   opacity: 0.75;
