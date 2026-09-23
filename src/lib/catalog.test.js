@@ -45,6 +45,22 @@ describe('crearCatalogo', () => {
     expect(mini.animes.map((a) => a.id)).toEqual(['frieren', 'otra'])
   })
 
+  it('agrupa la carta normal con sus versiones especiales', () => {
+    const conFamilia = crearCatalogo({
+      personajes: [{ id: 'naruto', animeId: 'n' }, { id: 'sasuke', animeId: 'n' }],
+      especiales: [
+        { id: 'e-naruto__a', personajeId: 'naruto', animeId: 'n' },
+        { id: 'e-naruto__b', personajeId: 'naruto', animeId: 'n' },
+      ],
+      animes: [{ id: 'n', titulo: 'Naruto' }],
+    })
+    const ids = (id) => conFamilia.familia(id).map((c) => c.id)
+    expect(ids('naruto')).toEqual(['naruto', 'e-naruto__a', 'e-naruto__b'])
+    expect(ids('e-naruto__b')).toEqual(['naruto', 'e-naruto__a', 'e-naruto__b'])
+    expect(ids('sasuke')).toEqual(['sasuke'])
+    expect(ids('nadie')).toEqual([])
+  })
+
   it('da las cartas vecinas de forma circular', () => {
     expect(mini.vecinas('frieren').anterior.id).toBe('e-frieren')
     expect(mini.vecinas('frieren').siguiente.id).toBe('fern')

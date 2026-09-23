@@ -20,6 +20,15 @@ export function crearCatalogo({ personajes, especiales, animes }) {
     else porAnime.set(c.animeId, [c])
   }
 
+  // Versiones especiales de cada personaje, en el orden del catálogo.
+  const especialesDe = new Map()
+  for (const e of especiales) {
+    if (!e.personajeId) continue
+    const lista = especialesDe.get(e.personajeId)
+    if (lista) lista.push(e)
+    else especialesDe.set(e.personajeId, [e])
+  }
+
   const animesOrdenados = [...animes].sort((a, b) => a.titulo.localeCompare(b.titulo, 'es'))
 
   // Texto de búsqueda precalculado, sin tildes ni mayúsculas.
@@ -44,6 +53,18 @@ export function crearCatalogo({ personajes, especiales, animes }) {
     anime: (id) => animePorId.get(id),
     cartasDeAnime: (animeId) => porAnime.get(animeId) ?? [],
     existe: (id) => porId.has(id),
+
+    /**
+     * La carta normal de un personaje seguida de sus especiales. Para una
+     * especial devuelve la misma familia; una carta suelta va sola.
+     */
+    familia(id) {
+      const carta = porId.get(id)
+      if (!carta) return []
+      const base = porId.get(carta.personajeId ?? carta.id)
+      if (!base) return [carta]
+      return [base, ...(especialesDe.get(base.id) ?? [])]
+    },
 
     /** Carta anterior y siguiente en el orden del catálogo (circular). */
     vecinas(id) {
