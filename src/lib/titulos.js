@@ -16,7 +16,9 @@ export function nombreCarta(carta) {
 /** Descripción de la ficha: la escrita a mano si existe, si no una genérica. */
 export function descripcionCarta(carta) {
   const especial = carta.id.startsWith('e-')
-  const base = `${especial ? 'Carta especial' : 'Carta'} de ${nombreCarta(carta)}, de ${carta.anime}.`
+  // «de Akame ga Kill!» ya cierra la frase: no se añade otro punto.
+  const punto = /[.!?…]$/.test(carta.anime) ? '' : '.'
+  const base = `${especial ? 'Carta especial' : 'Carta'} de ${nombreCarta(carta)}, de ${carta.anime}${punto}`
   return carta.desc ? `${base} ${carta.desc}` : `${base} Ábrela en los sobres diarios de AnimeShowdown y añádela a tu colección.`
 }
 

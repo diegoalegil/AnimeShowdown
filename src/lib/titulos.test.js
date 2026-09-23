@@ -12,6 +12,6 @@ describe('titulos', () => {
     expect(nombreCarta(luffy)).toBe('Monkey D. Luffy (Gear 5)')
     expect(descripcionCarta(luffy)).toMatch(/^Carta especial de Monkey D\. Luffy \(Gear 5\), de One Piece\. /)
     const akame = { id: 'akame', nombre: 'Akame', anime: 'Akame ga Kill!', desc: 'Asesina de Night Raid.' }
-    expect(descripcionCarta(akame)).toBe('Carta de Akame, de Akame ga Kill!. Asesina de Night Raid.')
+    expect(descripcionCarta(akame)).toBe('Carta de Akame, de Akame ga Kill! Asesina de Night Raid.')
   })
 })
