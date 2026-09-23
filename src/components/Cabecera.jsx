@@ -41,7 +41,13 @@ export function Cabecera() {
               const actual = s.activa(pathname)
               return (
                 <li key={s.to}>
-                  <Enlace to={s.to} className="nav-enlace" aria-current={actual ? 'page' : undefined}>
+                  <Enlace
+                    to={s.to}
+                    className="nav-enlace"
+                    aria-current={actual ? 'page' : undefined}
+                    // Las cartas de los sobres vuelan hasta aquí al guardarlas.
+                    data-destino={s.to === '/coleccion' ? 'coleccion' : undefined}
+                  >
                     <span lang="ja" className="nav-ja" aria-hidden="true">
                       {s.ja}
                     </span>
