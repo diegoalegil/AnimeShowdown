@@ -8,7 +8,7 @@ const ANCHO_ORIGINAL = 1024
 export const TAMANOS = {
   muro: '(min-width: 1200px) 210px, (min-width: 1024px) 21vw, (min-width: 768px) 28vw, 46vw',
   album: '(min-width: 1100px) 170px, (min-width: 768px) 18vw, 30vw',
-  ficha: '(min-width: 900px) 540px, 100vw',
+  ficha: '(min-width: 1024px) 460px, (min-width: 768px) 44vw, 72vw',
   sobre: '(min-width: 768px) 240px, 60vw',
 }
 
@@ -31,6 +31,24 @@ export function imagenCarta(carta, base) {
     width: 600,
     height: 900,
   }
+}
+
+/**
+ * Ref de callback para las ilustraciones: si la imagen ya estaba en caché y
+ * está completa al montarse, se marca en el acto, sin fundido (al volver a
+ * la galería o al llegar a una ficha no parpadea). Es la misma función para
+ * todas, sin closures por carta.
+ */
+export function marcarSiCargada(img) {
+  if (img?.complete && img.naturalWidth > 0) img.dataset.cargada = ''
+}
+
+/**
+ * URL de la versión de 600 px: la que la galería suele haber descargado ya
+ * (pantallas de densidad 2 o más), útil como fondo mientras carga la grande.
+ */
+export function imagenIntermedia(carta, base) {
+  return urlPublica(`${carta.img}-600.webp`, base)
 }
 
 /**

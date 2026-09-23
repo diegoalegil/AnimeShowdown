@@ -1,6 +1,6 @@
 import { memo } from 'react'
 import { esEspecial, numeroCarta } from '../lib/catalog.js'
-import { imagenCarta, TAMANOS } from '../lib/images.js'
+import { imagenCarta, marcarSiCargada, TAMANOS } from '../lib/images.js'
 import { revelar } from '../lib/motion.js'
 import { Enlace } from './Enlace.jsx'
 import { Hanko } from './Hanko.jsx'
@@ -51,6 +51,7 @@ export const Carta = memo(function Carta({
         style={{ '--tono': carta.color, viewTransitionName: compartida ? 'carta' : undefined }}
       >
         <img
+          ref={marcarSiCargada}
           src={img.src}
           srcSet={img.srcSet}
           sizes={TAMANOS[tamano]}

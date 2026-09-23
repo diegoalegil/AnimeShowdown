@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { imagenCarta, urlPublica, vigilarImagenes } from './images.js'
+import { imagenCarta, marcarSiCargada, imagenIntermedia, urlPublica, vigilarImagenes } from './images.js'
 
 describe('urlPublica', () => {
   it('une la base con la ruta sin barras dobles', () => {
@@ -49,5 +49,22 @@ describe('vigilarImagenes', () => {
 
     quitar()
     expect(listeners).toEqual({})
+  })
+})
+
+describe('marcarSiCargada e imagenIntermedia', () => {
+  it('marca solo las imágenes que ya están completas', () => {
+    const lista = { complete: true, naturalWidth: 300, dataset: {} }
+    const pendiente = { complete: false, naturalWidth: 0, dataset: {} }
+    const rota = { complete: true, naturalWidth: 0, dataset: {} }
+    for (const img of [lista, pendiente, rota]) marcarSiCargada(img)
+    expect(lista.dataset.cargada).toBe('')
+    expect(pendiente.dataset.cargada).toBeUndefined()
+    expect(rota.dataset.cargada).toBeUndefined()
+    expect(() => marcarSiCargada(null)).not.toThrow()
+  })
+
+  it('apunta a la versión de 600 px', () => {
+    expect(imagenIntermedia({ img: 'img/Frieren/frieren' }, '/base/')).toBe('/base/img/Frieren/frieren-600.webp')
   })
 })
