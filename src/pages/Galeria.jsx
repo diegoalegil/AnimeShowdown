@@ -1,6 +1,7 @@
 import { useDeferredValue, useEffect, useMemo, useRef, useState } from 'react'
 import { useLocation, useNavigate, useNavigationType } from 'react-router'
 import { Carta } from '../components/Carta.jsx'
+import { CartaDelDia } from '../components/CartaDelDia.jsx'
 import { EtiquetaVertical } from '../components/EtiquetaVertical.jsx'
 import { FiltrosGaleria } from '../components/FiltrosGaleria.jsx'
 import { TituloSeccion } from '../components/TituloSeccion.jsx'
@@ -84,13 +85,14 @@ export default function Galeria() {
 
   return (
     <>
-      <div className="wrap pt-6 pb-5 md:pt-16 md:pb-12">
+      <div className="wrap galeria-cabecera pt-6 pb-5 md:pt-10 md:pb-10">
         <TituloSeccion
           ja="ギャラリー"
           sub={`${catalogo.personajes.length} cartas de ${catalogo.animes.length} series, y ${catalogo.especiales.length} especiales.`}
         >
           Galería
         </TituloSeccion>
+        <CartaDelDia />
       </div>
 
       <FiltrosGaleria

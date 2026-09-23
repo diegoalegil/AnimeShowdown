@@ -17,6 +17,7 @@ export const TAMANOS = {
   album: '(min-width: 1100px) 170px, (min-width: 768px) 18vw, 30vw',
   ficha: '(min-width: 1024px) 460px, (min-width: 768px) 44vw, 72vw',
   sobre: '(min-width: 768px) 240px, 60vw',
+  dia: '150px',
 }
 
 /** Une la base pública (BASE_URL de Vite) con una ruta relativa de public/. */
