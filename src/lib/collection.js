@@ -9,7 +9,12 @@
 //     dia:      'AAAA-MM-DD',                  // día local de `abiertos`
 //     abiertos: 0..SOBRES_POR_DIA,             // sobres abiertos ese día
 //     ultimo:   [idCarta, …]                   // contenido del último sobre
+//     pegadas:  [idCarta, …]                   // ya colocadas en el álbum
 //   }
+//
+// `pegadas` recuerda qué cartas se han visto ya en su hueco del álbum: las
+// demás se «pegan» con una pequeña animación en la próxima visita. Es un campo
+// añadido después; si falta, ninguna carta se ha pegado aún.
 import {
   CARTAS_POR_SOBRE,
   CLAVE_ALMACEN,
@@ -34,7 +39,7 @@ export function msHastaMedianoche(fecha = new Date()) {
 }
 
 export function estadoVacio(dia) {
-  return { v: VERSION_ALMACEN, tengo: {}, desde: {}, dia, abiertos: 0, ultimo: [] }
+  return { v: VERSION_ALMACEN, tengo: {}, desde: {}, dia, abiertos: 0, ultimo: [], pegadas: [] }
 }
 
 const esObjeto = (x) => x !== null && typeof x === 'object' && !Array.isArray(x)
@@ -69,7 +74,14 @@ export function sanear(bruto, { dia, existe } = {}) {
   const mismoDia = bruto.dia === dia
   const abiertos = mismoDia && Number.isInteger(bruto.abiertos) ? Math.min(Math.max(bruto.abiertos, 0), SOBRES_POR_DIA) : 0
   const ultimo = Array.isArray(bruto.ultimo) ? bruto.ultimo.filter((id) => typeof id === 'string' && Object.hasOwn(tengo, id)) : []
-  return { v: VERSION_ALMACEN, tengo, desde, dia, abiertos, ultimo }
+  const pegadas = soloPropias(bruto.pegadas, tengo)
+  return { v: VERSION_ALMACEN, tengo, desde, dia, abiertos, ultimo, pegadas }
+}
+
+/** Ids de una lista que están en `tengo`, sin repetir (lo demás se descarta). */
+function soloPropias(lista, tengo) {
+  if (!Array.isArray(lista)) return []
+  return [...new Set(lista.filter((id) => typeof id === 'string' && Object.hasOwn(tengo, id)))]
 }
 
 /** Sobres que quedan por abrir hoy. */
@@ -169,9 +181,55 @@ export function leerCodigo(codigo, { existe, dia } = {}) {
   return { ok: true, tengo, desde, descartadas }
 }
 
-/** Sustituye las cartas del estado por las importadas, sin tocar los sobres del día. */
-export function aplicarImportacion(estado, { tengo, desde }) {
-  return { ...estado, tengo: { ...tengo }, desde: { ...desde }, ultimo: [] }
+/**
+ * Aplica unas cartas importadas, sin tocar los sobres del día.
+ * - `sustituir`: la colección pasa a ser la del código.
+ * - `combinar`: se quedan las cartas de las dos; de cada carta, el mayor
+ *   número de copias y la fecha más antigua. Combinar dos veces el mismo
+ *   código no cambia nada.
+ */
+export function aplicarImportacion(estado, { tengo, desde }, modo = 'sustituir') {
+  if (modo === 'combinar') {
+    const suma = { tengo: { ...estado.tengo }, desde: { ...estado.desde } }
+    for (const [id, copias] of Object.entries(tengo)) {
+      suma.tengo[id] = Math.max(suma.tengo[id] ?? 0, copias)
+      const fecha = desde[id]
+      if (fecha && (!suma.desde[id] || fecha < suma.desde[id])) suma.desde[id] = fecha
+    }
+    return { ...estado, ...suma, pegadas: soloPropias(estado.pegadas, suma.tengo) }
+  }
+  return {
+    ...estado,
+    tengo: { ...tengo },
+    desde: { ...desde },
+    ultimo: [],
+    pegadas: soloPropias(estado.pegadas, tengo),
+  }
+}
+
+/**
+ * Qué pasaría al importar: cuántas cartas distintas trae el código, cuántas
+ * hay ahora y cuántas quedarían al sustituir o al combinar.
+ */
+export function previsionImportacion(estado, { tengo }) {
+  const entrantes = Object.keys(tengo)
+  const nuevas = entrantes.filter((id) => !Object.hasOwn(estado.tengo, id)).length
+  const actuales = cartasDistintas(estado)
+  return { entrantes: entrantes.length, actuales, nuevas, alCombinar: actuales + nuevas }
+}
+
+/** Marca cartas como ya colocadas en el álbum. Devuelve el mismo estado si no cambia nada. */
+export function pegar(estado, ids) {
+  const pegadas = new Set(estado.pegadas)
+  const antes = pegadas.size
+  for (const id of ids) if (Object.hasOwn(estado.tengo, id)) pegadas.add(id)
+  return pegadas.size === antes ? estado : { ...estado, pegadas: [...pegadas] }
+}
+
+/** Cartas de la colección que aún no se han visto en su hueco del álbum. */
+export function porPegar(estado) {
+  const pegadas = new Set(estado.pegadas)
+  return Object.keys(estado.tengo).filter((id) => !pegadas.has(id))
 }
 
 // ---------------------------------------------------------------------------
@@ -318,11 +376,26 @@ export function crearAlmacen({ storage, ids, existe, ahora = () => new Date(), v
       return exportar(getSnapshot())
     },
 
-    /** Importa un código; devuelve el resultado de leerCodigo. */
-    importar(codigo) {
+    /** Valida un código sin aplicarlo (resultado de leerCodigo). */
+    comprobar(codigo) {
+      return leerCodigo(codigo, { existe, dia: hoy() })
+    },
+
+    /**
+     * Importa un código, sustituyendo o combinando (ver aplicarImportacion).
+     * Devuelve el resultado de leerCodigo.
+     */
+    importar(codigo, modo = 'sustituir') {
       const resultado = leerCodigo(codigo, { existe, dia: hoy() })
-      if (resultado.ok) guardar(aplicarImportacion(getSnapshot(), resultado))
+      if (resultado.ok) guardar(aplicarImportacion(getSnapshot(), resultado, modo))
       return resultado
+    },
+
+    /** Marca cartas como colocadas en el álbum (no avisa si no cambia nada). */
+    pegar(ids) {
+      const actual = getSnapshot()
+      const nuevo = pegar(actual, ids)
+      if (nuevo !== actual) guardar(nuevo)
     },
 
     hoy,

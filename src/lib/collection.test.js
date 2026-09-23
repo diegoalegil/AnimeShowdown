@@ -3,6 +3,7 @@ import { CARTAS_POR_SOBRE, CLAVE_ALMACEN, PROB_ESPECIAL, SOBRES_POR_DIA } from '
 import {
   abrirSobre,
   almacenSeguro,
+  aplicarImportacion,
   cartasDistintas,
   copiasTotales,
   crearAlmacen,
@@ -13,6 +14,9 @@ import {
   generarSobre,
   leerCodigo,
   msHastaMedianoche,
+  pegar,
+  porPegar,
+  previsionImportacion,
   sanear,
   sobresRestantes,
 } from './collection.js'
@@ -145,6 +149,14 @@ describe('sanear', () => {
     expect(estado.ultimo).toEqual(['a'])
   })
 
+  it('conserva solo las cartas pegadas que siguen en la colección, sin repetir', () => {
+    const base = { v: 1, tengo: { a: 1, b: 2 }, dia, abiertos: 0 }
+    expect(sanear({ ...base, pegadas: ['a', 'a', 'zzz', 'c', 7] }, { dia, existe }).pegadas).toEqual(['a'])
+    // Guardado antes de existir el campo: nada pegado aún.
+    expect(sanear(base, { dia, existe }).pegadas).toEqual([])
+    expect(sanear({ ...base, pegadas: 'a' }, { dia, existe }).pegadas).toEqual([])
+  })
+
   it('pone a cero los sobres si el día guardado es otro y acota el contador', () => {
     expect(sanear({ v: 1, tengo: {}, dia: '2026-02-28', abiertos: 5 }, { dia }).abiertos).toBe(0)
     expect(sanear({ v: 1, tengo: {}, dia, abiertos: 99 }, { dia }).abiertos).toBe(SOBRES_POR_DIA)
@@ -173,6 +185,90 @@ describe('exportar y leerCodigo', () => {
   it('ignora las cartas que ya no existen y lo indica', () => {
     const leido = leerCodigo(btoa('{"v":1,"tengo":{"a":1,"zzz":2}}'), { existe, dia })
     expect(leido).toMatchObject({ ok: true, tengo: { a: 1 }, desde: { a: dia }, descartadas: 1 })
+  })
+
+  it('el código solo lleva cartas y fechas: ni sobres del día, ni último sobre, ni álbum', () => {
+    const estado = { ...estadoVacio(dia), tengo: { a: 1 }, desde: { a: dia }, abiertos: 5, ultimo: ['a'], pegadas: ['a'] }
+    const datos = JSON.parse(new TextDecoder().decode(Uint8Array.from(atob(exportar(estado)), (c) => c.charCodeAt(0))))
+    expect(datos).toEqual({ v: 1, tengo: { a: 1 }, desde: { a: dia } })
+  })
+
+  it('una colección vacía también hace el viaje de ida y vuelta', () => {
+    expect(leerCodigo(exportar(estadoVacio(dia)), { existe, dia })).toEqual({ ok: true, tengo: {}, desde: {}, descartadas: 0 })
+  })
+
+  it('rechaza cantidades imposibles, versiones futuras y texto que no es base64 de un JSON', () => {
+    const codificar = (obj) => btoa(JSON.stringify(obj))
+    // Ninguna carta válida: el código no sirve.
+    expect(leerCodigo(codificar({ v: 1, tengo: { a: 0, b: -2, c: 1.5, d: '3' } }), { existe, dia }).ok).toBe(false)
+    expect(leerCodigo(codificar({ v: 2, tengo: { a: 1 } }), { existe, dia }).ok).toBe(false)
+    expect(leerCodigo(codificar({ v: 1, tengo: ['a'] }), { existe, dia }).ok).toBe(false)
+    expect(leerCodigo(codificar([1, 2]), { existe, dia }).ok).toBe(false)
+    expect(leerCodigo(btoa('no es json'), { existe, dia }).ok).toBe(false)
+    // UTF-8 inválido tras decodificar.
+    expect(leerCodigo(btoa(String.fromCharCode(0xff, 0xfe, 0x7b)), { existe, dia }).ok).toBe(false)
+    // Los errores traen un mensaje para mostrar.
+    expect(leerCodigo('%%%', { existe, dia }).error).toMatch(/no es válido/)
+  })
+
+  it('los códigos con nombres de carta no ASCII sobreviven al base64', () => {
+    const conTildes = (id) => id === 'ñandú' || existe(id)
+    const codigo = exportar({ tengo: { ñandú: 2 }, desde: { ñandú: dia } })
+    expect(leerCodigo(codigo, { existe: conTildes, dia })).toMatchObject({ ok: true, tengo: { ñandú: 2 } })
+  })
+})
+
+describe('aplicarImportacion', () => {
+  const dia = '2026-03-01'
+  const actual = {
+    ...estadoVacio(dia),
+    tengo: { a: 2, b: 1 },
+    desde: { a: '2026-02-01', b: '2026-02-10' },
+    abiertos: 3,
+    ultimo: ['a', 'b'],
+    pegadas: ['a', 'b'],
+  }
+  const codigo = { tengo: { b: 5, c: 1 }, desde: { b: '2026-01-15', c: '2026-02-20' } }
+
+  it('sustituir deja exactamente las cartas del código y conserva los sobres del día', () => {
+    const nuevo = aplicarImportacion(actual, codigo)
+    expect(nuevo.tengo).toEqual({ b: 5, c: 1 })
+    expect(nuevo.desde).toEqual(codigo.desde)
+    expect(nuevo.abiertos).toBe(3)
+    expect(nuevo.ultimo).toEqual([])
+    // Lo que ya estaba pegado y sigue en la colección no vuelve a animarse.
+    expect(nuevo.pegadas).toEqual(['b'])
+  })
+
+  it('combinar une las dos colecciones con el mayor número de copias y la fecha más antigua', () => {
+    const nuevo = aplicarImportacion(actual, codigo, 'combinar')
+    expect(nuevo.tengo).toEqual({ a: 2, b: 5, c: 1 })
+    expect(nuevo.desde).toEqual({ a: '2026-02-01', b: '2026-01-15', c: '2026-02-20' })
+    expect(nuevo.abiertos).toBe(3)
+    expect(nuevo.ultimo).toEqual(['a', 'b'])
+    expect(nuevo.pegadas).toEqual(['a', 'b'])
+    // Combinar otra vez el mismo código no cambia nada.
+    expect(aplicarImportacion(nuevo, codigo, 'combinar')).toEqual(nuevo)
+  })
+
+  it('anticipa cuántas cartas quedarían al sustituir o al combinar', () => {
+    expect(previsionImportacion(actual, codigo)).toEqual({ entrantes: 2, actuales: 2, nuevas: 1, alCombinar: 3 })
+  })
+})
+
+describe('pegar en el álbum', () => {
+  const estado = { ...estadoVacio('2026-03-01'), tengo: { a: 1, b: 1, c: 2 }, pegadas: ['a'] }
+
+  it('lista las cartas aún sin pegar y las marca una vez vistas', () => {
+    expect(porPegar(estado)).toEqual(['b', 'c'])
+    const tras = pegar(estado, ['b', 'zzz'])
+    expect(tras.pegadas).toEqual(['a', 'b'])
+    expect(porPegar(tras)).toEqual(['c'])
+  })
+
+  it('devuelve el mismo estado si no hay nada que pegar', () => {
+    expect(pegar(estado, ['a'])).toBe(estado)
+    expect(pegar(estado, ['zzz'])).toBe(estado)
   })
 })
 
@@ -258,6 +354,41 @@ describe('crearAlmacen', () => {
     expect(almacen.getSnapshot()).toMatchObject({ tengo: { b: 4 }, abiertos: 1 })
     expect(almacen.importar('basura').ok).toBe(false)
     expect(almacen.exportar()).toBe(codigo)
+  })
+
+  it('exportar en un navegador e importar en otro reproduce la colección', () => {
+    const origen = crear(storageFalso()).almacen
+    for (let i = 0; i < 3; i++) origen.abrirSobre(secuencia(i / 10, 0.3, 0.5, 0.7, 0.1, 0.9))
+    const destino = crear(storageFalso()).almacen
+    const comprobado = destino.comprobar(origen.exportar())
+    expect(comprobado.ok).toBe(true)
+    // Comprobar no cambia nada: hace falta confirmar.
+    expect(cartasDistintas(destino.getSnapshot())).toBe(0)
+    destino.importar(origen.exportar())
+    expect(destino.getSnapshot().tengo).toEqual(origen.getSnapshot().tengo)
+    expect(destino.getSnapshot().desde).toEqual(origen.getSnapshot().desde)
+    expect(destino.getSnapshot().abiertos).toBe(0)
+    expect(destino.exportar()).toBe(origen.exportar())
+  })
+
+  it('importar combinando conserva lo que ya había', () => {
+    const { almacen } = crear(storageFalso())
+    almacen.abrirSobre(() => 0)
+    almacen.importar(exportar({ tengo: { b: 2 }, desde: { b: '2026-01-01' } }), 'combinar')
+    expect(almacen.getSnapshot().tengo).toEqual({ a: CARTAS_POR_SOBRE - 1, 'e-a': 1, b: 2 })
+  })
+
+  it('pega cartas en el álbum y lo guarda, sin avisar si no cambia nada', () => {
+    const storage = storageFalso()
+    const { almacen } = crear(storage)
+    almacen.abrirSobre(() => 0)
+    const oyente = vi.fn()
+    almacen.subscribe(oyente)
+    almacen.pegar(['a'])
+    expect(oyente).toHaveBeenCalledTimes(1)
+    expect(JSON.parse(storage.datos.get(CLAVE_ALMACEN)).pegadas).toEqual(['a'])
+    almacen.pegar(['a'])
+    expect(oyente).toHaveBeenCalledTimes(1)
   })
 })
 
