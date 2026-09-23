@@ -29,6 +29,37 @@
   display: none;
 }
 
+/* ---- Sección que no se pudo cargar (FalloSeccion) ---- */
+.fallo {
+  display: flex;
+  align-items: flex-start;
+  gap: 1.25rem;
+  padding-block: 4rem 6rem;
+}
+
+.fallo-tate {
+  color: var(--color-shu-fuka);
+  font-size: var(--text-lg);
+}
+
+.fallo-titulo {
+  margin: 0;
+  font-family: var(--font-serif);
+  font-size: var(--text-3xl);
+  line-height: 1.1;
+}
+
+.fallo-texto {
+  max-width: var(--container-prosa);
+  margin: 0.75rem 0 1.5rem;
+  color: var(--color-nezumi);
+}
+
+.fallo-boton {
+  background: none;
+  font-family: inherit;
+}
+
 /* ---- Cabecera ---- */
 .cabecera {
   position: relative;

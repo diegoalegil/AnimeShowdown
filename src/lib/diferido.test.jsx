@@ -13,6 +13,14 @@ describe('diferido', () => {
     expect(importar).toHaveBeenCalledTimes(1)
   })
 
+  it('tras una descarga fallida, el siguiente intento la vuelve a pedir', async () => {
+    const importar = vi.fn().mockRejectedValueOnce(new Error('sin red')).mockResolvedValueOnce({ default: Pagina })
+    const { precargar } = diferido(importar)
+    await expect(precargar()).rejects.toThrow('sin red')
+    await expect(precargar()).resolves.toEqual({ default: Pagina })
+    expect(importar).toHaveBeenCalledTimes(2)
+  })
+
   it('ya precargada, se pinta sin mostrar el marcador de carga', async () => {
     const { Componente, precargar } = diferido(async () => ({ default: Pagina }))
     await precargar()

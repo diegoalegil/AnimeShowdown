@@ -10,8 +10,16 @@ import { lazy } from 'react'
 export function diferido(importar) {
   let modulo = null
   let promesa = null
+  // Si la descarga falla (p. ej. sin red un momento), se olvida la promesa
+  // fallida: el siguiente intento vuelve a pedir el módulo.
   const precargar = () => {
-    promesa ??= importar().then((m) => (modulo = m))
+    promesa ??= importar().then(
+      (m) => (modulo = m),
+      (error) => {
+        promesa = null
+        throw error
+      },
+    )
     return promesa
   }
   // React.lazy espera una promesa; con el módulo ya en memoria se le da un

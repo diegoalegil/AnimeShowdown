@@ -1,6 +1,7 @@
 import { Suspense, useLayoutEffect, useRef } from 'react'
 import { Route, Routes, useLocation } from 'react-router'
 import { Cabecera } from './components/Cabecera.jsx'
+import { FalloSeccion } from './components/FalloSeccion.jsx'
 import { Pie } from './components/Pie.jsx'
 import { aplazarLejanos } from './lib/aplazar.js'
 import { idsAncla, useNavegacionDelegada, useRestaurarScroll } from './lib/navegacion.js'
@@ -41,22 +42,24 @@ export function App() {
             </Suspense>
           </Pagina>
         )}
-        <Routes>
-          {/* La galería y la colección se pintan arriba, fuera de las rutas. */}
-          <Route index element={null} />
-          <Route path="coleccion" element={null} />
-          <Route path="carta/:id" element={<Ficha />} />
-          <Route
-            path="sobres"
-            element={
-              // Mientras llega el código (solo si se entra directamente), el escenario ya oscuro.
-              <Suspense fallback={<div className="yoru escenario" />}>
-                <sobres.Componente />
-              </Suspense>
-            }
-          />
-          <Route path="*" element={<NoEncontrada />} />
-        </Routes>
+        <FalloSeccion clave={ruta}>
+          <Routes>
+            {/* La galería y la colección se pintan arriba, fuera de las rutas. */}
+            <Route index element={null} />
+            <Route path="coleccion" element={null} />
+            <Route path="carta/:id" element={<Ficha />} />
+            <Route
+              path="sobres"
+              element={
+                // Mientras llega el código (solo si se entra directamente), el escenario ya oscuro.
+                <Suspense fallback={<div className="yoru escenario" />}>
+                  <sobres.Componente />
+                </Suspense>
+              }
+            />
+            <Route path="*" element={<NoEncontrada />} />
+          </Routes>
+        </FalloSeccion>
       </main>
       <Pie />
     </>
@@ -88,7 +91,7 @@ function Pagina({ activa, children }) {
   return (
     <PaginaActiva value={activa}>
       <div ref={ref} className="pagina" hidden={!activa} inert={!activa}>
-        {children}
+        <FalloSeccion clave={activa}>{children}</FalloSeccion>
       </div>
     </PaginaActiva>
   )
