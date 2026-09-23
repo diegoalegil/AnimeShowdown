@@ -9,6 +9,7 @@ import { agruparPorSerie, busquedaDe, ESPECIALES, etiquetaFiltros, filtrarCartas
 import { revelar } from '../lib/motion.js'
 import { trocear, useDisposicionMuro } from '../lib/grupos.js'
 import { esVuelta } from '../lib/navegacion.js'
+import { usePaginaActiva } from '../lib/paginaActiva.js'
 import { useColeccion } from '../lib/useCollection.js'
 import { useInclinacion } from '../lib/useMotion.js'
 import { usePorTramos } from '../lib/usePorTramos.js'
@@ -29,6 +30,7 @@ export default function Galeria() {
   const { tengo } = useColeccion()
   const rejilla = useInclinacion()
   const buscador = useRef(null)
+  const activa = usePaginaActiva()
 
   const filtros = leerFiltros(new URLSearchParams(search))
   // La rejilla se pinta con los filtros diferidos: escribir nunca espera a
@@ -39,9 +41,11 @@ export default function Galeria() {
   const busqueda = busquedaDe({ q, serie })
   const etiqueta = etiquetaFiltros({ q, serie })
 
-  // Al volver desde una ficha las cartas ya se vieron: aparecen sin coreografía
-  // y se montan todas para recuperar la posición del scroll. Se decide al
-  // montar; después, filtrar no debe esconder las ya visibles.
+  // Al volver atrás a una galería que ya no estaba montada (p. ej. desde los
+  // sobres) las cartas ya se vieron: aparecen sin coreografía y se montan
+  // todas para recuperar la posición del scroll. Se decide al montar;
+  // después, filtrar no debe esconder las ya visibles. (Desde una ficha no
+  // hace falta: la galería sigue montada mientras tanto, ver App.jsx.)
   const [volviendo] = useState(() => esVuelta(tipo))
 
   const visibles = usePorTramos(cartas, { primero: PRIMER_TRAMO, tramo: TRAMO, completa: volviendo })
@@ -59,6 +63,7 @@ export default function Galeria() {
 
   // «/» lleva a la búsqueda desde cualquier punto de la galería.
   useEffect(() => {
+    if (!activa) return undefined
     function alPulsar(evento) {
       if (evento.key !== '/' || evento.metaKey || evento.ctrlKey || evento.altKey) return
       if (evento.target.closest?.('input, textarea, select, [contenteditable]')) return
@@ -67,7 +72,7 @@ export default function Galeria() {
     }
     document.addEventListener('keydown', alPulsar)
     return () => document.removeEventListener('keydown', alPulsar)
-  }, [])
+  }, [activa])
 
   return (
     <>

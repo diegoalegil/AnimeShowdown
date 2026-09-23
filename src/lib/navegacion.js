@@ -165,6 +165,9 @@ function anclar(elemento, key) {
   ancla = carta ? { key, ids: [carta.dataset.id], top: carta.getBoundingClientRect().top } : null
 }
 
+/** Cartas a las que se volverá desde la ficha (vacío si no hay ancla). */
+export const idsAncla = () => ancla?.ids ?? []
+
 /** La ficha avisa de la carta que se ve (y su alternativa, p. ej. la normal de una especial). */
 export function actualizarAncla(ids) {
   if (ancla) ancla.ids = ids

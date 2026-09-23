@@ -23,6 +23,12 @@
   min-height: 70vh;
 }
 
+/* Grupo de cartas aplazado al volver a una página (ver lib/aplazar): queda
+   vacío, fuera de pantalla, con la altura que recuerda content-visibility. */
+[data-diferido][data-lejos] > * {
+  display: none;
+}
+
 /* ---- Cabecera ---- */
 .cabecera {
   position: relative;
