@@ -20,7 +20,13 @@ navegador.
   se voltean una a una (también con `Intro` o `Espacio`), todas a la vez con
   «Revelar todas» o se va directo al resumen con «Saltar». Las cartas se guardan
   en cuanto se abre el sobre, así que recargar a mitad no pierde ninguna.
-- La **colección** se puede exportar como un código para llevarla a otro navegador.
+- La **colección** es un álbum con una hoja por serie y otra para las especiales:
+  cada carta tiene su hueco numerado, ocupado si la tienes y vacío si no. Las
+  cartas conseguidas desde la última visita se pegan en su hueco la primera vez
+  que se ven. Se puede ver una sola serie o solo las empezadas.
+- La colección vive en el navegador. Desde el álbum se copia como un código para
+  guardarla o llevarla a otro navegador; al pegar un código se puede combinar con
+  la colección actual o sustituirla.
 
 Las reglas están en `src/config.js`.
 
