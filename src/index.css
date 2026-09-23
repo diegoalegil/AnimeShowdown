@@ -358,8 +358,12 @@
   opacity: 0;
 }
 
+/* Centrada en su caja: entre una carta con paspartú de la galería y la
+   ficha, con la proporción real, la ilustración no salta hacia arriba. */
 ::view-transition-new(carta) {
   animation: none;
+  block-size: 100%;
+  object-fit: contain;
 }
 
 /* Entre fichas vecinas la carta sale hacia un lado y entra la nueva por el

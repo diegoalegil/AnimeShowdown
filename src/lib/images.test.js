@@ -19,6 +19,10 @@ describe('imagenCarta', () => {
     expect(img.width / img.height).toBeCloseTo(2 / 3)
   })
 
+  it('da a la imagen la proporción real de la ilustración', () => {
+    expect(imagenCarta({ img: 'img/Naruto/gaara', ar: 0.882 }, '/')).toMatchObject({ width: 600, height: 680 })
+  })
+
   it('trata igual a las especiales', () => {
     const img = imagenCarta({ img: 'img/especiales/luffy__gear5' }, '/')
     expect(img.src).toBe('/img/especiales/luffy__gear5-600.webp')

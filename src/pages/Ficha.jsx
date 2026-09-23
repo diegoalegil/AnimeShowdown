@@ -7,7 +7,7 @@ import { Hanko } from '../components/Hanko.jsx'
 import { catalogo, esEspecial, numeroCarta } from '../lib/catalog.js'
 import { diaCorto } from '../lib/fechas.js'
 import { busquedaDe, etiquetaFiltros, leerFiltros, recorrido } from '../lib/filtros.js'
-import { imagenCarta } from '../lib/images.js'
+import { imagenCarta, proporcionCarta } from '../lib/images.js'
 import { nombrarCompartido } from '../lib/motion.js'
 import { actualizarAncla, irA, volverAtras } from '../lib/navegacion.js'
 import { nombreCarta } from '../lib/titulos.js'
@@ -122,7 +122,8 @@ function FichaCarta({ carta }) {
           )}
         </div>
 
-        <div ref={inclinacion} className="ficha-carta">
+        {/* En la ficha la carta tiene la proporción real de su ilustración: nada se recorta. */}
+        <div ref={inclinacion} className="ficha-carta" style={{ '--ar': proporcionCarta(carta) }}>
           <CartaVolteo carta={carta} familia={familia} />
         </div>
 

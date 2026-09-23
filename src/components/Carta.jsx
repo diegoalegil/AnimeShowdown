@@ -44,8 +44,10 @@ export const Carta = memo(function Carta({
 
   const lamina = (
     <div className="carta-marco" data-inclinar="">
+      {/* Las ilustraciones que no son 2:3 se ven enteras, sobre un paspartú de su tono. */}
       <div
         className="carta-lamina"
+        data-paspartu={carta.ar ? '' : undefined}
         style={{ '--tono': carta.color, viewTransitionName: compartida ? 'carta' : undefined }}
       >
         <img

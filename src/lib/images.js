@@ -25,9 +25,13 @@ export function urlPublica(ruta, base = import.meta.env.BASE_URL) {
   return b + ruta.replace(/^\/+/, '')
 }
 
+/** Proporción (ancho / alto) de la ilustración de una carta: `ar` o 2:3. */
+export const proporcionCarta = (carta) => carta.ar ?? 2 / 3
+
 /**
  * Devuelve { src, srcSet, width, height } para una carta. `src` apunta al
- * tamaño medio como respaldo; `srcSet` deja que el navegador elija.
+ * tamaño medio como respaldo; `srcSet` deja que el navegador elija. width y
+ * height dan la proporción real de la ilustración.
  */
 export function imagenCarta(carta, base) {
   const ruta = carta.img
@@ -36,7 +40,7 @@ export function imagenCarta(carta, base) {
     src: url('-600'),
     srcSet: `${url('-300')} 300w, ${url('-450')} 450w, ${url('-600')} 600w, ${url('')} ${ANCHO_ORIGINAL}w`,
     width: 600,
-    height: 900,
+    height: Math.round(600 / proporcionCarta(carta)),
   }
 }
 

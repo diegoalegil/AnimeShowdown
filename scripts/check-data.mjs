@@ -6,6 +6,7 @@
 import { existsSync, readFileSync } from 'node:fs'
 import { dirname, join } from 'node:path'
 import { fileURLToPath } from 'node:url'
+import { campoProporcion, medidasWebp } from './imagenes.mjs'
 
 const root = join(dirname(fileURLToPath(import.meta.url)), '..')
 const errors = []
@@ -50,6 +51,23 @@ function checkFile(rel, owner) {
   if (!existsSync(join(root, 'public', rel))) fail(`${owner}: no existe public/${rel}`)
 }
 
+// `ar` (ancho / alto) solo aparece en las cartas que no son 2:3 y debe
+// coincidir con la ilustración original (lo anota scripts/generate-tamanos).
+function checkProporcion(item, name) {
+  const original = join(root, 'public', `${item.img}.webp`)
+  if (!existsSync(original)) return
+  let esperado
+  try {
+    esperado = campoProporcion(medidasWebp(original))
+  } catch (err) {
+    fail(`${name}: "${item.id}" ${err.message}`)
+    return
+  }
+  if (item.ar !== esperado) {
+    fail(`${name}: "${item.id}" ar=${item.ar ?? '(sin ar)'}, la ilustración pide ${esperado ?? '(sin ar, es 2:3)'}; ejecuta scripts/generate-tamanos.mjs`)
+  }
+}
+
 const personajes = load('personajes.json')
 const especiales = load('especiales.json')
 const animes = load('animes.json')
@@ -74,6 +92,7 @@ for (const p of personajes) {
   if (isText(p.img)) {
     if (/\.\w+$/.test(p.img)) fail(`personajes: "${p.id}" img debe ir sin extensión`)
     for (const suffix of ['', '-300', '-450', '-600']) checkFile(`${p.img}${suffix}.webp`, `personajes "${p.id}"`)
+    checkProporcion(p, 'personajes')
   }
 }
 for (const a of animes) {
@@ -92,6 +111,7 @@ for (const e of especiales) {
   if (isText(e.img)) {
     if (/\.\w+$/.test(e.img)) fail(`especiales: "${e.id}" img debe ir sin extensión`)
     for (const suffix of ['', '-300', '-450', '-600']) checkFile(`${e.img}${suffix}.webp`, `especiales "${e.id}"`)
+    checkProporcion(e, 'especiales')
   }
 }
 

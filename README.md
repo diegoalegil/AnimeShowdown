@@ -66,7 +66,9 @@ El despliegue a GitHub Pages lo hace `.github/workflows/deploy.yml` en cada push
    japonés) y `desc` (una frase) son opcionales.
 
 2. Copia la ilustración original (formato WebP, ~1024 px de ancho) y genera sus
-   tamaños de 300, 450 y 600 px (necesita `cwebp`):
+   tamaños de 300, 450 y 600 px (necesita `cwebp`). Si la ilustración no es 2:3,
+   el script anota además su proporción (`ar`) y la web la muestra entera, sobre
+   un paspartú, sin recortarla:
 
    ```
    public/img/Frieren/frieren.webp

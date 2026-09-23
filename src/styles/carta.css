@@ -93,6 +93,24 @@
   opacity: 1;
 }
 
+/* Ilustración que no es 2:3 (lleva `ar` en los datos): se ve entera, centrada
+   sobre un paspartú de su propio tono con un filete claro, como una obra
+   enmarcada, en lugar de recortar sus bordes. */
+.carta-lamina[data-paspartu] img {
+  box-sizing: border-box;
+  padding: 6%;
+  object-fit: contain;
+  object-position: 50% 50%;
+}
+
+.carta-lamina[data-paspartu]::before {
+  content: '';
+  position: absolute;
+  inset: 0.3125rem;
+  border: 1px solid color-mix(in srgb, var(--color-kinu) 38%, transparent);
+  pointer-events: none;
+}
+
 .carta-lamina[data-rota] img {
   display: none;
 }
