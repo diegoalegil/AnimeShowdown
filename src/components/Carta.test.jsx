@@ -71,10 +71,10 @@ describe('Carta', () => {
     expect(especial).toContain('luffy__gear5-300.webp 300w')
   })
 
-  it('se prepara para la entrada escalonada y las rejillas largas', () => {
-    const html = pintar(<Carta carta={FRIEREN} entrada diferida tamano="album" />)
+  it('se prepara para la entrada escalonada', () => {
+    const html = pintar(<Carta carta={FRIEREN} entrada tamano="album" />)
     expect(html).toContain('data-revelar=""')
-    expect(html).toContain('class="carta carta--album carta--diferida"')
+    expect(html).toContain('class="carta carta--album"')
   })
 })
 

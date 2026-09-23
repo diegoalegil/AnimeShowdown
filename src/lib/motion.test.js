@@ -83,10 +83,10 @@ describe('conTransicion con tipo', () => {
 })
 
 describe('nombrarCompartido', () => {
-  it('saca la carta de content-visibility mientras lleva el nombre', () => {
+  it('saca el grupo de la carta de content-visibility mientras lleva el nombre', () => {
     const props = {}
     const contenedor = { style: { setProperty: (k, v) => (props[k] = v), removeProperty: (k) => delete props[k] } }
-    const lamina = { style: {}, closest: (sel) => (sel.split(', ').includes('.carta--diferida') ? contenedor : null) }
+    const lamina = { style: {}, closest: (sel) => (sel === '[data-diferido]' ? contenedor : null) }
     nombrarCompartido(lamina)
     expect(props['content-visibility']).toBe('visible')
     nombrarCompartido(null)

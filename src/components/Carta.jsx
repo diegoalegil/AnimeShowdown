@@ -16,7 +16,6 @@ import { Hanko } from './Hanko.jsx'
  * - `cartela`: nombre y serie bajo la ilustración.
  * - `prioridad`: carga inmediata (para lo que se ve sin hacer scroll).
  * - `entrada`: aparece con la animación escalonada al entrar en pantalla.
- * - `diferida`: content-visibility para rejillas largas.
  * - `compartida`: lleva el nombre de la transición compartida (la ficha).
  * - `busqueda`: «?serie=…&q=…» que se añade al enlace para que la ficha
  *   recorra las cartas en el mismo orden que la galería.
@@ -32,7 +31,6 @@ export const Carta = memo(function Carta({
   cartela = true,
   prioridad = false,
   entrada = false,
-  diferida = false,
   compartida = false,
   busqueda = '',
   className = '',
@@ -87,7 +85,7 @@ export const Carta = memo(function Carta({
     </div>
   )
 
-  const clases = ['carta', `carta--${tamano}`, diferida && 'carta--diferida', className].filter(Boolean).join(' ')
+  const clases = ['carta', `carta--${tamano}`, className].filter(Boolean).join(' ')
 
   return (
     <article

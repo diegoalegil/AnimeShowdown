@@ -7,6 +7,7 @@ import { TituloSeccion } from '../components/TituloSeccion.jsx'
 import { catalogo } from '../lib/catalog.js'
 import { agruparPorSerie, busquedaDe, ESPECIALES, etiquetaFiltros, filtrarCartas, leerFiltros } from '../lib/filtros.js'
 import { revelar } from '../lib/motion.js'
+import { trocear, useDisposicionMuro } from '../lib/grupos.js'
 import { esVuelta } from '../lib/navegacion.js'
 import { useColeccion } from '../lib/useCollection.js'
 import { useInclinacion } from '../lib/useMotion.js'
@@ -98,23 +99,37 @@ export default function Galeria() {
   )
 }
 
-/** Rejilla de cartas; `prioritarias` son las que se cargan sin esperar al scroll. */
+/**
+ * Rejilla de cartas; `prioritarias` son las que se cargan sin esperar al
+ * scroll. Las cartas van en grupos de dos o tres filas y cada grupo se salta
+ * entero mientras está lejos de la pantalla (ver lib/grupos).
+ */
 function Muro({ cartas, etiqueta, tengo, busqueda, prioritarias, entrada }) {
+  const { columnas, tamano } = useDisposicionMuro()
   return (
-    <ul className="muro" aria-label={etiqueta}>
-      {cartas.map((carta) => (
-        <li key={carta.id}>
-          <Carta
-            carta={carta}
-            copias={tengo[carta.id] ?? 0}
-            prioridad={prioritarias.has(carta.id)}
-            entrada={entrada}
-            diferida
-            busqueda={busqueda}
-          />
-        </li>
+    <div className="muro" role="list" aria-label={etiqueta}>
+      {trocear(cartas, tamano).map((grupo, i) => (
+        <div
+          key={i}
+          className="muro-grupo"
+          role="none"
+          data-diferido=""
+          style={{ '--filas': Math.ceil(grupo.length / columnas) }}
+        >
+          {grupo.map((carta) => (
+            <div key={carta.id} role="listitem" className="muro-celda">
+              <Carta
+                carta={carta}
+                copias={tengo[carta.id] ?? 0}
+                prioridad={prioritarias.has(carta.id)}
+                entrada={entrada}
+                busqueda={busqueda}
+              />
+            </div>
+          ))}
+        </div>
       ))}
-    </ul>
+    </div>
   )
 }
 

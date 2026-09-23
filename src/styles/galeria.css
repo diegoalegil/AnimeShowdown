@@ -166,32 +166,61 @@
   scroll-margin-block: 7rem 2rem;
 }
 
+/* La rejilla va en grupos de dos o tres filas (ver lib/grupos): cada grupo
+   es una rejilla con las mismas columnas y el navegador se salta los que
+   quedan lejos de la pantalla. Mientras no se pinta, un grupo reserva la
+   altura estimada de sus filas; después recuerda la real. El relleno deja
+   sitio a la inclinación, a los sellos y a la sombra, que la contención de
+   pintado recortaría. */
 .muro {
+  --columnas: 2;
+  --hueco-fila: 2.25rem;
+  --hueco-columna: 1rem;
+  --cartela: 3.75rem;
+  --ancho-muro: calc(min(100vw, var(--container-page)) - 2 * var(--gutter));
   display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 2.25rem 1rem;
-  margin: 0;
-  padding: 0;
-  list-style: none;
+  row-gap: var(--hueco-fila);
+}
+
+.muro-grupo {
+  display: grid;
+  grid-template-columns: repeat(var(--columnas), minmax(0, 1fr));
+  gap: var(--hueco-fila) var(--hueco-columna);
+  padding: 1rem;
+  margin: -1rem;
+  content-visibility: auto;
+  contain-intrinsic-block-size: auto
+    calc(
+      var(--filas, 1) *
+        ((var(--ancho-muro) - (var(--columnas) - 1) * var(--hueco-columna)) / var(--columnas) * 1.5 + var(--cartela)) +
+        (var(--filas, 1) - 1) * var(--hueco-fila)
+    );
+}
+
+.muro-celda {
+  min-width: 0;
 }
 
 @media (min-width: 48rem) {
   .muro {
-    grid-template-columns: repeat(3, minmax(0, 1fr));
-    gap: 3.25rem 2rem;
+    --columnas: 3;
+    --hueco-fila: 3.25rem;
+    --hueco-columna: 2rem;
+    --cartela: 3.25rem;
   }
 }
 
 @media (min-width: 64rem) {
   .muro {
-    grid-template-columns: repeat(4, minmax(0, 1fr));
-    gap: 3.5rem 2.25rem;
+    --columnas: 4;
+    --hueco-fila: 3.5rem;
+    --hueco-columna: 2.25rem;
   }
 }
 
 @media (min-width: 75rem) {
   .muro {
-    grid-template-columns: repeat(5, minmax(0, 1fr));
+    --columnas: 5;
   }
 }
 

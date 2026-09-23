@@ -8,16 +8,6 @@
   min-width: 0;
 }
 
-/* Rejillas largas: el navegador se salta el trabajo de las cartas fuera de
-   pantalla. El relleno deja sitio a la inclinación y a la sombra, que la
-   contención de pintado recortaría. */
-.carta--diferida {
-  content-visibility: auto;
-  contain-intrinsic-block-size: auto 30rem;
-  padding: 1rem;
-  margin: -1rem;
-}
-
 .carta-enlace {
   display: block;
   color: inherit;
