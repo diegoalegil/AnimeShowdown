@@ -188,6 +188,11 @@
   .campo-atajo {
     display: block;
   }
+
+  /* Reserva el hueco del atajo para que el texto no se monte encima. */
+  .campo--buscar input {
+    padding-right: 1.75rem;
+  }
 }
 
 /* ---- Rejilla ---- */
