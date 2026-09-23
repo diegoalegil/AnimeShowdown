@@ -1,3 +1,4 @@
+import { Suspense } from 'react'
 import { Route, Routes } from 'react-router'
 import { Cabecera } from './components/Cabecera.jsx'
 import { Pie } from './components/Pie.jsx'
@@ -6,7 +7,7 @@ import Coleccion from './pages/Coleccion.jsx'
 import Ficha from './pages/Ficha.jsx'
 import Galeria from './pages/Galeria.jsx'
 import NoEncontrada from './pages/NoEncontrada.jsx'
-import Sobres from './pages/Sobres.jsx'
+import { sobres } from './paginas.js'
 
 export function App() {
   useNavegacionDelegada()
@@ -22,7 +23,15 @@ export function App() {
         <Routes>
           <Route index element={<Galeria />} />
           <Route path="carta/:id" element={<Ficha />} />
-          <Route path="sobres" element={<Sobres />} />
+          <Route
+            path="sobres"
+            element={
+              // Mientras llega el código (solo si se entra directamente), el escenario ya oscuro.
+              <Suspense fallback={<div className="yoru escenario" />}>
+                <sobres.Componente />
+              </Suspense>
+            }
+          />
           <Route path="coleccion" element={<Coleccion />} />
           <Route path="*" element={<NoEncontrada />} />
         </Routes>

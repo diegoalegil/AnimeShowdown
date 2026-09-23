@@ -2,7 +2,9 @@ import { StrictMode } from 'react'
 import { createRoot } from 'react-dom/client'
 import { BrowserRouter } from 'react-router'
 import { App } from './App.jsx'
+import { cuandoLibre } from './lib/diferido.js'
 import { vigilarImagenes } from './lib/images.js'
+import { precargarPaginas } from './paginas.js'
 import './index.css'
 
 // Antes de pintar: así ninguna imagen carga sin que se marque.
@@ -22,3 +24,4 @@ createRoot(document.getElementById('root')).render(
 )
 
 import('./fuentes-jp.css')
+cuandoLibre(precargarPaginas)
