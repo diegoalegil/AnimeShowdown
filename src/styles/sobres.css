@@ -564,29 +564,32 @@
   backface-visibility: hidden;
 }
 
-/* ---- Dorso: tinta, hojas de cáñamo y el sello ---- */
+/* ---- Dorso: papel sobre el escenario de tinta, hojas de cáñamo y el sello ----
+   Las cartas boca abajo son de washi, como el sobre: el mismo contraste de
+   papel y tinta que recorre la web, en el momento en que más importa. */
 .naipe-dorso {
   display: grid;
   place-items: center;
   overflow: hidden;
-  background-color: var(--color-sumi);
+  background-color: var(--color-kinu);
+  background-image: url('/washi.png');
   box-shadow:
     0 26px 38px -22px rgb(0 0 0 / 0.95),
-    inset 0 0 0 1px var(--color-sumi-2);
+    inset 0 0 0 1px var(--color-sen);
 }
 
 .naipe-dorso::before {
   content: '';
   position: absolute;
   inset: 5.5%;
-  border: 1px solid var(--color-sumi-2);
+  border: 1px solid var(--color-sen);
 }
 
 .naipe-dorso-motivo {
   position: absolute;
   inset: 5.5%;
-  background-color: var(--color-gofun-2);
-  opacity: 0.1;
+  background-color: var(--color-sumi);
+  opacity: 0.12;
   -webkit-mask-image: url('/asanoha.png');
   mask-image: url('/asanoha.png');
   -webkit-mask-size: 24px 41.6px;
@@ -600,8 +603,8 @@
   box-sizing: border-box;
   width: 38%;
   padding: 7%;
-  background-color: var(--color-sumi);
-  outline: 1px solid var(--color-sumi-2);
+  background-color: var(--color-kinu);
+  outline: 1px solid var(--color-sen);
 }
 
 .naipe-dorso-marca {
@@ -609,7 +612,7 @@
   left: 0;
   right: 0;
   bottom: 10%;
-  color: var(--color-gofun-2);
+  color: var(--color-sumi-2);
   font-family: var(--font-serif);
   font-size: var(--text-xs);
   letter-spacing: 0.04em;
