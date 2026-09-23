@@ -183,10 +183,16 @@ function sostenerEn(elemento, top) {
   }
   colocar()
   const hasta = performance.now() + TIEMPO_ANCLA_MS
+  // El tiempo se mira antes de recolocar: si los frames se retrasan (pestaña
+  // en segundo plano), un frame tardío no devuelve la página a su sitio
+  // después de que el visitante se haya movido.
   let frame = requestAnimationFrame(function seguir(ahora) {
+    if (ahora >= hasta) {
+      soltar()
+      return
+    }
     colocar()
-    if (ahora < hasta) frame = requestAnimationFrame(seguir)
-    else soltar()
+    frame = requestAnimationFrame(seguir)
   })
   const soltar = () => {
     cancelAnimationFrame(frame)
