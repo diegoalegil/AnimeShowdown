@@ -4,6 +4,7 @@ import {
   calcularInclinacion,
   conTransicion,
   INCLINACION_MAX,
+  ritmoScroll,
   movimientoReducido,
   nombrarCompartido,
   revelar,
@@ -110,6 +111,15 @@ describe('revelar', () => {
     const el = { dataset: { revelar: '' }, style: estiloFalso() }
     expect(revelar(el)).toBeUndefined()
     expect(el.dataset.revelar).toBe('visto')
+  })
+})
+
+describe('ritmoScroll', () => {
+  it('pasa a rápido por encima de 1,2 px/ms y vuelve a la calma por debajo de 0,4', () => {
+    expect(ritmoScroll(false, 0.8)).toBe(false)
+    expect(ritmoScroll(false, 5)).toBe(true)
+    expect(ritmoScroll(true, 0.8)).toBe(true)
+    expect(ritmoScroll(true, 0.2)).toBe(false)
   })
 })
 

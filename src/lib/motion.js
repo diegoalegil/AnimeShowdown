@@ -82,7 +82,62 @@ const PASO_MS = 55
 const MAX_RETARDO_MS = 330
 let observador = null
 
-function marcarVisto(elemento, retardo = 0) {
+// Ritmo del scroll. Con scroll rápido las cartas aparecen sin coreografía:
+// no daría tiempo a verla y ocultar y volver a mostrar decenas de cartas
+// cuesta frames en un móvil modesto. Mientras el scroll va con calma, <html>
+// lleva data-calma y solo entonces las cartas esperan ocultas su entrada
+// (ver [data-revelar] en index.css). Hay histéresis para no alternar a cada
+// frame: se pasa a rápido por encima de 1,2 px/ms y se vuelve a la calma por
+// debajo de 0,4 px/ms.
+export const VELOCIDAD_RAPIDA = 1.2
+export const VELOCIDAD_CALMA = 0.4
+let rapido = false
+
+/** Nuevo ritmo (true = rápido) según el anterior y la velocidad en px/ms. */
+export function ritmoScroll(eraRapido, velocidad) {
+  return eraRapido ? velocidad > VELOCIDAD_CALMA : velocidad > VELOCIDAD_RAPIDA
+}
+
+function seguirRitmo() {
+  let previa = null
+  let frame = 0
+  let reposo = 0
+  const raiz = document.documentElement
+  const medir = (t) => {
+    frame = 0
+    const y = window.scrollY
+    if (previa) {
+      const nuevo = ritmoScroll(rapido, Math.abs(y - previa.y) / Math.max(t - previa.t, 1))
+      if (nuevo !== rapido) {
+        rapido = nuevo
+        raiz.toggleAttribute('data-calma', !rapido)
+      }
+    }
+    previa = { t, y }
+    // Si el scroll se detiene en seco no llegan más eventos: se vuelve a la calma.
+    clearTimeout(reposo)
+    reposo = setTimeout(() => {
+      previa = null
+      if (rapido) {
+        rapido = false
+        raiz.setAttribute('data-calma', '')
+      }
+    }, 160)
+  }
+  window.addEventListener(
+    'scroll',
+    () => {
+      if (!frame) frame = requestAnimationFrame(medir)
+    },
+    { passive: true },
+  )
+}
+
+function marcarVisto(elemento, retardo = 0, directo = rapido) {
+  if (directo) {
+    elemento.dataset.revelar = 'directo'
+    return
+  }
   if (retardo) elemento.style.setProperty('--retardo', `${retardo}ms`)
   elemento.dataset.revelar = 'visto'
 }
@@ -101,6 +156,7 @@ function obtenerObservador() {
     },
     { rootMargin: '0px 0px -6% 0px' },
   )
+  seguirRitmo()
   return observador
 }
 

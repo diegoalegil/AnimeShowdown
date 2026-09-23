@@ -290,8 +290,10 @@
 }
 
 /* Entrada escalonada de elementos al llegar al viewport (ver lib/motion). */
-/* En reposo, un desplazamiento 2D: con mil cartas, uno 3D crearía mil capas. */
-[data-revelar] {
+/* Esperando su entrada: solo con el scroll en calma (<html data-calma, ver
+   lib/motion); con scroll rápido la carta se pinta tal cual y no se anima.
+   El desplazamiento es 2D: con mil cartas, uno 3D crearía mil capas. */
+:root[data-calma] [data-revelar=''] {
   opacity: 0;
   transform: translateY(18px);
 }
@@ -413,7 +415,7 @@
 }
 
 @media (prefers-reduced-motion: reduce) {
-  [data-revelar] {
+  :root[data-calma] [data-revelar=''] {
     transform: none;
   }
 
