@@ -37,6 +37,8 @@ export default function Sobres() {
   const mesa = useInclinacion()
   // Qué enfocar tras el próximo cambio de la ceremonia (lo hace el efecto de abajo).
   const foco = useRef(null)
+  // Temporizador que acerca la siguiente carta en el móvil.
+  const acercar = useRef(0)
 
   const todas = todasReveladas(cer)
   const copias = (id) => estado.tengo[id] ?? 0
@@ -86,7 +88,13 @@ export default function Sobres() {
 
   // Si se sale de la página a mitad de la ceremonia, la cabecera muestra ya
   // la cuenta real.
-  useEffect(() => () => cuentaRetenida.soltar(), [])
+  useEffect(
+    () => () => {
+      cuentaRetenida.soltar()
+      clearTimeout(acercar.current)
+    },
+    [],
+  )
 
   // Foco pendiente: tras abrir, en la primera carta; al acabar de revelar,
   // en «Guardar»; tras guardar, en el siguiente sobre.
@@ -120,6 +128,7 @@ export default function Sobres() {
   }
 
   function revelar(indice, evento) {
+    clearTimeout(acercar.current)
     despachar({ tipo: 'revelar', indice })
     const pendientes = cer.reveladas.map((vista, i) => !vista && i !== indice)
     const despues = pendientes.indexOf(true, indice + 1)
@@ -130,22 +139,27 @@ export default function Sobres() {
     }
     // Con teclado, el foco pasa a la siguiente carta boca abajo.
     if (evento.detail === 0) foco.current = `.naipe[data-indice="${siguiente}"] .naipe-boton`
-    // En la fila deslizable del móvil, la siguiente se acerca sola.
+    // En la fila deslizable del móvil, la siguiente se acerca sola cuando
+    // esta termina de girar (la especial, tras su destello).
     const fila = mesa.current?.querySelector('.abanico')
     if (fila && fila.scrollWidth > fila.clientWidth + 1) {
       const destino = fila.querySelector(`.naipe[data-indice="${siguiente}"]`)
-      setTimeout(() => {
-        destino?.scrollIntoView({ behavior: movimientoReducido() ? 'auto' : 'smooth', inline: 'center', block: 'nearest' })
-      }, 560)
+      const especial = esEspecialId(cer.cartas[indice].id)
+      acercar.current = setTimeout(
+        () => destino?.scrollIntoView({ behavior: movimientoReducido() ? 'auto' : 'smooth', inline: 'center', block: 'nearest' }),
+        especial ? 1700 : 900,
+      )
     }
   }
 
   function revelarTodas() {
+    clearTimeout(acercar.current)
     foco.current = '.mesa-guardar'
     despachar({ tipo: 'revelarTodas' })
   }
 
   function saltar() {
+    clearTimeout(acercar.current)
     foco.current = '.mesa-guardar'
     despachar({ tipo: 'saltar' })
   }

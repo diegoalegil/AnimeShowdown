@@ -13,11 +13,16 @@
   --naipe-ancho: min(66vw, 16.5rem);
   --voltear: 700ms;
   --voltear-especial: 940ms;
+  /* Hasta dónde se abre el destello de la especial (en el móvil, dentro de la fila). */
+  --destello-x: 1.28;
+  --destello-y: 1.12;
 }
 
 @media (min-width: 48rem) {
   .sobres {
     --naipe-ancho: min(12.75rem, calc((100vw - 2 * var(--gutter) - 6rem) / 5));
+    --destello-x: 1.5;
+    --destello-y: 1.3;
   }
 }
 
@@ -118,8 +123,8 @@
      más ancha, desborda sin desplazar el sobre del centro. */
   grid-template-columns: minmax(0, 1fr);
   place-items: center;
-  min-height: calc(var(--naipe-ancho) * 1.5 + 7rem);
-  margin-top: 1.5rem;
+  min-height: calc(var(--naipe-ancho) * 1.5 + 8.5rem);
+  margin-top: 0.25rem;
 }
 
 .mesa > * {
@@ -457,7 +462,8 @@
   gap: 1rem;
   width: calc(100% + 2 * var(--gutter));
   margin: 0 calc(var(--gutter) * -1);
-  padding: 1.25rem calc(50% - var(--naipe-ancho) / 2) 0.5rem;
+  /* Aire arriba para el destello de la especial, que la fila recorta. */
+  padding: 2.75rem calc(50% - var(--naipe-ancho) / 2) 0.5rem;
   list-style: none;
 }
 
@@ -738,7 +744,7 @@
 
   100% {
     opacity: 0;
-    transform: scale(1.5, 1.32);
+    transform: scale(var(--destello-x), var(--destello-y));
   }
 }
 
@@ -754,7 +760,7 @@
 
   100% {
     opacity: 0;
-    transform: scale(1.45, 1.3);
+    transform: scale(1.14, 1.1);
   }
 }
 
@@ -807,6 +813,12 @@
   .naipe-cartela {
     transform: translateY(var(--arco));
   }
+}
+
+/* Al guardar vuelan las cartas; su cartela se queda y se apaga. */
+.mesa[data-fase='guardando'] .naipe-cartela {
+  opacity: 0;
+  transition: opacity var(--dur-2) linear;
 }
 
 .naipe-cartela > * {
@@ -875,7 +887,13 @@
   animation: funde var(--dur-2) linear both;
 }
 
-.mesa[data-instantaneo] .naipe-cartela > * {
+.mesa[data-instantaneo] /* Al guardar vuelan las cartas; su cartela se queda y se apaga. */
+.mesa[data-fase='guardando'] .naipe-cartela {
+  opacity: 0;
+  transition: opacity var(--dur-2) linear;
+}
+
+.naipe-cartela > * {
   animation: funde var(--dur-2) linear both;
 }
 

@@ -6,7 +6,7 @@ import { movimientoReducido } from './motion.js'
 
 const SUAVE = 'cubic-bezier(0.22, 1, 0.36, 1)'
 const FIRME = 'cubic-bezier(0.65, 0, 0.35, 1)'
-const ACELERA = 'cubic-bezier(0.55, 0, 0.9, 0.45)'
+const ACELERA = 'cubic-bezier(0.5, 0, 0.75, 0.3)'
 
 /** Tiempos de la apertura (ms). */
 export const APERTURA = {
@@ -18,7 +18,7 @@ export const APERTURA = {
 }
 
 /** Tiempos del vuelo a la colección (ms). */
-export const GUARDADO = { paso: 60, duracion: 760 }
+export const GUARDADO = { paso: 60, duracion: 820 }
 
 const centro = (r) => ({ x: r.left + r.width / 2, y: r.top + r.height / 2 })
 
@@ -159,12 +159,13 @@ export function animarGuardado(mesa, destino) {
     const giro = (i % 2 ? 1 : -1) * (8 + i * 3)
     return naipe.animate(
       [
-        { transform: 'none', opacity: 1 },
-        // Toma impulso: se levanta un poco antes de salir disparada.
-        { transform: `translate(${px(dx * 0.04)}, -18px) scale(1.03)`, opacity: 1, offset: 0.22 },
+        // Toma impulso: se levanta un poco antes de salir disparada…
+        { transform: 'none', opacity: 1, easing: SUAVE },
+        { transform: `translate(${px(dx * 0.04)}, -18px) scale(1.03)`, opacity: 1, offset: 0.24, easing: ACELERA },
+        // …y acelera hasta el contador, encogiendo.
         { transform: `translate(${px(dx)}, ${px(dy)}) scale(${escala.toFixed(3)}) rotate(${giro}deg)`, opacity: 0.2 },
       ],
-      { duration: GUARDADO.duracion, delay: i * GUARDADO.paso, easing: ACELERA, fill: 'forwards' },
+      { duration: GUARDADO.duracion, delay: i * GUARDADO.paso, easing: 'linear', fill: 'forwards' },
     )
   })
 }
