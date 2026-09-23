@@ -5,7 +5,7 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
-    "build": "node scripts/check-data.mjs && vite build",
+    "build": "node scripts/check-data.mjs && vite build && node scripts/prerender.mjs",
     "preview": "vite preview",
     "lint": "eslint .",
     "test": "vitest run"

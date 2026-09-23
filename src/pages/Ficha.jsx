@@ -3,13 +3,14 @@ import { Carta } from '../components/Carta.jsx'
 import { Enlace } from '../components/Enlace.jsx'
 import { EtiquetaVertical } from '../components/EtiquetaVertical.jsx'
 import { catalogo, numeroCarta } from '../lib/catalog.js'
+import { nombreCarta } from '../lib/titulos.js'
 import { useTitulo } from '../lib/useTitulo.js'
 import NoEncontrada from './NoEncontrada.jsx'
 
 export default function Ficha() {
   const { id } = useParams()
   const carta = catalogo.carta(id)
-  useTitulo(carta?.nombre ?? 'Carta no encontrada')
+  useTitulo(carta ? nombreCarta(carta) : 'Carta no encontrada')
 
   if (!carta) return <NoEncontrada />
 
