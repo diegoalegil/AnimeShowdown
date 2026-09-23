@@ -7,7 +7,12 @@ navegador.
 
 ## Cómo se juega
 
-- La **galería** muestra todas las cartas, las tengas o no.
+- La **galería** muestra todas las cartas, las tengas o no, agrupadas por serie.
+  Se puede buscar por nombre o serie (atajo `/`) y filtrar por serie o por las
+  especiales; los filtros quedan en la dirección, así que se pueden compartir.
+- Cada carta tiene su **ficha**: `←` y `→` recorren las cartas en el orden de la
+  galería, `Esc` vuelve a ella y, si el personaje tiene versión especial, la carta
+  se puede girar para verla.
 - Cada día (a medianoche, hora local) hay **5 sobres** de **5 cartas**. Las cuatro
   primeras son personajes al azar; la quinta tiene un 15 % de probabilidad de ser
   una **carta especial**. Las repetidas se acumulan.
