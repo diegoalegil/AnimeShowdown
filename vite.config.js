@@ -35,6 +35,7 @@ function precargarFuentes() {
 // nada: la primera fila del móvil, que son las primeras cartas del catálogo.
 // El HTML las pide a la vez que el JavaScript, con el mismo srcset y sizes
 // que las <img> de la rejilla, así que el navegador elige el mismo archivo.
+// Sin fetchpriority alta: así no retrasan el JavaScript, que pinta la página.
 // Solo van en la portada: scripts/prerender.mjs las quita de las demás rutas.
 const PRIMERA_FILA = 2
 
@@ -53,7 +54,6 @@ function precargarPortada() {
             type: 'image/webp',
             imagesrcset: img.srcSet,
             imagesizes: TAMANOS.muro,
-            fetchpriority: 'high',
             'data-portada': '',
           },
           injectTo: 'head',
