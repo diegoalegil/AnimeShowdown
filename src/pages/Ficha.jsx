@@ -39,16 +39,19 @@ function FichaCarta({ carta }) {
   const especial = esEspecial(carta)
   const nativo = carta.nativo ?? base.nativo
   const desc = carta.desc ?? base.desc
-  // Abierta desde la galería: «volver» es ir atrás de verdad (con su scroll).
-  const desdeGaleria = Boolean(state?.galeria)
+  // Abierta desde la galería o la colección: «volver» es ir atrás de verdad
+  // (con su scroll). Si se llegó de otro modo, el enlace lleva a la galería.
+  const volverA = state?.volver
+  const estadoVuelta = volverA ? { volver: volverA } : undefined
+  const aColeccion = volverA === '/coleccion'
 
   const hrefDe = (c) => `/carta/${c.id}${busqueda}`
 
   function volver(evento) {
-    if (!desdeGaleria) return // el enlace lleva a la galería con los mismos filtros
+    if (!volverA) return // el enlace lleva a la galería con los mismos filtros
     evento.preventDefault()
     volverAtras(navigate, {
-      // La carta de la galería recoge la de la ficha, si queda a la vista.
+      // La carta de la página anterior recoge la de la ficha, si queda a la vista.
       alLlegar: () => {
         for (const c of [carta, base]) {
           const lamina = document.querySelector(`.carta[data-id="${c.id}"] .carta-lamina`)
@@ -65,13 +68,13 @@ function FichaCarta({ carta }) {
   // Sin View Transition: la animación es el propio giro de la carta.
   function cambiarVersion(version) {
     if (version.id === carta.id) return
-    navigate(hrefDe(version), { replace: true, state: { galeria: desdeGaleria || undefined, conservarScroll: true } })
+    navigate(hrefDe(version), { replace: true, state: { ...estadoVuelta, conservarScroll: true } })
   }
 
-  // Al volver, la galería se colocará en la carta que se esté viendo ahora.
+  // Al volver, la página anterior se colocará en la carta que se esté viendo ahora.
   useEffect(() => actualizarAncla([carta.id, base.id]), [carta.id, base.id])
 
-  // Teclado: ← → recorren las cartas y Escape vuelve a la galería.
+  // Teclado: ← → recorren las cartas y Escape vuelve a la página anterior.
   useEffect(() => {
     function alPulsar(evento) {
       if (evento.defaultPrevented || evento.metaKey || evento.ctrlKey || evento.altKey || evento.shiftKey) return
@@ -82,7 +85,7 @@ function FichaCarta({ carta }) {
         irA(navigate, `/carta/${vecina.id}${busqueda}`, {
           reemplazar: true,
           direccion: evento.key === 'ArrowLeft' ? 'anterior' : 'siguiente',
-          estado: desdeGaleria ? { galeria: true } : undefined,
+          estado: volverA ? { volver: volverA } : undefined,
         })
       } else if (evento.key === 'Escape') {
         evento.preventDefault()
@@ -91,7 +94,7 @@ function FichaCarta({ carta }) {
     }
     document.addEventListener('keydown', alPulsar)
     return () => document.removeEventListener('keydown', alPulsar)
-  }, [navigate, anterior, siguiente, busqueda, desdeGaleria])
+  }, [navigate, anterior, siguiente, busqueda, volverA])
 
   return (
     <article className="ficha">
@@ -103,11 +106,11 @@ function FichaCarta({ carta }) {
         )}
 
         <div className="ficha-barra">
-          <Enlace ref={enlaceVolver} to={`/${busqueda}`} className="ficha-volver" onClick={volver}>
+          <Enlace ref={enlaceVolver} to={aColeccion ? '/coleccion' : `/${busqueda}`} className="ficha-volver" onClick={volver}>
             <span className="ficha-volver-flecha" aria-hidden="true">
               ←
             </span>
-            Galería
+            {aColeccion ? 'Colección' : 'Galería'}
           </Enlace>
           {indice >= 0 && (
             <span className="ficha-posicion cifra">

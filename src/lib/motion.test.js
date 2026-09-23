@@ -86,12 +86,22 @@ describe('nombrarCompartido', () => {
   it('saca la carta de content-visibility mientras lleva el nombre', () => {
     const props = {}
     const contenedor = { style: { setProperty: (k, v) => (props[k] = v), removeProperty: (k) => delete props[k] } }
-    const lamina = { style: {}, closest: (sel) => (sel === '.carta--diferida' ? contenedor : null) }
+    const lamina = { style: {}, closest: (sel) => (sel.split(', ').includes('.carta--diferida') ? contenedor : null) }
     nombrarCompartido(lamina)
     expect(props['content-visibility']).toBe('visible')
     nombrarCompartido(null)
     expect(props['content-visibility']).toBeUndefined()
     expect(lamina.style.viewTransitionName).toBe('')
+  })
+
+  it('también saca de content-visibility las hojas del álbum (data-diferido)', () => {
+    const props = {}
+    const hoja = { style: { setProperty: (k, v) => (props[k] = v), removeProperty: (k) => delete props[k] } }
+    const lamina = { style: {}, closest: (sel) => (sel.split(', ').includes('[data-diferido]') ? hoja : null) }
+    nombrarCompartido(lamina)
+    expect(props['content-visibility']).toBe('visible')
+    nombrarCompartido(null)
+    expect(props['content-visibility']).toBeUndefined()
   })
 
   it('deja el nombre en un solo elemento', () => {

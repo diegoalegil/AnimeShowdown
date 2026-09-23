@@ -47,15 +47,19 @@ export function destinoDeClic(evento, { base, actual }) {
   }
 }
 
+// Páginas de cartas a las que una ficha puede volver yendo atrás de verdad.
+const ORIGENES = new Set(['/', '/coleccion'])
+
 /**
- * Estado que acompaña a una entrada del historial. `galeria` indica que la
- * ficha se abrió desde la galería (así «volver» puede ir atrás de verdad y
- * recuperar su scroll); se conserva al pasar de una ficha a otra.
+ * Estado que acompaña a una entrada del historial. `volver` es la página de
+ * cartas desde la que se abrió la ficha (la galería o la colección): así
+ * «volver» puede ir atrás de verdad y recuperar su scroll. Se conserva al
+ * pasar de una ficha a otra.
  */
 export function estadoPara(destino, { desde, estadoActual, reemplazar }) {
   if (!destino.startsWith('/carta/')) return undefined
-  if (reemplazar) return estadoActual?.galeria ? { galeria: true } : undefined
-  return desde === '/' ? { galeria: true } : undefined
+  const origen = reemplazar ? estadoActual?.volver : desde
+  return ORIGENES.has(origen) ? { volver: origen } : undefined
 }
 
 /**

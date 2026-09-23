@@ -53,10 +53,13 @@ export function conTransicion(actualizar, { tipo } = {}) {
 // nombre a la vez, así que se quita del anterior antes de ponerlo.
 //
 // Safari no captura elementos con nombre dentro de un contenedor con
-// content-visibility: auto (las cartas de la rejilla), así que mientras la
-// carta lleva el nombre, su contenedor pasa a content-visibility: visible.
+// content-visibility: auto (las cartas de la rejilla, las hojas del álbum),
+// así que mientras la carta lleva el nombre, su contenedor pasa a
+// content-visibility: visible. Esos contenedores son .carta--diferida o
+// llevan el atributo data-diferido.
 // ---------------------------------------------------------------------------
 
+const DIFERIDOS = '.carta--diferida, [data-diferido]'
 let compartido = null
 let contenedor = null
 
@@ -69,7 +72,7 @@ export function nombrarCompartido(elemento, nombre = 'carta') {
   compartido = elemento
   if (!elemento) return
   elemento.style.viewTransitionName = nombre
-  contenedor = elemento.closest?.('.carta--diferida') ?? null
+  contenedor = elemento.closest?.(DIFERIDOS) ?? null
   contenedor?.style.setProperty('content-visibility', 'visible')
 }
 

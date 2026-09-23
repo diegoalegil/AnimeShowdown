@@ -53,10 +53,16 @@ describe('destinoDeClic', () => {
 
 describe('estadoPara', () => {
   it('marca las fichas abiertas desde la galería y lo conserva entre fichas', () => {
-    expect(estadoPara('/carta/frieren', { desde: '/' })).toEqual({ galeria: true })
+    expect(estadoPara('/carta/frieren', { desde: '/' })).toEqual({ volver: '/' })
     expect(estadoPara('/carta/frieren', { desde: '/sobres' })).toBeUndefined()
-    expect(estadoPara('/carta/fern', { reemplazar: true, estadoActual: { galeria: true } })).toEqual({ galeria: true })
+    expect(estadoPara('/carta/fern', { reemplazar: true, estadoActual: { volver: '/' } })).toEqual({ volver: '/' })
     expect(estadoPara('/carta/fern', { reemplazar: true, estadoActual: null })).toBeUndefined()
     expect(estadoPara('/sobres', { desde: '/' })).toBeUndefined()
+  })
+
+  it('también las abiertas desde la colección, que vuelven a ella', () => {
+    expect(estadoPara('/carta/frieren', { desde: '/coleccion' })).toEqual({ volver: '/coleccion' })
+    expect(estadoPara('/carta/fern', { reemplazar: true, estadoActual: { volver: '/coleccion' } })).toEqual({ volver: '/coleccion' })
+    expect(estadoPara('/carta/fern', { reemplazar: true, estadoActual: { volver: '/otra' } })).toBeUndefined()
   })
 })
