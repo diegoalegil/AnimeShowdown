@@ -1,112 +1,40 @@
-# ===========================
-# Spring Boot / Maven
-# ===========================
-HELP.md
-target/
-!**/src/main/**/target/
-!**/src/test/**/target/
+# Dependencias y builds
+node_modules/
+dist/
+coverage/
+*.log
 
-# Maven Wrapper: SI subimos el .jar para que el wrapper funcione en otras maquinas
-!.mvn/wrapper/maven-wrapper.jar
+# Entorno
+.env
+.env.*
+*.local
 
-# ===========================
-# IDEs
-# ===========================
-
-### IntelliJ IDEA ###
-.idea/
-*.iws
-*.iml
-*.ipr
-
-### Eclipse / STS ###
-.apt_generated
-.classpath
-.factorypath
-.project
-.settings
-.springBeans
-.sts4-cache
-
-### NetBeans ###
-/nbproject/private/
-/nbbuild/
-/dist/
-/nbdist/
-/.nb-gradle/
-build/
-!**/src/main/**/build/
-!**/src/test/**/build/
-
-### VS Code ###
-.vscode/
-
-# ===========================
-# Sistema operativo
-# ===========================
+# Sistema y editores
 .DS_Store
 Thumbs.db
-
-# ===========================
-# Archivos sensibles
-# ===========================
-.env
-.env.local
-application-local.properties
-application-secret.properties
-
-# ===========================
-# Frontend (preventivo, por si anades npm/node)
-# ===========================
-node_modules/
-npm-debug.log
-yarn-debug.log
-yarn-error.log
-.pnpm-debug.log
-
-# ===========================
-# Logs
-# ===========================
-*.log
-logs/
-
-# macOS Icon residual
 Icon?
+.idea/
+.vscode/
 
-# ===========================
-# Artefactos privados/locales
-# ===========================
+# Notas y material local, fuera del repositorio público
 memory/
 private/
+private-notes/
 local-notes/
-review-notes/
-internal-reports/
-REPORT*.md
-*REPORT*.md
-MERGE_REPORT*.md
-HANDOFF_SESSION_*.md
+auditoria/
+handoff/
+_inbox/
 *.private.md
 *.local.md
-private-notes/
-asset-notes/
-
-# Convenciones y bitácora de proceso: solo locales, fuera del repo público
 BACKLOG.md
 PROGRESS.md
-PROPUESTAS.md
-DESIGN.md
+PENDIENTES.md
 ROADMAP_MES.md
-
-# Config local de editor/entorno (no versionar)
-.local-tools/
-
-# Buzon temporal para imagenes generadas a mano (tanda N)
-# Se vacia al integrar cada tanda; los assets finales viven en frontend/public/assets o frontend/img.
-_inbox/
-
-# Reporte local de cobertura visual
+ROADMAP_VISUAL.md
+DESIGN.md
 ASSET_MANIFEST.md
+AUDITORIA_FORENSE_R2.md
 
-# Artefactos locales de Playwright
-frontend/playwright-report/
-frontend/test-results/
+# Restos locales de la versión anterior (ya no forman parte del proyecto)
+frontend/
+backend/
