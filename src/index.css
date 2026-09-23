@@ -21,6 +21,7 @@
 @import './styles/carta.css' layer(components);
 @import './styles/marco.css' layer(components);
 @import './styles/galeria.css' layer(components);
+@import './styles/ficha.css' layer(components);
 @source '../index.html';
 @source './**/*.{js,jsx}';
 
@@ -325,9 +326,76 @@
   animation: var(--dur-3) var(--ease-sumi) 60ms both vt-entra;
 }
 
+/* Cabecera y pie no viajan: si la página anterior estaba muy abajo, su
+   posición de partida quedaría a miles de píxeles y cruzarían la pantalla. */
+::view-transition-group(cabecera),
+::view-transition-group(pie) {
+  animation: none;
+}
+
 ::view-transition-group(carta) {
   animation-duration: var(--dur-4);
   animation-timing-function: var(--ease-sumi);
+}
+
+/* La carta no se funde consigo misma (el fundido cruzado la oscurece a mitad
+   de camino, sobre todo en Safari): viaja la imagen de destino, que siempre
+   está pintada (en caché o con su versión intermedia de fondo). */
+::view-transition-old(carta) {
+  animation: none;
+  opacity: 0;
+}
+
+::view-transition-new(carta) {
+  animation: none;
+}
+
+/* Entre fichas vecinas la carta sale hacia un lado y entra la nueva por el
+   otro, con un leve giro, como al pasar cartas sobre la mesa. */
+:root[data-vt='siguiente']::view-transition-old(carta) {
+  opacity: 1;
+  animation: var(--dur-3) var(--ease-fude) both vt-carta-sale-izquierda;
+}
+
+:root[data-vt='siguiente']::view-transition-new(carta) {
+  animation: var(--dur-4) var(--ease-sumi) 40ms both vt-carta-entra-derecha;
+}
+
+:root[data-vt='anterior']::view-transition-old(carta) {
+  opacity: 1;
+  animation: var(--dur-3) var(--ease-fude) both vt-carta-sale-derecha;
+}
+
+:root[data-vt='anterior']::view-transition-new(carta) {
+  animation: var(--dur-4) var(--ease-sumi) 40ms both vt-carta-entra-izquierda;
+}
+
+@keyframes vt-carta-sale-izquierda {
+  to {
+    opacity: 0;
+    transform: translate3d(-14%, 0, 0) rotate(-3deg);
+  }
+}
+
+@keyframes vt-carta-entra-derecha {
+  from {
+    opacity: 0;
+    transform: translate3d(14%, 0, 0) rotate(3deg);
+  }
+}
+
+@keyframes vt-carta-sale-derecha {
+  to {
+    opacity: 0;
+    transform: translate3d(14%, 0, 0) rotate(3deg);
+  }
+}
+
+@keyframes vt-carta-entra-izquierda {
+  from {
+    opacity: 0;
+    transform: translate3d(-14%, 0, 0) rotate(-3deg);
+  }
 }
 
 @keyframes vt-sale {
