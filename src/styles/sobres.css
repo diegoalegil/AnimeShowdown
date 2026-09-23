@@ -821,8 +821,15 @@
   transition: opacity var(--dur-2) linear;
 }
 
+/* La cartela aparece cuando la cara ya mira al frente: al acabar la media
+   vuelta de la cara y, en la especial, tras su destello. Antes delataría la
+   carta (nombre, serie, si es nueva) mientras aún se ve el dorso. */
 .naipe-cartela > * {
-  animation: aparece var(--dur-4) var(--ease-sumi) calc(var(--retardo, 0ms) + var(--voltear) * 0.6) both;
+  animation: aparece var(--dur-4) var(--ease-sumi) calc(var(--retardo, 0ms) + var(--voltear) * 0.65) both;
+}
+
+.naipe[data-especial] .naipe-cartela > * {
+  animation-delay: calc(var(--retardo, 0ms) + var(--voltear-especial) * 0.5 + 640ms);
 }
 
 .naipe-numero {
@@ -887,13 +894,7 @@
   animation: funde var(--dur-2) linear both;
 }
 
-.mesa[data-instantaneo] /* Al guardar vuelan las cartas; su cartela se queda y se apaga. */
-.mesa[data-fase='guardando'] .naipe-cartela {
-  opacity: 0;
-  transition: opacity var(--dur-2) linear;
-}
-
-.naipe-cartela > * {
+.mesa[data-instantaneo] .naipe-cartela > * {
   animation: funde var(--dur-2) linear both;
 }
 
