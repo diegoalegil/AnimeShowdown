@@ -3,11 +3,10 @@ import { Route, Routes } from 'react-router'
 import { Cabecera } from './components/Cabecera.jsx'
 import { Pie } from './components/Pie.jsx'
 import { useNavegacionDelegada, useRestaurarScroll } from './lib/navegacion.js'
-import Coleccion from './pages/Coleccion.jsx'
 import Ficha from './pages/Ficha.jsx'
 import Galeria from './pages/Galeria.jsx'
 import NoEncontrada from './pages/NoEncontrada.jsx'
-import { sobres } from './paginas.js'
+import { coleccion, sobres } from './paginas.js'
 
 export function App() {
   useNavegacionDelegada()
@@ -32,7 +31,14 @@ export function App() {
               </Suspense>
             }
           />
-          <Route path="coleccion" element={<Coleccion />} />
+          <Route
+            path="coleccion"
+            element={
+              <Suspense fallback={<div className="coleccion-cargando" />}>
+                <coleccion.Componente />
+              </Suspense>
+            }
+          />
           <Route path="*" element={<NoEncontrada />} />
         </Routes>
       </main>

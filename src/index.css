@@ -23,6 +23,7 @@
 @import './styles/galeria.css' layer(components);
 @import './styles/ficha.css' layer(components);
 @import './styles/sobres.css' layer(components);
+@import './styles/coleccion.css' layer(components);
 @source '../index.html';
 @source './**/*.{js,jsx}';
 

@@ -1,0 +1,743 @@
+/* ==========================================================================
+   Colección: el álbum. Una hoja por serie con un hueco numerado por carta,
+   las especiales sobre el escenario oscuro y el progreso arriba.
+   ========================================================================== */
+
+.coleccion-cargando {
+  min-height: 100vh;
+}
+
+.coleccion-cabecera {
+  padding-block: 2.5rem 2.5rem;
+}
+
+@media (min-width: 48rem) {
+  .coleccion-cabecera {
+    padding-block: 4rem 3.5rem;
+  }
+}
+
+/* ---- Línea de progreso: un filete con el tramo conseguido en tinta ----
+   El tramo es una capa que se escala en X: nunca se anima su ancho. */
+.linea {
+  position: relative;
+  display: block;
+  height: 2px;
+  overflow: hidden;
+}
+
+.linea::before {
+  content: '';
+  position: absolute;
+  inset: 50% 0 auto;
+  height: 1px;
+  background-color: var(--color-sen);
+}
+
+.linea-relleno {
+  position: absolute;
+  inset: 0;
+  background-color: var(--color-sumi);
+  transform: scaleX(var(--p, 0));
+  transform-origin: left center;
+  transition: transform var(--dur-4) var(--ease-sumi);
+}
+
+@keyframes llena {
+  from {
+    transform: scaleX(0);
+  }
+}
+
+.yoru .linea::before {
+  background-color: var(--color-yoru-sen);
+}
+
+.yoru .linea-relleno {
+  background-color: var(--color-gofun);
+}
+
+/* ---- Marcador ---- */
+.marcador {
+  display: grid;
+  gap: 2rem;
+  margin-top: 2.25rem;
+}
+
+.marcador-cifra {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  column-gap: 0.75rem;
+  margin: 0;
+}
+
+.marcador-n {
+  font-family: var(--font-serif);
+  font-size: clamp(3.75rem, 16vw, 6.5rem);
+  line-height: 0.9;
+  letter-spacing: -0.03em;
+  animation: aparece var(--dur-4) var(--ease-sumi) 120ms both;
+}
+
+.marcador-de {
+  color: var(--color-nezumi);
+  font-family: var(--font-serif);
+  font-size: var(--text-xl);
+  animation: aparece var(--dur-4) var(--ease-sumi) 200ms both;
+}
+
+.marcador-linea {
+  margin-top: 1.25rem;
+}
+
+.marcador-linea .linea-relleno {
+  animation: llena 1100ms var(--ease-sumi) 120ms both;
+}
+
+.marcador-pie {
+  margin: 0.625rem 0 0;
+  color: var(--color-nezumi);
+  font-size: var(--text-sm);
+}
+
+.marcador-pie .cifra {
+  color: var(--color-sumi);
+}
+
+.marcador-datos {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 1.5rem;
+  margin: 0;
+}
+
+.marcador-dato {
+  min-width: 0;
+  padding-top: 0.75rem;
+  border-top: 1px solid var(--color-sen);
+  animation: aparece var(--dur-4) var(--ease-sumi) 280ms both;
+}
+
+.marcador-dato + .marcador-dato {
+  animation-delay: 340ms;
+}
+
+.marcador-dato dt {
+  color: var(--color-nezumi);
+  font-size: var(--text-2xs);
+  letter-spacing: var(--tracking-wide);
+  text-transform: uppercase;
+}
+
+.marcador-dato dd {
+  margin: 0.25rem 0 0;
+  font-family: var(--font-serif);
+  font-size: var(--text-2xl);
+  line-height: 1.1;
+}
+
+.marcador-linea-corta {
+  margin-top: 0.75rem;
+}
+
+.marcador-linea-corta .linea-relleno {
+  background-color: var(--color-shu);
+  animation: llena 900ms var(--ease-sumi) 380ms both;
+}
+
+.marcador-acciones {
+  margin: 0;
+  animation: aparece var(--dur-4) var(--ease-sumi) 400ms both;
+}
+
+@media (min-width: 64rem) {
+  .marcador {
+    grid-template-columns: minmax(0, 1fr) minmax(0, 22rem) auto;
+    align-items: end;
+    column-gap: 3.5rem;
+    margin-top: 3rem;
+  }
+
+  .marcador-de {
+    font-size: var(--text-2xl);
+  }
+}
+
+/* ---- Colección vacía ---- */
+.album-vacio {
+  display: flex;
+  align-items: flex-start;
+  gap: 1.25rem;
+  margin-top: 2.5rem;
+}
+
+.album-vacio-hueco {
+  flex: none;
+  width: 5.5rem;
+  animation: aparece var(--dur-4) var(--ease-sumi) both;
+}
+
+.album-vacio-ja {
+  color: var(--color-shu-fuka);
+  font-size: var(--text-base);
+}
+
+.album-vacio-titulo {
+  max-width: 30rem;
+  margin: 0;
+  font-size: var(--text-2xl);
+  line-height: 1.2;
+  animation: aparece var(--dur-4) var(--ease-sumi) 80ms both;
+}
+
+.album-vacio-texto {
+  max-width: var(--container-prosa);
+  margin: 0.75rem 0 0;
+  color: var(--color-nezumi);
+  animation: aparece var(--dur-4) var(--ease-sumi) 160ms both;
+}
+
+.album-vacio-acciones {
+  margin: 1.5rem 0 0;
+  animation: aparece var(--dur-4) var(--ease-sumi) 240ms both;
+}
+
+@media (min-width: 48rem) {
+  .album-vacio {
+    gap: 2.5rem;
+    margin-top: 3rem;
+  }
+
+  .album-vacio-hueco {
+    width: 8rem;
+  }
+
+  .album-vacio-ja {
+    font-size: var(--text-xl);
+  }
+
+  .album-vacio-titulo {
+    font-size: var(--text-3xl);
+  }
+}
+
+/* ---- Barra de filtros: casilla «solo empezadas» ---- */
+.casilla {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  min-height: 2.25rem;
+  color: var(--color-sumi);
+  font-size: var(--text-sm);
+  cursor: pointer;
+  user-select: none;
+}
+
+.casilla input {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  margin: 0;
+  opacity: 0;
+}
+
+/* La marca: un cuadro de tinta que, al activarse, recibe un sello bermellón. */
+.casilla-marca {
+  position: relative;
+  flex: none;
+  width: 1rem;
+  height: 1rem;
+  border: 1px solid var(--color-nezumi);
+  transition: border-color var(--dur-2) var(--ease-sumi);
+}
+
+.casilla-marca::after {
+  content: '';
+  position: absolute;
+  inset: 2px;
+  background-color: var(--color-shu);
+  border-radius: 1px;
+  opacity: 0;
+  transform: scale(1.6) rotate(-8deg);
+  transition:
+    opacity var(--dur-2) var(--ease-sumi),
+    transform var(--dur-3) var(--ease-hane);
+}
+
+.casilla input:checked + .casilla-marca {
+  border-color: var(--color-shu-fuka);
+}
+
+.casilla input:checked + .casilla-marca::after {
+  opacity: 1;
+  transform: rotate(-4deg);
+}
+
+.casilla input:focus-visible + .casilla-marca {
+  outline: 2px solid var(--foco);
+  outline-offset: 3px;
+}
+
+.casilla:has(input:disabled) {
+  color: var(--color-hai);
+  cursor: default;
+}
+
+.casilla:has(input:disabled) .casilla-marca {
+  border-color: var(--color-sen);
+}
+
+/* ---- Álbum ---- */
+.album {
+  padding-bottom: 6rem;
+}
+
+.album-series {
+  padding-top: 2.5rem;
+}
+
+@media (min-width: 48rem) {
+  .album-series {
+    padding-top: 3.5rem;
+  }
+}
+
+/* Hoja: una serie. Fuera de pantalla no se pinta; reserva su altura por
+   filas. El relleno deja sitio a los sellos que sobresalen de las cartas, a
+   la inclinación y a la sombra, que la contención de pintado recortaría. */
+.hoja {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  padding: 0 1rem 1.5rem;
+  margin: 0 -1rem -1.5rem;
+  content-visibility: auto;
+  contain-intrinsic-block-size: auto calc(var(--filas-3) * 15rem + 7rem);
+}
+
+.hoja + .hoja {
+  margin-top: 3.5rem;
+}
+
+@media (min-width: 48rem) {
+  .hoja {
+    contain-intrinsic-block-size: auto calc(var(--filas-5) * 17rem + 8rem);
+  }
+
+  .hoja + .hoja {
+    margin-top: 5rem;
+  }
+}
+
+@media (min-width: 68.75rem) {
+  .hoja {
+    contain-intrinsic-block-size: auto calc(var(--filas-6) * 21rem + 8rem);
+  }
+}
+
+/* Lomo: el número de la hoja y el título original en vertical, a la
+   izquierda de la página. Solo en pantallas anchas. */
+.hoja-lomo {
+  display: none;
+}
+
+.hoja-orden {
+  color: var(--color-shu-fuka);
+  font-size: var(--text-xs);
+  letter-spacing: var(--tracking-wide);
+}
+
+@media (min-width: 64rem) {
+  .hoja {
+    grid-template-columns: 3.25rem minmax(0, 1fr);
+    column-gap: 2rem;
+  }
+
+  .hoja-lomo {
+    display: block;
+    grid-row: 1 / span 2;
+    border-right: 1px solid var(--color-sen);
+  }
+
+  .hoja-lomo-fijo {
+    position: sticky;
+    top: 6.5rem;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 1rem;
+    padding-top: 0.25rem;
+  }
+
+  .hoja-lomo-ja {
+    color: var(--color-sumi-2);
+    font-size: var(--text-base);
+    letter-spacing: 0.18em;
+  }
+
+  .hoja-orden--movil {
+    display: none;
+  }
+}
+
+.hoja-cabecera {
+  position: relative;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: baseline;
+  column-gap: 1rem;
+  row-gap: 0.125rem;
+  margin-bottom: 1.5rem;
+}
+
+.hoja-orden--movil {
+  grid-column: 1 / -1;
+  margin-bottom: 0.25rem;
+}
+
+.hoja-titulo {
+  grid-column: 1;
+  margin: 0;
+  font-size: var(--text-2xl);
+  line-height: 1.15;
+  overflow-wrap: anywhere;
+}
+
+.hoja-nativo {
+  grid-column: 1;
+  color: var(--color-nezumi);
+  font-size: var(--text-sm);
+  letter-spacing: 0.08em;
+}
+
+.hoja-cuenta {
+  grid-column: 2;
+  grid-row: 2;
+  align-self: end;
+  margin: 0;
+  color: var(--color-nezumi);
+  font-size: var(--text-sm);
+  white-space: nowrap;
+}
+
+.hoja-cuenta-n {
+  color: var(--color-sumi);
+  font-family: var(--font-serif);
+  font-size: var(--text-xl);
+}
+
+.hoja-linea {
+  grid-column: 1 / -1;
+  margin-top: 0.875rem;
+}
+
+.hoja[data-completa] .hoja-linea .linea-relleno {
+  background-color: var(--color-shu);
+}
+
+/* 完: la serie completa lleva su sello junto a la cuenta. */
+.hoja-completa {
+  display: inline-block;
+  width: 1.75rem;
+  margin-left: 0.625rem;
+  vertical-align: -0.35rem;
+  rotate: -8deg;
+}
+
+@media (min-width: 48rem) {
+  .hoja-cabecera {
+    margin-bottom: 2rem;
+  }
+
+  .hoja-titulo {
+    font-size: var(--text-3xl);
+  }
+}
+
+@media (min-width: 64rem) {
+  .hoja-cabecera {
+    grid-column: 2;
+  }
+
+  .hoja-cuenta {
+    grid-row: 1;
+  }
+
+  .hoja-nativo {
+    display: none;
+  }
+}
+
+/* El tramo de la hoja se llena al entrar en pantalla (con el scroll en calma). */
+:root[data-calma] .hoja-cabecera[data-revelar=''] .linea-relleno {
+  transform: scaleX(0);
+}
+
+.hoja-cabecera[data-revelar='visto'] .linea-relleno {
+  transition: transform 1000ms var(--ease-sumi) calc(var(--retardo, 0ms) + 200ms);
+}
+
+.hoja-cabecera[data-revelar='visto'] .hoja-completa {
+  animation: estampa var(--dur-4) var(--ease-hane) calc(var(--retardo, 0ms) + 900ms) both;
+}
+
+/* ---- Huecos ---- */
+.bolsillos {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 1.75rem 0.75rem;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+@media (min-width: 48rem) {
+  .bolsillos {
+    grid-template-columns: repeat(5, minmax(0, 1fr));
+    gap: 2.5rem 1.25rem;
+  }
+}
+
+@media (min-width: 64rem) {
+  .bolsillos {
+    grid-column: 2;
+  }
+}
+
+@media (min-width: 68.75rem) {
+  .bolsillos {
+    grid-template-columns: repeat(6, minmax(0, 1fr));
+    gap: 2.75rem 1.5rem;
+  }
+}
+
+.bolsillo {
+  position: relative;
+  min-width: 0;
+}
+
+/* El hueco de papel, un poco hundido, con su número. Bajo una carta sigue
+   ahí: es lo que se ve mientras la carta llega a su sitio. */
+.bolsillo-hueco {
+  position: relative;
+  display: grid;
+  place-items: center;
+  aspect-ratio: 2 / 3;
+  border: 1px solid var(--color-sen);
+  background-color: color-mix(in srgb, var(--color-hoshi) 70%, transparent);
+  outline: 1px solid color-mix(in srgb, var(--color-kinu) 85%, transparent);
+  outline-offset: -6px;
+}
+
+.bolsillo[data-lleno] .bolsillo-hueco {
+  position: absolute;
+  inset: 0 0 auto;
+}
+
+.bolsillo-numero {
+  color: var(--color-hai);
+  font-size: clamp(0.8125rem, 2.4vw, 1.125rem);
+  letter-spacing: 0.08em;
+}
+
+.bolsillo-ja {
+  position: absolute;
+  top: 0.625rem;
+  right: 0.5rem;
+  max-block-size: calc(100% - 1.25rem);
+  overflow: hidden;
+  color: var(--color-hai);
+  font-size: 0.625rem;
+  letter-spacing: 0.12em;
+  white-space: nowrap;
+  opacity: 0.75;
+}
+
+/* Esquinas de álbum: cuatro triángulos que sujetan la carta. En el hueco
+   vacío apenas se ven; sobre la carta, en tinta. Son una máscara estática
+   (el color sale de un token). */
+.bolsillo-hueco::before,
+.bolsillo .carta-marco::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  background-color: var(--esquina-color, var(--color-sen));
+  mask-image:
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 10 10'%3E%3Cpath d='M0 0H10L0 10Z'/%3E%3C/svg%3E"),
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 10 10'%3E%3Cpath d='M0 0H10V10Z'/%3E%3C/svg%3E"),
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 10 10'%3E%3Cpath d='M10 0V10H0Z'/%3E%3C/svg%3E"),
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 10 10'%3E%3Cpath d='M0 0L10 10H0Z'/%3E%3C/svg%3E");
+  mask-position:
+    top left,
+    top right,
+    bottom right,
+    bottom left;
+  mask-size: var(--esquina, 0.625rem) var(--esquina, 0.625rem);
+  mask-repeat: no-repeat;
+  pointer-events: none;
+}
+
+.bolsillo .carta-marco::after {
+  --esquina-color: var(--color-sumi-2);
+  --esquina: clamp(0.5625rem, 1.6vw, 0.8125rem);
+}
+
+.bolsillo .carta-sello {
+  z-index: 2;
+}
+
+@media (min-width: 48rem) {
+  .bolsillo-hueco::before {
+    --esquina: 0.8125rem;
+  }
+}
+
+/* Cartela del hueco vacío: el nombre en gris, como un pie de foto pendiente. */
+.bolsillo-cartela {
+  margin: 0.5rem 0 0;
+  color: var(--color-hai);
+  font-family: var(--font-serif);
+  font-size: var(--text-sm);
+  line-height: 1.25;
+  overflow-wrap: anywhere;
+}
+
+.bolsillo-variante {
+  font-family: var(--font-sans);
+  font-size: var(--text-xs);
+}
+
+/* Cartela de la carta en el álbum: sin la serie (ya la dice la hoja). */
+.hoja:not(.hoja--especiales) .bolsillo .carta-serie {
+  display: none;
+}
+
+@media (max-width: 47.99rem) {
+  .bolsillo .carta-nombre {
+    font-size: var(--text-sm);
+  }
+
+  .bolsillo .carta-cartela {
+    column-gap: 0.375rem;
+  }
+
+  .bolsillo .carta-serie {
+    font-size: var(--text-2xs);
+  }
+}
+
+@media (min-width: 48rem) {
+  .bolsillo-cartela {
+    font-size: var(--text-base);
+  }
+}
+
+/* ---- Especiales: la hoja sobre el escenario oscuro ---- */
+.album-noche {
+  position: relative;
+  overflow: hidden;
+  margin-top: 5rem;
+  padding-block: 3.5rem 4.5rem;
+  background-image: radial-gradient(ellipse 60% 45% at 50% 20%, var(--color-yoru-3), transparent 70%);
+}
+
+.album-series + .album-noche {
+  margin-top: 5rem;
+}
+
+.album > .album-noche:first-child {
+  margin-top: 2.5rem;
+}
+
+.album-noche-fondo {
+  position: absolute;
+  top: 2.5rem;
+  right: var(--gutter);
+  color: var(--color-yoru-2);
+  font-size: 8rem;
+  letter-spacing: 0;
+  pointer-events: none;
+  user-select: none;
+}
+
+.album-noche .hoja {
+  position: relative;
+}
+
+.album-noche .hoja-lomo {
+  border-color: var(--color-yoru-sen);
+}
+
+.album-noche .hoja-lomo-ja,
+.album-noche .hoja-titulo {
+  color: var(--color-gofun);
+}
+
+.album-noche .hoja-nativo,
+.album-noche .hoja-cuenta {
+  color: var(--color-gofun-2);
+}
+
+.album-noche .hoja-cuenta-n {
+  color: var(--color-gofun);
+}
+
+.album-noche .bolsillo-hueco {
+  --esquina-color: var(--color-yoru-sen);
+  border-color: var(--color-yoru-sen);
+  background-color: var(--color-yoru-2);
+  outline-color: var(--color-yoru-3);
+}
+
+.album-noche .bolsillo-numero,
+.album-noche .bolsillo-ja,
+.album-noche .bolsillo-cartela {
+  color: var(--color-gofun-2);
+}
+
+.album-noche .bolsillo .carta-marco::after {
+  --esquina-color: var(--color-gofun);
+}
+
+@media (min-width: 48rem) {
+  .album-noche {
+    margin-top: 7rem;
+    padding-block: 5rem 6rem;
+  }
+
+  .album-noche-fondo {
+    font-size: 12rem;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .marcador-n,
+  .marcador-de,
+  .marcador-dato,
+  .marcador-acciones,
+  .album-vacio-hueco,
+  .album-vacio-titulo,
+  .album-vacio-texto,
+  .album-vacio-acciones {
+    animation-name: funde;
+  }
+
+  .marcador-linea .linea-relleno,
+  .marcador-linea-corta .linea-relleno {
+    animation: none;
+  }
+
+  :root[data-calma] .hoja-cabecera[data-revelar=''] .linea-relleno {
+    transform: scaleX(var(--p, 0));
+  }
+
+  .hoja-cabecera[data-revelar='visto'] .hoja-completa {
+    animation-name: funde;
+  }
+
+  .casilla-marca::after {
+    transform: none;
+  }
+}
