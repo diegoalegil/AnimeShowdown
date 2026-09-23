@@ -12,6 +12,8 @@ import {
   leerFiltrosAlbum,
   porcentaje,
   progreso,
+  recuento,
+  textoRecuento,
 } from './album.js'
 import { crearCatalogo } from './catalog.js'
 import { ESPECIALES } from './filtros.js'
@@ -108,5 +110,15 @@ describe('filtros del álbum', () => {
     expect(etiquetaHoja(hojas[1], 3)).toBe('Chainsaw Man 3/3')
     expect(filasHoja(22)).toEqual({ 3: 8, 5: 5, 6: 4 })
     expect(filasHoja(1)).toEqual({ 3: 1, 5: 1, 6: 1 })
+  })
+})
+
+describe('recuento', () => {
+  it('cuenta personajes y especiales por separado, como el álbum', () => {
+    const r = recuento({ frieren: 2, denji: 1, 'e-denji': 1, borrada: 3 }, cat)
+    expect(r).toEqual({ personajes: { tengo: 2, total: 5 }, especiales: { tengo: 1, total: 1 } })
+    expect(textoRecuento(r)).toBe('2 de 5 cartas · 1 de 1 especial')
+    expect(textoRecuento(r, { total: false })).toBe('2 cartas y 1 especial')
+    expect(textoRecuento(recuento({ fern: 1 }, cat), { total: false })).toBe('1 carta')
   })
 })

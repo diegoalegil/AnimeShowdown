@@ -17,7 +17,7 @@ function CuentaColeccion() {
     // La key vuelve a montar el número al cambiar, para su pequeño salto.
     <span key={n} className="nav-cuenta cifra">
       {n}
-      <span className="solo-lectores"> cartas</span>
+      <span className="solo-lectores"> {n === 1 ? 'carta' : 'cartas'} en tu colección</span>
     </span>
   )
 }

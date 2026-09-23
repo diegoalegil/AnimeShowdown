@@ -1,5 +1,6 @@
 import { useId, useMemo, useRef, useState } from 'react'
-import { cartasDistintas, exportar, previsionImportacion } from '../lib/collection.js'
+import { recuento, textoRecuento } from '../lib/album.js'
+import { aplicarImportacion, cartasDistintas, exportar, previsionImportacion } from '../lib/collection.js'
 import { coleccion, useColeccion } from '../lib/useCollection.js'
 import { EtiquetaVertical } from './EtiquetaVertical.jsx'
 
@@ -31,7 +32,7 @@ export function PanelCodigo() {
             </p>
 
             <div className="codigo-rejilla">
-              <Exportar codigo={codigo} actuales={actuales} />
+              <Exportar codigo={codigo} tengo={tengo} actuales={actuales} />
               <Importar estado={estado} actuales={actuales} />
             </div>
           </div>
@@ -41,7 +42,7 @@ export function PanelCodigo() {
   )
 }
 
-function Exportar({ codigo, actuales }) {
+function Exportar({ codigo, tengo, actuales }) {
   const campo = useRef(null)
   const [aviso, setAviso] = useState(null)
 
@@ -63,8 +64,8 @@ function Exportar({ codigo, actuales }) {
       {actuales > 0 && (
         <>
           <p className="codigo-texto">
-            Guarda {actuales === 1 ? 'la carta' : `las ${cartas(actuales)}`} de tu colección. El código no incluye los
-            sobres del día.
+            Guarda tu colección ({textoRecuento(recuento(tengo), { total: false })}). El código no incluye los sobres
+            del día.
           </p>
           <textarea
             ref={campo}
@@ -116,7 +117,7 @@ function Importar({ estado, actuales }) {
       return
     }
     setTexto('')
-    setPaso({ hecho: cartasDistintas(coleccion.getSnapshot()) })
+    setPaso({ hecho: textoRecuento(recuento(coleccion.getSnapshot().tengo), { total: false }) })
   }
 
   const leido = paso?.leido
@@ -153,7 +154,7 @@ function Importar({ estado, actuales }) {
           )}
           {paso?.hecho !== undefined && (
             <p className="codigo-aviso" data-ok="" role="status">
-              Listo: tu colección tiene ahora {cartas(paso.hecho)}.
+              Listo: tu colección tiene ahora {paso.hecho}.
             </p>
           )}
         </div>
@@ -162,20 +163,20 @@ function Importar({ estado, actuales }) {
       {prevision && (
         <div ref={confirmacion} className="confirmar" tabIndex={-1} role="group" aria-labelledby="confirmar-titulo">
           <p id="confirmar-titulo" className="confirmar-titulo">
-            Este código trae {cartas(prevision.entrantes)}.
+            Este código trae {textoRecuento(recuento(leido.tengo), { total: false })}.
           </p>
           <p className="confirmar-texto">
             {leido.descartadas > 0 &&
               `${cartas(leido.descartadas)} del código ya no ${leido.descartadas === 1 ? 'existe' : 'existen'} y se ${leido.descartadas === 1 ? 'omite' : 'omiten'}. `}
             {actuales
-              ? `Ahora tienes ${cartas(actuales)}. Puedes combinar las dos colecciones o sustituir la tuya por la del código.`
+              ? `Ahora tienes ${textoRecuento(recuento(estado.tengo), { total: false })}. Puedes combinar las dos colecciones o sustituir la tuya por la del código.`
               : 'Tu colección está vacía: pasará a ser la del código.'}
           </p>
           <div className="confirmar-acciones">
             {actuales ? (
               <>
                 <button type="button" className="boton-sumi" onClick={() => aplicar('combinar')}>
-                  Combinar ({cartas(prevision.alCombinar)})
+                  Combinar ({textoRecuento(recuento(aplicarImportacion(estado, leido, 'combinar').tengo), { total: false })})
                 </button>
                 <button type="button" className="enlace-tinta" onClick={() => aplicar('sustituir')}>
                   Sustituir la mía

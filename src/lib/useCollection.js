@@ -1,6 +1,7 @@
 import { useSyncExternalStore } from 'react'
+import { recuento } from './album.js'
 import { catalogo } from './catalog.js'
-import { cartasDistintas, crearAlmacen } from './collection.js'
+import { crearAlmacen } from './collection.js'
 import { cuentaRetenida } from './cuentaRetenida.js'
 
 /** Almacén único de la colección de este navegador. */
@@ -20,11 +21,12 @@ export function useColeccion() {
 }
 
 /**
- * Cartas distintas que muestra la cabecera: la cuenta real, salvo mientras
- * se abre un sobre (ver cuentaRetenida).
+ * Cartas de personajes distintas que muestra la cabecera (la cifra grande
+ * del álbum): la cuenta real, salvo mientras se abre un sobre (ver
+ * cuentaRetenida).
  */
 export function useCuentaVisible() {
-  const real = cartasDistintas(useColeccion())
+  const real = recuento(useColeccion().tengo).personajes.tengo
   const retenida = useSyncExternalStore(cuentaRetenida.subscribe, cuentaRetenida.getSnapshot, cuentaRetenida.getSnapshot)
   return retenida ?? real
 }

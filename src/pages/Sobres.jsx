@@ -18,7 +18,8 @@ import {
   ultimoRetardo,
 } from '../lib/ceremonia.js'
 import { alTerminar, animarApertura, animarGuardado } from '../lib/coreografia.js'
-import { cartasDistintas, msHastaMedianoche, sobresRestantes } from '../lib/collection.js'
+import { recuento, textoRecuento } from '../lib/album.js'
+import { msHastaMedianoche, sobresRestantes } from '../lib/collection.js'
 import { movimientoReducido } from '../lib/motion.js'
 import { cuentaRetenida } from '../lib/cuentaRetenida.js'
 import { coleccion, useColeccion } from '../lib/useCollection.js'
@@ -116,7 +117,7 @@ export default function Sobres() {
 
   function abrir() {
     let resultado
-    cuentaRetenida.retener(cartasDistintas(estado))
+    cuentaRetenida.retener(recuento(estado.tengo).personajes.tengo)
     try {
       resultado = coleccion.abrirSobre()
     } catch {
@@ -231,9 +232,7 @@ export default function Sobres() {
                   <span className="mesa-resumen-etiqueta">Este sobre</span>
                   {textoResumen(resumenSobre(cer.cartas, esEspecialId))}
                 </p>
-                <p className="mesa-resumen-total cifra">
-                  En tu colección: {cartasDistintas(estado)} de {catalogo.total} cartas
-                </p>
+                <p className="mesa-resumen-total cifra">En tu colección: {textoRecuento(recuento(estado.tengo))}</p>
               </div>
               <button type="button" className="boton-papel mesa-guardar" onClick={guardar} disabled={cer.fase === 'guardando'}>
                 Guardar en la colección

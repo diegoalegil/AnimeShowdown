@@ -51,6 +51,32 @@ export function progreso(hojas, tengo) {
   return { personajes, especiales, porHoja }
 }
 
+/**
+ * Cartas distintas de una colección (`tengo`) contadas como en el álbum:
+ * personajes y especiales por separado. Es la cuenta que muestran la
+ * cabecera, los sobres y la colección.
+ */
+export function recuento(tengo, cat = catalogo) {
+  const r = { personajes: { tengo: 0, total: cat.personajes.length }, especiales: { tengo: 0, total: cat.especiales.length } }
+  for (const id of Object.keys(tengo)) {
+    const carta = cat.carta(id)
+    if (carta) r[esEspecial(carta) ? 'especiales' : 'personajes'].tengo++
+  }
+  return r
+}
+
+const plural = (n, singular, varias) => `${n} ${n === 1 ? singular : varias}`
+
+/**
+ * «405 de 1086 cartas · 6 de 52 especiales»; sin `total`, «405 cartas y 6
+ * especiales» (las especiales solo si hay alguna).
+ */
+export function textoRecuento({ personajes, especiales }, { total = true } = {}) {
+  if (total) return `${personajes.tengo} de ${plural(personajes.total, 'carta', 'cartas')} · ${especiales.tengo} de ${plural(especiales.total, 'especial', 'especiales')}`
+  const cartas = plural(personajes.tengo, 'carta', 'cartas')
+  return especiales.tengo ? `${cartas} y ${plural(especiales.tengo, 'especial', 'especiales')}` : cartas
+}
+
 /** Fracción entre 0 y 1, para las líneas de progreso. */
 export const fraccion = ({ tengo, total }) => (total > 0 ? Math.min(tengo / total, 1) : 0)
 
