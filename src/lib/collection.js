@@ -176,8 +176,12 @@ export function leerCodigo(codigo, { existe, dia } = {}) {
     return { ok: false, error: 'El código no corresponde a una colección de AnimeShowdown.' }
   }
   const { tengo, desde, descartadas } = limpiarCartas(datos.tengo, datos.desde, { existe, diaPorDefecto: dia })
-  if (!Object.keys(tengo).length && descartadas > 0) {
-    return { ok: false, error: 'El código no contiene ninguna carta de este catálogo.' }
+  // Un código sin cartas no se acepta: «Sustituir» vaciaría la colección.
+  if (!Object.keys(tengo).length) {
+    return {
+      ok: false,
+      error: descartadas > 0 ? 'El código no contiene ninguna carta de este catálogo.' : 'El código no contiene ninguna carta.',
+    }
   }
   return { ok: true, tengo, desde, descartadas }
 }

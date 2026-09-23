@@ -193,8 +193,15 @@ describe('exportar y leerCodigo', () => {
     expect(datos).toEqual({ v: 1, tengo: { a: 1 }, desde: { a: dia } })
   })
 
-  it('una colección vacía también hace el viaje de ida y vuelta', () => {
-    expect(leerCodigo(exportar(estadoVacio(dia)), { existe, dia })).toEqual({ ok: true, tengo: {}, desde: {}, descartadas: 0 })
+  it('rechaza un código válido pero sin cartas: sustituir vaciaría la colección', () => {
+    expect(leerCodigo(exportar(estadoVacio(dia)), { existe, dia })).toEqual({
+      ok: false,
+      error: 'El código no contiene ninguna carta.',
+    })
+    expect(leerCodigo(btoa('{"v":1,"tengo":{}}'), { existe, dia }).ok).toBe(false)
+    expect(leerCodigo(btoa('{"v":1,"tengo":{"zzz":1}}'), { existe, dia }).error).toBe(
+      'El código no contiene ninguna carta de este catálogo.',
+    )
   })
 
   it('rechaza cantidades imposibles, versiones futuras y texto que no es base64 de un JSON', () => {
