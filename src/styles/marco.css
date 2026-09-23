@@ -286,9 +286,24 @@
 /* ---- Escenario oscuro ---- */
 .escenario {
   position: relative;
+  isolation: isolate;
   min-height: 70vh;
   /* Foco estático de luz sobre el escenario (no se anima). */
   background-image: radial-gradient(ellipse 70% 55% at 50% 38%, var(--color-yoru-3), transparent 70%);
+}
+
+/* Grano estático sobre los focos de luz oscuros: disuelve los anillos del
+   degradado entre dos negros tan cercanos (ver scripts/generate-grano). Va
+   detrás del contenido y no se anima. */
+.escenario::after,
+.ficha-escenario::after,
+.album-noche::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  background-image: url('/grano.png');
+  pointer-events: none;
 }
 
 /* ---- Enlace de texto ---- */

@@ -4,7 +4,7 @@ import reactHooks from 'eslint-plugin-react-hooks'
 
 export default [
   // Carpetas de la aplicación anterior, pendientes de retirar del repositorio.
-  { ignores: ['dist/**', 'frontend/**', 'backend/**', 'docs/**', 'scripts/**', '!scripts/check-data.mjs', '!scripts/prerender.mjs', '!scripts/generate-washi.mjs', '!scripts/generate-patrones.mjs', '!scripts/png.mjs', '!scripts/generate-especiales.mjs', '!scripts/generate-tamanos.mjs', '!scripts/imagenes.mjs'] },
+  { ignores: ['dist/**', 'frontend/**', 'backend/**', 'docs/**', 'scripts/**', '!scripts/check-data.mjs', '!scripts/prerender.mjs', '!scripts/generate-washi.mjs', '!scripts/generate-patrones.mjs', '!scripts/png.mjs', '!scripts/generate-especiales.mjs', '!scripts/generate-tamanos.mjs', '!scripts/generate-grano.mjs', '!scripts/imagenes.mjs'] },
   js.configs.recommended,
   {
     files: ['src/**/*.{js,jsx}'],

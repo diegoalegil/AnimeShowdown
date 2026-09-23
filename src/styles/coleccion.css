@@ -705,6 +705,7 @@
 /* ---- Especiales: la hoja sobre el escenario oscuro ---- */
 .album-noche {
   position: relative;
+  isolation: isolate;
   overflow: hidden;
   margin-top: 5rem;
   padding-block: 3.5rem 4.5rem;
