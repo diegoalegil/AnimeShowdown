@@ -31,7 +31,7 @@ export function Cabecera() {
         <Enlace to="/" className="marca" aria-label="AnimeShowdown, ir a la galería">
           <SelloMarca className="marca-sello" />
           <span className="marca-nombre">AnimeShowdown</span>
-          <EtiquetaVertical ja="アニメショーダウン" className="marca-tate" />
+          <EtiquetaVertical ja={'アニメ\nショーダウン'} className="marca-tate" />
         </Enlace>
 
         <nav aria-label="Secciones" className="nav">

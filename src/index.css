@@ -232,7 +232,8 @@
   writing-mode: vertical-rl;
   text-orientation: mixed;
   font-family: var(--font-jp);
-  letter-spacing: var(--tracking-jp);
+  /* Un rótulo concreto puede ajustar el espaciado con --tate-espaciado. */
+  letter-spacing: var(--tate-espaciado, var(--tracking-jp));
   line-height: 1;
 }
 

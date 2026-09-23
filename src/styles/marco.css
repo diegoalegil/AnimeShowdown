@@ -68,14 +68,20 @@
   letter-spacing: -0.012em;
 }
 
+/* アニメ / ショーダウン en dos columnas, como un rótulo japonés: a 10 px se
+   lee y la columna no pasa mucho de la altura del sello. En vertical, el
+   eje de bloque es el horizontal: el margen negativo que deja sobresalir
+   la columna arriba y abajo (sin alargar la cabecera) es margin-inline. */
 .marca-tate {
+  --tate-espaciado: 0.04em;
   display: none;
-  margin-block: -0.625rem;
+  margin-inline: -0.625rem;
+  margin-left: 0.125rem;
   padding-left: 0.5rem;
   border-left: 1px solid var(--color-sen);
   color: var(--color-nezumi);
-  font-size: 0.5rem;
-  letter-spacing: 0.02em;
+  font-size: 0.625rem;
+  line-height: 1.25;
   white-space: nowrap;
 }
 
