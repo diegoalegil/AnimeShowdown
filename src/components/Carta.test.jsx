@@ -37,7 +37,7 @@ describe('Carta', () => {
   it('carga la imagen en diferido con srcset, sizes y proporción fija', () => {
     const html = pintar(<Carta carta={FRIEREN} />)
     expect(html).toMatch(/srcSet="[^"]*frieren-300\.webp 300w/)
-    expect(html).toContain('sizes="(min-width: 1100px) 290px')
+    expect(html).toContain('sizes="(min-width: 1200px) 210px')
     expect(html).toContain('loading="lazy"')
     expect(html).toContain('decoding="async"')
     expect(html).toContain('width="600" height="900"')
@@ -67,7 +67,7 @@ describe('Carta', () => {
     expect(especial).toContain('>特<')
     expect(especial).toContain('data-especial="true"')
     expect(especial).toContain('>E-49<')
-    expect(especial).toContain('Especial · Gear 5')
+    expect(especial).toContain('One Piece · Gear 5')
     expect(especial).toContain('luffy__gear5-300.webp 300w')
   })
 

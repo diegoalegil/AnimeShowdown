@@ -1,3 +1,4 @@
+import { memo } from 'react'
 import { esEspecial, numeroCarta } from '../lib/catalog.js'
 import { imagenCarta, TAMANOS } from '../lib/images.js'
 import { revelar } from '../lib/motion.js'
@@ -17,8 +18,12 @@ import { Hanko } from './Hanko.jsx'
  * - `entrada`: aparece con la animación escalonada al entrar en pantalla.
  * - `diferida`: content-visibility para rejillas largas.
  * - `compartida`: lleva el nombre de la transición compartida (la ficha).
+ * - `busqueda`: «?serie=…&q=…» que se añade al enlace para que la ficha
+ *   recorra las cartas en el mismo orden que la galería.
+ *
+ * Va envuelta en memo: al filtrar la galería solo se pintan las que cambian.
  */
-export function Carta({
+export const Carta = memo(function Carta({
   carta,
   tamano = 'muro',
   copias = 0,
@@ -29,12 +34,15 @@ export function Carta({
   entrada = false,
   diferida = false,
   compartida = false,
+  busqueda = '',
   className = '',
 }) {
   const especial = esEspecial(carta)
   const img = imagenCarta(carta)
   const numero = numeroCarta(carta)
-  const serie = especial ? ['Especial', carta.variante].filter(Boolean).join(' · ') : carta.anime
+  // En las especiales, el sello 特 ya dice que lo son: la cartela nombra la
+  // serie y, si la hay, la versión («One Piece · Gear 5»).
+  const serie = [carta.anime, especial && carta.variante].filter(Boolean).join(' · ')
 
   const lamina = (
     <div className="carta-marco" data-inclinar="">
@@ -83,12 +91,13 @@ export function Carta({
   return (
     <article
       className={clases}
+      data-id={carta.id}
       data-especial={especial || undefined}
       data-revelar={entrada ? '' : undefined}
       ref={entrada ? revelar : undefined}
     >
       {enlace ? (
-        <Enlace to={`/carta/${carta.id}`} className="carta-enlace">
+        <Enlace to={`/carta/${carta.id}${busqueda}`} className="carta-enlace">
           {lamina}
           {texto}
         </Enlace>
@@ -100,4 +109,4 @@ export function Carta({
       )}
     </article>
   )
-}
+})

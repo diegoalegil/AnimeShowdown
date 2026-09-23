@@ -246,7 +246,8 @@
 
 @media (min-width: 48rem) {
   .carta--muro .carta-cartela {
-    grid-template-columns: 2.75rem minmax(0, 1fr) auto;
+    grid-template-columns: 2.5rem minmax(0, 1fr) auto;
+    column-gap: 0.5rem;
   }
 
   .carta--muro .carta-numero {
@@ -265,6 +266,13 @@
 
   .carta--muro .carta-copias {
     grid-column: 3;
+  }
+}
+
+/* Cinco columnas: nombres un punto más pequeños para que quepan en una línea. */
+@media (min-width: 75rem) {
+  .carta--muro .carta-nombre {
+    font-size: var(--text-lg);
   }
 }
 

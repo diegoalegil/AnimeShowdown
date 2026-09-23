@@ -6,7 +6,7 @@ const ANCHO_ORIGINAL = 1024
 
 /** Tamaños de presentación más habituales, para el atributo sizes. */
 export const TAMANOS = {
-  muro: '(min-width: 1100px) 290px, (min-width: 768px) 30vw, 46vw',
+  muro: '(min-width: 1200px) 210px, (min-width: 1024px) 21vw, (min-width: 768px) 28vw, 46vw',
   album: '(min-width: 1100px) 170px, (min-width: 768px) 18vw, 30vw',
   ficha: '(min-width: 900px) 540px, 100vw',
   sobre: '(min-width: 768px) 240px, 60vw',
