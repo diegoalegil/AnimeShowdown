@@ -1,5 +1,4 @@
 import { renderToStaticMarkup } from 'react-dom/server'
-import { MemoryRouter } from 'react-router'
 import { describe, expect, it } from 'vitest'
 import { Carta } from './Carta.jsx'
 import { EtiquetaVertical } from './EtiquetaVertical.jsx'
@@ -24,7 +23,7 @@ const LUFFY_G5 = {
   img: 'img/especiales/luffy__gear5.webp',
 }
 
-const pintar = (elemento) => renderToStaticMarkup(<MemoryRouter>{elemento}</MemoryRouter>)
+const pintar = (elemento) => renderToStaticMarkup(elemento)
 
 describe('Carta', () => {
   it('enlaza a la ficha con la cartela número · nombre / serie', () => {

@@ -19,6 +19,7 @@
 @import 'tailwindcss' source(none);
 @import './styles/hanko.css' layer(components);
 @import './styles/carta.css' layer(components);
+@import './styles/marco.css' layer(components);
 @source '../index.html';
 @source './**/*.{js,jsx}';
 
@@ -141,8 +142,7 @@
   html {
     -webkit-text-size-adjust: 100%;
     text-size-adjust: 100%;
-    scrollbar-gutter: stable;
-    background-color: var(--color-yoru);
+    background-color: var(--color-washi);
   }
 
   body {

@@ -1,16 +1,12 @@
-import { Link } from 'react-router'
 import { esEspecial, numeroCarta } from '../lib/catalog.js'
 import { imagenCarta, TAMANOS } from '../lib/images.js'
-import { nombrarCompartido, revelar, transicionActiva } from '../lib/motion.js'
+import { revelar } from '../lib/motion.js'
+import { Enlace } from './Enlace.jsx'
 import { Hanko } from './Hanko.jsx'
 
-/** Marca la ilustración pulsada como elemento compartido de la transición. */
-function alPulsar(evento) {
-  nombrarCompartido(evento.currentTarget.querySelector('.carta-lamina'))
-}
-
 /**
- * Carta de personaje o especial, la misma en toda la web.
+ * Carta de personaje o especial, la misma en toda la web. No usa hooks ni
+ * listeners propios: puede haber más de mil en la página.
  *
  * - `tamano`: muro | album | sobre | ficha (elige el atributo sizes).
  * - `copias`: cuántas tiene el visitante; 0 no muestra nada.
@@ -92,10 +88,10 @@ export function Carta({
       ref={entrada ? revelar : undefined}
     >
       {enlace ? (
-        <Link to={`/carta/${carta.id}`} viewTransition={transicionActiva()} className="carta-enlace" onClick={alPulsar}>
+        <Enlace to={`/carta/${carta.id}`} className="carta-enlace">
           {lamina}
           {texto}
-        </Link>
+        </Enlace>
       ) : (
         <div className="carta-enlace">
           {lamina}
