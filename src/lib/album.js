@@ -1,7 +1,7 @@
 // Álbum de la colección: una hoja por serie, con un hueco numerado para cada
 // carta, y una hoja final con las especiales. Aquí solo hay datos y cuentas;
 // la página está en pages/Coleccion.jsx.
-import { catalogo } from './catalog.js'
+import { catalogo, esEspecial } from './catalog.js'
 import { ESPECIALES } from './filtros.js'
 
 /** Hojas del álbum en orden de catálogo: [{ id, titulo, nativo, orden, cartas, especiales }]. */
@@ -90,6 +90,23 @@ export function filtrarHojas(hojas, { serie, empezadas }, porHoja) {
 
 /** Texto de una opción del selector: «Chainsaw Man 3/22». */
 export const etiquetaHoja = (hoja, tengo) => `${hoja.titulo} ${tengo}/${hoja.cartas.length}`
+
+/**
+ * Reparte ids de cartas por hoja: Map(idHoja → 'id id …'). Las hojas reciben
+ * texto para que su memo compare valores y no referencias.
+ */
+export function idsPorHoja(ids, cat = catalogo) {
+  const listas = new Map()
+  for (const id of ids) {
+    const carta = cat.carta(id)
+    if (!carta) continue
+    const hoja = esEspecial(carta) ? ESPECIALES : carta.animeId
+    const lista = listas.get(hoja)
+    if (lista) lista.push(id)
+    else listas.set(hoja, [id])
+  }
+  return new Map([...listas].map(([hoja, lista]) => [hoja, lista.join(' ')]))
+}
 
 /**
  * Filas que ocupa una hoja con 3, 5 y 6 columnas: el CSS las usa para

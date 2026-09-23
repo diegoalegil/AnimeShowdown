@@ -2,8 +2,13 @@ import { memo } from 'react'
 import { filasHoja, fraccion } from '../lib/album.js'
 import { numeroCarta } from '../lib/catalog.js'
 import { revelar } from '../lib/motion.js'
+import { crearPegado } from '../lib/pegado.js'
+import { coleccion } from '../lib/useCollection.js'
 import { Carta } from './Carta.jsx'
 import { Hanko } from './Hanko.jsx'
+
+// Las cartas nuevas se marcan como vistas cuando se pegan en su hueco.
+const pegarAlVer = crearPegado((ids) => coleccion.pegar(ids))
 
 /**
  * Hoja del álbum: una serie (o las especiales) con un hueco numerado por
@@ -11,15 +16,19 @@ import { Hanko } from './Hanko.jsx'
  * vacío con su número.
  *
  * Mientras no está en pantalla, el navegador no la pinta (content-visibility,
- * con la altura reservada por filas).
+ * con la altura reservada por filas). Va en memo: la página le pasa como
+ * texto («id id …») las cartas de esta hoja por pegar y las pegadas en esta
+ * visita, así que lo que pasa en otra serie no la vuelve a pintar.
  */
-export const Hoja = memo(function Hoja({ hoja, tengo }) {
+export const Hoja = memo(function Hoja({ hoja, tengo, porPegar = '', recientes = '' }) {
   const { id, titulo, nativo, orden, cartas, especiales } = hoja
   const n = cartas.reduce((suma, c) => suma + (Object.hasOwn(tengo, c.id) ? 1 : 0), 0)
   const completa = n === cartas.length
   const filas = filasHoja(cartas.length)
   const idTitulo = `hoja-${id}-titulo`
   const numero = especiales ? null : String(orden).padStart(2, '0')
+  const pendientes = new Set(porPegar ? porPegar.split(' ') : [])
+  const nuevas = new Set(recientes ? recientes.split(' ') : [])
 
   return (
     <section
@@ -70,7 +79,13 @@ export const Hoja = memo(function Hoja({ hoja, tengo }) {
       <ol className="bolsillos">
         {cartas.map((carta) =>
           Object.hasOwn(tengo, carta.id) ? (
-            <BolsilloLleno key={carta.id} carta={carta} copias={tengo[carta.id]} />
+            <BolsilloLleno
+              key={carta.id}
+              carta={carta}
+              copias={tengo[carta.id]}
+              pegar={pendientes.has(carta.id)}
+              nueva={nuevas.has(carta.id)}
+            />
           ) : (
             <BolsilloVacio key={carta.id} carta={carta} />
           ),
@@ -80,13 +95,24 @@ export const Hoja = memo(function Hoja({ hoja, tengo }) {
   )
 })
 
-function BolsilloLleno({ carta, copias }) {
+/**
+ * Hueco con su carta. Si la carta es nueva desde la última visita, espera
+ * oculta a entrar en pantalla y entonces se pega (ver lib/pegado); durante
+ * esta visita conserva el sello 新 y no repite la entrada escalonada.
+ */
+function BolsilloLleno({ carta, copias, pegar, nueva }) {
   return (
-    <li className="bolsillo" data-lleno="">
+    <li
+      id={`bolsillo-${carta.id}`}
+      className="bolsillo"
+      data-lleno=""
+      data-pegar={pegar ? carta.id : undefined}
+      ref={pegar ? pegarAlVer : undefined}
+    >
       <span className="bolsillo-hueco" aria-hidden="true">
         <span className="bolsillo-numero cifra">{numeroCarta(carta)}</span>
       </span>
-      <Carta carta={carta} tamano="album" copias={copias} entrada />
+      <Carta carta={carta} tamano="album" copias={copias} nueva={nueva} entrada={!nueva} />
     </li>
   )
 }

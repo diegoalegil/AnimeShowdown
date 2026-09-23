@@ -168,6 +168,40 @@
   }
 }
 
+/* ---- Cartas nuevas desde la última visita ---- */
+.recien {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.75rem;
+  margin-top: 2rem;
+  padding: 0.875rem 0 0;
+  border-top: 1px solid var(--color-sen);
+  animation: aparece var(--dur-4) var(--ease-sumi) 480ms both;
+}
+
+.recien-sello {
+  width: 1.5rem;
+  margin-top: 0.125rem;
+  rotate: -6deg;
+}
+
+.recien-texto {
+  margin: 0;
+  color: var(--color-nezumi);
+  font-size: var(--text-sm);
+  line-height: 1.7;
+}
+
+.recien-cuenta {
+  color: var(--color-sumi);
+}
+
+@media (min-width: 48rem) {
+  .recien {
+    margin-top: 2.5rem;
+  }
+}
+
 /* ---- Colección vacía ---- */
 .album-vacio {
   display: flex;
@@ -560,6 +594,21 @@
   letter-spacing: 0.12em;
   white-space: nowrap;
   opacity: 0.75;
+}
+
+/* Carta nueva esperando a entrar en pantalla para pegarse (ver lib/pegado).
+   Su sello 新 lo estampa la misma coreografía, no la animación de montaje. */
+.bolsillo[data-pegar] > .carta {
+  opacity: 0;
+}
+
+.bolsillo .carta-sello--nueva {
+  animation: none;
+}
+
+/* Al saltar a un hueco, que no quede bajo la barra de filtros fija. */
+.bolsillo {
+  scroll-margin-top: 9rem;
 }
 
 /* Esquinas de álbum: cuatro triángulos que sujetan la carta. En el hueco
@@ -974,7 +1023,8 @@ button.enlace-tinta:disabled {
 @media (prefers-reduced-motion: reduce) {
   .codigo-aviso:not(:empty),
   .confirmar,
-  .album-vacio-nota {
+  .album-vacio-nota,
+  .recien {
     animation-name: funde;
   }
 }

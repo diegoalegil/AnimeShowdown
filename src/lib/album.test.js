@@ -8,6 +8,7 @@ import {
   filasHoja,
   filtrarHojas,
   fraccion,
+  idsPorHoja,
   leerFiltrosAlbum,
   porcentaje,
   progreso,
@@ -93,6 +94,14 @@ describe('filtros del álbum', () => {
     expect(ids(filtrarHojas(hojas, { serie: 'frieren', empezadas: true }, porHoja))).toEqual(['frieren'])
     expect(ids(filtrarHojas(hojas, { serie: '', empezadas: false }, porHoja))).toEqual(['frieren', 'csm', ESPECIALES])
     expect(ids(filtrarHojas(hojas, { serie: '', empezadas: true }, porHoja))).toEqual(['csm'])
+  })
+
+  it('reparte cartas por hoja como texto, las especiales aparte', () => {
+    expect([...idsPorHoja(['makima', 'fern', 'e-denji', 'denji', 'zzz'], cat)]).toEqual([
+      ['csm', 'makima denji'],
+      ['frieren', 'fern'],
+      [ESPECIALES, 'e-denji'],
+    ])
   })
 
   it('etiqueta cada serie con su progreso y calcula sus filas', () => {

@@ -3,9 +3,22 @@ import { useLocation, useNavigate, useNavigationType } from 'react-router'
 import { Hoja } from '../components/Album.jsx'
 import { Enlace } from '../components/Enlace.jsx'
 import { EtiquetaVertical } from '../components/EtiquetaVertical.jsx'
+import { Hanko } from '../components/Hanko.jsx'
 import { PanelCodigo } from '../components/PanelCodigo.jsx'
 import { TituloSeccion } from '../components/TituloSeccion.jsx'
-import { busquedaAlbum, crearHojas, etiquetaHoja, filtrarHojas, fraccion, leerFiltrosAlbum, porcentaje, progreso } from '../lib/album.js'
+import {
+  busquedaAlbum,
+  crearHojas,
+  etiquetaHoja,
+  filtrarHojas,
+  fraccion,
+  idsPorHoja,
+  leerFiltrosAlbum,
+  porcentaje,
+  progreso,
+} from '../lib/album.js'
+import { catalogo } from '../lib/catalog.js'
+import { porPegar } from '../lib/collection.js'
 import { ESPECIALES } from '../lib/filtros.js'
 import { esVuelta } from '../lib/navegacion.js'
 import { useColeccion } from '../lib/useCollection.js'
@@ -24,7 +37,8 @@ const TRAMO = 12
 
 export default function Coleccion() {
   useTitulo('Colección')
-  const { tengo } = useColeccion()
+  const estado = useColeccion()
+  const { tengo } = estado
   const { search } = useLocation()
   const navigate = useNavigate()
   const tipo = useNavigationType()
@@ -43,6 +57,23 @@ export default function Coleccion() {
   const todasMontadas = visibles.length === series.length
   const vacia = cuenta.personajes.tengo + cuenta.especiales.tengo === 0
 
+  // Cartas nuevas desde la última visita: esperan en su hueco hasta que se
+  // ven y se pegan. `recientes` las recuerda durante toda la visita (para su
+  // sello 新), también las que llegan con la página abierta (al importar).
+  const pendientes = porPegar(estado)
+  const [recientes, setRecientes] = useState(() => new Set(pendientes))
+  const sinAnotar = pendientes.filter((id) => !recientes.has(id))
+  if (sinAnotar.length) setRecientes(new Set([...recientes, ...sinAnotar]))
+  const clavePendientes = pendientes.join(' ')
+  const pegarPorHoja = useMemo(() => idsPorHoja(clavePendientes ? clavePendientes.split(' ') : []), [clavePendientes])
+  const recientesPorHoja = useMemo(() => idsPorHoja(recientes), [recientes])
+  const propsHoja = (hoja) => ({
+    hoja,
+    tengo,
+    porPegar: pegarPorHoja.get(hoja.id),
+    recientes: recientesPorHoja.get(hoja.id),
+  })
+
   function cambiar(cambios) {
     navigate({ search: busquedaAlbum({ ...filtros, ...cambios }) }, { replace: true })
     // Si se estaba lejos, el álbum filtrado se ve desde el principio.
@@ -57,6 +88,7 @@ export default function Coleccion() {
           Colección
         </TituloSeccion>
         {vacia ? <AlbumVacio /> : <Marcador cuenta={cuenta} />}
+        <RecienLlegadas ids={recientes} tengo={tengo} />
       </div>
 
       {/* La barra de filtros se queda fija solo mientras se recorre el álbum. */}
@@ -65,7 +97,7 @@ export default function Coleccion() {
         {(visibles.length > 0 || !hojas.length) && (
           <div className="wrap album-series">
             {visibles.map((hoja) => (
-              <Hoja key={hoja.id} hoja={hoja} tengo={tengo} />
+              <Hoja key={hoja.id} {...propsHoja(hoja)} />
             ))}
             {!hojas.length && <SinSeries onVerTodas={() => cambiar({ empezadas: false })} />}
           </div>
@@ -75,7 +107,7 @@ export default function Coleccion() {
           <div className="yoru album-noche">
             <EtiquetaVertical ja="特別" className="album-noche-fondo" />
             <div className="wrap">
-              <Hoja hoja={especiales} tengo={tengo} />
+              <Hoja {...propsHoja(especiales)} />
             </div>
           </div>
         )}
@@ -144,6 +176,35 @@ function Marcador({ cuenta }) {
         <a href="#codigo" className="enlace-simple">
           Copia de seguridad
         </a>
+      </p>
+    </section>
+  )
+}
+
+const MAX_NOMBRES = 6
+
+/** Aviso de las cartas nuevas desde la última visita, con enlace a su hueco. */
+function RecienLlegadas({ ids, tengo }) {
+  const cartas = [...ids].filter((id) => Object.hasOwn(tengo, id)).map(catalogo.carta)
+  if (!cartas.length) return null
+  const vistas = cartas.slice(0, MAX_NOMBRES)
+  const resto = cartas.length - vistas.length
+  return (
+    <section className="recien" aria-label="Cartas nuevas">
+      <Hanko kanji="新" className="recien-sello" />
+      <p className="recien-texto">
+        <span className="recien-cuenta">
+          {cartas.length === 1 ? 'Una carta nueva' : `${cartas.length} cartas nuevas`} desde tu última visita:
+        </span>{' '}
+        {vistas.map((c, i) => (
+          <span key={c.id}>
+            {i > 0 && (i === vistas.length - 1 && !resto ? ' y ' : ', ')}
+            <a href={`#bolsillo-${c.id}`} className="enlace-simple">
+              {c.nombre}
+            </a>
+          </span>
+        ))}
+        {resto > 0 && ` y ${resto} más`}.
       </p>
     </section>
   )
