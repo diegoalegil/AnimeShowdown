@@ -583,11 +583,12 @@
 }
 
 .bolsillo-numero {
-  color: var(--color-hai);
+  color: var(--color-nezumi);
   font-size: clamp(0.8125rem, 2.4vw, 1.125rem);
   letter-spacing: 0.08em;
 }
 
+/* Decorativo (el hueco entero es aria-hidden): puede ir más tenue. */
 .bolsillo-ja {
   position: absolute;
   top: 0.625rem;
@@ -660,10 +661,11 @@
   }
 }
 
-/* Cartela del hueco vacío: el nombre en gris, como un pie de foto pendiente. */
+/* Cartela del hueco vacío: el nombre en gris, como un pie de foto pendiente
+   (gris legible: contraste AA sobre el papel). */
 .bolsillo-cartela {
   margin: 0.5rem 0 0;
-  color: var(--color-hai);
+  color: var(--color-nezumi);
   font-family: var(--font-serif);
   font-size: var(--text-sm);
   line-height: 1.25;
@@ -921,7 +923,7 @@ button.enlace-tinta:disabled {
 }
 
 .codigo-campo::placeholder {
-  color: var(--color-hai);
+  color: var(--color-nezumi);
   opacity: 1;
 }
 
