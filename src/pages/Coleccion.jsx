@@ -3,6 +3,7 @@ import { useLocation, useNavigate, useNavigationType } from 'react-router'
 import { Hoja } from '../components/Album.jsx'
 import { Enlace } from '../components/Enlace.jsx'
 import { EtiquetaVertical } from '../components/EtiquetaVertical.jsx'
+import { PanelCodigo } from '../components/PanelCodigo.jsx'
 import { TituloSeccion } from '../components/TituloSeccion.jsx'
 import { busquedaAlbum, crearHojas, etiquetaHoja, filtrarHojas, fraccion, leerFiltrosAlbum, porcentaje, progreso } from '../lib/album.js'
 import { ESPECIALES } from '../lib/filtros.js'
@@ -58,9 +59,9 @@ export default function Coleccion() {
         {vacia ? <AlbumVacio /> : <Marcador cuenta={cuenta} />}
       </div>
 
-      <FiltrosAlbum filtros={filtros} cuenta={cuenta} mostradas={hojas.length} onCambiar={cambiar} />
-
+      {/* La barra de filtros se queda fija solo mientras se recorre el álbum. */}
       <div ref={album} className="album">
+        <FiltrosAlbum filtros={filtros} cuenta={cuenta} mostradas={hojas.length} onCambiar={cambiar} />
         {(visibles.length > 0 || !hojas.length) && (
           <div className="wrap album-series">
             {visibles.map((hoja) => (
@@ -79,6 +80,8 @@ export default function Coleccion() {
           </div>
         )}
       </div>
+
+      <PanelCodigo />
     </div>
   )
 }
@@ -138,6 +141,9 @@ function Marcador({ cuenta }) {
           Abrir sobres
           <span aria-hidden="true">→</span>
         </Enlace>
+        <a href="#codigo" className="enlace-simple">
+          Copia de seguridad
+        </a>
       </p>
     </section>
   )
@@ -162,6 +168,13 @@ function AlbumVacio() {
             Abrir los sobres de hoy
             <span aria-hidden="true">→</span>
           </Enlace>
+        </p>
+        <p className="album-vacio-nota">
+          ¿Ya tenías una colección en otro navegador?{' '}
+          <a href="#codigo" className="enlace-simple">
+            Pega su código
+          </a>
+          .
         </p>
       </div>
     </section>

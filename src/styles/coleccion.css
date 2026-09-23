@@ -147,6 +147,10 @@
 }
 
 .marcador-acciones {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.75rem 1.5rem;
   margin: 0;
   animation: aparece var(--dur-4) var(--ease-sumi) 400ms both;
 }
@@ -201,6 +205,13 @@
 .album-vacio-acciones {
   margin: 1.5rem 0 0;
   animation: aparece var(--dur-4) var(--ease-sumi) 240ms both;
+}
+
+.album-vacio-nota {
+  margin: 1rem 0 0;
+  color: var(--color-nezumi);
+  font-size: var(--text-sm);
+  animation: aparece var(--dur-4) var(--ease-sumi) 300ms both;
 }
 
 @media (min-width: 48rem) {
@@ -290,9 +301,6 @@
 }
 
 /* ---- Álbum ---- */
-.album {
-  padding-bottom: 6rem;
-}
 
 .album-series {
   padding-top: 2.5rem;
@@ -709,6 +717,265 @@
 
   .album-noche-fondo {
     font-size: 12rem;
+  }
+}
+
+/* ==========================================================================
+   Copia de la colección: exportar e importar el código
+   ========================================================================== */
+
+/* Enlace de texto subrayado y botones del panel. */
+.enlace-simple {
+  color: var(--color-sumi);
+  font-size: var(--text-sm);
+  text-decoration-line: underline;
+  text-decoration-color: var(--color-sen);
+  text-decoration-thickness: 1px;
+  text-underline-offset: 0.3em;
+  transition: text-decoration-color var(--dur-2) var(--ease-sumi);
+}
+
+.enlace-simple:hover {
+  text-decoration-color: var(--color-shu);
+}
+
+button.enlace-tinta {
+  background-color: transparent;
+  font-family: inherit;
+}
+
+button.enlace-tinta:disabled {
+  border-color: var(--color-sen);
+  color: var(--color-hai);
+  background-color: transparent;
+  cursor: default;
+}
+
+.boton-sumi {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.6875rem 1.125rem;
+  border: 1px solid var(--color-sumi);
+  background-color: var(--color-sumi);
+  color: var(--color-kinu);
+  font: inherit;
+  font-size: var(--text-sm);
+  font-weight: 500;
+  transition:
+    background-color var(--dur-2) var(--ease-sumi),
+    border-color var(--dur-2) var(--ease-sumi);
+}
+
+.boton-sumi:hover {
+  border-color: var(--color-sumi-2);
+  background-color: var(--color-sumi-2);
+}
+
+.boton-simple {
+  padding: 0.6875rem 0.25rem;
+  border: 0;
+  background: none;
+  color: var(--color-nezumi);
+  font: inherit;
+  font-size: var(--text-sm);
+  text-decoration-line: underline;
+  text-decoration-color: var(--color-sen);
+  text-decoration-thickness: 1px;
+  text-underline-offset: 0.3em;
+}
+
+.boton-simple:hover {
+  color: var(--color-sumi);
+}
+
+.codigo {
+  padding-block: 4.5rem 6rem;
+  scroll-margin-top: 1rem;
+}
+
+.codigo-cabecera {
+  display: flex;
+  align-items: flex-start;
+  gap: 1rem;
+  padding-top: 2.25rem;
+  border-top: 1px solid var(--color-sen);
+}
+
+.codigo-tate {
+  flex: none;
+  padding-top: 0.25rem;
+  color: var(--color-shu-fuka);
+  font-size: var(--text-base);
+}
+
+.codigo-titulo {
+  margin: 0;
+  font-size: var(--text-2xl);
+}
+
+.codigo-intro {
+  max-width: 40rem;
+  margin: 0.625rem 0 0;
+  color: var(--color-nezumi);
+}
+
+.codigo-rejilla {
+  display: grid;
+  gap: 2.5rem;
+  margin-top: 2.5rem;
+}
+
+.codigo-bloque {
+  min-width: 0;
+}
+
+.codigo-subtitulo {
+  margin: 0;
+  font-size: var(--text-xl);
+}
+
+.codigo-texto {
+  margin: 0.375rem 0 0.875rem;
+  color: var(--color-nezumi);
+  font-size: var(--text-sm);
+}
+
+.codigo-campo {
+  display: block;
+  width: 100%;
+  min-height: 6.5rem;
+  padding: 0.75rem 0.875rem;
+  border: 1px solid var(--color-sen);
+  border-radius: 0;
+  background-color: var(--color-kinu);
+  color: var(--color-sumi-2);
+  font-family: var(--font-sans);
+  /* 16 px: por debajo, Safari en iOS amplía la página al enfocar. */
+  font-size: 1rem;
+  line-height: 1.4;
+  word-break: break-all;
+  resize: vertical;
+}
+
+.codigo-campo[readonly] {
+  color: var(--color-nezumi);
+}
+
+.codigo-campo::placeholder {
+  color: var(--color-hai);
+  opacity: 1;
+}
+
+.codigo-campo:focus-visible {
+  outline: none;
+  border-color: var(--color-shu);
+  box-shadow: inset 0 0 0 1px var(--color-shu);
+}
+
+.codigo-campo[aria-invalid] {
+  border-color: var(--color-shu-fuka);
+}
+
+.codigo-acciones {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.75rem 1.25rem;
+  margin-top: 1rem;
+}
+
+.codigo-aviso {
+  margin: 0;
+  color: var(--color-nezumi);
+  font-size: var(--text-sm);
+}
+
+.codigo-aviso[data-ok]::before {
+  content: '';
+  display: inline-block;
+  width: 0.5rem;
+  height: 0.5rem;
+  margin-right: 0.5rem;
+  background-color: var(--color-shu);
+  border-radius: 1px;
+  rotate: 4deg;
+}
+
+.codigo-aviso--error {
+  color: var(--color-shu-fuka);
+}
+
+.codigo-aviso:not(:empty) {
+  animation: aparece var(--dur-3) var(--ease-sumi) both;
+}
+
+/* Confirmación antes de importar: una hoja con su filete bermellón. */
+.confirmar {
+  margin-top: 1.5rem;
+  padding: 1.25rem 1.25rem 1.125rem;
+  border: 1px solid var(--color-sen);
+  border-left: 2px solid var(--color-shu);
+  background-color: var(--color-kinu);
+  animation: aparece var(--dur-3) var(--ease-sumi) both;
+}
+
+.confirmar:focus-visible {
+  outline-offset: 4px;
+}
+
+.confirmar-titulo {
+  margin: 0;
+  font-family: var(--font-serif);
+  font-size: var(--text-xl);
+}
+
+.confirmar-texto {
+  margin: 0.375rem 0 0;
+  color: var(--color-sumi-2);
+  font-size: var(--text-sm);
+}
+
+.confirmar-acciones {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.75rem 1rem;
+  margin-top: 1.125rem;
+}
+
+.confirmar-nota {
+  margin: 0.875rem 0 0;
+  color: var(--color-nezumi);
+  font-size: var(--text-xs);
+}
+
+@media (min-width: 48rem) {
+  .codigo {
+    padding-block: 6rem 7rem;
+  }
+
+  .codigo-cabecera {
+    gap: 1.5rem;
+    padding-top: 3rem;
+  }
+
+  .codigo-titulo {
+    font-size: var(--text-3xl);
+  }
+
+  .codigo-rejilla {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    column-gap: 4rem;
+    margin-top: 3rem;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .codigo-aviso:not(:empty),
+  .confirmar,
+  .album-vacio-nota {
+    animation-name: funde;
   }
 }
 
