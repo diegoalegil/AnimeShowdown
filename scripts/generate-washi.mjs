@@ -7,7 +7,7 @@
 import { writeFileSync } from 'node:fs'
 import { dirname, join } from 'node:path'
 import { fileURLToPath } from 'node:url'
-import { crc32, deflateSync } from 'node:zlib'
+import { pngGrisAlfa } from './png.mjs'
 
 const SIZE = 96
 const SEED = 0x5a5b1
@@ -57,36 +57,7 @@ for (let f = 0; f < 34; f++) {
   }
 }
 
-const raw = Buffer.alloc(SIZE * (SIZE * 2 + 1))
-for (let y = 0; y < SIZE; y++) {
-  const row = y * (SIZE * 2 + 1)
-  raw[row] = 0 // sin filtro
-  for (let x = 0; x < SIZE; x++) {
-    raw[row + 1 + x * 2] = gray[y * SIZE + x]
-    raw[row + 2 + x * 2] = alpha[y * SIZE + x]
-  }
-}
-
-function chunk(type, data) {
-  const len = Buffer.alloc(4)
-  len.writeUInt32BE(data.length)
-  const body = Buffer.concat([Buffer.from(type, 'ascii'), data])
-  const crc = Buffer.alloc(4)
-  crc.writeUInt32BE(crc32(body))
-  return Buffer.concat([len, body, crc])
-}
-
-const ihdr = Buffer.alloc(13)
-ihdr.writeUInt32BE(SIZE, 0)
-ihdr.writeUInt32BE(SIZE, 4)
-ihdr[8] = 8 // bits por canal
-ihdr[9] = 4 // gris + alfa
-const png = Buffer.concat([
-  Buffer.from([0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a]),
-  chunk('IHDR', ihdr),
-  chunk('IDAT', deflateSync(raw, { level: 9 })),
-  chunk('IEND', Buffer.alloc(0)),
-])
+const png = pngGrisAlfa(SIZE, SIZE, gray, alpha)
 
 const out = join(dirname(fileURLToPath(import.meta.url)), '..', 'public', 'washi.png')
 writeFileSync(out, png)
