@@ -58,6 +58,8 @@ function FichaCarta({ carta }) {
           const caja = lamina?.getBoundingClientRect()
           if (caja && caja.bottom > 0 && caja.top < window.innerHeight) {
             nombrarCompartido(lamina)
+            // El foco vuelve a la carta que se abrió, no al principio de la página.
+            lamina.closest('a')?.focus({ preventScroll: true })
             return
           }
         }
