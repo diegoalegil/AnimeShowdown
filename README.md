@@ -16,9 +16,17 @@ navegador.
 - Cada día (a medianoche, hora local) hay **5 sobres** de **5 cartas**. Las cuatro
   primeras son personajes al azar; la quinta tiene un 15 % de probabilidad de ser
   una **carta especial**. Las repetidas se acumulan.
+- En **Sobres** se rasga el sobre y las cartas quedan boca abajo sobre la mesa:
+  se voltean una a una (también con `Intro` o `Espacio`), todas a la vez con
+  «Revelar todas» o se va directo al resumen con «Saltar». Las cartas se guardan
+  en cuanto se abre el sobre, así que recargar a mitad no pierde ninguna.
 - La **colección** se puede exportar como un código para llevarla a otro navegador.
 
 Las reglas están en `src/config.js`.
+
+Las texturas de papel y los motivos tradicionales de los sobres (`public/washi.png`,
+`public/seigaiha.png` y `public/asanoha.png`) se generan con
+`node scripts/generate-washi.mjs` y `node scripts/generate-patrones.mjs`.
 
 ## Ejecutarlo en local
 
