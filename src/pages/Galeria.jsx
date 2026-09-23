@@ -28,6 +28,7 @@ export default function Galeria() {
   const { tengo } = useColeccion()
   const rejilla = useInclinacion()
   const buscador = useRef(null)
+  const selectorSerie = useRef(null)
   const activa = usePaginaActiva()
 
   const filtros = leerFiltros(new URLSearchParams(search))
@@ -60,6 +61,12 @@ export default function Galeria() {
     // Si se estaba lejos, los resultados nuevos se ven desde el principio.
     const inicio = rejilla.current?.getBoundingClientRect().top
     if (inicio !== undefined && inicio < 0) window.scrollBy(0, inicio - 96)
+    // Los botones que filtran («8 cartas →», «Quitar filtros») desaparecen al
+    // pulsarlos: el foco pasa al campo que refleja el cambio, no a <body>.
+    if (document.activeElement?.tagName === 'BUTTON') {
+      const campo = cambios.serie ? selectorSerie.current : buscador.current
+      campo?.focus({ preventScroll: true })
+    }
   }
 
   // «/» lleva a la búsqueda desde cualquier punto de la galería.
@@ -86,7 +93,13 @@ export default function Galeria() {
         </TituloSeccion>
       </div>
 
-      <FiltrosGaleria filtros={filtros} onCambiar={cambiar} total={cartas.length} buscador={buscador} />
+      <FiltrosGaleria
+        filtros={filtros}
+        onCambiar={cambiar}
+        total={cartas.length}
+        buscador={buscador}
+        selectorSerie={selectorSerie}
+      />
 
       <div ref={rejilla} className="wrap pt-8 pb-24 md:pt-12">
         {!cartas.length ? (

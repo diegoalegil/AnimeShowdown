@@ -6,7 +6,7 @@ import { ESPECIALES, hayFiltros } from '../lib/filtros.js'
  * (la página le pasa los filtros y recibe los cambios); se queda fija arriba
  * mientras se recorre la rejilla.
  */
-export function FiltrosGaleria({ filtros, onCambiar, total, buscador }) {
+export function FiltrosGaleria({ filtros, onCambiar, total, buscador, selectorSerie }) {
   const activos = hayFiltros(filtros)
 
   return (
@@ -33,7 +33,7 @@ export function FiltrosGaleria({ filtros, onCambiar, total, buscador }) {
 
         <label className="campo campo--serie">
           <span className="campo-etiqueta">Serie</span>
-          <select value={filtros.serie} onChange={(e) => onCambiar({ serie: e.target.value })}>
+          <select ref={selectorSerie} value={filtros.serie} onChange={(e) => onCambiar({ serie: e.target.value })}>
             <option value="">Todas las series</option>
             <option value={ESPECIALES}>Especiales · {catalogo.especiales.length}</option>
             <optgroup label="Series">

@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react'
+import { useMemo, useRef, useState } from 'react'
 import { useLocation, useNavigate, useNavigationType } from 'react-router'
 import { Hoja } from '../components/Album.jsx'
 import { Enlace } from '../components/Enlace.jsx'
@@ -43,6 +43,7 @@ export default function Coleccion() {
   const navigate = useNavigate()
   const tipo = useNavigationType()
   const album = useInclinacion()
+  const selectorSerie = useRef(null)
   // Al volver desde una ficha se monta todo para recuperar la posición.
   const [volviendo] = useState(() => esVuelta(tipo))
 
@@ -79,6 +80,8 @@ export default function Coleccion() {
     // Si se estaba lejos, el álbum filtrado se ve desde el principio.
     const inicio = album.current?.getBoundingClientRect().top
     if (inicio !== undefined && inicio < 0) window.scrollBy(0, inicio - 96)
+    // «Ver todo» desaparece al pulsarlo: el foco pasa al selector de serie.
+    if (document.activeElement?.tagName === 'BUTTON') selectorSerie.current?.focus({ preventScroll: true })
   }
 
   return (
@@ -93,7 +96,13 @@ export default function Coleccion() {
 
       {/* La barra de filtros se queda fija solo mientras se recorre el álbum. */}
       <div ref={album} className="album">
-        <FiltrosAlbum filtros={filtros} cuenta={cuenta} mostradas={hojas.length} onCambiar={cambiar} />
+        <FiltrosAlbum
+          filtros={filtros}
+          cuenta={cuenta}
+          mostradas={hojas.length}
+          onCambiar={cambiar}
+          selectorSerie={selectorSerie}
+        />
         {(visibles.length > 0 || !hojas.length) && (
           <div className="wrap album-series">
             {visibles.map((hoja) => (
@@ -243,7 +252,7 @@ function AlbumVacio() {
 }
 
 /** Barra fija: ir a una serie o ver solo las empezadas. */
-function FiltrosAlbum({ filtros, cuenta, mostradas, onCambiar }) {
+function FiltrosAlbum({ filtros, cuenta, mostradas, onCambiar, selectorSerie }) {
   const { porHoja } = cuenta
   const filtrado = Boolean(filtros.serie || filtros.empezadas)
 
@@ -252,7 +261,7 @@ function FiltrosAlbum({ filtros, cuenta, mostradas, onCambiar }) {
       <div className="wrap filtros-fila album-filtros">
         <label className="campo">
           <span className="campo-etiqueta">Serie</span>
-          <select value={filtros.serie} onChange={(e) => onCambiar({ serie: e.target.value })}>
+          <select ref={selectorSerie} value={filtros.serie} onChange={(e) => onCambiar({ serie: e.target.value })}>
             <option value="">Todas las series</option>
             {HOJA_ESPECIALES && (
               <option value={ESPECIALES}>{etiquetaHoja(HOJA_ESPECIALES, porHoja.get(ESPECIALES) ?? 0)}</option>

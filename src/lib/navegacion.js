@@ -221,6 +221,20 @@ function irAAncla(hash) {
   sostenerEn(destino, parseFloat(getComputedStyle(destino).scrollMarginTop) || 0)
 }
 
+/**
+ * Tras entrar en otra página, el foco va a su título (h1): el lector de
+ * pantalla la anuncia y el tabulador sigue desde ahí, no desde <body>. Si la
+ * página aún no ha llegado (código diferido), al contenido principal.
+ */
+function enfocarPagina() {
+  const principal = document.getElementById('contenido')
+  const titulo = [...(principal?.querySelectorAll('h1') ?? [])].find((h) => !h.closest('[hidden]'))
+  const destino = titulo ?? principal
+  if (!destino) return
+  if (titulo && !titulo.hasAttribute('tabindex')) titulo.setAttribute('tabindex', '-1')
+  destino.focus({ preventScroll: true })
+}
+
 export function useRestaurarScroll() {
   const { key, hash, pathname, state } = useLocation()
   const tipo = useNavigationType()
@@ -259,6 +273,7 @@ export function useRestaurarScroll() {
       restaurarAncla(key)
     } else if (!mismaPagina && !conservar) {
       window.scrollTo(0, 0)
+      enfocarPagina()
     }
     yaNavego = true
     alMostrarPagina?.()

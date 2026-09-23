@@ -205,6 +205,13 @@
     outline-offset: 3px;
   }
 
+  /* El título recibe el foco al cambiar de página (ver lib/navegacion) solo
+     para que el lector de pantalla la anuncie: no es un control. */
+  h1[tabindex='-1']:focus,
+  main[tabindex='-1']:focus {
+    outline: none;
+  }
+
   .yoru {
     --foco: var(--color-shu-akari);
     --papel: none;
