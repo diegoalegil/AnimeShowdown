@@ -324,11 +324,16 @@
   color: var(--color-kinu);
 }
 
-/* ---- Pie ---- */
+/* ---- Pie ----
+   Un punto más claro que los escenarios y con su filete: tras una página
+   que acaba en tinta (los sobres, las especiales del álbum), el pie no se
+   confunde con el escenario. */
 .pie {
   position: relative;
   overflow: hidden;
   view-transition-name: pie;
+  border-top: 1px solid var(--color-yoru-sen);
+  background-color: var(--color-yoru-2);
 }
 
 .pie-rejilla {
