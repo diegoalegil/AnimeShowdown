@@ -1,8 +1,8 @@
 #!/usr/bin/env node
 // Prepara las ilustraciones de las cartas especiales igual que las de los
-// personajes: <ruta>.webp (original), <ruta>-300.webp y <ruta>-600.webp, y
-// anota en src/data/especiales.json la ruta sin extensión y el tono medio que
-// se ve mientras carga la imagen.
+// personajes: a partir de <ruta>.webp (original) genera los tamaños de
+// scripts/imagenes.mjs que falten, y anota en src/data/especiales.json la
+// ruta sin extensión y el tono medio que se ve mientras carga la imagen.
 //
 // Necesita cwebp y dwebp (libwebp) en el PATH. Es idempotente: se puede volver
 // a ejecutar tras añadir una especial nueva.
@@ -12,12 +12,12 @@ import { execFileSync } from 'node:child_process'
 import { existsSync, readFileSync, writeFileSync } from 'node:fs'
 import { dirname, join } from 'node:path'
 import { fileURLToPath } from 'node:url'
+import { argumentosCwebp, TAMANOS } from './imagenes.mjs'
 
 const raiz = join(dirname(fileURLToPath(import.meta.url)), '..')
 const archivoDatos = join(raiz, 'src/data/especiales.json')
 const especiales = JSON.parse(readFileSync(archivoDatos, 'utf8'))
 
-const ANCHOS = [300, 600]
 const hex = (n) => Math.round(n).toString(16).padStart(2, '0')
 
 /** Tono medio de la imagen: se reduce a 8 × 12 píxeles y se promedia. */
@@ -42,10 +42,10 @@ const resultado = especiales.map((especial) => {
   const ruta = especial.img.replace(/\.webp$/, '')
   const original = join(raiz, 'public', `${ruta}.webp`)
   if (!existsSync(original)) throw new Error(`No existe public/${ruta}.webp (${especial.id})`)
-  for (const ancho of ANCHOS) {
-    const destino = join(raiz, 'public', `${ruta}-${ancho}.webp`)
+  for (const tamano of TAMANOS) {
+    const destino = join(raiz, 'public', `${ruta}-${tamano.ancho}.webp`)
     if (existsSync(destino)) continue
-    execFileSync('cwebp', ['-quiet', '-q', '80', '-m', '6', '-resize', String(ancho), '0', original, '-o', destino])
+    execFileSync('cwebp', argumentosCwebp(original, destino, tamano))
     generadas++
   }
   const { color, ...resto } = especial

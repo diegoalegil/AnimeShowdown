@@ -1,12 +1,19 @@
-// URLs de las ilustraciones. Cada carta, personaje o especial, tiene tres
-// tamaños en public/img: <ruta>-300.webp, <ruta>-600.webp y <ruta>.webp
-// (~1024 px de ancho).
+// URLs de las ilustraciones. Cada carta, personaje o especial, tiene cuatro
+// tamaños en public/img: <ruta>-300.webp, -450, -600 y <ruta>.webp (~1024 px
+// de ancho), generados por scripts/generate-tamanos.mjs.
 
 const ANCHO_ORIGINAL = 1024
 
-/** Tamaños de presentación más habituales, para el atributo sizes. */
+/**
+ * Tamaños de presentación más habituales, para el atributo sizes. En el
+ * móvil, la rejilla de dos columnas mide la mitad de la pantalla menos los
+ * márgenes (unos 165 px) y su nitidez se limita a densidad 2: en pantallas
+ * de densidad 3 se declara un tercio del ancho, así que el navegador pide el
+ * doble del ancho real (la versión de 450 px), que no se distingue de la de
+ * 600 a ese tamaño y pesa un 30 % menos.
+ */
 export const TAMANOS = {
-  muro: '(min-width: 1200px) 210px, (min-width: 1024px) 21vw, (min-width: 768px) 28vw, 46vw',
+  muro: '(min-width: 1200px) 210px, (min-width: 1024px) 21vw, (min-width: 768px) 28vw, (min-resolution: 2.5dppx) calc((100vw - 3rem) / 3), calc((100vw - 3rem) / 2)',
   album: '(min-width: 1100px) 170px, (min-width: 768px) 18vw, 30vw',
   ficha: '(min-width: 1024px) 460px, (min-width: 768px) 44vw, 72vw',
   sobre: '(min-width: 768px) 240px, 60vw',
@@ -27,7 +34,7 @@ export function imagenCarta(carta, base) {
   const url = (sufijo) => urlPublica(`${ruta}${sufijo}.webp`, base)
   return {
     src: url('-600'),
-    srcSet: `${url('-300')} 300w, ${url('-600')} 600w, ${url('')} ${ANCHO_ORIGINAL}w`,
+    srcSet: `${url('-300')} 300w, ${url('-450')} 450w, ${url('-600')} 600w, ${url('')} ${ANCHO_ORIGINAL}w`,
     width: 600,
     height: 900,
   }

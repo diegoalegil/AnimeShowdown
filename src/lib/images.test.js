@@ -10,11 +10,11 @@ describe('urlPublica', () => {
 })
 
 describe('imagenCarta', () => {
-  it('construye el srcset de tres tamaños para los personajes', () => {
+  it('construye el srcset de cuatro tamaños para los personajes', () => {
     const img = imagenCarta({ img: 'img/Frieren/frieren' }, '/base/')
     expect(img.src).toBe('/base/img/Frieren/frieren-600.webp')
     expect(img.srcSet).toBe(
-      '/base/img/Frieren/frieren-300.webp 300w, /base/img/Frieren/frieren-600.webp 600w, /base/img/Frieren/frieren.webp 1024w',
+      '/base/img/Frieren/frieren-300.webp 300w, /base/img/Frieren/frieren-450.webp 450w, /base/img/Frieren/frieren-600.webp 600w, /base/img/Frieren/frieren.webp 1024w',
     )
     expect(img.width / img.height).toBeCloseTo(2 / 3)
   })

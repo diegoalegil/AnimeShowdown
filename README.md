@@ -65,12 +65,15 @@ El despliegue a GitHub Pages lo hace `.github/workflows/deploy.yml` en cada push
    tono dominante de la ilustración, que se ve mientras carga. `nativo` (nombre en
    japonés) y `desc` (una frase) son opcionales.
 
-2. Copia la ilustración, en proporción 2:3 y formato WebP, en tres tamaños:
+2. Copia la ilustración original (formato WebP, ~1024 px de ancho) y genera sus
+   tamaños de 300, 450 y 600 px (necesita `cwebp`):
 
    ```
-   public/img/Frieren/frieren.webp       ~1024 px de ancho
-   public/img/Frieren/frieren-600.webp     600 px
-   public/img/Frieren/frieren-300.webp     300 px
+   public/img/Frieren/frieren.webp
+   ```
+
+   ```bash
+   node scripts/generate-tamanos.mjs
    ```
 
 3. Comprueba los datos:
@@ -82,9 +85,9 @@ El despliegue a GitHub Pages lo hace `.github/workflows/deploy.yml` en cada push
    También se ejecuta al construir: si falta un archivo o un campo, el build falla.
 
 Las cartas especiales viven en `src/data/especiales.json` y `public/img/especiales/`,
-con los mismos tres tamaños. Basta con copiar la ilustración original y ejecutar
+con los mismos tamaños. Basta con copiar la ilustración original y ejecutar
 `node scripts/generate-especiales.mjs` (necesita `cwebp` y `dwebp`): crea las versiones
-de 300 y 600 px y anota en los datos la ruta y el tono dominante.
+de 300, 450 y 600 px y anota en los datos la ruta y el tono dominante.
 
 ## Derechos
 

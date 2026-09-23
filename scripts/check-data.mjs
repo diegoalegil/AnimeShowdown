@@ -73,7 +73,7 @@ for (const p of personajes) {
   countByAnime.set(p.animeId, (countByAnime.get(p.animeId) ?? 0) + 1)
   if (isText(p.img)) {
     if (/\.\w+$/.test(p.img)) fail(`personajes: "${p.id}" img debe ir sin extensión`)
-    for (const suffix of ['', '-300', '-600']) checkFile(`${p.img}${suffix}.webp`, `personajes "${p.id}"`)
+    for (const suffix of ['', '-300', '-450', '-600']) checkFile(`${p.img}${suffix}.webp`, `personajes "${p.id}"`)
   }
 }
 for (const a of animes) {
@@ -91,7 +91,7 @@ for (const e of especiales) {
   if (e.color && !HEX.test(e.color)) fail(`especiales: "${e.id}" color inválido "${e.color}"`)
   if (isText(e.img)) {
     if (/\.\w+$/.test(e.img)) fail(`especiales: "${e.id}" img debe ir sin extensión`)
-    for (const suffix of ['', '-300', '-600']) checkFile(`${e.img}${suffix}.webp`, `especiales "${e.id}"`)
+    for (const suffix of ['', '-300', '-450', '-600']) checkFile(`${e.img}${suffix}.webp`, `especiales "${e.id}"`)
   }
 }
 
