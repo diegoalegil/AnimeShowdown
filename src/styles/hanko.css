@@ -1,0 +1,37 @@
+/* Sellos en bermellón (ver components/Hanko.jsx). */
+.hanko {
+  display: block;
+  flex: none;
+  overflow: visible;
+}
+
+.hanko-fondo {
+  fill: var(--color-shu);
+}
+
+.hanko-contorno {
+  fill: var(--color-kinu);
+  stroke: var(--color-shu);
+  stroke-width: 2.4;
+}
+
+.hanko-trazo {
+  fill: none;
+  stroke: var(--color-kinu);
+  stroke-width: 2.7;
+}
+
+.hanko text {
+  font-family: var(--font-jp);
+  font-size: 23px;
+  text-anchor: middle;
+  dominant-baseline: central;
+}
+
+.hanko-letra-papel {
+  fill: var(--color-kinu);
+}
+
+.hanko-letra-tinta {
+  fill: var(--color-shu);
+}

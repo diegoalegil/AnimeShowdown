@@ -1,0 +1,326 @@
+/* ==========================================================================
+   Carta: la ilustración enmarcada como una obra y su cartela.
+   La inclinación la escribe lib/motion en --rx, --ry y --brillo.
+   ========================================================================== */
+
+.carta {
+  position: relative;
+  min-width: 0;
+}
+
+.carta-enlace {
+  display: block;
+  color: inherit;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.carta-enlace:focus-visible {
+  outline: none;
+}
+
+.carta-enlace:focus-visible .carta-lamina {
+  outline: 2px solid var(--foco);
+  outline-offset: 4px;
+}
+
+/* ---- Marco: lo que se inclina ----
+   En reposo no lleva transform: con mil cartas en la página, una transformación
+   3D permanente crearía mil capas de composición. El 3D solo existe mientras el
+   puntero está encima. */
+.carta-marco {
+  position: relative;
+  transition: transform var(--dur-3) var(--ease-sumi);
+}
+
+/* Sombra de «obra alzada»: vive en su propia capa y solo cambia su opacidad. */
+.carta-marco::before {
+  content: '';
+  position: absolute;
+  inset: 6% 4% -2%;
+  box-shadow: var(--shadow-alzada);
+  opacity: 0;
+  transition: opacity var(--dur-3) var(--ease-sumi);
+  pointer-events: none;
+}
+
+.carta-marco[data-inclinada] {
+  transform: perspective(900px) rotateX(var(--rx, 0deg)) rotateY(var(--ry, 0deg)) translate3d(0, -6px, 0);
+  will-change: transform;
+  transition-duration: var(--dur-1);
+  transition-timing-function: linear;
+}
+
+.carta-marco[data-inclinada]::before {
+  opacity: 1;
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .carta-enlace:hover .carta-marco:not([data-inclinada]) {
+    transform: translateY(-4px);
+  }
+}
+
+/* Tacto: la carta cede un poco al pulsarla. */
+@media (hover: none) {
+  .carta-enlace:active .carta-marco {
+    transform: scale(0.97);
+    transition-duration: var(--dur-1);
+  }
+}
+
+/* ---- Lámina: ilustración a proporción fija 2:3 ---- */
+.carta-lamina {
+  position: relative;
+  aspect-ratio: 2 / 3;
+  overflow: hidden;
+  background-color: var(--tono, var(--color-hoshi));
+  box-shadow: var(--shadow-lamina);
+}
+
+.carta-lamina img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: 50% 20%;
+  opacity: 0;
+  transition: opacity var(--dur-4) var(--ease-sumi);
+  user-select: none;
+  -webkit-user-drag: none;
+}
+
+/* main.jsx marca data-cargada con un único listener de captura. */
+.carta-lamina img[data-cargada] {
+  opacity: 1;
+}
+
+/* Ilustración que no es 2:3 (lleva `ar` en los datos): se ve entera, centrada
+   sobre un paspartú de su propio tono con un filete claro, como una obra
+   enmarcada, en lugar de recortar sus bordes. */
+.carta-lamina[data-paspartu] img {
+  box-sizing: border-box;
+  padding: 6%;
+  object-fit: contain;
+  object-position: 50% 50%;
+}
+
+.carta-lamina[data-paspartu]::before {
+  content: '';
+  position: absolute;
+  inset: 0.3125rem;
+  border: 1px solid color-mix(in srgb, var(--color-kinu) 38%, transparent);
+  pointer-events: none;
+}
+
+.carta-lamina[data-rota] img {
+  display: none;
+}
+
+.carta-lamina[data-rota]::after {
+  content: 'Imagen no disponible';
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  padding: 1rem;
+  background-color: var(--color-hoshi);
+  color: var(--color-nezumi);
+  font-size: var(--text-xs);
+  text-align: center;
+}
+
+/* Brillo: una banda de luz que sigue al puntero. Se mueve con transform. */
+.carta-brillo {
+  position: absolute;
+  inset: -10% auto -10% -30%;
+  width: 60%;
+  background-image: linear-gradient(
+    105deg,
+    rgb(255 255 255 / 0) 20%,
+    rgb(255 255 255 / 0.2) 48%,
+    rgb(255 255 255 / 0.28) 52%,
+    rgb(255 255 255 / 0) 80%
+  );
+  opacity: 0;
+  transform: translate3d(calc(var(--brillo, 50) * 1.6667%), 0, 0);
+  transition: opacity var(--dur-3) var(--ease-sumi);
+  pointer-events: none;
+}
+
+.carta-marco[data-inclinada] .carta-brillo {
+  opacity: 1;
+}
+
+/* ---- Sellos sobre la esquina, estampados ---- */
+.carta-sello {
+  position: absolute;
+  width: clamp(1.75rem, 16%, 2.75rem);
+  height: auto;
+  z-index: 1;
+}
+
+.carta-sello--nueva {
+  top: -0.55rem;
+  right: -0.55rem;
+  rotate: -7deg;
+  animation: estampa var(--dur-4) var(--ease-hane) 200ms both;
+}
+
+.carta-sello--especial {
+  bottom: -0.6rem;
+  left: -0.6rem;
+  rotate: 5deg;
+}
+
+.carta--album .carta-sello {
+  width: clamp(1.5rem, 20%, 2.25rem);
+}
+
+@keyframes estampa {
+  from {
+    opacity: 0;
+    transform: scale(1.7);
+  }
+
+  60% {
+    opacity: 1;
+  }
+}
+
+/* ---- Cartela: número · nombre / serie ---- */
+.carta-cartela {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  column-gap: 0.75rem;
+  row-gap: 0.125rem;
+  margin-top: 0.875rem;
+}
+
+.carta-numero {
+  grid-column: 1;
+  color: var(--color-nezumi);
+  font-size: var(--text-2xs);
+  letter-spacing: var(--tracking-wide);
+}
+
+.carta-nombre {
+  grid-column: 1;
+  font-family: var(--font-serif);
+  font-size: var(--text-lg);
+  line-height: 1.22;
+  overflow-wrap: anywhere;
+  text-decoration-line: underline;
+  text-decoration-color: transparent;
+  text-decoration-thickness: 1px;
+  text-underline-offset: 0.22em;
+}
+
+.carta-serie {
+  grid-column: 1;
+  color: var(--color-nezumi);
+  font-size: var(--text-sm);
+  line-height: 1.35;
+  overflow-wrap: anywhere;
+}
+
+.carta-copias {
+  grid-column: 2;
+  grid-row: 1 / span 2;
+  align-self: start;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+  padding-top: 0.2rem;
+  color: var(--color-nezumi);
+  font-size: var(--text-xs);
+}
+
+.carta-copias-sello {
+  width: 0.5rem;
+  height: 0.5rem;
+  background-color: var(--color-shu);
+  border-radius: 1px;
+  rotate: 4deg;
+}
+
+@media (hover: hover) {
+  .carta-enlace:hover .carta-nombre {
+    text-decoration-color: currentColor;
+  }
+}
+
+@media (min-width: 48rem) {
+  .carta--muro .carta-cartela {
+    grid-template-columns: 2.5rem minmax(0, 1fr) auto;
+    column-gap: 0.5rem;
+  }
+
+  .carta--muro .carta-numero {
+    grid-row: 1 / span 2;
+    padding-top: 0.35rem;
+  }
+
+  .carta--muro .carta-nombre,
+  .carta--muro .carta-serie {
+    grid-column: 2;
+  }
+
+  .carta--muro .carta-nombre {
+    font-size: var(--text-xl);
+  }
+
+  .carta--muro .carta-copias {
+    grid-column: 3;
+  }
+}
+
+/* Cinco columnas: nombres un punto más pequeños para que quepan en una línea. */
+@media (min-width: 75rem) {
+  .carta--muro .carta-nombre {
+    font-size: var(--text-lg);
+  }
+}
+
+.carta--album .carta-cartela {
+  margin-top: 0.5rem;
+}
+
+.carta--album .carta-nombre {
+  font-size: var(--text-base);
+}
+
+.carta--album .carta-serie {
+  font-size: var(--text-xs);
+}
+
+/* Sobre el escenario oscuro. */
+.yoru .carta-numero,
+.yoru .carta-serie {
+  color: var(--color-gofun-2);
+}
+
+.yoru .carta-copias {
+  color: var(--color-gofun-2);
+}
+
+/* En el álbum todo lo que hay es tuyo: el sello de «en tu colección»
+   sobra; solo se anotan las copias (×N). */
+.carta--album .carta-copias-sello {
+  display: none;
+}
+
+.carta--album .carta-copias {
+  color: var(--color-sumi);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .carta-marco,
+  .carta-marco[data-inclinada],
+  .carta-enlace:hover .carta-marco:not([data-inclinada]),
+  .carta-enlace:active .carta-marco {
+    transform: none;
+  }
+
+  .carta-sello--nueva {
+    animation-name: funde;
+  }
+}

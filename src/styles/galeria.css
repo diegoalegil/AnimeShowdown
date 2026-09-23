@@ -1,0 +1,559 @@
+/* ==========================================================================
+   Galería: barra de filtros fija, rejilla de cartas y estado vacío.
+   ========================================================================== */
+
+/* ---- Barra de filtros: una tira de papel entre dos filetes ---- */
+.filtros {
+  position: sticky;
+  top: 0;
+  z-index: 5;
+  display: block;
+  border-block: 1px solid var(--color-sen);
+  background-color: var(--color-washi);
+  background-image: var(--papel);
+}
+
+.filtros-fila {
+  display: grid;
+  grid-template-columns: minmax(0, 1.25fr) minmax(0, 1fr);
+  gap: 0.25rem 1rem;
+  align-items: end;
+  padding-block: 0.625rem 0.5rem;
+}
+
+.campo {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: 0.125rem;
+  min-width: 0;
+}
+
+.campo-etiqueta {
+  color: var(--color-nezumi);
+  font-size: var(--text-2xs);
+  letter-spacing: var(--tracking-wide);
+  text-transform: uppercase;
+}
+
+.campo input,
+.campo select {
+  width: 100%;
+  min-width: 0;
+  height: 2.25rem;
+  padding: 0;
+  border: 0;
+  border-radius: 0;
+  background-color: transparent;
+  color: var(--color-sumi);
+  font: inherit;
+  /* 16 px: por debajo, Safari en iOS amplía la página al enfocar. */
+  font-size: 1rem;
+  box-shadow: inset 0 -1px 0 var(--color-sen);
+}
+
+.campo input::placeholder {
+  color: var(--color-nezumi);
+  opacity: 1;
+}
+
+.campo input::-webkit-search-cancel-button {
+  -webkit-appearance: none;
+  appearance: none;
+}
+
+.campo select {
+  -webkit-appearance: none;
+  appearance: none;
+  padding-right: 1.25rem;
+  text-overflow: ellipsis;
+  cursor: pointer;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6'%3E%3Cpath d='M1 1l4 4 4-4' fill='none' stroke='%235e584e' stroke-width='1.2'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 0.25rem center;
+}
+
+.campo input:hover,
+.campo select:hover {
+  box-shadow: inset 0 -1px 0 var(--color-hai);
+}
+
+/* Foco: el filete se vuelve bermellón (sin cambiar la altura). */
+.campo input:focus-visible,
+.campo select:focus-visible {
+  outline: none;
+  box-shadow: inset 0 -2px 0 var(--color-shu);
+}
+
+.campo-atajo {
+  position: absolute;
+  right: 0;
+  bottom: 0.5rem;
+  display: none;
+  min-width: 1.25rem;
+  padding: 0 0.3rem;
+  border: 1px solid var(--color-sen);
+  color: var(--color-nezumi);
+  font-family: var(--font-sans);
+  font-size: var(--text-2xs);
+  line-height: 1.35;
+  text-align: center;
+  pointer-events: none;
+}
+
+.campo--buscar input:not(:placeholder-shown) ~ .campo-atajo,
+.campo--buscar input:focus ~ .campo-atajo {
+  visibility: hidden;
+}
+
+.filtros-cuenta {
+  grid-column: 1 / -1;
+  display: flex;
+  align-items: baseline;
+  gap: 0.375rem;
+  margin: 0;
+  color: var(--color-nezumi);
+  font-size: var(--text-xs);
+}
+
+.filtros-quitar {
+  margin-left: auto;
+  padding: 0.375rem 0 0.25rem;
+  border: 0;
+  background: none;
+  color: var(--color-sumi);
+  font: inherit;
+  text-decoration-line: underline;
+  text-decoration-color: var(--color-sen);
+  text-decoration-thickness: 1px;
+  text-underline-offset: 0.25em;
+  transition: text-decoration-color var(--dur-2) var(--ease-sumi);
+}
+
+.filtros-quitar:hover {
+  text-decoration-color: currentColor;
+}
+
+/* Móvil: una sola fila de menos de 60 px. Las etiquetas «Buscar» y «Serie»
+   y las palabras del recuento quedan solo para los lectores de pantalla. */
+@media (max-width: 47.99rem) {
+  .filtros-fila {
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr) auto;
+    align-items: center;
+    gap: 0 0.75rem;
+    padding-block: 0.5rem;
+  }
+
+  .campo-etiqueta,
+  .filtros-palabra {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip-path: inset(50%);
+    white-space: nowrap;
+  }
+
+  .filtros-cuenta {
+    grid-column: auto;
+    gap: 0.5rem;
+  }
+
+  .filtros-quitar {
+    padding: 0.5rem 0;
+  }
+}
+
+@media (min-width: 48rem) {
+  .filtros-fila {
+    grid-template-columns: minmax(0, 20rem) minmax(0, 15rem) minmax(0, 1fr);
+    gap: 2rem;
+    padding-block: 0.875rem 0.75rem;
+  }
+
+  .filtros-cuenta {
+    grid-column: auto;
+    justify-content: flex-end;
+    padding-bottom: 0.5rem;
+    font-size: var(--text-sm);
+  }
+
+  .filtros-quitar {
+    margin-left: 1rem;
+    padding: 0;
+  }
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .campo-atajo {
+    display: block;
+  }
+
+  /* Reserva el hueco del atajo para que el texto no se monte encima. */
+  .campo--buscar input {
+    padding-right: 1.75rem;
+  }
+}
+
+/* ---- Rejilla ---- */
+
+/* Al llegar con el teclado, la carta no queda escondida bajo la barra fija. */
+.muro .carta-enlace,
+.sala-ver {
+  scroll-margin-block: 7rem 2rem;
+}
+
+/* La rejilla va en grupos de dos o tres filas (ver lib/grupos): cada grupo
+   es una rejilla con las mismas columnas y el navegador se salta los que
+   quedan lejos de la pantalla. Mientras no se pinta, un grupo reserva la
+   altura estimada de sus filas; después recuerda la real. El relleno deja
+   sitio a la inclinación, a los sellos y a la sombra, que la contención de
+   pintado recortaría. */
+.muro {
+  --columnas: 2;
+  --hueco-fila: 2.25rem;
+  --hueco-columna: 1rem;
+  --cartela: 3.75rem;
+  --ancho-muro: calc(min(100vw, var(--container-page)) - 2 * var(--gutter));
+  display: grid;
+  row-gap: var(--hueco-fila);
+}
+
+.muro-grupo {
+  display: grid;
+  grid-template-columns: repeat(var(--columnas), minmax(0, 1fr));
+  gap: var(--hueco-fila) var(--hueco-columna);
+  padding: 1rem;
+  margin: -1rem;
+  content-visibility: auto;
+  contain-intrinsic-block-size: auto
+    calc(
+      var(--filas, 1) *
+        ((var(--ancho-muro) - (var(--columnas) - 1) * var(--hueco-columna)) / var(--columnas) * 1.5 + var(--cartela)) +
+        (var(--filas, 1) - 1) * var(--hueco-fila)
+    );
+}
+
+.muro-celda {
+  min-width: 0;
+}
+
+@media (min-width: 48rem) {
+  .muro {
+    --columnas: 3;
+    --hueco-fila: 3.25rem;
+    --hueco-columna: 2rem;
+    --cartela: 3.25rem;
+  }
+}
+
+@media (min-width: 64rem) {
+  .muro {
+    --columnas: 4;
+    --hueco-fila: 3.5rem;
+    --hueco-columna: 2.25rem;
+  }
+}
+
+@media (min-width: 75rem) {
+  .muro {
+    --columnas: 5;
+  }
+}
+
+/* ---- Salas: cada serie abre su propio tramo de la rejilla ---- */
+.sala + .sala {
+  margin-top: 4rem;
+}
+
+/* La cabecera también se salta fuera de pantalla: así su título japonés no
+   pide los glifos del mincho hasta que la serie se acerca. */
+.sala-cabecera {
+  content-visibility: auto;
+  contain-intrinsic-block-size: auto 5.25rem;
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  align-items: baseline;
+  column-gap: 0.875rem;
+  row-gap: 0.125rem;
+  margin-bottom: 1.5rem;
+  padding-top: 0.875rem;
+  border-top: 1px solid var(--color-sen);
+}
+
+.sala-orden {
+  grid-row: 1 / span 2;
+  color: var(--color-nezumi);
+  font-size: var(--text-xs);
+  letter-spacing: var(--tracking-wide);
+}
+
+.sala-titulo {
+  grid-column: 2;
+  margin: 0;
+  font-size: var(--text-2xl);
+  line-height: 1.15;
+  overflow-wrap: anywhere;
+}
+
+.sala-nativo {
+  grid-column: 2;
+  color: var(--color-nezumi);
+  font-family: var(--font-jp-rotulo);
+  font-size: var(--text-sm);
+  letter-spacing: 0.08em;
+}
+
+.sala-ver {
+  grid-column: 3;
+  grid-row: 1;
+  padding: 0.25rem 0;
+  border: 0;
+  background: none;
+  color: var(--color-nezumi);
+  font: inherit;
+  font-size: var(--text-sm);
+  white-space: nowrap;
+  font-variant-numeric: tabular-nums;
+  transition: color var(--dur-2) var(--ease-sumi);
+}
+
+.sala-flecha {
+  display: inline-block;
+  margin-left: 0.375rem;
+  transition: transform var(--dur-3) var(--ease-sumi);
+}
+
+.sala-ver:hover {
+  color: var(--color-sumi);
+}
+
+.sala-ver:hover .sala-flecha {
+  transform: translateX(3px);
+}
+
+@media (min-width: 48rem) {
+  .sala + .sala {
+    margin-top: 5.5rem;
+  }
+
+  .sala-cabecera {
+    contain-intrinsic-block-size: auto 3.75rem;
+    grid-template-columns: 2.5rem minmax(0, auto) minmax(0, 1fr) auto;
+    column-gap: 1.25rem;
+    margin-bottom: 2.25rem;
+    padding-top: 1.125rem;
+  }
+
+  .sala-orden {
+    grid-row: 1;
+  }
+
+  .sala-titulo {
+    font-size: var(--text-3xl);
+  }
+
+  .sala-nativo {
+    grid-column: 3;
+    grid-row: 1;
+    font-size: var(--text-base);
+  }
+
+  .sala-ver {
+    grid-column: 4;
+  }
+}
+
+/* Bajo el título de la serie, repetirla en cada cartela sobra. */
+.sala .carta-serie {
+  display: none;
+}
+
+/* ---- Sin resultados ---- */
+.vacio {
+  display: flex;
+  align-items: flex-start;
+  gap: 1.25rem;
+  padding-block: 2.5rem 4rem;
+}
+
+/* Un hueco vacío, como el de un álbum al que aún le falta la carta. */
+.vacio-hueco {
+  flex: none;
+  display: grid;
+  place-items: center;
+  width: 5.5rem;
+  aspect-ratio: 2 / 3;
+  border: 1px solid var(--color-sen);
+  outline: 1px solid var(--color-hoshi);
+  outline-offset: -6px;
+  animation: aparece var(--dur-4) var(--ease-sumi) both;
+}
+
+.vacio-tate {
+  color: var(--color-shu-fuka);
+  font-size: var(--text-base);
+}
+
+@media (min-width: 48rem) {
+  .vacio {
+    gap: 2.5rem;
+  }
+
+  .vacio-hueco {
+    width: 8rem;
+  }
+
+  .vacio-tate {
+    font-size: var(--text-xl);
+  }
+}
+
+.vacio-titulo {
+  max-width: 30rem;
+  margin: 0;
+  font-family: var(--font-serif);
+  font-size: var(--text-2xl);
+  line-height: 1.2;
+  overflow-wrap: anywhere;
+  animation: aparece var(--dur-4) var(--ease-sumi) 80ms both;
+}
+
+.vacio-texto {
+  max-width: var(--container-prosa);
+  margin: 0.75rem 0 0;
+  color: var(--color-nezumi);
+  animation: aparece var(--dur-4) var(--ease-sumi) 160ms both;
+}
+
+.vacio-boton {
+  margin-top: 1.5rem;
+  background: none;
+  font-family: inherit;
+  animation: aparece var(--dur-4) var(--ease-sumi) 240ms both;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .vacio-hueco,
+  .vacio-titulo,
+  .vacio-texto,
+  .vacio-boton {
+    animation-name: funde;
+  }
+}
+
+/* ==========================================================================
+   Carta del día: una lámina de tinta a la derecha del título (desde
+   tableta). Estática: una entrada y la inclinación al pasar el puntero.
+   ========================================================================== */
+.del-dia {
+  display: none;
+}
+
+@media (min-width: 48rem) {
+  .galeria-cabecera {
+    display: flex;
+    align-items: flex-end;
+    justify-content: space-between;
+    gap: 2rem;
+  }
+
+  .del-dia {
+    position: relative;
+    isolation: isolate;
+    flex: none;
+    display: grid;
+    grid-template-columns: auto minmax(0, 11rem);
+    grid-template-rows: auto 1fr;
+    column-gap: 1.75rem;
+    align-items: end;
+    padding: 1rem 1.5rem 1.25rem 1.75rem;
+    border: 1px solid var(--color-yoru-sen);
+    background-image: radial-gradient(ellipse 70% 70% at 30% 55%, var(--color-yoru-3), transparent 75%);
+    animation: aparece var(--dur-5) var(--ease-sumi) 300ms both;
+  }
+
+  /* El mismo grano estático que los escenarios, contra los anillos del foco. */
+  .del-dia::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    z-index: -1;
+    background-image: url('/grano.png');
+    pointer-events: none;
+  }
+
+  .del-dia-rotulo {
+    grid-column: 1 / -1;
+    margin: 0 0 0.75rem;
+    color: var(--color-gofun-2);
+    font-size: var(--text-2xs);
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+  }
+
+  .del-dia-obra {
+    display: flex;
+    align-items: flex-start;
+    gap: 0.625rem;
+  }
+
+  /* La carta, un poco girada sobre la lámina, como dejada sobre la mesa. */
+  .del-dia-carta {
+    width: 6.5rem;
+    rotate: -4deg;
+  }
+
+  .del-dia-carta .carta-lamina {
+    box-shadow: 0 22px 30px -18px rgb(0 0 0 / 0.95);
+  }
+
+  .del-dia-nativo {
+    max-block-size: 9rem;
+    overflow: hidden;
+    color: var(--color-gofun-2);
+    font-size: var(--text-sm);
+    white-space: nowrap;
+  }
+
+  .del-dia-cartela {
+    display: grid;
+    gap: 0.125rem;
+    margin: 0 0 0.25rem;
+  }
+
+  .del-dia-numero {
+    color: var(--color-gofun-2);
+    font-size: var(--text-2xs);
+    letter-spacing: var(--tracking-wide);
+  }
+
+  .del-dia-nombre {
+    font-family: var(--font-serif);
+    font-size: var(--text-xl);
+    line-height: 1.2;
+    overflow-wrap: anywhere;
+  }
+
+  .del-dia-serie {
+    color: var(--color-gofun-2);
+    font-size: var(--text-sm);
+    overflow-wrap: anywhere;
+  }
+}
+
+@media (min-width: 64rem) {
+  .del-dia-carta {
+    width: 7.25rem;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .del-dia {
+    animation-name: funde;
+  }
+
+  .del-dia-carta {
+    rotate: none;
+  }
+}
