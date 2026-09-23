@@ -115,6 +115,14 @@ for (const e of especiales) {
   }
 }
 
+// Avisos (no rompen el build): en los nombres originales, los signos ASCII
+// !?() se tuercen en vertical; van en ancho completo (！？（）).
+const warnings = []
+for (const item of [...animes, ...personajes, ...especiales]) {
+  if (isText(item.nativo) && /[!?()]/.test(item.nativo)) warnings.push(`"${item.id}": nativo con signos ASCII (${item.nativo}); usa ！？（）`)
+}
+for (const msg of warnings) console.warn(`check-data: aviso ${msg}`)
+
 if (errors.length) {
   console.error(`check-data: ${errors.length} error(es)`)
   for (const msg of errors.slice(0, 50)) console.error(`  - ${msg}`)
