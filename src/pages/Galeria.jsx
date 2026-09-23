@@ -84,7 +84,7 @@ export default function Galeria() {
 
   return (
     <>
-      <div className="wrap pt-10 pb-8 md:pt-16 md:pb-12">
+      <div className="wrap pt-6 pb-5 md:pt-16 md:pb-12">
         <TituloSeccion
           ja="ギャラリー"
           sub={`${catalogo.personajes.length} cartas de ${catalogo.animes.length} series, y ${catalogo.especiales.length} especiales.`}

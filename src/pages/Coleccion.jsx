@@ -87,7 +87,7 @@ export default function Coleccion() {
   return (
     <div className="coleccion">
       <div className="wrap coleccion-cabecera">
-        <TituloSeccion ja="コレクション" sub="Tu colección se guarda en este navegador, sin cuenta.">
+        <TituloSeccion ja="コレクション" sub="Se guarda en este navegador, sin cuenta.">
           Colección
         </TituloSeccion>
         {vacia ? <AlbumVacio /> : <Marcador cuenta={cuenta} />}
@@ -289,7 +289,8 @@ function FiltrosAlbum({ filtros, cuenta, mostradas, onCambiar, selectorSerie }) 
 
         <p className="filtros-cuenta" aria-live="polite">
           <span>
-            <span className="cifra">{mostradas}</span> {mostradas === 1 ? 'hoja' : 'hojas'}
+            <span className="cifra">{mostradas}</span>
+            <span className="filtros-palabra"> {mostradas === 1 ? 'hoja' : 'hojas'}</span>
           </span>
           {filtrado && (
             <button type="button" className="filtros-quitar" onClick={() => onCambiar({ serie: '', empezadas: false })}>

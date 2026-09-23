@@ -248,7 +248,7 @@
 
 .titulo-seccion-tate {
   flex: none;
-  min-height: 4.5rem;
+  min-height: 3.5rem;
   padding-top: 0.5rem;
   padding-left: 0.75rem;
   border-left: 1px solid var(--color-sen);
@@ -258,9 +258,9 @@
 }
 
 .titulo-seccion-sub {
-  margin-top: 0.625rem;
+  margin-top: 0.5rem;
   color: var(--color-nezumi);
-  font-size: var(--text-base);
+  font-size: var(--text-sm);
   animation: aparece var(--dur-4) var(--ease-sumi) 260ms both;
 }
 
@@ -279,6 +279,12 @@
   }
 
   .titulo-seccion-tate {
+    min-height: 4.5rem;
+    font-size: var(--text-base);
+  }
+
+  .titulo-seccion-sub {
+    margin-top: 0.625rem;
     font-size: var(--text-base);
   }
 }

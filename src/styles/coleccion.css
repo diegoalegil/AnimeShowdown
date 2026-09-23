@@ -8,7 +8,7 @@
 }
 
 .coleccion-cabecera {
-  padding-block: 2.5rem 2.5rem;
+  padding-block: 1.5rem 1.75rem;
 }
 
 @media (min-width: 48rem) {
@@ -153,6 +153,58 @@
   gap: 0.75rem 1.5rem;
   margin: 0;
   animation: aparece var(--dur-4) var(--ease-sumi) 400ms both;
+}
+
+/* Móvil: el progreso en una fila compacta (405 de 1086 · 6 de 52 · 1 de
+   105) con las acciones debajo, para que el álbum asome en la primera
+   pantalla. */
+@media (max-width: 47.99rem) {
+  .marcador {
+    grid-template-columns: minmax(0, 1.1fr) minmax(0, 1.4fr);
+    align-items: end;
+    gap: 1rem 1.25rem;
+    margin-top: 1.25rem;
+  }
+
+  .marcador-n {
+    font-size: 2.75rem;
+  }
+
+  .marcador-de {
+    font-size: var(--text-sm);
+  }
+
+  .marcador-linea {
+    margin-top: 0.625rem;
+  }
+
+  .marcador-pie {
+    display: none;
+  }
+
+  .marcador-datos {
+    gap: 1rem;
+  }
+
+  .marcador-dato {
+    padding-top: 0.5rem;
+  }
+
+  .marcador-dato dd {
+    font-size: var(--text-lg);
+  }
+
+  .marcador-acciones {
+    grid-column: 1 / -1;
+  }
+
+  .marcador-acciones .enlace-tinta {
+    padding: 0.5rem 0.875rem;
+  }
+
+  .recien {
+    margin-top: 1.25rem;
+  }
 }
 
 @media (min-width: 64rem) {
@@ -490,6 +542,51 @@
   margin-left: 0.625rem;
   vertical-align: -0.35rem;
   rotate: -8deg;
+}
+
+/* Móvil: sin lomo, la cabecera de la hoja se queda bajo la barra de filtros
+   mientras se recorre su serie, en una versión compacta (número, título y
+   recuento en una fila). */
+@media (max-width: 47.99rem) {
+  .hoja-cabecera {
+    position: sticky;
+    top: 3.375rem;
+    z-index: 3;
+    grid-template-columns: auto minmax(0, 1fr) auto;
+    column-gap: 0.625rem;
+    margin-inline: -1rem;
+    padding: 0.625rem 1rem 0;
+    background-color: var(--color-washi);
+    background-image: var(--papel);
+  }
+
+  .hoja-orden--movil {
+    grid-column: 1;
+    margin-bottom: 0;
+  }
+
+  .hoja-titulo {
+    grid-column: 2;
+    font-size: var(--text-xl);
+  }
+
+  .hoja-nativo {
+    grid-column: 2;
+    font-size: var(--text-xs);
+  }
+
+  .hoja-cuenta {
+    grid-column: 3;
+    grid-row: 1;
+  }
+
+  .hoja-linea {
+    margin-top: 0.5rem;
+  }
+
+  .album-noche .hoja-cabecera {
+    background-color: var(--color-yoru);
+  }
 }
 
 @media (min-width: 48rem) {

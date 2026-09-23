@@ -134,6 +134,36 @@
   text-decoration-color: currentColor;
 }
 
+/* Móvil: una sola fila de menos de 60 px. Las etiquetas «Buscar» y «Serie»
+   y las palabras del recuento quedan solo para los lectores de pantalla. */
+@media (max-width: 47.99rem) {
+  .filtros-fila {
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr) auto;
+    align-items: center;
+    gap: 0 0.75rem;
+    padding-block: 0.5rem;
+  }
+
+  .campo-etiqueta,
+  .filtros-palabra {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip-path: inset(50%);
+    white-space: nowrap;
+  }
+
+  .filtros-cuenta {
+    grid-column: auto;
+    gap: 0.5rem;
+  }
+
+  .filtros-quitar {
+    padding: 0.5rem 0;
+  }
+}
+
 @media (min-width: 48rem) {
   .filtros-fila {
     grid-template-columns: minmax(0, 20rem) minmax(0, 15rem) minmax(0, 1fr);

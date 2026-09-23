@@ -48,11 +48,12 @@ export function FiltrosGaleria({ filtros, onCambiar, total, buscador, selectorSe
 
         <p className="filtros-cuenta" aria-live="polite">
           <span>
-            <span className="cifra">{total}</span> {total === 1 ? 'carta' : 'cartas'}
+            <span className="cifra">{total}</span>
+            <span className="filtros-palabra"> {total === 1 ? 'carta' : 'cartas'}</span>
           </span>
           {activos && (
             <button type="button" className="filtros-quitar" onClick={() => onCambiar({ q: '', serie: '' })}>
-              Quitar filtros
+              Quitar<span className="filtros-palabra"> filtros</span>
             </button>
           )}
         </p>
