@@ -64,5 +64,8 @@ describe('estadoPara', () => {
     expect(estadoPara('/carta/frieren', { desde: '/coleccion' })).toEqual({ volver: '/coleccion' })
     expect(estadoPara('/carta/fern', { reemplazar: true, estadoActual: { volver: '/coleccion' } })).toEqual({ volver: '/coleccion' })
     expect(estadoPara('/carta/fern', { reemplazar: true, estadoActual: { volver: '/otra' } })).toBeUndefined()
+    // Entrando directamente en la carpeta publicada, con barra final.
+    expect(estadoPara('/carta/frieren', { desde: '/coleccion/' })).toEqual({ volver: '/coleccion' })
+    expect(estadoPara('/carta/frieren', { desde: '/' })).toEqual({ volver: '/' })
   })
 })

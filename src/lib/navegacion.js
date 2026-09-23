@@ -58,7 +58,8 @@ const ORIGENES = new Set(['/', '/coleccion'])
  */
 export function estadoPara(destino, { desde, estadoActual, reemplazar }) {
   if (!destino.startsWith('/carta/')) return undefined
-  const origen = reemplazar ? estadoActual?.volver : desde
+  // GitHub Pages sirve cada sección como carpeta: «/coleccion/» es «/coleccion».
+  const origen = (reemplazar ? estadoActual?.volver : desde)?.replace(/(.)\/+$/, '$1')
   return ORIGENES.has(origen) ? { volver: origen } : undefined
 }
 
