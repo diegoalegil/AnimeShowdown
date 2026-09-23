@@ -171,7 +171,7 @@ function FichaCarta({ carta }) {
           </div>
           <div>
             <dt>Rareza</dt>
-            <dd key={carta.id} className={especial ? 'ficha-cambia ficha-especial' : 'ficha-cambia'}>
+            <dd key={carta.id} className="ficha-cambia">
               {especial ? 'Especial' : 'Normal'}
             </dd>
           </div>

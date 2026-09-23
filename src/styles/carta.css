@@ -222,10 +222,6 @@
   overflow-wrap: anywhere;
 }
 
-.carta[data-especial] .carta-serie {
-  color: var(--color-shu-fuka);
-}
-
 .carta-copias {
   grid-column: 2;
   grid-row: 1 / span 2;
@@ -234,7 +230,7 @@
   align-items: center;
   gap: 0.3rem;
   padding-top: 0.2rem;
-  color: var(--color-shu-fuka);
+  color: var(--color-nezumi);
   font-size: var(--text-xs);
 }
 
@@ -302,9 +298,18 @@
   color: var(--color-gofun-2);
 }
 
-.yoru .carta[data-especial] .carta-serie,
 .yoru .carta-copias {
-  color: var(--color-shu-akari);
+  color: var(--color-gofun-2);
+}
+
+/* En el álbum todo lo que hay es tuyo: el sello de «en tu colección»
+   sobra; solo se anotan las copias (×N). */
+.carta--album .carta-copias-sello {
+  display: none;
+}
+
+.carta--album .carta-copias {
+  color: var(--color-sumi);
 }
 
 @media (prefers-reduced-motion: reduce) {

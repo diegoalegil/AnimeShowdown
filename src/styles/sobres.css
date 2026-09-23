@@ -864,10 +864,6 @@
   white-space: nowrap;
 }
 
-.naipe[data-especial] .naipe-serie {
-  color: var(--color-shu-akari);
-}
-
 /* ---- «Saltar»: todo boca arriba al instante ---- */
 .mesa[data-instantaneo] .naipe[data-revelada] .naipe-dorso {
   opacity: 0;

@@ -121,15 +121,17 @@
   padding: 0.375rem 0 0.25rem;
   border: 0;
   background: none;
-  color: var(--color-shu-fuka);
+  color: var(--color-sumi);
   font: inherit;
   text-decoration-line: underline;
+  text-decoration-color: var(--color-sen);
   text-decoration-thickness: 1px;
   text-underline-offset: 0.25em;
+  transition: text-decoration-color var(--dur-2) var(--ease-sumi);
 }
 
 .filtros-quitar:hover {
-  color: var(--color-sumi);
+  text-decoration-color: currentColor;
 }
 
 @media (min-width: 48rem) {
@@ -246,7 +248,7 @@
 
 .sala-orden {
   grid-row: 1 / span 2;
-  color: var(--color-shu-fuka);
+  color: var(--color-nezumi);
   font-size: var(--text-xs);
   letter-spacing: var(--tracking-wide);
 }
@@ -288,7 +290,7 @@
 }
 
 .sala-ver:hover {
-  color: var(--color-shu-fuka);
+  color: var(--color-sumi);
 }
 
 .sala-ver:hover .sala-flecha {
