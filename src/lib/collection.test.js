@@ -260,3 +260,175 @@ describe('crearAlmacen', () => {
     expect(almacen.exportar()).toBe(codigo)
   })
 })
+
+// ---------------------------------------------------------------------------
+// Reglas del sobre diario, de punta a punta con el almacén.
+// ---------------------------------------------------------------------------
+
+/** Generador determinista (mulberry32) para las pruebas estadísticas. */
+function semilla(n) {
+  let a = n >>> 0
+  return () => {
+    a = (a + 0x6d2b79f5) >>> 0
+    let t = a
+    t = Math.imul(t ^ (t >>> 15), t | 1)
+    t ^= t + Math.imul(t ^ (t >>> 7), t | 61)
+    return ((t ^ (t >>> 14)) >>> 0) / 4294967296
+  }
+}
+
+/** Ventana mínima: lo que el almacén usa para otras pestañas y la visibilidad. */
+function ventanaFalsa() {
+  const oyentes = new Map()
+  const on = (tipo, fn) => oyentes.set(tipo, fn)
+  return {
+    addEventListener: on,
+    removeEventListener: (tipo) => oyentes.delete(tipo),
+    document: { visibilityState: 'visible', addEventListener: on, removeEventListener: (tipo) => oyentes.delete(tipo) },
+    oyentes,
+  }
+}
+
+describe('sobre diario', () => {
+  const crear = ({ storage = storageFalso(), fecha = new Date(2026, 2, 1, 21, 30), ventana, ids } = {}) => {
+    const reloj = { fecha }
+    const almacen = crearAlmacen({
+      storage: () => storage,
+      ids: ids ?? { personajes: PERSONAJES, especiales: ESPECIALES },
+      existe: ids ? () => true : existe,
+      ahora: () => reloj.fecha,
+      ventana,
+    })
+    return { almacen, reloj, storage }
+  }
+
+  it(`el sexto sobre del día se rechaza sin tocar la colección`, () => {
+    const { almacen } = crear()
+    for (let i = 0; i < SOBRES_POR_DIA; i++) almacen.abrirSobre(semilla(i))
+    const antes = almacen.getSnapshot()
+    expect(sobresRestantes(antes, almacen.hoy())).toBe(0)
+    expect(() => almacen.abrirSobre(semilla(99))).toThrow('Hoy ya no quedan sobres')
+    expect(almacen.getSnapshot()).toBe(antes)
+    expect(copiasTotales(antes)).toBe(SOBRES_POR_DIA * CARTAS_POR_SOBRE)
+  })
+
+  it('a medianoche local vuelven los cinco sobres y la colección se conserva', () => {
+    vi.useFakeTimers()
+    try {
+      const ventana = ventanaFalsa()
+      const { almacen, reloj } = crear({ ventana })
+      const oyente = vi.fn()
+      const soltar = almacen.subscribe(oyente)
+      for (let i = 0; i < SOBRES_POR_DIA; i++) almacen.abrirSobre(semilla(i))
+      const cartas = almacen.getSnapshot().tengo
+      expect(sobresRestantes(almacen.getSnapshot(), almacen.hoy())).toBe(0)
+      oyente.mockClear()
+
+      // 23:59:59: todavía es el mismo día.
+      reloj.fecha = new Date(2026, 2, 1, 23, 59, 59)
+      vi.advanceTimersByTime(msHastaMedianoche(new Date(2026, 2, 1, 21, 30)) - 2000)
+      expect(oyente).not.toHaveBeenCalled()
+
+      // Pasada la medianoche salta el temporizador sin que nadie abra nada.
+      reloj.fecha = new Date(2026, 2, 2, 0, 0, 1)
+      vi.advanceTimersByTime(3000)
+      expect(oyente).toHaveBeenCalledTimes(1)
+      const nuevo = almacen.getSnapshot()
+      expect(nuevo).toMatchObject({ dia: '2026-03-02', abiertos: 0 })
+      expect(nuevo.tengo).toEqual(cartas)
+      expect(sobresRestantes(nuevo, almacen.hoy())).toBe(SOBRES_POR_DIA)
+      soltar()
+      expect(ventana.oyentes.size).toBe(0)
+    } finally {
+      vi.useRealTimers()
+    }
+  })
+
+  it('al volver a la pestaña tras la medianoche también se reinicia', () => {
+    const ventana = ventanaFalsa()
+    const { almacen, reloj } = crear({ ventana })
+    almacen.subscribe(() => {})
+    almacen.abrirSobre(semilla(1))
+    reloj.fecha = new Date(2026, 2, 3, 9, 0)
+    ventana.oyentes.get('visibilitychange')()
+    expect(almacen.getSnapshot()).toMatchObject({ dia: '2026-03-03', abiertos: 0 })
+  })
+
+  it('la quinta carta es especial el 15 % de las veces, repartida por igual entre las especiales', () => {
+    const personajes = Array.from({ length: 120 }, (_, i) => `p${i}`)
+    const especiales = Array.from({ length: 52 }, (_, i) => `e-${i}`)
+    const rng = semilla(20260923)
+    const tiradas = 40000
+    const porEspecial = new Map(especiales.map((id) => [id, 0]))
+    let conEspecial = 0
+    for (let i = 0; i < tiradas; i++) {
+      const sobre = generarSobre({ personajes, especiales, rng })
+      // Las cuatro primeras nunca son especiales.
+      expect(sobre.slice(0, 4).some((id) => id.startsWith('e-'))).toBe(false)
+      if (sobre[4].startsWith('e-')) {
+        conEspecial++
+        porEspecial.set(sobre[4], porEspecial.get(sobre[4]) + 1)
+      }
+    }
+    // Proporción: dentro de 4 desviaciones típicas de una binomial.
+    const sd = Math.sqrt((PROB_ESPECIAL * (1 - PROB_ESPECIAL)) / tiradas)
+    expect(Math.abs(conEspecial / tiradas - PROB_ESPECIAL)).toBeLessThan(4 * sd)
+    // Uniformidad: χ² con 51 grados de libertad por debajo del valor crítico al 0,1 % (≈ 87,97).
+    const esperado = conEspecial / especiales.length
+    const chi2 = [...porEspecial.values()].reduce((s, n) => s + (n - esperado) ** 2 / esperado, 0)
+    expect(chi2).toBeLessThan(87.97)
+    expect(Math.min(...porEspecial.values())).toBeGreaterThan(0)
+  })
+
+  it('las repetidas cuentan copias y solo la primera es nueva', () => {
+    const { almacen } = crear()
+    // a, a, b, a y la quinta sin especial: c.
+    const primero = almacen.abrirSobre(secuencia(0, 0, 0.2, 0, 0.9, 0.4))
+    expect(primero.ids).toEqual(['a', 'a', 'b', 'a', 'c'])
+    expect(primero.nuevas).toEqual(['a', 'b', 'c'])
+    expect(almacen.getSnapshot().tengo).toEqual({ a: 3, b: 1, c: 1 })
+
+    const segundo = almacen.abrirSobre(secuencia(0, 0.2, 0.2, 0.99, 0.9, 0.99))
+    expect(segundo.ids).toEqual(['a', 'b', 'b', 'f', 'f'])
+    expect(segundo.nuevas).toEqual(['f'])
+    expect(almacen.getSnapshot().tengo).toEqual({ a: 4, b: 3, c: 1, f: 2 })
+    expect(cartasDistintas(almacen.getSnapshot())).toBe(4)
+  })
+
+  it('las cartas quedan guardadas en el momento de abrir (recargar no las pierde)', () => {
+    const storage = storageFalso()
+    const { almacen } = crear({ storage })
+    const { ids } = almacen.abrirSobre(semilla(7))
+    const recargado = crear({ storage }).almacen.getSnapshot()
+    expect(recargado.ultimo).toEqual(ids)
+    expect(recargado.abiertos).toBe(1)
+    for (const id of ids) expect(recargado.tengo[id]).toBeGreaterThanOrEqual(1)
+  })
+
+  it('sin localStorage (bloqueado o lleno) se juega en memoria y el límite se mantiene', () => {
+    const bloqueado = {
+      getItem() {
+        throw new Error('SecurityError')
+      },
+      setItem() {
+        throw new Error('QuotaExceededError')
+      },
+    }
+    for (const storage of [bloqueado, null]) {
+      const almacen = crearAlmacen({
+        storage: () => {
+          if (!storage) throw new Error('localStorage no disponible')
+          return storage
+        },
+        ids: { personajes: PERSONAJES, especiales: ESPECIALES },
+        existe,
+        ahora: () => new Date(2026, 2, 1, 12),
+      })
+      expect(almacen.getSnapshot()).toEqual(estadoVacio('2026-03-01'))
+      for (let i = 0; i < SOBRES_POR_DIA; i++) almacen.abrirSobre(semilla(i))
+      expect(copiasTotales(almacen.getSnapshot())).toBe(SOBRES_POR_DIA * CARTAS_POR_SOBRE)
+      expect(() => almacen.abrirSobre(semilla(9))).toThrow()
+      expect(leerCodigo(almacen.exportar(), { existe, dia: '2026-03-01' }).ok).toBe(true)
+    }
+  })
+})
