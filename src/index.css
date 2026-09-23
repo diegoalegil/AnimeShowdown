@@ -237,6 +237,13 @@
   line-height: 1;
 }
 
+/* Tate-chū-yoko: cifras cortas y !? de pie dentro de un texto vertical (ver
+   lib/tategaki). Safari solo entiende «all» y, en versiones antiguas, el prefijo. */
+@utility tcy {
+  -webkit-text-combine: horizontal;
+  text-combine-upright: all;
+}
+
 @utility cifra {
   font-variant-numeric: tabular-nums lining-nums;
   font-feature-settings: 'tnum' 1;

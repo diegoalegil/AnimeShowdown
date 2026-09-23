@@ -2,7 +2,7 @@ import { useEffect, useRef } from 'react'
 import { useLocation, useNavigate, useParams } from 'react-router'
 import { CartaVolteo } from '../components/CartaVolteo.jsx'
 import { Enlace } from '../components/Enlace.jsx'
-import { EtiquetaVertical } from '../components/EtiquetaVertical.jsx'
+import { EtiquetaVertical, TextoVertical } from '../components/EtiquetaVertical.jsx'
 import { Hanko } from '../components/Hanko.jsx'
 import { catalogo, esEspecial, numeroCarta } from '../lib/catalog.js'
 import { diaCorto } from '../lib/fechas.js'
@@ -10,6 +10,7 @@ import { busquedaDe, etiquetaFiltros, leerFiltros, recorrido } from '../lib/filt
 import { imagenCarta, proporcionCarta } from '../lib/images.js'
 import { nombrarCompartido } from '../lib/motion.js'
 import { actualizarAncla, irA, volverAtras } from '../lib/navegacion.js'
+import { columnasNombre, MAX_COLUMNA } from '../lib/tategaki.js'
 import { nombreCarta } from '../lib/titulos.js'
 import { coleccion, useColeccion } from '../lib/useCollection.js'
 import { useInclinacion } from '../lib/useMotion.js'
@@ -103,7 +104,7 @@ function FichaCarta({ carta }) {
       <div className="ficha-escenario yoru">
         {nativo && (
           <span lang="ja" className="ficha-fondo" aria-hidden="true">
-            {nativo}
+            <TextoVertical texto={nativo} />
           </span>
         )}
 
@@ -132,7 +133,13 @@ function FichaCarta({ carta }) {
 
       <div className="ficha-info">
         <header className="ficha-cabecera">
-          {nativo && <EtiquetaVertical ja={nativo} className="ficha-nativo" decorativa={false} />}
+          {nativo && (
+            <EtiquetaVertical
+              ja={columnasNombre(nativo).join('\n')}
+              className={[...nativo].length > MAX_COLUMNA ? 'ficha-nativo ficha-nativo--largo' : 'ficha-nativo'}
+              decorativa={false}
+            />
+          )}
           <div className="min-w-0">
             <p key={`numero-${carta.id}`} className="ficha-numero ficha-cambia cifra">
               Nº {numeroCarta(carta)}

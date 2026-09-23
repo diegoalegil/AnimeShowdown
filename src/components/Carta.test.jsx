@@ -87,6 +87,7 @@ describe('Hanko y EtiquetaVertical', () => {
 
   it('el texto vertical va marcado en japonés', () => {
     const html = renderToStaticMarkup(<EtiquetaVertical ja="ギャラリー" />)
-    expect(html).toBe('<span lang="ja" class="tate " aria-hidden="true">ギャラリー</span>')
+    expect(html).toBe('<span lang="ja" class="tate " aria-hidden="true"><span>ギャラリー</span></span>')
+    expect(renderToStaticMarkup(<EtiquetaVertical ja="人造人間18号" />)).toContain('人造人間<span class="tcy">18</span>号')
   })
 })

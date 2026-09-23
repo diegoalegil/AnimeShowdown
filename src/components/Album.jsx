@@ -5,6 +5,7 @@ import { revelar } from '../lib/motion.js'
 import { crearPegado } from '../lib/pegado.js'
 import { coleccion } from '../lib/useCollection.js'
 import { Carta } from './Carta.jsx'
+import { TextoVertical } from './EtiquetaVertical.jsx'
 import { Hanko } from './Hanko.jsx'
 
 // Las cartas nuevas se marcan como vistas cuando se pegan en su hueco.
@@ -45,7 +46,7 @@ export const Hoja = memo(function Hoja({ hoja, tengo, porPegar = '', recientes =
           {numero && <span className="hoja-orden cifra">{numero}</span>}
           {nativo && (
             <span lang="ja" className="hoja-lomo-ja">
-              {nativo}
+              <TextoVertical texto={nativo} />
             </span>
           )}
         </div>
@@ -125,7 +126,7 @@ function BolsilloVacio({ carta }) {
         <span className="bolsillo-numero cifra">{numero}</span>
         {carta.nativo && (
           <span lang="ja" className="bolsillo-ja">
-            {carta.nativo}
+            <TextoVertical texto={carta.nativo} />
           </span>
         )}
       </span>
