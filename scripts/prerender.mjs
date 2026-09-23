@@ -22,12 +22,16 @@ for (const marca of ['<title>', 'name="description"', 'property="og:title"', 'pr
   if (!plantilla.includes(marca)) throw new Error(`prerender: index.html no contiene ${marca}`)
 }
 
-/** HTML de la plantilla con el título y la descripción de una página. */
+/**
+ * HTML de la plantilla con el título y la descripción de una página. Las
+ * ilustraciones que precarga la portada (data-portada) solo sirven allí.
+ */
 function pagina(html, { titulo, descripcion }) {
   const t = escapar(titulo)
   const d = escapar(descripcion)
   // Reemplazos con función: el texto nunca se interpreta como patrón ($1, $&…).
   return html
+    .replace(/\s*<link [^>]*data-portada[^>]*>/g, '')
     .replace(/<title>[^<]*<\/title>/, () => `<title>${t}</title>`)
     .replace(/(<meta name="description" content=")[^"]*"/, (_, a) => `${a}${d}"`)
     .replace(/(<meta property="og:title" content=")[^"]*"/, (_, a) => `${a}${t}"`)

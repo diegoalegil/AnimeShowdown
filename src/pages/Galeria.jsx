@@ -15,8 +15,6 @@ import { useInclinacion } from '../lib/useMotion.js'
 import { usePorTramos } from '../lib/usePorTramos.js'
 import { useTitulo } from '../lib/useTitulo.js'
 
-// Cartas que se cargan de inmediato: la primera fila en cualquier ancho.
-const PRIORITARIAS = 5
 
 // Se pinta primero lo que cabe en pantalla y el resto por tramos (ver usePorTramos).
 const PRIMER_TRAMO = 30
@@ -51,8 +49,11 @@ export default function Galeria() {
   const visibles = usePorTramos(cartas, { primero: PRIMER_TRAMO, tramo: TRAMO, completa: volviendo })
   // Sin filtros, las cartas se agrupan por serie; filtradas, van seguidas.
   const agrupar = !q.trim() && !serie
-  const prioritarias = new Set(visibles.slice(0, PRIORITARIAS).map((c) => c.id))
-  const propsCarta = { tengo, busqueda, prioritarias, entrada: !volviendo }
+  // Se cargan de inmediato las cartas de la primera fila (dos en el móvil,
+  // cinco en una pantalla ancha); el resto, al acercarse con el scroll.
+  const disposicion = useDisposicionMuro()
+  const prioritarias = new Set(visibles.slice(0, disposicion.columnas).map((c) => c.id))
+  const propsCarta = { tengo, busqueda, prioritarias, disposicion, entrada: !volviendo }
 
   function cambiar(cambios) {
     navigate({ search: busquedaDe({ ...filtros, ...cambios }) }, { replace: true })
@@ -109,8 +110,8 @@ export default function Galeria() {
  * scroll. Las cartas van en grupos de dos o tres filas y cada grupo se salta
  * entero mientras está lejos de la pantalla (ver lib/grupos).
  */
-function Muro({ cartas, etiqueta, tengo, busqueda, prioritarias, entrada }) {
-  const { columnas, tamano } = useDisposicionMuro()
+function Muro({ cartas, etiqueta, tengo, busqueda, prioritarias, disposicion, entrada }) {
+  const { columnas, tamano } = disposicion
   return (
     <div className="muro" role="list" aria-label={etiqueta}>
       {trocear(cartas, tamano).map((grupo, i) => (

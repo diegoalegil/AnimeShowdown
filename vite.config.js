@@ -1,6 +1,8 @@
 import { defineConfig } from 'vite'
 import react from '@vitejs/plugin-react'
 import tailwindcss from '@tailwindcss/vite'
+import personajes from './src/data/personajes.json' with { type: 'json' }
+import { imagenCarta, TAMANOS } from './src/lib/images.js'
 
 // BASE_PATH lo fija el despliegue: "/" con dominio propio, "/<repo>/" en GitHub Pages.
 const base = process.env.BASE_PATH || '/'
@@ -29,9 +31,40 @@ function precargarFuentes() {
   }
 }
 
+// Ilustraciones que la portada (la galería sin filtros) carga antes que
+// nada: la primera fila del móvil, que son las primeras cartas del catálogo.
+// El HTML las pide a la vez que el JavaScript, con el mismo srcset y sizes
+// que las <img> de la rejilla, así que el navegador elige el mismo archivo.
+// Solo van en la portada: scripts/prerender.mjs las quita de las demás rutas.
+const PRIMERA_FILA = 2
+
+function precargarPortada() {
+  return {
+    name: 'precargar-portada',
+    apply: 'build',
+    transformIndexHtml: () =>
+      personajes.slice(0, PRIMERA_FILA).map((carta) => {
+        const img = imagenCarta(carta, base)
+        return {
+          tag: 'link',
+          attrs: {
+            rel: 'preload',
+            as: 'image',
+            type: 'image/webp',
+            imagesrcset: img.srcSet,
+            imagesizes: TAMANOS.muro,
+            fetchpriority: 'high',
+            'data-portada': '',
+          },
+          injectTo: 'head',
+        }
+      }),
+  }
+}
+
 export default defineConfig({
   base,
-  plugins: [react(), tailwindcss(), precargarFuentes()],
+  plugins: [react(), tailwindcss(), precargarFuentes(), precargarPortada()],
   build: {
     target: 'es2022',
     assetsInlineLimit: 0,
