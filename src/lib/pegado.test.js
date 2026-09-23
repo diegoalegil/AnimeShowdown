@@ -1,5 +1,13 @@
 import { afterEach, describe, expect, it, vi } from 'vitest'
-import { animarPegado, crearPegado, FOTOGRAMAS_PEGADO, MAX_RETARDO_PEGADO_MS, PASO_PEGADO_MS, retardoPegado } from './pegado.js'
+import {
+  animarPegado,
+  crearPegado,
+  ESPERA_ANOTAR_MS,
+  FOTOGRAMAS_PEGADO,
+  MAX_RETARDO_PEGADO_MS,
+  PASO_PEGADO_MS,
+  retardoPegado,
+} from './pegado.js'
 
 /** Hueco mínimo: el <li> con su carta y, si es nueva, su sello. */
 function bolsillo(id, { sello = true } = {}) {
@@ -16,6 +24,7 @@ function bolsillo(id, { sello = true } = {}) {
 
 afterEach(() => {
   vi.unstubAllGlobals()
+  vi.useRealTimers()
 })
 
 describe('animarPegado', () => {
@@ -46,7 +55,8 @@ describe('crearPegado', () => {
     expect(alPegar).toHaveBeenCalledWith(['denji'])
   })
 
-  it('pega y marca como vistas las que entran en pantalla, una sola vez', () => {
+  it('pega las que entran en pantalla y las anota como vistas en grupo, una sola vez', () => {
+    vi.useFakeTimers()
     let alCruzar
     const observados = new Set()
     class IO {
@@ -60,7 +70,7 @@ describe('crearPegado', () => {
         observados.delete(el)
       }
     }
-    vi.stubGlobal('window', { IntersectionObserver: IO, matchMedia: () => ({ matches: false }) })
+    vi.stubGlobal('window', { IntersectionObserver: IO, matchMedia: () => ({ matches: false }), addEventListener: vi.fn() })
     const alPegar = vi.fn()
     const ref = crearPegado(alPegar)
     const a = bolsillo('a')
@@ -74,10 +84,18 @@ describe('crearPegado', () => {
       { target: a, isIntersecting: true },
       { target: b, isIntersecting: false },
     ])
-    expect(alPegar).toHaveBeenCalledWith(['a'])
     expect(a.carta.animate).toHaveBeenCalledTimes(1)
+    // Ya no espera oculta: la animación la muestra.
+    expect(a.dataset.pegar).toBeUndefined()
     expect(observados.has(a)).toBe(false)
     expect(observados.has(b)).toBe(true)
+
+    // Varias llegadas seguidas se guardan juntas.
+    alCruzar([{ target: b, isIntersecting: true }])
+    expect(alPegar).not.toHaveBeenCalled()
+    vi.advanceTimersByTime(ESPERA_ANOTAR_MS)
+    expect(alPegar).toHaveBeenCalledTimes(1)
+    expect(alPegar).toHaveBeenCalledWith(['a', 'b'])
     limpiarA()
   })
 })

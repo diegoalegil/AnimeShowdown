@@ -96,6 +96,9 @@ export const VELOCIDAD_RAPIDA = 1.2
 export const VELOCIDAD_CALMA = 0.4
 let rapido = false
 
+/** true mientras el scroll va rápido (ver ritmoScroll). */
+export const scrollRapido = () => rapido
+
 /** Nuevo ritmo (true = rápido) según el anterior y la velocidad en px/ms. */
 export function ritmoScroll(eraRapido, velocidad) {
   return eraRapido ? velocidad > VELOCIDAD_CALMA : velocidad > VELOCIDAD_RAPIDA

@@ -2,7 +2,7 @@
 // «pegan» en su hueco con una pequeña coreografía la primera vez que se ven,
 // y entonces quedan marcadas como vistas. Un único IntersectionObserver para
 // todos los huecos; solo se anima transform y opacity (Web Animations).
-import { movimientoReducido } from './motion.js'
+import { movimientoReducido, scrollRapido } from './motion.js'
 
 /** Pausa entre cartas que llegan a la vez, y el máximo acumulado. */
 export const PASO_PEGADO_MS = 110
@@ -64,17 +64,41 @@ export function animarPegado(bolsillo, orden = 0) {
   return animaciones
 }
 
+/** Cada cuánto se guardan como vistas las cartas pegadas, como mucho. */
+export const ESPERA_ANOTAR_MS = 250
+
 /**
  * Crea el observador de los huecos por pegar. `alPegar(ids)` recibe las
- * cartas que acaban de entrar en pantalla (para marcarlas como vistas).
+ * cartas que ya han entrado en pantalla (para marcarlas como vistas); se
+ * agrupan para no guardar la colección en cada frame de un scroll rápido.
  * Devuelve una ref de callback para React: `<li data-pegar={id} ref={…}>`.
  */
 export function crearPegado(alPegar) {
   let observador = null
+  let cola = []
+  let temporizador = 0
+
+  function anotar() {
+    clearTimeout(temporizador)
+    temporizador = 0
+    if (!cola.length) return
+    const ids = cola
+    cola = []
+    alPegar(ids)
+  }
 
   function pegarYa(bolsillos) {
-    bolsillos.forEach((b, i) => animarPegado(b, i))
-    alPegar(bolsillos.map((b) => b.dataset.pegar))
+    // Con scroll rápido no daría tiempo a verla: como en la entrada de la
+    // galería, las cartas aparecen ya en su sitio.
+    const animar = !scrollRapido()
+    bolsillos.forEach((b, i) => {
+      cola.push(b.dataset.pegar)
+      // La animación se encarga de mostrarla: el atributo que la ocultaba
+      // sobra desde ya, aunque la colección aún no se haya guardado.
+      delete b.dataset.pegar
+      if (animar) animarPegado(b, i)
+    })
+    temporizador ||= setTimeout(anotar, ESPERA_ANOTAR_MS)
   }
 
   function obtener() {
@@ -88,6 +112,8 @@ export function crearPegado(alPegar) {
       },
       { threshold: 0.3 },
     )
+    // Si se cierra la página antes de guardar, lo ya visto no se pierde.
+    window.addEventListener?.('pagehide', anotar)
     return observador
   }
 
@@ -96,7 +122,9 @@ export function crearPegado(alPegar) {
     const io = obtener()
     if (!io) {
       // Sin IntersectionObserver: se pegan al momento, sin coreografía.
-      alPegar([bolsillo.dataset.pegar])
+      const id = bolsillo.dataset.pegar
+      delete bolsillo.dataset.pegar
+      alPegar([id])
       return undefined
     }
     io.observe(bolsillo)
