@@ -132,15 +132,19 @@ export function resumenSobre(cartas, esEspecial) {
   return { nuevas, repetidas: cartas.length - nuevas, especiales }
 }
 
-/** «3 nuevas, 2 repetidas y 1 especial». */
+/**
+ * «3 nuevas y 2 repetidas», y si hay especiales, cuántas de esas cartas lo
+ * son: «5 nuevas, una de ellas especial». Las especiales no se suman a las
+ * demás: un sobre trae siempre cinco cartas.
+ */
 export function textoResumen({ nuevas, repetidas, especiales }) {
-  return enumerar(
-    [
-      nuevas > 0 && contar(nuevas, 'nueva', 'nuevas'),
-      repetidas > 0 && contar(repetidas, 'repetida', 'repetidas'),
-      especiales > 0 && contar(especiales, 'especial', 'especiales'),
-    ].filter(Boolean),
+  const base = enumerar(
+    [nuevas > 0 && contar(nuevas, 'nueva', 'nuevas'), repetidas > 0 && contar(repetidas, 'repetida', 'repetidas')].filter(
+      Boolean,
+    ),
   )
+  if (!especiales) return base
+  return `${base}, ${especiales === 1 ? 'una de ellas especial' : `${especiales} de ellas especiales`}`
 }
 
 /** Tiempo de espera legible: «5 h 12 min», «40 min», «menos de un minuto». */

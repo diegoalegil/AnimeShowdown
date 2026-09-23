@@ -94,12 +94,13 @@ describe('ceremonia', () => {
 })
 
 describe('textos', () => {
-  it('resume nuevas, repetidas y especiales en castellano', () => {
+  it('resume nuevas y repetidas, y cuántas de ellas son especiales', () => {
     const cartas = cartasDelSobre(IDS, ['a', 'c', 'e-x'])
     expect(resumenSobre(cartas, ayudas.esEspecial)).toEqual({ nuevas: 3, repetidas: 2, especiales: 1 })
-    expect(textoResumen({ nuevas: 3, repetidas: 2, especiales: 1 })).toBe('3 nuevas, 2 repetidas y 1 especial')
+    expect(textoResumen({ nuevas: 3, repetidas: 2, especiales: 1 })).toBe('3 nuevas y 2 repetidas, una de ellas especial')
+    expect(textoResumen({ nuevas: 5, repetidas: 0, especiales: 1 })).toBe('5 nuevas, una de ellas especial')
     expect(textoResumen({ nuevas: 1, repetidas: 4, especiales: 0 })).toBe('1 nueva y 4 repetidas')
-    expect(textoResumen({ nuevas: 0, repetidas: 5, especiales: 2 })).toBe('5 repetidas y 2 especiales')
+    expect(textoResumen({ nuevas: 0, repetidas: 5, especiales: 2 })).toBe('5 repetidas, 2 de ellas especiales')
   })
 
   it('anuncia cada carta, el resumen y el guardado', () => {
@@ -110,7 +111,7 @@ describe('textos', () => {
     e = ceremonia(e, { tipo: 'revelar', indice: 1 })
     expect(textoAviso(e, ayudas)).toBe("Carta 2 de 5: Fern, de Frieren: Beyond Journey's End. Repetida: tienes 4.")
     e = ceremonia(e, { tipo: 'revelarTodas' })
-    expect(textoAviso(e, ayudas)).toBe('Sobre revelado: 3 nuevas, 2 repetidas y 1 especial.')
+    expect(textoAviso(e, ayudas)).toBe('Sobre revelado: 3 nuevas y 2 repetidas, una de ellas especial.')
     e = ceremonia(ceremonia(e, { tipo: 'guardar' }), { tipo: 'guardado' })
     expect(textoAviso(e, ayudas)).toBe('5 cartas guardadas en tu colección.')
     expect(textoAviso(estadoInicial(), ayudas)).toBe('')

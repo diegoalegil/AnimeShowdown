@@ -63,9 +63,8 @@ export function Naipe({ carta, indice, total, nueva, revelada, retardo, copias, 
             <span className="naipe-numero cifra">{numeroCarta(carta)}</span>
             <span className="naipe-nombre">{nombre}</span>
             <span className="naipe-serie">{carta.anime}</span>
-            <span className="naipe-estado" data-nueva={nueva || undefined}>
-              {nueva ? 'Nueva' : <span className="cifra">Repetida · ×{copias}</span>}
-            </span>
+            {/* Nueva ya lo dice el sello 新; aquí solo se anotan las repetidas. */}
+            {!nueva && <span className="naipe-estado cifra">Repetida · ×{copias}</span>}
           </>
         )}
       </div>

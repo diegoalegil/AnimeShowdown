@@ -846,11 +846,6 @@
   letter-spacing: 0.04em;
 }
 
-.naipe-estado[data-nueva] {
-  color: var(--color-shu-akari);
-  font-weight: 500;
-}
-
 .naipe-nombre {
   grid-column: 1 / -1;
   margin-top: 0.125rem;
