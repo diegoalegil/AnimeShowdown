@@ -5,9 +5,33 @@ import tailwindcss from '@tailwindcss/vite'
 // BASE_PATH lo fija el despliegue: "/" con dominio propio, "/<repo>/" en GitHub Pages.
 const base = process.env.BASE_PATH || '/'
 
+// Fuentes de toda la interfaz: se piden desde el HTML, antes que cualquier
+// otra, para que el texto no espere detrás de los glifos japoneses.
+const FUENTES_CRITICAS = /^assets\/(ibm-plex-sans-latin-400-normal|newsreader-latin-400-normal)-[\w-]+\.woff2$/
+
+/** Añade <link rel="preload"> para las fuentes críticas ya con su nombre final. */
+function precargarFuentes() {
+  return {
+    name: 'precargar-fuentes',
+    apply: 'build',
+    transformIndexHtml: {
+      order: 'post',
+      handler(_html, { bundle }) {
+        const archivos = Object.keys(bundle ?? {}).filter((f) => FUENTES_CRITICAS.test(f))
+        if (archivos.length !== 2) throw new Error(`precargar-fuentes: se esperaban 2 fuentes críticas, hay ${archivos.length}`)
+        return archivos.map((f) => ({
+          tag: 'link',
+          attrs: { rel: 'preload', href: base + f, as: 'font', type: 'font/woff2', crossorigin: '' },
+          injectTo: 'head',
+        }))
+      },
+    },
+  }
+}
+
 export default defineConfig({
   base,
-  plugins: [react(), tailwindcss()],
+  plugins: [react(), tailwindcss(), precargarFuentes()],
   build: {
     target: 'es2022',
     assetsInlineLimit: 0,

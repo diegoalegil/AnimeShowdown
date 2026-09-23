@@ -229,7 +229,11 @@
   margin-top: 4rem;
 }
 
+/* La cabecera también se salta fuera de pantalla: así su título japonés no
+   pide los glifos del mincho hasta que la serie se acerca. */
 .sala-cabecera {
+  content-visibility: auto;
+  contain-intrinsic-block-size: auto 5.25rem;
   display: grid;
   grid-template-columns: auto minmax(0, 1fr) auto;
   align-items: baseline;
@@ -258,6 +262,7 @@
 .sala-nativo {
   grid-column: 2;
   color: var(--color-nezumi);
+  font-family: var(--font-jp-rotulo);
   font-size: var(--text-sm);
   letter-spacing: 0.08em;
 }
@@ -296,6 +301,7 @@
   }
 
   .sala-cabecera {
+    contain-intrinsic-block-size: auto 3.75rem;
     grid-template-columns: 2.5rem minmax(0, auto) minmax(0, 1fr) auto;
     column-gap: 1.25rem;
     margin-bottom: 2.25rem;
