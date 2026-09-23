@@ -485,6 +485,33 @@ describe('sobre diario', () => {
     expect(almacen.getSnapshot()).toMatchObject({ dia: '2026-03-03', abiertos: 0 })
   })
 
+  it('tras dormir el equipo, el día cambia aunque no salte el aviso de medianoche', () => {
+    vi.useFakeTimers()
+    try {
+      const ventana = ventanaFalsa()
+      const { almacen, reloj } = crear({ ventana })
+      const oyente = vi.fn()
+      const soltar = almacen.subscribe(oyente)
+      for (let i = 0; i < SOBRES_POR_DIA; i++) almacen.abrirSobre(semilla(i))
+      oyente.mockClear()
+
+      // El reloj salta a la mañana siguiente sin que corra ningún temporizador:
+      // leer el estado ya da el día nuevo…
+      reloj.fecha = new Date(2026, 2, 2, 8, 0)
+      expect(almacen.getSnapshot()).toMatchObject({ dia: '2026-03-02', abiertos: 0 })
+      expect(almacen.getSnapshot()).toBe(almacen.getSnapshot())
+
+      // …y el vigía avisa a los componentes en pocos segundos.
+      reloj.fecha = new Date(2026, 2, 3, 8, 0)
+      vi.advanceTimersByTime(10000)
+      expect(oyente).toHaveBeenCalledTimes(1)
+      soltar()
+      expect(ventana.oyentes.size).toBe(0)
+    } finally {
+      vi.useRealTimers()
+    }
+  })
+
   it('la quinta carta es especial el 15 % de las veces, repartida por igual entre las especiales', () => {
     const personajes = Array.from({ length: 120 }, (_, i) => `p${i}`)
     const especiales = Array.from({ length: 52 }, (_, i) => `e-${i}`)

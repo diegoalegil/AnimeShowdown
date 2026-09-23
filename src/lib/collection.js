@@ -24,6 +24,7 @@ import {
 } from '../config.js'
 
 const FECHA = /^\d{4}-\d{2}-\d{2}$/
+const VIGIA_MS = 10000
 const MAX_COPIAS = 99999
 
 /** Día local del navegador en formato AAAA-MM-DD. */
@@ -318,6 +319,15 @@ export function crearAlmacen({ storage, ids, existe, ahora = () => new Date(), v
     }
   }
 
+  function vigilar() {
+    if (ventana?.document?.visibilityState !== 'hidden') refrescar()
+  }
+
+  // Los temporizadores se paran mientras el equipo duerme y el reloj de pared
+  // puede saltar: además del aviso a medianoche, cada VIGIA_MS (y al volver
+  // a la ventana) se comprueba si ya es otro día. Es comparar dos textos.
+  let vigia = null
+
   function programarMedianoche() {
     clearTimeout(temporizador)
     // Un segundo de margen para no despertar justo antes de las 00:00.
@@ -333,12 +343,13 @@ export function crearAlmacen({ storage, ids, existe, ahora = () => new Date(), v
     emitir()
   }
 
-  function alVolver() {
-    if (ventana?.document?.visibilityState !== 'hidden') refrescar()
-  }
 
+  // Si ya es otro día (p. ej. al despertar el equipo antes de que salte
+  // ningún temporizador), el estado se pone al día al leerlo: sigue siendo
+  // el mismo objeto mientras no cambie el día.
   function getSnapshot() {
     if (!estado) estado = leerDisco()
+    else if (estado.dia !== hoy()) estado = sanear(estado, { dia: hoy(), existe })
     return estado
   }
 
@@ -349,14 +360,18 @@ export function crearAlmacen({ storage, ids, existe, ahora = () => new Date(), v
       oyentes.add(oyente)
       if (oyentes.size === 1 && ventana) {
         ventana.addEventListener('storage', alCambiarOtraPestana)
-        ventana.document?.addEventListener('visibilitychange', alVolver)
+        ventana.document?.addEventListener('visibilitychange', vigilar)
+        for (const tipo of ['focus', 'pageshow']) ventana.addEventListener(tipo, vigilar)
+        vigia = setInterval(vigilar, VIGIA_MS)
         programarMedianoche()
       }
       return () => {
         oyentes.delete(oyente)
         if (oyentes.size === 0 && ventana) {
           ventana.removeEventListener('storage', alCambiarOtraPestana)
-          ventana.document?.removeEventListener('visibilitychange', alVolver)
+          ventana.document?.removeEventListener('visibilitychange', vigilar)
+          for (const tipo of ['focus', 'pageshow']) ventana.removeEventListener(tipo, vigilar)
+          clearInterval(vigia)
           clearTimeout(temporizador)
         }
       }
