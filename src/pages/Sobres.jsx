@@ -1,4 +1,4 @@
-import { useEffect, useLayoutEffect, useReducer, useRef } from 'react'
+import { useEffect, useLayoutEffect, useReducer, useRef, useState } from 'react'
 import { Carta } from '../components/Carta.jsx'
 import { Enlace } from '../components/Enlace.jsx'
 import { EtiquetaVertical } from '../components/EtiquetaVertical.jsx'
@@ -35,6 +35,7 @@ export default function Sobres() {
   const hoy = coleccion.hoy()
   const quedan = sobresRestantes(estado, hoy)
   const [cer, despachar] = useReducer(ceremonia, undefined, estadoInicial)
+  const [posicion, setPosicion] = useState({ sobre: 0, i: 0 })
   const mesa = useInclinacion()
   // Qué enfocar tras el próximo cambio de la ceremonia (lo hace el efecto de abajo).
   const foco = useRef(null)
@@ -171,6 +172,18 @@ export default function Sobres() {
   }
 
   const enMesa = cer.cartas.length > 0
+  // Cada sobre nuevo empieza en su primera carta.
+  const posicionActual = posicion.sobre === cer.abiertosEnVisita ? posicion.i : 0
+
+  // Fila deslizable del móvil: qué carta está centrada (solo cambia el
+  // estado al pasar a otra carta, no en cada frame del scroll).
+  function seguirPosicion(evento) {
+    const fila = evento.currentTarget
+    const recorrido = fila.scrollWidth - fila.clientWidth
+    if (recorrido <= 0) return
+    const i = Math.round((fila.scrollLeft / recorrido) * (cer.cartas.length - 1))
+    if (i !== posicionActual) setPosicion({ sobre: cer.abiertosEnVisita, i })
+  }
   const numero = SOBRES_POR_DIA - quedan + 1
 
   return (
@@ -195,7 +208,7 @@ export default function Sobres() {
           {cer.fase === 'abriendo' && <SobreRasgado numero={numero - 1} />}
 
           {enMesa && (
-            <ol className="abanico" aria-label="Cartas del sobre">
+            <ol className="abanico" aria-label="Cartas del sobre" onScroll={seguirPosicion}>
               {cer.cartas.map((c, i) => (
                 <Naipe
                   key={i}
@@ -213,7 +226,12 @@ export default function Sobres() {
           )}
         </div>
 
-        <div className="mesa-pie" data-guardando={cer.fase === 'guardando' || undefined}>
+        <div
+          className="mesa-pie"
+          data-guardando={cer.fase === 'guardando' || undefined}
+          data-acciones={(enMesa && !todas) || undefined}
+        >
+          {enMesa && cer.fase !== 'guardando' && <Posicion actual={posicionActual} total={cer.cartas.length} />}
           {enMesa && !todas && (
             <div className="mesa-acciones">
               <button type="button" className="boton-noche" onClick={revelarTodas}>
@@ -259,6 +277,20 @@ export default function Sobres() {
         )}
       </div>
     </div>
+  )
+}
+
+/** «2 / 5» y cinco marcas bajo la fila deslizable del móvil (el CSS la oculta en pantallas anchas). */
+function Posicion({ actual, total }) {
+  return (
+    <p className="mesa-posicion cifra" aria-hidden="true">
+      <span className="mesa-posicion-marcas">
+        {Array.from({ length: total }, (_, i) => (
+          <span key={i} className="mesa-posicion-marca" data-actual={i === actual || undefined} />
+        ))}
+      </span>
+      {actual + 1} / {total}
+    </p>
   )
 }
 
