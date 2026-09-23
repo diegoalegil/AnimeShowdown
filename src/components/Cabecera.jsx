@@ -1,6 +1,5 @@
 import { useLocation } from 'react-router'
-import { cartasDistintas } from '../lib/collection.js'
-import { useColeccion } from '../lib/useCollection.js'
+import { useCuentaVisible } from '../lib/useCollection.js'
 import { Enlace } from './Enlace.jsx'
 import { EtiquetaVertical } from './EtiquetaVertical.jsx'
 import { SelloMarca } from './Hanko.jsx'
@@ -12,7 +11,7 @@ const SECCIONES = [
 ]
 
 function CuentaColeccion() {
-  const n = cartasDistintas(useColeccion())
+  const n = useCuentaVisible()
   if (!n) return null
   return (
     // La key vuelve a montar el número al cambiar, para su pequeño salto.

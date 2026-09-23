@@ -1,4 +1,4 @@
-import { useLayoutEffect, useReducer, useRef } from 'react'
+import { useEffect, useLayoutEffect, useReducer, useRef } from 'react'
 import { Carta } from '../components/Carta.jsx'
 import { Enlace } from '../components/Enlace.jsx'
 import { EtiquetaVertical } from '../components/EtiquetaVertical.jsx'
@@ -17,9 +17,10 @@ import {
   todasReveladas,
   ultimoRetardo,
 } from '../lib/ceremonia.js'
-import { alTerminar, animarApertura, animarGuardado, rebotar } from '../lib/coreografia.js'
+import { alTerminar, animarApertura, animarGuardado } from '../lib/coreografia.js'
 import { cartasDistintas, msHastaMedianoche, sobresRestantes } from '../lib/collection.js'
 import { movimientoReducido } from '../lib/motion.js'
+import { cuentaRetenida } from '../lib/cuentaRetenida.js'
 import { coleccion, useColeccion } from '../lib/useCollection.js'
 import { useInclinacion } from '../lib/useMotion.js'
 import { useMinuto } from '../lib/useReloj.js'
@@ -73,7 +74,8 @@ export default function Sobres() {
     const animaciones = animarGuardado(raiz, cuenta)
     alTerminar(animaciones).then(() => {
       if (!viva) return
-      rebotar(cuenta)
+      // Las cartas llegan: el contador se pone al día (y da su salto).
+      cuentaRetenida.soltar()
       despachar({ tipo: 'guardado' })
     })
     return () => {
@@ -81,6 +83,10 @@ export default function Sobres() {
       for (const a of animaciones) a.cancel()
     }
   }, [cer.fase, mesa])
+
+  // Si se sale de la página a mitad de la ceremonia, la cabecera muestra ya
+  // la cuenta real.
+  useEffect(() => () => cuentaRetenida.soltar(), [])
 
   // Foco pendiente: tras abrir, en la primera carta; al acabar de revelar,
   // en «Guardar»; tras guardar, en el siguiente sobre.
@@ -102,9 +108,11 @@ export default function Sobres() {
 
   function abrir() {
     let resultado
+    cuentaRetenida.retener(cartasDistintas(estado))
     try {
       resultado = coleccion.abrirSobre()
     } catch {
+      cuentaRetenida.soltar()
       return // Ya no quedan sobres hoy: la página se actualiza sola.
     }
     foco.current = '.naipe-boton'

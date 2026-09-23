@@ -1,6 +1,7 @@
 import { useSyncExternalStore } from 'react'
 import { catalogo } from './catalog.js'
-import { crearAlmacen } from './collection.js'
+import { cartasDistintas, crearAlmacen } from './collection.js'
+import { cuentaRetenida } from './cuentaRetenida.js'
 
 /** Almacén único de la colección de este navegador. */
 export const coleccion = crearAlmacen({
@@ -16,4 +17,14 @@ export const coleccion = crearAlmacen({
 /** Estado de la colección; el componente se vuelve a pintar cuando cambia. */
 export function useColeccion() {
   return useSyncExternalStore(coleccion.subscribe, coleccion.getSnapshot, coleccion.getSnapshot)
+}
+
+/**
+ * Cartas distintas que muestra la cabecera: la cuenta real, salvo mientras
+ * se abre un sobre (ver cuentaRetenida).
+ */
+export function useCuentaVisible() {
+  const real = cartasDistintas(useColeccion())
+  const retenida = useSyncExternalStore(cuentaRetenida.subscribe, cuentaRetenida.getSnapshot, cuentaRetenida.getSnapshot)
+  return retenida ?? real
 }

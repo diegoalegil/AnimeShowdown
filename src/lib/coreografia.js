@@ -4,7 +4,7 @@
 // empezar; durante la animación no se toca el layout.
 import { movimientoReducido } from './motion.js'
 
-export const SUAVE = 'cubic-bezier(0.22, 1, 0.36, 1)'
+const SUAVE = 'cubic-bezier(0.22, 1, 0.36, 1)'
 const FIRME = 'cubic-bezier(0.65, 0, 0.35, 1)'
 const ACELERA = 'cubic-bezier(0.55, 0, 0.9, 0.45)'
 
@@ -167,15 +167,6 @@ export function animarGuardado(mesa, destino) {
       { duration: GUARDADO.duracion, delay: i * GUARDADO.paso, easing: ACELERA, fill: 'forwards' },
     )
   })
-}
-
-/** El contador de la colección da un pequeño salto al recibir las cartas. */
-export function rebotar(elemento) {
-  if (!elemento || movimientoReducido()) return
-  elemento.animate(
-    [{ transform: 'none' }, { transform: 'translateY(-3px) scale(1.18)', offset: 0.35 }, { transform: 'none' }],
-    { duration: 420, easing: SUAVE },
-  )
 }
 
 /** Espera a que terminen todas; cancelar una animación no es un error. */
