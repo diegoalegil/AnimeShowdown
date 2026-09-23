@@ -17,6 +17,8 @@
 @import '@fontsource/ibm-plex-sans/latin-ext-500.css';
 
 @import 'tailwindcss' source(none);
+@import './styles/hanko.css' layer(components);
+@import './styles/carta.css' layer(components);
 @source '../index.html';
 @source './**/*.{js,jsx}';
 

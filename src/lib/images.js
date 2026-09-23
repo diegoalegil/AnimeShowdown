@@ -36,3 +36,28 @@ export function imagenCarta(carta, base) {
     height: 900,
   }
 }
+
+/**
+ * Un único par de listeners de captura para todas las ilustraciones: marca
+ * data-cargada en la imagen al cargar (para el fundido de entrada) y
+ * data-rota en la lámina si falla. Devuelve la función que los quita.
+ */
+export function vigilarImagenes(raiz = document) {
+  const laminaDe = (evento) => {
+    const img = evento.target
+    return img?.tagName === 'IMG' ? img.closest?.('.carta-lamina') : null
+  }
+  const alCargar = (evento) => {
+    if (laminaDe(evento)) evento.target.dataset.cargada = ''
+  }
+  const alFallar = (evento) => {
+    const lamina = laminaDe(evento)
+    if (lamina) lamina.dataset.rota = ''
+  }
+  raiz.addEventListener('load', alCargar, true)
+  raiz.addEventListener('error', alFallar, true)
+  return () => {
+    raiz.removeEventListener('load', alCargar, true)
+    raiz.removeEventListener('error', alFallar, true)
+  }
+}

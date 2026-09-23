@@ -1,0 +1,107 @@
+import { Link } from 'react-router'
+import { esEspecial, numeroCarta } from '../lib/catalog.js'
+import { imagenCarta, TAMANOS } from '../lib/images.js'
+import { nombrarCompartido, revelar, transicionActiva } from '../lib/motion.js'
+import { Hanko } from './Hanko.jsx'
+
+/** Marca la ilustración pulsada como elemento compartido de la transición. */
+function alPulsar(evento) {
+  nombrarCompartido(evento.currentTarget.querySelector('.carta-lamina'))
+}
+
+/**
+ * Carta de personaje o especial, la misma en toda la web.
+ *
+ * - `tamano`: muro | album | sobre | ficha (elige el atributo sizes).
+ * - `copias`: cuántas tiene el visitante; 0 no muestra nada.
+ * - `nueva`: sello 新 de carta recién conseguida.
+ * - `enlace`: si la carta lleva a su ficha.
+ * - `cartela`: nombre y serie bajo la ilustración.
+ * - `prioridad`: carga inmediata (para lo que se ve sin hacer scroll).
+ * - `entrada`: aparece con la animación escalonada al entrar en pantalla.
+ * - `diferida`: content-visibility para rejillas largas.
+ * - `compartida`: lleva el nombre de la transición compartida (la ficha).
+ */
+export function Carta({
+  carta,
+  tamano = 'muro',
+  copias = 0,
+  nueva = false,
+  enlace = true,
+  cartela = true,
+  prioridad = false,
+  entrada = false,
+  diferida = false,
+  compartida = false,
+  className = '',
+}) {
+  const especial = esEspecial(carta)
+  const img = imagenCarta(carta)
+  const numero = numeroCarta(carta)
+  const serie = especial ? ['Especial', carta.variante].filter(Boolean).join(' · ') : carta.anime
+
+  const lamina = (
+    <div className="carta-marco" data-inclinar="">
+      <div
+        className="carta-lamina"
+        style={{ '--tono': carta.color, viewTransitionName: compartida ? 'carta' : undefined }}
+      >
+        <img
+          src={img.src}
+          srcSet={img.srcSet}
+          sizes={img.srcSet ? TAMANOS[tamano] : undefined}
+          width={img.width}
+          height={img.height}
+          alt={cartela ? '' : `Carta de ${carta.nombre}, de ${carta.anime}`}
+          loading={prioridad ? 'eager' : 'lazy'}
+          fetchPriority={prioridad ? 'high' : undefined}
+          decoding="async"
+          draggable="false"
+        />
+        <span className="carta-brillo" aria-hidden="true" />
+      </div>
+      {nueva && <Hanko kanji="新" className="carta-sello carta-sello--nueva" etiqueta="Nueva" />}
+      {especial && (
+        <Hanko kanji="特" forma="redondo" estilo="linea" className="carta-sello carta-sello--especial" etiqueta="Especial" />
+      )}
+    </div>
+  )
+
+  const texto = cartela && (
+    <div className="carta-cartela">
+      <span className="carta-numero cifra">{numero}</span>
+      <span className="carta-nombre">{carta.nombre}</span>
+      <span className="carta-serie">{serie}</span>
+      {copias > 0 && (
+        <span className="carta-copias cifra" title={copias > 1 ? `Tienes ${copias} copias` : 'En tu colección'}>
+          <span className="carta-copias-sello" aria-hidden="true" />
+          {copias > 1 ? `×${copias}` : null}
+          <span className="solo-lectores">{copias > 1 ? ` copias en tu colección` : 'En tu colección'}</span>
+        </span>
+      )}
+    </div>
+  )
+
+  const clases = ['carta', `carta--${tamano}`, diferida && 'carta--diferida', className].filter(Boolean).join(' ')
+
+  return (
+    <article
+      className={clases}
+      data-especial={especial || undefined}
+      data-revelar={entrada ? '' : undefined}
+      ref={entrada ? revelar : undefined}
+    >
+      {enlace ? (
+        <Link to={`/carta/${carta.id}`} viewTransition={transicionActiva()} className="carta-enlace" onClick={alPulsar}>
+          {lamina}
+          {texto}
+        </Link>
+      ) : (
+        <div className="carta-enlace">
+          {lamina}
+          {texto}
+        </div>
+      )}
+    </article>
+  )
+}

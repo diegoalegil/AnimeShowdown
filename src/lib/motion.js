@@ -4,11 +4,19 @@
 
 const hayVentana = () => typeof window !== 'undefined'
 
-/** true si el sistema pide reducir el movimiento. */
-export function movimientoReducido() {
+// Las MediaQueryList se crean una vez por ventana; `.matches` es siempre actual.
+const consultas = new WeakMap()
+function coincide(consulta) {
   if (!hayVentana() || typeof window.matchMedia !== 'function') return false
-  return window.matchMedia('(prefers-reduced-motion: reduce)').matches
+  let porVentana = consultas.get(window)
+  if (!porVentana) consultas.set(window, (porVentana = new Map()))
+  let lista = porVentana.get(consulta)
+  if (!lista) porVentana.set(consulta, (lista = window.matchMedia(consulta)))
+  return lista.matches
 }
+
+/** true si el sistema pide reducir el movimiento. */
+export const movimientoReducido = () => coincide('(prefers-reduced-motion: reduce)')
 
 /** true si el navegador soporta la View Transitions API. */
 export function soportaTransiciones() {
@@ -109,10 +117,7 @@ export function calcularInclinacion(px, py, max = INCLINACION_MAX) {
   }
 }
 
-function puedeInclinar() {
-  if (!hayVentana() || movimientoReducido() || typeof window.matchMedia !== 'function') return false
-  return window.matchMedia('(hover: hover) and (pointer: fine)').matches
-}
+const puedeInclinar = () => !movimientoReducido() && coincide('(hover: hover) and (pointer: fine)')
 
 /**
  * Activa la inclinación en todas las `[data-inclinar]` dentro de
