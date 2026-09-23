@@ -29,13 +29,22 @@ export const transicionActiva = () => soportaTransiciones() && !movimientoReduci
 /**
  * Ejecuta `actualizar` dentro de una View Transition cuando se puede y
  * directamente cuando no. Devuelve una promesa que se cumple al terminar.
+ * `tipo` queda en <html data-vt> mientras dura, para que el CSS elija la
+ * coreografía (p. ej. «siguiente» o «anterior» entre fichas).
  */
-export function conTransicion(actualizar) {
+export function conTransicion(actualizar, { tipo } = {}) {
   if (!transicionActiva()) {
-    actualizar()
-    return Promise.resolve()
+    const resultado = actualizar()
+    return Promise.resolve(resultado).then(() => {})
   }
-  return document.startViewTransition(actualizar).finished.catch(() => {})
+  const dataset = document.documentElement?.dataset
+  if (dataset && tipo) dataset.vt = tipo
+  return document
+    .startViewTransition(actualizar)
+    .finished.catch(() => {})
+    .finally(() => {
+      if (dataset && tipo && dataset.vt === tipo) delete dataset.vt
+    })
 }
 
 // ---------------------------------------------------------------------------

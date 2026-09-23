@@ -64,6 +64,23 @@ describe('preferencias de movimiento', () => {
   })
 })
 
+describe('conTransicion con tipo', () => {
+  it('marca <html data-vt> mientras dura la transición', async () => {
+    let durante
+    const dataset = {}
+    const startViewTransition = vi.fn((fn) => {
+      fn()
+      durante = dataset.vt
+      return { finished: Promise.resolve() }
+    })
+    vi.stubGlobal('document', { startViewTransition, documentElement: { dataset } })
+    vi.stubGlobal('window', ventanaFalsa())
+    await conTransicion(() => {}, { tipo: 'siguiente' })
+    expect(durante).toBe('siguiente')
+    expect(dataset.vt).toBeUndefined()
+  })
+})
+
 describe('nombrarCompartido', () => {
   it('deja el nombre en un solo elemento', () => {
     const a = { style: {} }

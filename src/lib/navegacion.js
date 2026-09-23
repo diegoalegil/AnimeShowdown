@@ -1,7 +1,11 @@
 // Navegación de la aplicación sin un listener por enlace: los enlaces son
 // <a href> normales y un único listener en el documento decide cuáles se
 // resuelven dentro de la SPA (con View Transition) y cuáles deja al navegador.
-import { useEffect, useLayoutEffect } from 'react'
+//
+// Atributos que entiende un enlace interno:
+//   data-reemplazar          sustituye la entrada del historial (fichas vecinas)
+//   data-direccion="…"       tipo de transición («anterior», «siguiente»)
+import { useEffect, useLayoutEffect, useRef } from 'react'
 import { flushSync } from 'react-dom'
 import { useLocation, useNavigate, useNavigationType } from 'react-router'
 import { conTransicion, nombrarCompartido } from './motion.js'
@@ -18,8 +22,9 @@ export function rutaInterna(pathname, base = '/') {
 }
 
 /**
- * Decide si un clic debe resolverse dentro de la aplicación. Devuelve el
- * destino ("/ruta?busqueda#ancla") o null para dejar actuar al navegador.
+ * Decide si un clic debe resolverse dentro de la aplicación. Devuelve
+ * { destino: "/ruta?busqueda#ancla", enlace, reemplazar, direccion } o null
+ * para dejar actuar al navegador.
  */
 export function destinoDeClic(evento, { base, actual }) {
   if (evento.defaultPrevented || evento.button !== 0) return null
@@ -34,7 +39,32 @@ export function destinoDeClic(evento, { base, actual }) {
   if (url.hash && url.pathname === actual.pathname && url.search === actual.search) return null
   const ruta = rutaInterna(url.pathname, base)
   if (ruta === null) return null
-  return { destino: ruta + url.search + url.hash, enlace }
+  return {
+    destino: ruta + url.search + url.hash,
+    enlace,
+    reemplazar: enlace.hasAttribute('data-reemplazar'),
+    direccion: enlace.getAttribute?.('data-direccion') || undefined,
+  }
+}
+
+/**
+ * Estado que acompaña a una entrada del historial. `galeria` indica que la
+ * ficha se abrió desde la galería (así «volver» puede ir atrás de verdad y
+ * recuperar su scroll); se conserva al pasar de una ficha a otra.
+ */
+export function estadoPara(destino, { desde, estadoActual, reemplazar }) {
+  if (!destino.startsWith('/carta/')) return undefined
+  if (reemplazar) return estadoActual?.galeria ? { galeria: true } : undefined
+  return desde === '/' ? { galeria: true } : undefined
+}
+
+/**
+ * Navega dentro de la aplicación con View Transition. La usan el listener
+ * delegado y los atajos de teclado de la ficha.
+ */
+export function irA(navigate, destino, { reemplazar = false, direccion, estado, conservarScroll = false } = {}) {
+  const state = conservarScroll ? { ...estado, conservarScroll: true } : estado
+  return conTransicion(() => flushSync(() => navigate(destino, { replace: reemplazar, state })), { tipo: direccion })
 }
 
 /**
@@ -51,9 +81,15 @@ export function useNavegacionDelegada() {
       const resultado = destinoDeClic(evento, { base, actual: window.location })
       if (!resultado) return
       evento.preventDefault()
-      const lamina = resultado.enlace.querySelector('.carta-lamina')
+      const { destino, enlace, reemplazar, direccion } = resultado
+      const lamina = enlace.querySelector('.carta-lamina')
       if (lamina) nombrarCompartido(lamina)
-      conTransicion(() => flushSync(() => navigate(resultado.destino)))
+      const estado = estadoPara(destino, {
+        desde: rutaInterna(window.location.pathname, base),
+        estadoActual: window.history.state?.usr,
+        reemplazar,
+      })
+      irA(navigate, destino, { reemplazar, direccion, estado })
     }
     document.addEventListener('click', alPulsar)
     return () => document.removeEventListener('click', alPulsar)
@@ -61,15 +97,50 @@ export function useNavegacionDelegada() {
 }
 
 // ---------------------------------------------------------------------------
-// Scroll: arriba al entrar en una página nueva y la posición anterior al
-// volver con atrás/adelante.
+// Volver atrás con transición. El cambio de ruta tras history.back() llega
+// de forma asíncrona (popstate), así que la View Transition espera a que la
+// página anterior haya restaurado su scroll (aviso desde useRestaurarScroll).
+// ---------------------------------------------------------------------------
+
+let alMostrarPagina = null
+
+function esperarPagina(maximoMs = 500) {
+  return new Promise((resolve) => {
+    const fin = () => {
+      clearTimeout(tope)
+      if (alMostrarPagina === fin) alMostrarPagina = null
+      resolve()
+    }
+    const tope = setTimeout(fin, maximoMs)
+    alMostrarPagina = fin
+  })
+}
+
+/**
+ * history.back() animado. `alLlegar` se ejecuta con la página anterior ya
+ * montada y antes de capturarla (p. ej. para nombrar la carta de destino).
+ */
+export function volverAtras(navigate, { alLlegar } = {}) {
+  return conTransicion(() => {
+    const lista = esperarPagina()
+    navigate(-1)
+    return lista.then(() => alLlegar?.())
+  }).finally(() => nombrarCompartido(null))
+}
+
+// ---------------------------------------------------------------------------
+// Scroll: arriba al entrar en una página nueva, la posición anterior al
+// volver con atrás/adelante y quieto si solo cambia la búsqueda (?q=…) o si
+// la navegación lo pide (cambiar de versión en la ficha).
 // ---------------------------------------------------------------------------
 
 const posiciones = new Map()
 
 export function useRestaurarScroll() {
-  const { key, hash } = useLocation()
+  const { key, hash, pathname, state } = useLocation()
   const tipo = useNavigationType()
+  const rutaAnterior = useRef(pathname)
+  const conservar = Boolean(state?.conservarScroll)
 
   useEffect(() => {
     if ('scrollRestoration' in window.history) window.history.scrollRestoration = 'manual'
@@ -94,10 +165,15 @@ export function useRestaurarScroll() {
 
   // En layout effect: ocurre antes de pintar y dentro de la View Transition.
   useLayoutEffect(() => {
+    const mismaPagina = rutaAnterior.current === pathname
+    rutaAnterior.current = pathname
     if (hash) {
       document.getElementById(decodeURIComponent(hash.slice(1)))?.scrollIntoView()
-      return
+    } else if (tipo === 'POP') {
+      window.scrollTo(0, posiciones.get(key) ?? 0)
+    } else if (!mismaPagina && !conservar) {
+      window.scrollTo(0, 0)
     }
-    window.scrollTo(0, tipo === 'POP' ? (posiciones.get(key) ?? 0) : 0)
-  }, [key, hash, tipo])
+    alMostrarPagina?.()
+  }, [key, hash, tipo, pathname, conservar])
 }
