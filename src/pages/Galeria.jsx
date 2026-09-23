@@ -1,4 +1,4 @@
-import { startTransition, useDeferredValue, useEffect, useMemo, useRef, useState } from 'react'
+import { useDeferredValue, useEffect, useMemo, useRef, useState } from 'react'
 import { useLocation, useNavigate, useNavigationType } from 'react-router'
 import { Carta } from '../components/Carta.jsx'
 import { EtiquetaVertical } from '../components/EtiquetaVertical.jsx'
@@ -10,17 +10,15 @@ import { revelar } from '../lib/motion.js'
 import { esVuelta } from '../lib/navegacion.js'
 import { useColeccion } from '../lib/useCollection.js'
 import { useInclinacion } from '../lib/useMotion.js'
+import { usePorTramos } from '../lib/usePorTramos.js'
 import { useTitulo } from '../lib/useTitulo.js'
 
 // Cartas que se cargan de inmediato: la primera fila en cualquier ancho.
 const PRIORITARIAS = 5
 
-// Montar mil cartas de golpe bloquea un móvil ~200 ms. Se pinta primero lo
-// que cabe en pantalla y el resto se añade por tramos, en segundo plano y
-// mucho antes de que dé tiempo a llegar con el scroll.
+// Se pinta primero lo que cabe en pantalla y el resto por tramos (ver usePorTramos).
 const PRIMER_TRAMO = 30
 const TRAMO = 120
-const PAUSA_TRAMO_MS = 32
 
 export default function Galeria() {
   useTitulo()
@@ -45,27 +43,11 @@ export default function Galeria() {
   // montar; después, filtrar no debe esconder las ya visibles.
   const [volviendo] = useState(() => esVuelta(tipo))
 
-  const [tramo, setTramo] = useState(() => ({ cartas, limite: volviendo ? Infinity : PRIMER_TRAMO }))
-  let limite = tramo.limite
-  if (tramo.cartas !== cartas) {
-    // Filtros nuevos: se vuelve a empezar por lo que se ve.
-    limite = PRIMER_TRAMO
-    setTramo({ cartas, limite })
-  }
-  const faltan = limite < cartas.length
-  const visibles = faltan ? cartas.slice(0, limite) : cartas
+  const visibles = usePorTramos(cartas, { primero: PRIMER_TRAMO, tramo: TRAMO, completa: volviendo })
   // Sin filtros, las cartas se agrupan por serie; filtradas, van seguidas.
   const agrupar = !q.trim() && !serie
   const prioritarias = new Set(visibles.slice(0, PRIORITARIAS).map((c) => c.id))
   const propsCarta = { tengo, busqueda, prioritarias, entrada: !volviendo }
-
-  useEffect(() => {
-    if (!faltan) return undefined
-    const temporizador = setTimeout(() => {
-      startTransition(() => setTramo((t) => ({ ...t, limite: t.limite + TRAMO })))
-    }, PAUSA_TRAMO_MS)
-    return () => clearTimeout(temporizador)
-  }, [faltan, limite])
 
   function cambiar(cambios) {
     navigate({ search: busquedaDe({ ...filtros, ...cambios }) }, { replace: true })
