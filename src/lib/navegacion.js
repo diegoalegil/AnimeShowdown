@@ -169,20 +169,19 @@ export function actualizarAncla(ids) {
   if (ancla) ancla.ids = ids
 }
 
-function restaurarAncla(key) {
-  if (!ancla || ancla.key !== key) return false
-  const { ids, top } = ancla
-  const carta = ids.map((id) => document.querySelector(`[data-id="${CSS.escape(id)}"]`)).find(Boolean)
-  if (!carta) return false
+/**
+ * Deja `elemento` a `top` píxeles del borde superior de la pantalla y lo
+ * mantiene ahí un momento. Las secciones cercanas se pintan con su tamaño
+ * real en los frames siguientes (content-visibility; en Safari, después de la
+ * View Transition) sin que el navegador ancle el scroll: se sigue
+ * recolocando y se deja en cuanto el visitante hace scroll.
+ */
+function sostenerEn(elemento, top) {
   const colocar = () => {
-    const desvio = Math.round(carta.getBoundingClientRect().top - top)
+    const desvio = Math.round(elemento.getBoundingClientRect().top - top)
     if (desvio) window.scrollBy(0, desvio)
   }
   colocar()
-  // Las cartas cercanas se pintan con su tamaño real en los frames siguientes
-  // (y en Safari, después de la View Transition) sin que el navegador ancle
-  // el scroll: se sigue recolocando un momento y se deja en cuanto el
-  // visitante hace scroll.
   const hasta = performance.now() + TIEMPO_ANCLA_MS
   let frame = requestAnimationFrame(function seguir(ahora) {
     colocar()
@@ -194,7 +193,22 @@ function restaurarAncla(key) {
     for (const tipo of ['wheel', 'touchstart', 'pointerdown', 'keydown']) window.removeEventListener(tipo, soltar)
   }
   for (const tipo of ['wheel', 'touchstart', 'pointerdown', 'keydown']) window.addEventListener(tipo, soltar, { passive: true })
+}
+
+function restaurarAncla(key) {
+  if (!ancla || ancla.key !== key) return false
+  const { ids, top } = ancla
+  const carta = ids.map((id) => document.querySelector(`[data-id="${CSS.escape(id)}"]`)).find(Boolean)
+  if (!carta) return false
+  sostenerEn(carta, top)
   return true
+}
+
+/** Lleva a un ancla de la página (#…) respetando su scroll-margin-top. */
+function irAAncla(hash) {
+  const destino = document.getElementById(decodeURIComponent(hash.slice(1)))
+  if (!destino) return
+  sostenerEn(destino, parseFloat(getComputedStyle(destino).scrollMarginTop) || 0)
 }
 
 export function useRestaurarScroll() {
@@ -229,7 +243,7 @@ export function useRestaurarScroll() {
     const mismaPagina = rutaAnterior.current === pathname
     rutaAnterior.current = pathname
     if (hash) {
-      document.getElementById(decodeURIComponent(hash.slice(1)))?.scrollIntoView()
+      irAAncla(hash)
     } else if (tipo === 'POP') {
       window.scrollTo(0, posiciones.get(key) ?? 0)
       restaurarAncla(key)
