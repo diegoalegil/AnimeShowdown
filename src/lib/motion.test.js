@@ -82,6 +82,17 @@ describe('conTransicion con tipo', () => {
 })
 
 describe('nombrarCompartido', () => {
+  it('saca la carta de content-visibility mientras lleva el nombre', () => {
+    const props = {}
+    const contenedor = { style: { setProperty: (k, v) => (props[k] = v), removeProperty: (k) => delete props[k] } }
+    const lamina = { style: {}, closest: (sel) => (sel === '.carta--diferida' ? contenedor : null) }
+    nombrarCompartido(lamina)
+    expect(props['content-visibility']).toBe('visible')
+    nombrarCompartido(null)
+    expect(props['content-visibility']).toBeUndefined()
+    expect(lamina.style.viewTransitionName).toBe('')
+  })
+
   it('deja el nombre en un solo elemento', () => {
     const a = { style: {} }
     const b = { style: {} }

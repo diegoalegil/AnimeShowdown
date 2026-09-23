@@ -51,14 +51,26 @@ export function conTransicion(actualizar, { tipo } = {}) {
 // Elemento compartido: la carta pulsada en la galería se transforma en la
 // ilustración de la ficha. Solo un elemento de la página puede llevar el
 // nombre a la vez, así que se quita del anterior antes de ponerlo.
+//
+// Safari no captura elementos con nombre dentro de un contenedor con
+// content-visibility: auto (las cartas de la rejilla), así que mientras la
+// carta lleva el nombre, su contenedor pasa a content-visibility: visible.
 // ---------------------------------------------------------------------------
 
 let compartido = null
+let contenedor = null
 
 export function nombrarCompartido(elemento, nombre = 'carta') {
-  if (compartido && compartido !== elemento) compartido.style.viewTransitionName = ''
+  if (compartido && compartido !== elemento) {
+    compartido.style.viewTransitionName = ''
+    contenedor?.style.removeProperty('content-visibility')
+    contenedor = null
+  }
   compartido = elemento
-  if (elemento) elemento.style.viewTransitionName = nombre
+  if (!elemento) return
+  elemento.style.viewTransitionName = nombre
+  contenedor = elemento.closest?.('.carta--diferida') ?? null
+  contenedor?.style.setProperty('content-visibility', 'visible')
 }
 
 // ---------------------------------------------------------------------------

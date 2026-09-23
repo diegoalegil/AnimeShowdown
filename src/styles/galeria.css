@@ -159,6 +159,13 @@
 }
 
 /* ---- Rejilla ---- */
+
+/* Al llegar con el teclado, la carta no queda escondida bajo la barra fija. */
+.muro .carta-enlace,
+.sala-ver {
+  scroll-margin-block: 7rem 2rem;
+}
+
 .muro {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));

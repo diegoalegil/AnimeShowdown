@@ -83,7 +83,11 @@ export function useNavegacionDelegada() {
       evento.preventDefault()
       const { destino, enlace, reemplazar, direccion } = resultado
       const lamina = enlace.querySelector('.carta-lamina')
-      if (lamina) nombrarCompartido(lamina)
+      if (lamina) {
+        nombrarCompartido(lamina)
+        // La primera entrada del historial no tiene estado: react-router la llama «default».
+        anclar(lamina, window.history.state?.key ?? 'default')
+      }
       const estado = estadoPara(destino, {
         desde: rutaInterna(window.location.pathname, base),
         estadoActual: window.history.state?.usr,
@@ -136,6 +140,59 @@ export function volverAtras(navigate, { alLlegar } = {}) {
 
 const posiciones = new Map()
 
+// La primera página se muestra sin haber navegado: un POP entonces es la
+// carga inicial, no una vuelta atrás (las dos usan la clave «default»).
+let yaNavego = false
+
+/** true si la página se monta al volver con atrás/adelante (no en la carga inicial). */
+export const esVuelta = (tipo) => tipo === 'POP' && yaNavego
+
+// Ancla de vuelta: la carta que se abrió desde una página larga y a qué
+// altura de la pantalla estaba. Al volver, la página se coloca para que esa
+// carta (o la última que se vio en la ficha) quede en el mismo sitio. Es más
+// fiable que la posición en píxeles: con content-visibility, las cartas fuera
+// de pantalla miden lo que se estima, no lo que midieron la otra vez.
+let ancla = null
+const TIEMPO_ANCLA_MS = 700
+
+function anclar(elemento, key) {
+  const carta = elemento.closest?.('[data-id]')
+  ancla = carta ? { key, ids: [carta.dataset.id], top: carta.getBoundingClientRect().top } : null
+}
+
+/** La ficha avisa de la carta que se ve (y su alternativa, p. ej. la normal de una especial). */
+export function actualizarAncla(ids) {
+  if (ancla) ancla.ids = ids
+}
+
+function restaurarAncla(key) {
+  if (!ancla || ancla.key !== key) return false
+  const { ids, top } = ancla
+  const carta = ids.map((id) => document.querySelector(`[data-id="${CSS.escape(id)}"]`)).find(Boolean)
+  if (!carta) return false
+  const colocar = () => {
+    const desvio = Math.round(carta.getBoundingClientRect().top - top)
+    if (desvio) window.scrollBy(0, desvio)
+  }
+  colocar()
+  // Las cartas cercanas se pintan con su tamaño real en los frames siguientes
+  // (y en Safari, después de la View Transition) sin que el navegador ancle
+  // el scroll: se sigue recolocando un momento y se deja en cuanto el
+  // visitante hace scroll.
+  const hasta = performance.now() + TIEMPO_ANCLA_MS
+  let frame = requestAnimationFrame(function seguir(ahora) {
+    colocar()
+    if (ahora < hasta) frame = requestAnimationFrame(seguir)
+    else soltar()
+  })
+  const soltar = () => {
+    cancelAnimationFrame(frame)
+    for (const tipo of ['wheel', 'touchstart', 'pointerdown', 'keydown']) window.removeEventListener(tipo, soltar)
+  }
+  for (const tipo of ['wheel', 'touchstart', 'pointerdown', 'keydown']) window.addEventListener(tipo, soltar, { passive: true })
+  return true
+}
+
 export function useRestaurarScroll() {
   const { key, hash, pathname, state } = useLocation()
   const tipo = useNavigationType()
@@ -171,9 +228,11 @@ export function useRestaurarScroll() {
       document.getElementById(decodeURIComponent(hash.slice(1)))?.scrollIntoView()
     } else if (tipo === 'POP') {
       window.scrollTo(0, posiciones.get(key) ?? 0)
+      restaurarAncla(key)
     } else if (!mismaPagina && !conservar) {
       window.scrollTo(0, 0)
     }
+    yaNavego = true
     alMostrarPagina?.()
   }, [key, hash, tipo, pathname, conservar])
 }

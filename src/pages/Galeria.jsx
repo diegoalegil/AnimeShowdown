@@ -7,6 +7,7 @@ import { TituloSeccion } from '../components/TituloSeccion.jsx'
 import { catalogo } from '../lib/catalog.js'
 import { agruparPorSerie, busquedaDe, ESPECIALES, etiquetaFiltros, filtrarCartas, leerFiltros } from '../lib/filtros.js'
 import { revelar } from '../lib/motion.js'
+import { esVuelta } from '../lib/navegacion.js'
 import { useColeccion } from '../lib/useCollection.js'
 import { useInclinacion } from '../lib/useMotion.js'
 import { useTitulo } from '../lib/useTitulo.js'
@@ -23,7 +24,7 @@ const PAUSA_TRAMO_MS = 32
 
 export default function Galeria() {
   useTitulo()
-  const { search, key } = useLocation()
+  const { search } = useLocation()
   const tipo = useNavigationType()
   const navigate = useNavigate()
   const { tengo } = useColeccion()
@@ -42,7 +43,7 @@ export default function Galeria() {
   // Al volver desde una ficha las cartas ya se vieron: aparecen sin coreografía
   // y se montan todas para recuperar la posición del scroll. Se decide al
   // montar; después, filtrar no debe esconder las ya visibles.
-  const [volviendo] = useState(() => tipo === 'POP' && key !== 'default')
+  const [volviendo] = useState(() => esVuelta(tipo))
 
   const [tramo, setTramo] = useState(() => ({ cartas, limite: volviendo ? Infinity : PRIMER_TRAMO }))
   let limite = tramo.limite
