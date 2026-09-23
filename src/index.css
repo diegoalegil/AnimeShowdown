@@ -299,9 +299,14 @@
 /* Entrada escalonada de elementos al llegar al viewport (ver lib/motion). */
 /* Esperando su entrada: solo con el scroll en calma (<html data-calma, ver
    lib/motion); con scroll rápido la carta se pinta tal cual y no se anima.
-   El desplazamiento es 2D: con mil cartas, uno 3D crearía mil capas. */
+   Las cartas solo se funden: son cientos y desplazarlas a la vez que se
+   hace scroll le cuesta frames a Safari. Lo demás (cabeceras de serie,
+   huecos del álbum) sube además un poco, con un desplazamiento 2D. */
 :root[data-calma] [data-revelar=''] {
   opacity: 0;
+}
+
+:root[data-calma] [data-revelar='']:not(.carta) {
   transform: translateY(18px);
 }
 
