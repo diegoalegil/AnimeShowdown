@@ -163,6 +163,7 @@ export function activarInclinacion(contenedor, { selector = '[data-inclinar]', m
       actual = objetivo
       actual.dataset.inclinada = ''
     }
+    if (!actual) return
     // Una lectura de layout al entrar en la carta (o tras un scroll), nunca en el frame.
     if (!caja) caja = actual.getBoundingClientRect()
     puntero = { x: evento.clientX, y: evento.clientY }

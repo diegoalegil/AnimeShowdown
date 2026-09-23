@@ -133,6 +133,14 @@ describe('activarInclinacion', () => {
     expect(listeners.pointermove).toBeUndefined()
   })
 
+  it('no hace nada al mover el puntero por el hueco entre cartas', () => {
+    const { listeners, frames } = montar()
+    const hueco = { closest: () => null }
+    expect(() => listeners.pointermove({ pointerType: 'mouse', target: hueco, clientX: 1, clientY: 1 })).not.toThrow()
+    expect(() => listeners.pointermove({ pointerType: 'mouse', target: hueco, clientX: 2, clientY: 2 })).not.toThrow()
+    expect(frames).toHaveLength(0)
+  })
+
   it('ignora el tacto', () => {
     const { hijo, listeners, frames } = montar()
     listeners.pointermove({ pointerType: 'touch', target: hijo, clientX: 1, clientY: 1 })
