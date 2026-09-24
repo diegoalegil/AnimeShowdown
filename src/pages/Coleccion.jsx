@@ -19,6 +19,7 @@ import {
 } from '../lib/album.js'
 import { catalogo } from '../lib/catalog.js'
 import { porPegar } from '../lib/collection.js'
+import { ESCENARIOS, pieza } from '../lib/marca.js'
 import { ESPECIALES } from '../lib/filtros.js'
 import { esVuelta } from '../lib/navegacion.js'
 import { useColeccion } from '../lib/useCollection.js'
@@ -30,6 +31,8 @@ import { useTitulo } from '../lib/useTitulo.js'
 const HOJAS = crearHojas()
 const SERIES = HOJAS.filter((h) => !h.especiales)
 const HOJA_ESPECIALES = HOJAS.find((h) => h.especiales)
+const SALA = pieza(ESCENARIOS.coleccion)
+const CIUDAD = pieza('empty-search-night-city-refresh')
 
 // Las hojas se montan por tramos: primero las que caben en pantalla.
 const PRIMER_TRAMO = 3
@@ -86,13 +89,27 @@ export default function Coleccion() {
 
   return (
     <div className="coleccion">
-      <div className="wrap coleccion-cabecera">
-        <TituloSeccion ja="コレクション" sub="Se guarda en este navegador, sin cuenta.">
-          Colección
-        </TituloSeccion>
-        {vacia ? <AlbumVacio /> : <Marcador cuenta={cuenta} />}
-        <RecienLlegadas ids={recientes} tengo={tengo} />
-      </div>
+      <section className="coleccion-portada" aria-labelledby="coleccion-titulo">
+        <div className="coleccion-fondo" aria-hidden="true">
+          <img
+            src={SALA.src}
+            srcSet={SALA.srcSet}
+            sizes="100vw"
+            width="1672"
+            height="941"
+            alt=""
+            fetchPriority="high"
+            decoding="async"
+          />
+        </div>
+        <div className="wrap coleccion-cabecera">
+          <TituloSeccion ja="コレクション" sub="Se guarda en este navegador, sin cuenta." id="coleccion-titulo">
+            Colección
+          </TituloSeccion>
+          {vacia ? <AlbumVacio /> : <Marcador cuenta={cuenta} />}
+          <RecienLlegadas ids={recientes} tengo={tengo} />
+        </div>
+      </section>
 
       {/* La barra de filtros se queda fija solo mientras se recorre el álbum. */}
       <div ref={album} className="album">
@@ -113,11 +130,8 @@ export default function Coleccion() {
         )}
 
         {especiales && todasMontadas && (
-          <div className="album-noche">
-            <EtiquetaVertical ja="特別" className="album-noche-fondo" />
-            <div className="wrap">
-              <Hoja {...propsHoja(especiales)} />
-            </div>
+          <div className="wrap album-especiales">
+            <Hoja {...propsHoja(especiales)} />
           </div>
         )}
       </div>
@@ -178,9 +192,11 @@ function Marcador({ cuenta }) {
       </dl>
 
       <p className="marcador-acciones">
-        <Enlace to="/sobres" className="enlace-tinta">
+        <Enlace to="/sobres" className="boton boton--principal">
           Abrir sobres
-          <span aria-hidden="true">→</span>
+          <span className="boton-flecha" aria-hidden="true">
+            →
+          </span>
         </Enlace>
         <a href="#codigo" className="enlace-simple">
           Copia de seguridad
@@ -234,9 +250,11 @@ function AlbumVacio() {
           Cada día hay cinco sobres con cinco cartas. Ábrelos y cada carta ocupará su hueco numerado en el álbum.
         </p>
         <p className="album-vacio-acciones">
-          <Enlace to="/sobres" className="enlace-tinta">
+          <Enlace to="/sobres" className="boton boton--principal">
             Abrir los sobres de hoy
-            <span aria-hidden="true">→</span>
+            <span className="boton-flecha" aria-hidden="true">
+              →
+            </span>
           </Enlace>
         </p>
         <p className="album-vacio-nota">
@@ -306,7 +324,8 @@ function FiltrosAlbum({ filtros, cuenta, mostradas, onCambiar, selectorSerie }) 
 function SinSeries({ onVerTodas }) {
   return (
     <div className="vacio">
-      <div className="vacio-hueco" aria-hidden="true">
+      <div className="vacio-escena" aria-hidden="true">
+        <img src={CIUDAD.src} srcSet={CIUDAD.srcSet} sizes="(min-width: 48rem) 22rem, calc(100vw - 2rem)" alt="" decoding="async" />
         <EtiquetaVertical ja="未収集" className="vacio-tate" />
       </div>
       <div className="min-w-0">

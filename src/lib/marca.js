@@ -40,6 +40,12 @@ export const PIEZAS = {
   'empty-search-night-city-refresh': { anchos: [768, 1280], proporcion: 1672 / 941 },
 }
 
+/**
+ * Escenario de cada sección, a todo el ancho (sizes 100vw): su HTML lo
+ * precarga (ver scripts/prerender.mjs), con el mismo srcset que su <img>.
+ */
+export const ESCENARIOS = { sobres: 'sobres-arena', coleccion: 'logros-trophy-hall' }
+
 /** sizes de la sala de la portada: a partir de 1280 px basta la de 1280. */
 export const TAMANO_SALA = '(min-width: 1280px) 1280px, 100vw'
 

@@ -1,43 +1,77 @@
 /* ==========================================================================
-   Colección: el álbum. Una hoja por serie con un hueco numerado por carta,
-   las especiales sobre el escenario oscuro y el progreso arriba.
+   Colección: la sala de trofeos con el progreso en oro y el álbum, una
+   vitrina oscura por serie (y otra para las especiales) con la franja de su
+   escenario, su emblema y un hueco numerado por carta.
    ========================================================================== */
 
 .coleccion-cargando {
   min-height: 100vh;
 }
 
+/* ---- Portada: la sala de trofeos de fondo ---- */
+.coleccion-portada {
+  position: relative;
+  isolation: isolate;
+  overflow: clip;
+  background-color: var(--color-canvas);
+}
+
+.coleccion-fondo {
+  position: absolute;
+  inset: 0;
+  z-index: -2;
+}
+
+.coleccion-fondo img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: 50% 62%;
+  opacity: 0.75;
+}
+
+/* Oscuro arriba para el título, fundido con el álbum abajo. Fija. */
+.coleccion-portada::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  background-image:
+    linear-gradient(180deg, rgb(4 7 12 / 0.88) 0%, rgb(4 7 12 / 0.35) 30%, rgb(4 7 12 / 0.4) 65%, var(--color-bg) 100%),
+    radial-gradient(ellipse 90% 80% at 50% 40%, transparent 45%, rgb(4 7 12 / 0.8) 100%);
+  pointer-events: none;
+}
+
 .coleccion-cabecera {
-  padding-block: 1.5rem 1.75rem;
+  padding-block: 1.75rem 2.5rem;
+}
+
+.coleccion-cabecera h1 {
+  text-shadow: 0 2px 18px rgb(4 7 12 / 0.9);
 }
 
 @media (min-width: 48rem) {
   .coleccion-cabecera {
-    padding-block: 4rem 3.5rem;
+    padding-block: 3.5rem 4.5rem;
   }
 }
 
-/* ---- Línea de progreso: un filete con el tramo conseguido en tinta ----
+/* ---- Línea de progreso: un carril fino con el tramo conseguido en oro ----
    El tramo es una capa que se escala en X: nunca se anima su ancho. */
 .linea {
   position: relative;
   display: block;
-  height: 2px;
+  height: 3px;
   overflow: hidden;
-}
-
-.linea::before {
-  content: '';
-  position: absolute;
-  inset: 50% 0 auto;
-  height: 1px;
-  background-color: var(--color-border);
+  border-radius: 3px;
+  background-color: var(--color-gold-soft);
 }
 
 .linea-relleno {
   position: absolute;
   inset: 0;
-  background-color: var(--color-fg-strong);
+  border-radius: inherit;
+  background-image: linear-gradient(90deg, var(--color-gold), var(--color-gold-bright) 70%, var(--color-gold-pale));
   transform: scaleX(var(--p, 0));
   transform-origin: left center;
   transition: transform var(--dur-4) var(--ease-sumi);
@@ -49,11 +83,31 @@
   }
 }
 
-/* ---- Marcador ---- */
+/* ---- Marcador: las cifras en oro sobre una placa oscura ---- */
 .marcador {
+  position: relative;
   display: grid;
-  gap: 2rem;
-  margin-top: 2.25rem;
+  gap: 1.5rem;
+  margin-top: 1.75rem;
+  padding: 1.25rem 1.25rem 1.375rem;
+  border: 1px solid var(--color-gold-line);
+  border-radius: var(--radius-lg);
+  background-color: var(--color-cristal);
+  box-shadow:
+    inset 0 1px 0 rgb(247 230 162 / 0.08),
+    var(--shadow-panel);
+  animation: aparece var(--dur-4) var(--ease-sumi) 80ms both;
+}
+
+/* Filete dorado interior, como en los estandartes. */
+.marcador::before,
+.album-vacio::before {
+  content: '';
+  position: absolute;
+  inset: 0.3125rem;
+  border: 1px solid rgb(197 161 90 / 0.14);
+  border-radius: calc(var(--radius-lg) - 0.25rem);
+  pointer-events: none;
 }
 
 .marcador-cifra {
@@ -64,23 +118,28 @@
   margin: 0;
 }
 
+/* La cifra grande: oro en degradado fijo, recortado al texto. */
 .marcador-n {
+  background-image: linear-gradient(180deg, var(--color-gold-pale) 8%, var(--color-gold-bright) 48%, var(--color-gold) 92%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
   font-family: var(--font-display);
-  font-size: clamp(3.75rem, 16vw, 6.5rem);
-  line-height: 0.9;
-  letter-spacing: -0.03em;
-  animation: aparece var(--dur-4) var(--ease-sumi) 120ms both;
+  font-size: clamp(3.5rem, 15vw, 7rem);
+  font-weight: 700;
+  line-height: 0.95;
+  letter-spacing: -0.02em;
 }
 
 .marcador-de {
-  color: var(--color-fg-muted);
+  color: var(--color-fg);
   font-family: var(--font-display);
   font-size: var(--text-xl);
-  animation: aparece var(--dur-4) var(--ease-sumi) 200ms both;
+  font-weight: 700;
 }
 
 .marcador-linea {
-  margin-top: 1.25rem;
+  margin-top: 1rem;
 }
 
 .marcador-linea .linea-relleno {
@@ -94,38 +153,38 @@
 }
 
 .marcador-pie .cifra {
-  color: var(--color-fg-strong);
+  color: var(--color-gold-bright);
 }
 
 .marcador-datos {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 1.5rem;
+  gap: 1rem;
   margin: 0;
 }
 
 .marcador-dato {
   min-width: 0;
-  padding-top: 0.75rem;
-  border-top: 1px solid var(--color-border);
-  animation: aparece var(--dur-4) var(--ease-sumi) 280ms both;
-}
-
-.marcador-dato + .marcador-dato {
-  animation-delay: 340ms;
+  padding: 0.75rem 0.875rem 0.875rem;
+  border: 1px solid var(--color-gold-line);
+  border-radius: var(--radius-md);
+  background-color: rgb(4 7 12 / 0.5);
 }
 
 .marcador-dato dt {
-  color: var(--color-fg-muted);
+  color: var(--color-gold);
   font-size: var(--text-2xs);
-  letter-spacing: var(--tracking-wide);
+  font-weight: 500;
+  letter-spacing: var(--tracking-rotulo);
   text-transform: uppercase;
 }
 
 .marcador-dato dd {
   margin: 0.25rem 0 0;
+  color: var(--color-fg-strong);
   font-family: var(--font-display);
   font-size: var(--text-2xl);
+  font-weight: 700;
   line-height: 1.1;
 }
 
@@ -134,7 +193,7 @@
 }
 
 .marcador-linea-corta .linea-relleno {
-  background-color: var(--color-hanko);
+  background-image: linear-gradient(90deg, var(--color-accent), var(--color-accent-text));
   animation: llena 900ms var(--ease-sumi) 380ms both;
 }
 
@@ -144,71 +203,50 @@
   align-items: center;
   gap: 0.75rem 1.5rem;
   margin: 0;
-  animation: aparece var(--dur-4) var(--ease-sumi) 400ms both;
 }
 
-/* Móvil: el progreso en una fila compacta (405 de 1086 · 6 de 52 · 1 de
-   105) con las acciones debajo, para que el álbum asome en la primera
-   pantalla. */
+/* Móvil: el progreso en una placa compacta, para que el álbum asome en la
+   primera pantalla. */
 @media (max-width: 47.99rem) {
-  .marcador {
-    grid-template-columns: minmax(0, 1.1fr) minmax(0, 1.4fr);
-    align-items: end;
-    gap: 1rem 1.25rem;
-    margin-top: 1.25rem;
-  }
-
   .marcador-n {
-    font-size: 2.75rem;
+    font-size: 3.25rem;
   }
 
   .marcador-de {
-    font-size: var(--text-sm);
-  }
-
-  .marcador-linea {
-    margin-top: 0.625rem;
+    font-size: var(--text-base);
   }
 
   .marcador-pie {
     display: none;
   }
 
-  .marcador-datos {
-    gap: 1rem;
-  }
-
-  .marcador-dato {
-    padding-top: 0.5rem;
-  }
-
   .marcador-dato dd {
     font-size: var(--text-lg);
   }
 
-  .marcador-acciones {
-    grid-column: 1 / -1;
-  }
-
-  .marcador-acciones .enlace-tinta {
-    padding: 0.5rem 0.875rem;
-  }
-
   .recien {
-    margin-top: 1.25rem;
+    margin-top: 1rem;
   }
 }
 
 @media (min-width: 64rem) {
   .marcador {
-    grid-template-columns: minmax(0, 1fr) minmax(0, 22rem) auto;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 24rem);
     align-items: end;
-    column-gap: 3.5rem;
-    margin-top: 3rem;
+    column-gap: 3rem;
+    row-gap: 1.25rem;
+    margin-top: 2.5rem;
+    padding: 1.75rem 2rem 1.75rem 2.25rem;
   }
 
   .marcador-de {
     font-size: var(--text-2xl);
+  }
+
+  .marcador-acciones {
+    grid-column: 1 / -1;
+    padding-top: 1.25rem;
+    border-top: 1px solid var(--color-gold-line);
   }
 }
 
@@ -217,9 +255,11 @@
   display: flex;
   align-items: flex-start;
   gap: 0.75rem;
-  margin-top: 2rem;
-  padding: 0.875rem 0 0;
-  border-top: 1px solid var(--color-border);
+  margin-top: 1.5rem;
+  padding: 0.875rem 1rem;
+  border: 1px solid var(--color-gold-line);
+  border-radius: var(--radius-md);
+  background-color: var(--color-cristal);
   animation: aparece var(--dur-4) var(--ease-sumi) 480ms both;
 }
 
@@ -240,18 +280,20 @@
   color: var(--color-fg-strong);
 }
 
-@media (min-width: 48rem) {
-  .recien {
-    margin-top: 2.5rem;
-  }
-}
-
-/* ---- Colección vacía ---- */
+/* ---- Colección vacía: un hueco esperando, en la placa de la portada ---- */
 .album-vacio {
+  position: relative;
   display: flex;
   align-items: flex-start;
   gap: 1.25rem;
-  margin-top: 2.5rem;
+  margin-top: 1.75rem;
+  padding: 1.25rem;
+  border: 1px solid var(--color-gold-line);
+  border-radius: var(--radius-lg);
+  background-color: var(--color-cristal);
+  box-shadow:
+    inset 0 1px 0 rgb(247 230 162 / 0.08),
+    var(--shadow-panel);
 }
 
 .album-vacio-hueco {
@@ -261,7 +303,7 @@
 }
 
 .album-vacio-ja {
-  color: var(--color-accent);
+  color: var(--color-gold-bright);
   font-size: var(--text-base);
 }
 
@@ -295,7 +337,8 @@
 @media (min-width: 48rem) {
   .album-vacio {
     gap: 2.5rem;
-    margin-top: 3rem;
+    margin-top: 2.5rem;
+    padding: 2rem 2.25rem;
   }
 
   .album-vacio-hueco {
@@ -338,7 +381,8 @@
   flex: none;
   width: 1rem;
   height: 1rem;
-  border: 1px solid var(--color-fg-muted);
+  border: 1px solid var(--color-gold-line-strong);
+  border-radius: 3px;
   transition: border-color var(--dur-2) var(--ease-sumi);
 }
 
@@ -356,7 +400,7 @@
 }
 
 .casilla input:checked + .casilla-marca {
-  border-color: var(--color-accent);
+  border-color: var(--color-gold-bright);
 }
 
 .casilla input:checked + .casilla-marca::after {
@@ -381,131 +425,149 @@
 /* ---- Álbum ---- */
 
 .album-series {
-  padding-top: 2.5rem;
+  padding-top: 2rem;
 }
 
 @media (min-width: 48rem) {
   .album-series {
-    padding-top: 3.5rem;
+    padding-top: 3rem;
   }
 }
 
-/* Hoja: una serie. Fuera de pantalla no se pinta; reserva su altura por
-   filas. El relleno deja sitio a los sellos que sobresalen de las cartas, a
-   la inclinación y a la sombra, que la contención de pintado recortaría. */
+/* Hoja: una vitrina oscura con filo dorado. Fuera de pantalla no se pinta;
+   reserva su altura por filas (la franja de arriba y los huecos). El relleno
+   de la vitrina deja sitio a los sellos que sobresalen de las cartas, a su
+   inclinación y a su sombra, que la contención de pintado recortaría. */
 .hoja {
-  display: grid;
-  grid-template-columns: minmax(0, 1fr);
-  padding: 0 1rem 1.5rem;
-  margin: 0 -1rem -1.5rem;
+  position: relative;
+  padding-bottom: 1.5rem;
+  border: 1px solid var(--color-gold-line);
+  border-radius: var(--radius-lg);
+  background-color: var(--color-surface);
+  background-image: linear-gradient(180deg, var(--color-surface), var(--color-bg) 60%);
+  box-shadow: var(--shadow-panel);
   content-visibility: auto;
-  contain-intrinsic-block-size: auto calc(var(--filas-3) * 15rem + 7rem);
+  contain-intrinsic-block-size: auto calc(var(--filas-3) * 15.5rem + 8.5rem);
+  scroll-margin-top: 4rem;
+}
+
+/* Serie completa: el filo se vuelve oro vivo, con un halo fijo. */
+.hoja[data-completa] {
+  border-color: var(--color-gold-line-strong);
+  box-shadow:
+    0 0 0 1px rgb(228 195 111 / 0.18),
+    0 0 44px -14px rgb(228 195 111 / 0.45),
+    var(--shadow-panel);
 }
 
 .hoja + .hoja {
-  margin-top: 3.5rem;
+  margin-top: 2.5rem;
 }
 
 @media (min-width: 48rem) {
   .hoja {
-    contain-intrinsic-block-size: auto calc(var(--filas-5) * 17rem + 8rem);
+    padding-bottom: 2.25rem;
+    contain-intrinsic-block-size: auto calc(var(--filas-5) * 17.5rem + 12rem);
   }
 
   .hoja + .hoja {
-    margin-top: 5rem;
+    margin-top: 3.5rem;
   }
 }
 
 @media (min-width: 68.75rem) {
   .hoja {
-    contain-intrinsic-block-size: auto calc(var(--filas-6) * 21rem + 8rem);
+    contain-intrinsic-block-size: auto calc(var(--filas-6) * 21.5rem + 12rem);
   }
 }
 
-/* Lomo: el número de la hoja y el título original en vertical, a la
-   izquierda de la página. Solo en pantallas anchas. */
-.hoja-lomo {
-  display: none;
+/* ---- Cabecera: la franja del escenario de la serie con su emblema ---- */
+.hoja-cabecera {
+  position: relative;
+  isolation: isolate;
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  align-items: center;
+  column-gap: 0.75rem;
+  min-height: 4.75rem;
+  margin-bottom: 1.5rem;
+  padding: 0.625rem 0.875rem 0.875rem;
+  overflow: hidden;
+  border-radius: calc(var(--radius-lg) - 1px) calc(var(--radius-lg) - 1px) 0 0;
+  background-color: var(--color-surface-alt);
+}
+
+.hoja-escena {
+  position: absolute;
+  inset: 0;
+  z-index: -2;
+}
+
+.hoja-escena img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: 50% 42%;
+}
+
+.hoja-cabecera::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  background-image:
+    linear-gradient(90deg, rgb(4 7 12 / 0.94) 0%, rgb(4 7 12 / 0.76) 40%, rgb(4 7 12 / 0.3) 80%, rgb(4 7 12 / 0.45) 100%),
+    linear-gradient(0deg, rgb(4 7 12 / 0.6), transparent 60%);
+  pointer-events: none;
+}
+
+.hoja--especiales .hoja-escena img {
+  object-position: 50% 86%;
+}
+
+.hoja-emblema {
+  width: 3rem;
+  height: 3rem;
+}
+
+.hoja-emblema--sello {
+  width: 2.625rem;
+  height: 2.625rem;
+  margin: 0.1875rem;
+}
+
+.hoja-texto {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
 }
 
 .hoja-orden {
-  color: var(--color-fg-muted);
-  font-size: var(--text-xs);
-  letter-spacing: var(--tracking-wide);
-}
-
-@media (min-width: 64rem) {
-  .hoja {
-    grid-template-columns: 3.25rem minmax(0, 1fr);
-    column-gap: 2rem;
-  }
-
-  .hoja-lomo {
-    display: block;
-    grid-row: 1 / span 2;
-    border-right: 1px solid var(--color-border);
-  }
-
-  .hoja-lomo-fijo {
-    position: sticky;
-    top: 6.5rem;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: 1rem;
-    padding-top: 0.25rem;
-  }
-
-  .hoja-lomo-ja {
-    writing-mode: vertical-rl;
-    text-orientation: mixed;
-    color: var(--color-fg);
-    font-family: var(--font-jp-rotulo);
-    font-size: var(--text-base);
-    line-height: 1;
-    letter-spacing: 0.18em;
-  }
-
-  .hoja-orden--movil {
-    display: none;
-  }
-}
-
-.hoja-cabecera {
-  position: relative;
-  display: grid;
-  grid-template-columns: minmax(0, 1fr) auto;
-  align-items: baseline;
-  column-gap: 1rem;
-  row-gap: 0.125rem;
-  margin-bottom: 1.5rem;
-}
-
-.hoja-orden--movil {
-  grid-column: 1 / -1;
-  margin-bottom: 0.25rem;
+  color: var(--color-gold);
+  font-size: var(--text-2xs);
+  font-weight: 500;
+  letter-spacing: var(--tracking-rotulo);
 }
 
 .hoja-titulo {
-  grid-column: 1;
-  margin: 0;
-  font-size: var(--text-2xl);
+  margin: 0.0625rem 0 0;
+  font-size: var(--text-lg);
   line-height: 1.15;
   overflow-wrap: anywhere;
+  text-shadow: 0 1px 10px rgb(4 7 12 / 0.9);
 }
 
 .hoja-nativo {
-  grid-column: 1;
+  margin-top: 0.1875rem;
   color: var(--color-fg-muted);
   font-family: var(--font-jp-rotulo);
-  font-size: var(--text-sm);
+  font-size: var(--text-xs);
   letter-spacing: 0.08em;
 }
 
 .hoja-cuenta {
-  grid-column: 2;
-  grid-row: 2;
-  align-self: end;
+  display: flex;
+  align-items: center;
   margin: 0;
   color: var(--color-fg-muted);
   font-size: var(--text-sm);
@@ -513,94 +575,83 @@
 }
 
 .hoja-cuenta-n {
-  color: var(--color-fg-strong);
+  color: var(--color-gold-bright);
   font-family: var(--font-display);
   font-size: var(--text-xl);
+  font-weight: 700;
 }
 
+/* El carril de progreso, pegado al pie de la franja. */
 .hoja-linea {
-  grid-column: 1 / -1;
-  margin-top: 0.875rem;
+  position: absolute;
+  inset: auto 0 0;
+  height: 2px;
+  border-radius: 0;
 }
 
 .hoja[data-completa] .hoja-linea .linea-relleno {
-  background-color: var(--color-hanko);
+  background-image: linear-gradient(90deg, var(--color-gold-bright), var(--color-gold-pale));
 }
 
-/* 完: la serie completa lleva su sello junto a la cuenta. */
+/* 完: la serie completa lleva su sello dorado junto a la cuenta. */
 .hoja-completa {
-  display: inline-block;
-  width: 1.75rem;
-  margin-left: 0.625rem;
-  vertical-align: -0.35rem;
+  width: 1.875rem;
+  margin-right: 0.5rem;
   rotate: -8deg;
 }
 
-/* Móvil: sin lomo, la cabecera de la hoja se queda bajo la barra de filtros
-   mientras se recorre su serie, en una versión compacta (número, título y
-   recuento en una fila). */
+/* Móvil: la franja de la serie se queda bajo la barra de filtros mientras
+   se recorre su serie. */
 @media (max-width: 47.99rem) {
   .hoja-cabecera {
     position: sticky;
     top: 3.375rem;
     z-index: 3;
-    grid-template-columns: auto minmax(0, 1fr) auto;
-    column-gap: 0.625rem;
-    margin-inline: -1rem;
-    padding: 0.625rem 1rem 0;
-    background-color: var(--color-bg);
-  }
-
-  .hoja-orden--movil {
-    grid-column: 1;
-    margin-bottom: 0;
-  }
-
-  .hoja-titulo {
-    grid-column: 2;
-    font-size: var(--text-xl);
   }
 
   .hoja-nativo {
-    grid-column: 2;
-    font-size: var(--text-xs);
-  }
-
-  .hoja-cuenta {
-    grid-column: 3;
-    grid-row: 1;
-  }
-
-  .hoja-linea {
-    margin-top: 0.5rem;
-  }
-
-  .album-noche .hoja-cabecera {
-    background-color: var(--color-canvas);
+    display: none;
   }
 }
 
 @media (min-width: 48rem) {
   .hoja-cabecera {
-    margin-bottom: 2rem;
+    column-gap: 1.25rem;
+    min-height: 8.5rem;
+    margin-bottom: 2.25rem;
+    padding: 1.25rem 1.75rem 1.375rem 1.25rem;
+  }
+
+  .hoja-emblema {
+    width: 5.5rem;
+    height: 5.5rem;
+  }
+
+  .hoja-emblema--sello {
+    width: 4.5rem;
+    height: 4.5rem;
+    margin: 0.5rem;
   }
 
   .hoja-titulo {
     font-size: var(--text-3xl);
   }
-}
 
-@media (min-width: 64rem) {
-  .hoja-cabecera {
-    grid-column: 2;
+  .hoja-nativo {
+    font-size: var(--text-sm);
   }
 
   .hoja-cuenta {
-    grid-row: 1;
+    align-self: end;
   }
 
-  .hoja-nativo {
-    display: none;
+  .hoja-cuenta-n {
+    font-size: var(--text-3xl);
+  }
+
+  .hoja-completa {
+    width: 2.75rem;
+    margin-right: 0.875rem;
   }
 }
 
@@ -621,48 +672,46 @@
 .bolsillos {
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: 1.75rem 0.75rem;
+  gap: 1.75rem 0.875rem;
   margin: 0;
-  padding: 0;
+  padding: 0 1rem;
   list-style: none;
 }
 
 @media (min-width: 48rem) {
   .bolsillos {
     grid-template-columns: repeat(5, minmax(0, 1fr));
-    gap: 2.5rem 1.25rem;
-  }
-}
-
-@media (min-width: 64rem) {
-  .bolsillos {
-    grid-column: 2;
+    gap: 2.5rem 1.375rem;
+    padding: 0 1.75rem;
   }
 }
 
 @media (min-width: 68.75rem) {
   .bolsillos {
     grid-template-columns: repeat(6, minmax(0, 1fr));
-    gap: 2.75rem 1.5rem;
+    gap: 2.75rem 1.625rem;
   }
 }
 
 .bolsillo {
   position: relative;
   min-width: 0;
+  /* Al saltar a un hueco, que no quede bajo la barra de filtros fija. */
+  scroll-margin-top: 9rem;
 }
 
-/* El hueco de papel, un poco hundido, con su número. Bajo una carta sigue
-   ahí: es lo que se ve mientras la carta llega a su sitio. */
+/* El hueco: un bolsillo hundido en la vitrina, con su número. Bajo una
+   carta sigue ahí: es lo que se ve mientras la carta llega a su sitio. */
 .bolsillo-hueco {
   position: relative;
   display: grid;
   place-items: center;
   aspect-ratio: 2 / 3;
-  border: 1px solid var(--color-border);
-  background-color: color-mix(in srgb, var(--color-surface-alt) 70%, transparent);
-  outline: 1px solid color-mix(in srgb, var(--color-fg-strong) 85%, transparent);
-  outline-offset: -6px;
+  border-radius: var(--radius-carta);
+  background-image: linear-gradient(180deg, var(--color-canvas), color-mix(in srgb, var(--color-surface) 70%, var(--color-canvas)));
+  box-shadow:
+    inset 0 0 0 1px rgb(197 161 90 / 0.14),
+    inset 0 6px 14px -4px rgb(0 0 0 / 0.85);
 }
 
 .bolsillo[data-lleno] .bolsillo-hueco {
@@ -670,10 +719,58 @@
   inset: 0 0 auto;
 }
 
+/* Esquinas doradas que sujetan la carta, un poco por fuera del hueco:
+   ocho trazos fijos. Tenues en el hueco vacío, vivas con carta. */
+.bolsillo-hueco::before {
+  content: '';
+  position: absolute;
+  inset: -0.3125rem;
+  --e: var(--color-gold-line);
+  --l: 0.75rem;
+  background-image:
+    linear-gradient(var(--e), var(--e)), linear-gradient(var(--e), var(--e)), linear-gradient(var(--e), var(--e)),
+    linear-gradient(var(--e), var(--e)), linear-gradient(var(--e), var(--e)), linear-gradient(var(--e), var(--e)),
+    linear-gradient(var(--e), var(--e)), linear-gradient(var(--e), var(--e));
+  background-position:
+    top left,
+    top left,
+    top right,
+    top right,
+    bottom left,
+    bottom left,
+    bottom right,
+    bottom right;
+  background-size:
+    var(--l) 1.5px,
+    1.5px var(--l),
+    var(--l) 1.5px,
+    1.5px var(--l),
+    var(--l) 1.5px,
+    1.5px var(--l),
+    var(--l) 1.5px,
+    1.5px var(--l);
+  background-repeat: no-repeat;
+  pointer-events: none;
+}
+
+.bolsillo[data-lleno] .bolsillo-hueco::before {
+  --e: var(--color-gold-bright);
+}
+
+@media (min-width: 48rem) {
+  .bolsillo-hueco::before {
+    inset: -0.4375rem;
+    --l: 1rem;
+  }
+}
+
 .bolsillo-numero {
-  color: var(--color-fg-muted);
-  font-size: clamp(0.8125rem, 2.4vw, 1.125rem);
-  letter-spacing: 0.08em;
+  color: var(--color-gold);
+  font-family: var(--font-display);
+  font-size: clamp(0.875rem, 2.6vw, 1.25rem);
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  opacity: 0.7;
 }
 
 /* Decorativo (el hueco entero es aria-hidden): puede ir más tenue. */
@@ -691,7 +788,7 @@
   line-height: 1;
   letter-spacing: 0.12em;
   white-space: nowrap;
-  opacity: 0.75;
+  opacity: 0.5;
 }
 
 /* Carta nueva esperando a entrar en pantalla para pegarse (ver lib/pegado).
@@ -704,53 +801,11 @@
   animation: none;
 }
 
-/* Al saltar a un hueco, que no quede bajo la barra de filtros fija. */
-.bolsillo {
-  scroll-margin-top: 9rem;
-}
-
-/* Esquinas de álbum: cuatro triángulos que sujetan la carta. En el hueco
-   vacío apenas se ven; sobre la carta, en tinta. Son una máscara estática
-   (el color sale de un token). */
-.bolsillo-hueco::before,
-.bolsillo .carta-marco::after {
-  content: '';
-  position: absolute;
-  inset: 0;
-  z-index: 1;
-  background-color: var(--esquina-color, var(--color-border));
-  mask-image:
-    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 10 10'%3E%3Cpath d='M0 0H10L0 10Z'/%3E%3C/svg%3E"),
-    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 10 10'%3E%3Cpath d='M0 0H10V10Z'/%3E%3C/svg%3E"),
-    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 10 10'%3E%3Cpath d='M10 0V10H0Z'/%3E%3C/svg%3E"),
-    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 10 10'%3E%3Cpath d='M0 0L10 10H0Z'/%3E%3C/svg%3E");
-  mask-position:
-    top left,
-    top right,
-    bottom right,
-    bottom left;
-  mask-size: var(--esquina, 0.625rem) var(--esquina, 0.625rem);
-  mask-repeat: no-repeat;
-  pointer-events: none;
-}
-
-.bolsillo .carta-marco::after {
-  --esquina-color: var(--color-fg);
-  --esquina: clamp(0.5625rem, 1.6vw, 0.8125rem);
-}
-
 .bolsillo .carta-sello {
   z-index: 2;
 }
 
-@media (min-width: 48rem) {
-  .bolsillo-hueco::before {
-    --esquina: 0.8125rem;
-  }
-}
-
-/* Cartela del hueco vacío: el nombre en gris, como un pie de foto pendiente
-   (gris legible: contraste AA sobre el papel). */
+/* Cartela del hueco vacío: el nombre en gris, como un pie de foto pendiente. */
 .bolsillo-cartela {
   margin: 0.5rem 0 0;
   color: var(--color-fg-muted);
@@ -790,82 +845,22 @@
   }
 }
 
-/* ---- Especiales: la hoja sobre el escenario oscuro ---- */
-.album-noche {
-  position: relative;
-  isolation: isolate;
-  overflow: hidden;
-  margin-top: 5rem;
-  padding-block: 3.5rem 4.5rem;
-  background-image: radial-gradient(ellipse 60% 45% at 50% 20%, var(--color-surface-alt), transparent 70%);
-}
-
-.album-series + .album-noche {
-  margin-top: 5rem;
-}
-
-.album > .album-noche:first-child {
+/* ---- Especiales: su vitrina, al final del álbum ---- */
+.album-especiales {
   margin-top: 2.5rem;
 }
 
-.album-noche-fondo {
-  position: absolute;
-  top: 2.5rem;
-  right: var(--gutter);
-  color: var(--color-surface);
-  font-size: 8rem;
-  letter-spacing: 0;
-  pointer-events: none;
-  user-select: none;
-}
-
-.album-noche .hoja {
-  position: relative;
-}
-
-.album-noche .hoja-lomo {
-  border-color: var(--color-border);
-}
-
-.album-noche .hoja-lomo-ja,
-.album-noche .hoja-titulo {
-  color: var(--color-fg-strong);
-}
-
-.album-noche .hoja-nativo,
-.album-noche .hoja-cuenta {
-  color: var(--color-fg-muted);
-}
-
-.album-noche .hoja-cuenta-n {
-  color: var(--color-fg-strong);
-}
-
-.album-noche .bolsillo-hueco {
-  --esquina-color: var(--color-border);
-  border-color: var(--color-border);
-  background-color: var(--color-surface);
-  outline-color: var(--color-surface-alt);
-}
-
-.album-noche .bolsillo-numero,
-.album-noche .bolsillo-ja,
-.album-noche .bolsillo-cartela {
-  color: var(--color-fg-muted);
-}
-
-.album-noche .bolsillo .carta-marco::after {
-  --esquina-color: var(--color-fg-strong);
+.album > .album-especiales:nth-child(2) {
+  padding-top: 2rem;
 }
 
 @media (min-width: 48rem) {
-  .album-noche {
-    margin-top: 7rem;
-    padding-block: 5rem 6rem;
+  .album-especiales {
+    margin-top: 3.5rem;
   }
 
-  .album-noche-fondo {
-    font-size: 12rem;
+  .album > .album-especiales:nth-child(2) {
+    padding-top: 3rem;
   }
 }
 
@@ -1130,10 +1125,7 @@ button.enlace-tinta:disabled {
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .marcador-n,
-  .marcador-de,
-  .marcador-dato,
-  .marcador-acciones,
+  .marcador,
   .album-vacio-hueco,
   .album-vacio-titulo,
   .album-vacio-texto,

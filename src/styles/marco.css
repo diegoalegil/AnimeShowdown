@@ -381,8 +381,7 @@
 /* Grano estático sobre los focos de luz oscuros: disuelve los anillos del
    degradado entre dos negros tan cercanos (ver scripts/generate-grano). Va
    detrás del contenido y no se anima. */
-.escenario::after,
-.album-noche::after {
+.escenario::after {
   content: '';
   position: absolute;
   inset: 0;
