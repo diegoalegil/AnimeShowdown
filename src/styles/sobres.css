@@ -23,16 +23,16 @@
   --voltear: 700ms;
   --voltear-especial: 940ms;
   /* Hasta dónde se abre el destello de la especial (en el móvil, dentro de la fila). */
-  --destello-x: 1.28;
-  --destello-y: 1.12;
+  --destello-x: 1.08;
+  --destello-y: 1.04;
 }
 
 @media (min-width: 48rem) {
   .sobres {
     --sobre-ancho: 17rem;
     --naipe-ancho: min(12.75rem, calc((100vw - 2 * var(--gutter) - 6rem) / 5));
-    --destello-x: 1.5;
-    --destello-y: 1.3;
+    --destello-x: 1.25;
+    --destello-y: 1.15;
   }
 }
 
@@ -853,32 +853,41 @@
   backface-visibility: hidden;
 }
 
-/* ---- Dorso: papel sobre el escenario de tinta, hojas de cáñamo y el sello ----
-   Las cartas boca abajo son de washi, como el sobre: el mismo contraste de
-   papel y tinta que recorre la web, en el momento en que más importa. */
+/* ---- Dorso: lámina azul noche con filo dorado doble, hojas de cáñamo en
+   oro y el sello 滅 en su medallón, como el del sobre. ---- */
 .naipe-dorso {
   display: grid;
   place-items: center;
   overflow: hidden;
-  background-color: var(--color-fg-strong);
-  background-image: url('/washi.png');
+  border-radius: var(--radius-carta);
+  background-color: var(--color-surface);
+  background-image:
+    radial-gradient(ellipse 75% 55% at 50% 46%, color-mix(in srgb, var(--color-gold) 14%, var(--color-surface-alt)), transparent 72%),
+    linear-gradient(180deg, var(--color-surface-alt), var(--color-canvas));
   box-shadow:
-    0 26px 38px -22px rgb(0 0 0 / 0.95),
-    inset 0 0 0 1px var(--color-fg-muted);
+    0 0 0 1px var(--color-gold-line-strong),
+    0 0 0 2px rgb(0 0 0 / 0.55),
+    0 26px 38px -22px rgb(0 0 0 / 0.95);
 }
 
 .naipe-dorso::before {
   content: '';
   position: absolute;
-  inset: 5.5%;
-  border: 1px solid var(--color-fg-muted);
+  inset: 5%;
+  z-index: 1;
+  border: 1px solid var(--color-gold-line-strong);
+  border-radius: calc(var(--radius-carta) - 0.25rem);
+  box-shadow:
+    inset 0 0 0 3px rgb(4 7 12 / 0.4),
+    inset 0 0 0 4px var(--color-gold-line);
+  pointer-events: none;
 }
 
 .naipe-dorso-motivo {
   position: absolute;
-  inset: 5.5%;
-  background-color: var(--color-canvas);
-  opacity: 0.12;
+  inset: 5%;
+  background-color: var(--color-gold);
+  opacity: 0.1;
   -webkit-mask-image: url('/asanoha.png');
   mask-image: url('/asanoha.png');
   -webkit-mask-size: 24px 41.6px;
@@ -889,11 +898,21 @@
 
 .naipe-dorso-sello {
   position: relative;
-  box-sizing: border-box;
-  width: 38%;
-  padding: 7%;
-  background-color: var(--color-fg-strong);
-  outline: 1px solid var(--color-fg-muted);
+  display: grid;
+  place-items: center;
+  width: 40%;
+  aspect-ratio: 1;
+  border-radius: 50%;
+  background-image: radial-gradient(circle at 50% 40%, var(--color-surface-alt), var(--color-canvas) 75%);
+  box-shadow:
+    0 0 0 1.5px var(--color-gold-bright),
+    0 0 0 4px rgb(4 7 12 / 0.7),
+    0 0 22px 2px rgb(228 195 111 / 0.3);
+}
+
+.naipe-dorso-logo {
+  width: 84%;
+  height: auto;
 }
 
 .naipe-dorso-marca {
@@ -901,11 +920,16 @@
   left: 0;
   right: 0;
   bottom: 10%;
-  color: var(--color-surface-alt);
+  color: var(--color-fg-strong);
   font-family: var(--font-display);
   font-size: var(--text-xs);
-  letter-spacing: 0.04em;
+  font-weight: 700;
+  letter-spacing: 0.02em;
   text-align: center;
+}
+
+.naipe-dorso-oro {
+  color: var(--color-gold-bright);
 }
 
 /* ---- Cara: la carta de siempre, sin cartela ni enlace ---- */
@@ -914,7 +938,85 @@
 }
 
 .naipe-cara .carta-lamina {
-  box-shadow: 0 26px 38px -22px rgb(0 0 0 / 0.95);
+  box-shadow:
+    0 0 0 1px var(--color-gold-line-strong),
+    0 0 0 2px rgb(0 0 0 / 0.55),
+    0 26px 38px -22px rgb(0 0 0 / 0.95);
+}
+
+/* Reflejo que recorre la cara una vez, al quedar boca arriba: oro en las
+   cartas normales, arcoíris dorado en las especiales. */
+.naipe-barrido {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  overflow: hidden;
+  border-radius: var(--radius-carta);
+  pointer-events: none;
+}
+
+.naipe-barrido::before {
+  content: '';
+  position: absolute;
+  inset: -12% auto -12% -70%;
+  width: 60%;
+  background-image: linear-gradient(
+    105deg,
+    rgb(255 255 255 / 0) 18%,
+    rgb(247 230 162 / 0.22) 42%,
+    rgb(255 252 240 / 0.42) 50%,
+    rgb(247 230 162 / 0.22) 58%,
+    rgb(255 255 255 / 0) 82%
+  );
+  opacity: 0;
+}
+
+.naipe[data-especial] .naipe-barrido::before {
+  width: 110%;
+  left: -115%;
+  background-image: linear-gradient(
+    110deg,
+    rgb(255 255 255 / 0) 12%,
+    rgb(232 90 100 / 0.2) 26%,
+    rgb(247 230 162 / 0.3) 38%,
+    rgb(255 252 240 / 0.42) 46%,
+    rgb(141 223 237 / 0.26) 56%,
+    rgb(160 140 255 / 0.2) 66%,
+    rgb(247 230 162 / 0.18) 76%,
+    rgb(255 255 255 / 0) 88%
+  );
+}
+
+.naipe[data-revelada] .naipe-barrido::before {
+  animation: barrido-cara 900ms var(--ease-fude) calc(var(--retardo, 0ms) + var(--voltear) * 0.8) both;
+}
+
+.naipe[data-revelada][data-especial] .naipe-barrido::before {
+  animation: barrido-cara-especial 1300ms var(--ease-fude) calc(var(--retardo, 0ms) + var(--voltear-especial) * 0.7) both;
+}
+
+@keyframes barrido-cara {
+  0% {
+    opacity: 1;
+    transform: translate3d(0, 0, 0);
+  }
+
+  100% {
+    opacity: 1;
+    transform: translate3d(300%, 0, 0);
+  }
+}
+
+@keyframes barrido-cara-especial {
+  0% {
+    opacity: 1;
+    transform: translate3d(0, 0, 0);
+  }
+
+  100% {
+    opacity: 1;
+    transform: translate3d(215%, 0, 0);
+  }
 }
 
 /* ---- Volteo: el dorso gira hasta ponerse de canto y la cara sigue desde
@@ -998,40 +1100,60 @@
   }
 }
 
-/* ---- Especial: un plano bermellón estalla detrás de la carta, una vez ---- */
-.naipe-destello {
+/* ---- Especial: detrás de la carta estalla un halo dorado y gira un abanico
+   de rayos, una vez. Planos pintados: solo escala, giro y opacidad. ---- */
+.naipe-destello,
+.naipe-rayos {
   position: absolute;
-  inset: -3%;
-  z-index: -1;
-  background-color: var(--color-hanko);
   opacity: 0;
   pointer-events: none;
 }
 
-.naipe-destello::after {
-  content: '';
-  position: absolute;
-  inset: -6%;
-  border: 1px solid var(--color-accent-text);
-  opacity: 0;
+.naipe-destello {
+  inset: -16% -28%;
+  z-index: -1;
+  border-radius: 50%;
+  background-image: radial-gradient(
+    ellipse closest-side,
+    rgb(255 250 235 / 0.9),
+    rgb(247 230 162 / 0.55) 30%,
+    rgb(228 195 111 / 0.2) 62%,
+    transparent
+  );
+}
+
+/* Cuadrado centrado en la carta (los márgenes en % van sobre su ancho). */
+.naipe-rayos {
+  top: 50%;
+  left: 50%;
+  z-index: -2;
+  width: 380%;
+  aspect-ratio: 1;
+  margin: -190% 0 0 -190%;
+  background-image: url('/rayos.webp');
+  background-size: 100% 100%;
 }
 
 .naipe[data-revelada] .naipe-destello {
-  animation: destello 1000ms var(--ease-sumi) calc(var(--retardo, 0ms) + var(--voltear-especial) * 0.5) both;
+  animation: destello 1100ms var(--ease-sumi) calc(var(--retardo, 0ms) + var(--voltear-especial) * 0.5) both;
 }
 
-.naipe[data-revelada] .naipe-destello::after {
-  animation: destello-marco 1200ms var(--ease-sumi) calc(var(--retardo, 0ms) + var(--voltear-especial) * 0.5 + 60ms) both;
+.naipe[data-revelada] .naipe-rayos {
+  animation: rayos-especial 1900ms var(--ease-sumi) calc(var(--retardo, 0ms) + var(--voltear-especial) * 0.5) both;
 }
 
 @keyframes destello {
   0% {
     opacity: 0;
-    transform: scale(0.82);
+    transform: scale(0.55);
   }
 
-  14% {
-    opacity: 0.95;
+  16% {
+    opacity: 1;
+  }
+
+  45% {
+    opacity: 0.75;
   }
 
   100% {
@@ -1040,19 +1162,23 @@
   }
 }
 
-@keyframes destello-marco {
+@keyframes rayos-especial {
   0% {
     opacity: 0;
-    transform: scale(0.9);
+    transform: rotate(-12deg) scale(0.4);
   }
 
-  20% {
+  18% {
     opacity: 1;
+  }
+
+  55% {
+    opacity: 0.8;
   }
 
   100% {
     opacity: 0;
-    transform: scale(1.14, 1.1);
+    transform: rotate(26deg) scale(1);
   }
 }
 
@@ -1125,26 +1251,39 @@
 }
 
 .naipe-numero {
-  color: var(--color-fg-muted);
+  color: var(--color-gold);
   font-size: var(--text-2xs);
   letter-spacing: var(--tracking-wide);
 }
 
+/* Repetida: una pastilla dorada con las copias. */
 .naipe-estado {
   grid-column: 2;
-  grid-row: 1;
-  color: var(--color-fg-muted);
+  grid-row: 1 / span 2;
+  align-self: start;
+  padding: 0.125rem 0.4375rem;
+  border: 1px solid var(--color-gold-line);
+  border-radius: var(--radius-full);
+  background-color: var(--color-gold-soft);
+  color: var(--color-gold-pale);
   font-size: var(--text-2xs);
   letter-spacing: 0.04em;
+  white-space: nowrap;
 }
 
 .naipe-nombre {
-  grid-column: 1 / -1;
+  grid-column: 1;
   margin-top: 0.125rem;
+  color: var(--color-fg-strong);
   font-family: var(--font-display);
   font-size: var(--text-lg);
+  font-weight: 700;
   line-height: 1.2;
   overflow-wrap: anywhere;
+}
+
+.naipe[data-especial] .naipe-nombre {
+  color: var(--color-gold-pale);
 }
 
 .naipe-serie {
@@ -1168,7 +1307,8 @@
 }
 
 .mesa[data-instantaneo] .naipe[data-revelada] .naipe-destello,
-.mesa[data-instantaneo] .naipe[data-revelada] .naipe-destello::after {
+.mesa[data-instantaneo] .naipe[data-revelada] .naipe-rayos,
+.mesa[data-instantaneo] .naipe[data-revelada] .naipe-barrido::before {
   animation: none;
 }
 
@@ -1539,7 +1679,8 @@
   }
 
   .naipe[data-revelada] .naipe-destello,
-  .naipe[data-revelada] .naipe-destello::after {
+  .naipe[data-revelada] .naipe-rayos,
+  .naipe[data-revelada] .naipe-barrido::before {
     animation: none;
   }
 
