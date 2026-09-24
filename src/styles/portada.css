@@ -44,7 +44,9 @@
   pointer-events: none;
 }
 
-/* ---- Brasas: dos capas de la misma tesela, a distinta escala y ritmo ---- */
+/* ---- Brasas: una tesela con motas cercanas y lejanas que sube despacio.
+   Una sola capa: dos capas del tamaño de la portada doblaban el trabajo de
+   composición en equipos sin GPU potente. ---- */
 .portada-brasas {
   position: absolute;
   inset: 0;
@@ -59,28 +61,13 @@
   height: calc(100% + 512px);
   background-image: url('/brasas.png');
   background-size: 512px 512px;
-  opacity: 0.65;
+  opacity: 0.75;
   animation: brasas-suben 44s linear infinite;
-}
-
-.brasas--lejos {
-  height: calc(100% + 288px);
-  background-size: 288px 288px;
-  background-position: 97px 61px;
-  opacity: 0.4;
-  animation-name: brasas-suben-lejos;
-  animation-duration: 70s;
 }
 
 @keyframes brasas-suben {
   to {
     transform: translate3d(0, -512px, 0);
-  }
-}
-
-@keyframes brasas-suben-lejos {
-  to {
-    transform: translate3d(0, -288px, 0);
   }
 }
 
@@ -353,7 +340,7 @@
 @media (min-width: 48rem) {
   .flotante {
     display: block;
-    --ancho: clamp(7.5rem, 13vw, 9.5rem);
+    --ancho: clamp(6.75rem, 12vw, 9rem);
     left: auto;
     margin-left: 0;
     translate: none;
@@ -364,11 +351,11 @@
   }
 
   .flotante[data-lado='izquierda'] {
-    left: -1.75rem;
+    left: -2.25rem;
   }
 
   .flotante[data-lado='derecha'] {
-    right: -1.75rem;
+    right: -2.25rem;
   }
 
   .flotante[data-n='0'] {

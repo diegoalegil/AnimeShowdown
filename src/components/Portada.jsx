@@ -42,8 +42,7 @@ export function Portada() {
         />
       </div>
       <div className="portada-brasas" aria-hidden="true">
-        <span className="brasas brasas--lejos" />
-        <span className="brasas brasas--cerca" />
+        <span className="brasas" />
       </div>
 
       <div className="portada-cartas" aria-hidden="true">

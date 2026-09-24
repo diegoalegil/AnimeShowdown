@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 // Genera public/brasas.png: una tesela de brasas y motas de luz (oro, oro
-// pálido y alguna carmesí) con su halo ya pintado, para las capas que suben
+// pálido y alguna carmesí) con su halo ya pintado, para la capa que sube
 // despacio por la portada. El navegador solo desplaza la tesela (transform):
 // ni filtros ni sombras en tiempo de ejecución. Se repite sin costuras (cada
 // mota se dibuja también al otro lado del borde). Determinista.
@@ -12,7 +12,10 @@ import { fileURLToPath } from 'node:url'
 import { pngRgba } from './png.mjs'
 
 const LADO = 512
+// Motas cercanas (más grandes y vivas) y lejanas (diminutas y tenues): una
+// sola capa con profundidad, que cuesta la mitad que dos capas superpuestas.
 const MOTAS = 30
+const MOTAS_LEJANAS = 34
 // Colores de la paleta (oro, oro pálido, carmesí claro) y su peso.
 const COLORES = [
   { rgb: [228, 195, 111], peso: 0.5 },
@@ -64,6 +67,10 @@ for (let n = 0; n < MOTAS; n++) {
   const nucleo = grande ? 1.2 + azar() * 1.3 : 0.4 + azar() * 0.8
   const halo = grande ? 3 + azar() * 4 : 1.2 + azar() * 2
   mota(azar() * LADO, azar() * LADO, nucleo, halo, color(), 0.55 + azar() * 0.45)
+}
+
+for (let n = 0; n < MOTAS_LEJANAS; n++) {
+  mota(azar() * LADO, azar() * LADO, 0.25 + azar() * 0.4, 0.7 + azar() * 0.9, color(), 0.3 + azar() * 0.3)
 }
 
 const rgba = new Uint8Array(LADO * LADO * 4)

@@ -202,7 +202,7 @@
 
 @media (min-width: 48rem) {
   .filtros-fila {
-    grid-template-columns: minmax(0, 22rem) minmax(0, 16rem) minmax(0, 1fr);
+    grid-template-columns: minmax(0, 1.3fr) minmax(0, 1fr) auto;
     gap: 1rem;
     padding-block: 0.875rem;
   }
@@ -214,6 +214,12 @@
   .filtros-quitar {
     margin-left: 0.75rem;
     padding: 0;
+  }
+}
+
+@media (min-width: 64rem) {
+  .filtros-fila {
+    grid-template-columns: minmax(0, 22rem) minmax(0, 16rem) minmax(0, 1fr);
   }
 }
 
