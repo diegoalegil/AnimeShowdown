@@ -1,14 +1,24 @@
+import { pieza } from '../lib/marca.js'
 import { Enlace } from './Enlace.jsx'
 import { EtiquetaVertical } from './EtiquetaVertical.jsx'
-import { SelloMarca } from './Hanko.jsx'
+import { Logo } from './Logo.jsx'
+
+const ARENA = pieza('home-hero-vote-arena')
 
 export function Pie() {
   return (
-    <footer className="yoru pie">
+    <footer className="pie">
+      {/* Franja del escenario: la arena de la web, fundida con el lienzo. */}
+      <div className="pie-escena" aria-hidden="true">
+        <img src={ARENA.src} srcSet={ARENA.srcSet} sizes="100vw" alt="" loading="lazy" decoding="async" />
+      </div>
+
       <div className="wrap pie-rejilla">
         <div className="pie-marca">
-          <SelloMarca className="w-9" />
-          <span className="font-serif text-2xl">AnimeShowdown</span>
+          <Logo tamano={48} />
+          <span className="pie-nombre">
+            Anime<span className="marca-nombre-oro">Showdown</span>
+          </span>
         </div>
 
         <p className="pie-texto">
@@ -17,15 +27,9 @@ export function Pie() {
         </p>
 
         <nav aria-label="Pie de página" className="pie-nav">
-          <Enlace to="/">
-            Galería
-          </Enlace>
-          <Enlace to="/sobres">
-            Sobres
-          </Enlace>
-          <Enlace to="/coleccion">
-            Colección
-          </Enlace>
+          <Enlace to="/">Galería</Enlace>
+          <Enlace to="/sobres">Sobres</Enlace>
+          <Enlace to="/coleccion">Colección</Enlace>
         </nav>
 
         <p className="pie-nota">Tu colección se guarda solo en este navegador.</p>

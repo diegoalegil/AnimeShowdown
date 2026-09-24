@@ -1,4 +1,5 @@
-/* Sellos en bermellón (ver components/Hanko.jsx). */
+/* Sellos (ver components/Hanko.jsx): los llenos, en bermellón con el carácter
+   claro; los de línea, un anillo dorado sobre el lienzo. */
 .hanko {
   display: block;
   flex: none;
@@ -6,18 +7,20 @@
 }
 
 .hanko-fondo {
-  fill: var(--color-shu);
+  fill: var(--color-hanko);
+  stroke: var(--color-gold-line-strong);
+  stroke-width: 1;
 }
 
 .hanko-contorno {
-  fill: var(--color-kinu);
-  stroke: var(--color-shu);
-  stroke-width: 2.4;
+  fill: var(--color-canvas);
+  stroke: var(--color-gold-bright);
+  stroke-width: 2.2;
 }
 
 .hanko-trazo {
   fill: none;
-  stroke: var(--color-kinu);
+  stroke: var(--color-fg-strong);
   stroke-width: 2.7;
 }
 
@@ -29,9 +32,9 @@
 }
 
 .hanko-letra-papel {
-  fill: var(--color-kinu);
+  fill: var(--color-fg-strong);
 }
 
 .hanko-letra-tinta {
-  fill: var(--color-shu);
+  fill: var(--color-gold-bright);
 }

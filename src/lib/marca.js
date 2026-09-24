@@ -35,17 +35,28 @@ export const PIEZAS = {
   'empty-search-night-city-refresh': { anchos: [768, 1280], proporcion: 1672 / 941 },
 }
 
-/** Logo de la web (sello 滅), en un solo sitio para poder cambiarlo. */
+/**
+ * Logo de la web (sello 滅), en un solo sitio para poder cambiarlo: el
+ * original (webp y svg), sus versiones pequeñas para la cabecera y el pie, y
+ * los PNG del icono de la pestaña y de la pantalla de inicio. Las versiones
+ * derivadas las genera scripts/generate-marca.mjs a partir de logo.webp.
+ */
 export const LOGO = {
   webp: `${CARPETA_MARCA}/logo.webp`,
   svg: `${CARPETA_MARCA}/logo.svg`,
+  favicon: `${CARPETA_MARCA}/logo-64.png`,
+  tactil: `${CARPETA_MARCA}/logo-180.png`,
 }
+
+/** Anchos de las versiones pequeñas del logo (cuadrado). */
+export const ANCHOS_LOGO = [64, 128]
 
 // Rutas relativas a public/.
 export const rutaEscena = (marca, ancho) => `${CARPETA_MARCA}/${marca}-escena-${ancho}.webp`
 export const rutaFondo = (marca) => `${CARPETA_MARCA}/${marca}-fondo-${ANCHO_FONDO}.webp`
 export const rutaSimbolo = (marca, ancho) => `${CARPETA_MARCA}/${marca}-simbolo-${ancho}.webp`
 export const rutaPieza = (nombre, ancho) => `${CARPETA_MARCA}/${nombre}-${ancho}.webp`
+export const rutaLogo = (ancho) => `${CARPETA_MARCA}/logo-${ancho}.webp`
 
 /** Todos los archivos de marca de un anime (rutas relativas a public/). */
 export function archivosAnime(marca) {
@@ -62,6 +73,9 @@ export function archivosComunes() {
     ...Object.entries(PIEZAS).flatMap(([nombre, { anchos }]) => anchos.map((ancho) => rutaPieza(nombre, ancho))),
     LOGO.webp,
     LOGO.svg,
+    LOGO.favicon,
+    LOGO.tactil,
+    ...ANCHOS_LOGO.map(rutaLogo),
   ]
 }
 
@@ -96,3 +110,6 @@ export function pieza(nombre, base) {
   if (!datos) throw new Error(`Pieza de marca desconocida: ${nombre}`)
   return { ...conjunto((ancho) => rutaPieza(nombre, ancho), datos.anchos, base), proporcion: datos.proporcion }
 }
+
+/** Versiones pequeñas del logo ({ src, srcSet }), para un <img> con sizes. */
+export const logo = (base) => conjunto(rutaLogo, ANCHOS_LOGO, base)

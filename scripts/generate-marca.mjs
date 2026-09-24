@@ -26,6 +26,7 @@ import { fileURLToPath } from 'node:url'
 import { promisify } from 'node:util'
 import {
   ANCHO_FONDO,
+  ANCHOS_LOGO,
   ANCHOS_ESCENA,
   ANCHOS_SIMBOLO,
   CARPETA_MARCA,
@@ -36,6 +37,7 @@ import {
   archivosComunes,
   rutaEscena,
   rutaFondo,
+  rutaLogo,
   rutaPieza,
   rutaSimbolo,
 } from '../src/lib/marca.js'
@@ -190,7 +192,19 @@ let siguiente = 0
 async function trabajador() {
   while (siguiente < trabajos.length) await trabajos[siguiente++]()
 }
+// Versiones derivadas del logo, a partir del logo.webp ya copiado.
+const derivadosLogo = () => [
+  ...ANCHOS_LOGO.map((ancho) => () => cwebp(publico(LOGO.webp), publico(rutaLogo(ancho)), 88, ['-resize', String(ancho), String(ancho)])),
+  ...[
+    [LOGO.favicon, 64],
+    [LOGO.tactil, 180],
+  ].map(([destino, lado]) => () =>
+    ejecutar('dwebp', ['-quiet', publico(LOGO.webp), '-resize', String(lado), String(lado), '-o', publico(destino)]),
+  ),
+]
 try {
+  await Promise.all(Array.from({ length: availableParallelism() }, trabajador))
+  trabajos.push(...derivadosLogo())
   await Promise.all(Array.from({ length: availableParallelism() }, trabajador))
 } finally {
   rmSync(temporal, { recursive: true, force: true })

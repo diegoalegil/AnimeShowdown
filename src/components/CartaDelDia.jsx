@@ -23,7 +23,7 @@ export function CartaDelDia() {
   const nativo = carta.nativo ?? catalogo.carta(carta.personajeId)?.nativo
 
   return (
-    <aside ref={inclinacion} className="yoru del-dia" aria-labelledby="del-dia-rotulo">
+    <aside ref={inclinacion} className="del-dia" aria-labelledby="del-dia-rotulo">
       <p id="del-dia-rotulo" className="del-dia-rotulo">
         Carta del día
       </p>

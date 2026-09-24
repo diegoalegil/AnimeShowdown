@@ -187,10 +187,10 @@ export default function Sobres() {
   const numero = SOBRES_POR_DIA - quedan + 1
 
   return (
-    <div className="yoru escenario sobres">
+    <div className="escenario sobres">
       <EtiquetaVertical ja="開封" className="sobres-fondo" />
       <div className="wrap sobres-cabecera">
-        <TituloSeccion ja="開封" className="[--pincel-fondo:var(--color-yoru)]">
+        <TituloSeccion ja="開封">
           Sobres
         </TituloSeccion>
         <SobresDeHoy quedan={quedan} />

@@ -113,7 +113,7 @@ export default function Coleccion() {
         )}
 
         {especiales && todasMontadas && (
-          <div className="yoru album-noche">
+          <div className="album-noche">
             <EtiquetaVertical ja="特別" className="album-noche-fondo" />
             <div className="wrap">
               <Hoja {...propsHoja(especiales)} />

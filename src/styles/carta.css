@@ -73,7 +73,7 @@
   position: relative;
   aspect-ratio: 2 / 3;
   overflow: hidden;
-  background-color: var(--tono, var(--color-hoshi));
+  background-color: var(--tono, var(--color-surface-alt));
   box-shadow: var(--shadow-lamina);
 }
 
@@ -107,7 +107,7 @@
   content: '';
   position: absolute;
   inset: 0.3125rem;
-  border: 1px solid color-mix(in srgb, var(--color-kinu) 38%, transparent);
+  border: 1px solid color-mix(in srgb, var(--color-fg-strong) 38%, transparent);
   pointer-events: none;
 }
 
@@ -122,8 +122,8 @@
   display: grid;
   place-items: center;
   padding: 1rem;
-  background-color: var(--color-hoshi);
-  color: var(--color-nezumi);
+  background-color: var(--color-surface-alt);
+  color: var(--color-fg-muted);
   font-size: var(--text-xs);
   text-align: center;
 }
@@ -197,14 +197,14 @@
 
 .carta-numero {
   grid-column: 1;
-  color: var(--color-nezumi);
+  color: var(--color-fg-muted);
   font-size: var(--text-2xs);
   letter-spacing: var(--tracking-wide);
 }
 
 .carta-nombre {
   grid-column: 1;
-  font-family: var(--font-serif);
+  font-family: var(--font-display);
   font-size: var(--text-lg);
   line-height: 1.22;
   overflow-wrap: anywhere;
@@ -216,7 +216,7 @@
 
 .carta-serie {
   grid-column: 1;
-  color: var(--color-nezumi);
+  color: var(--color-fg-muted);
   font-size: var(--text-sm);
   line-height: 1.35;
   overflow-wrap: anywhere;
@@ -230,14 +230,14 @@
   align-items: center;
   gap: 0.3rem;
   padding-top: 0.2rem;
-  color: var(--color-nezumi);
+  color: var(--color-fg-muted);
   font-size: var(--text-xs);
 }
 
 .carta-copias-sello {
   width: 0.5rem;
   height: 0.5rem;
-  background-color: var(--color-shu);
+  background-color: var(--color-hanko);
   border-radius: 1px;
   rotate: 4deg;
 }
@@ -292,16 +292,6 @@
   font-size: var(--text-xs);
 }
 
-/* Sobre el escenario oscuro. */
-.yoru .carta-numero,
-.yoru .carta-serie {
-  color: var(--color-gofun-2);
-}
-
-.yoru .carta-copias {
-  color: var(--color-gofun-2);
-}
-
 /* En el álbum todo lo que hay es tuyo: el sello de «en tu colección»
    sobra; solo se anotan las copias (×N). */
 .carta--album .carta-copias-sello {
@@ -309,7 +299,7 @@
 }
 
 .carta--album .carta-copias {
-  color: var(--color-sumi);
+  color: var(--color-fg-strong);
 }
 
 @media (prefers-reduced-motion: reduce) {

@@ -101,7 +101,7 @@ function FichaCarta({ carta }) {
 
   return (
     <article className="ficha">
-      <div className="ficha-escenario yoru">
+      <div className="ficha-escenario">
         {nativo && (
           <span lang="ja" className="ficha-fondo" aria-hidden="true">
             <TextoVertical texto={nativo} />
@@ -144,8 +144,8 @@ function FichaCarta({ carta }) {
             <p key={`numero-${carta.id}`} className="ficha-numero ficha-cambia cifra">
               Nº {numeroCarta(carta)}
             </p>
-            {/* La key repite la pincelada al pasar a otro personaje, no al girar la carta. */}
-            <h1 key={`nombre-${base.id}`} className="ficha-nombre pincel">
+            {/* La key repite la entrada del título al pasar a otro personaje, no al girar la carta. */}
+            <h1 key={`nombre-${base.id}`} className="ficha-nombre revela-titulo">
               {carta.nombre}
             </h1>
             {carta.variante && <p className="ficha-variante">{carta.variante}</p>}

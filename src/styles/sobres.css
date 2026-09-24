@@ -32,7 +32,7 @@
   position: absolute;
   top: 1.25rem;
   right: -0.75rem;
-  color: var(--color-yoru-2);
+  color: var(--color-surface);
   font-size: 8.5rem;
   letter-spacing: 0;
   pointer-events: none;
@@ -83,14 +83,14 @@
   position: relative;
   width: 0.6875rem;
   height: 1.0625rem;
-  box-shadow: inset 0 0 0 1px var(--color-yoru-sen);
+  box-shadow: inset 0 0 0 1px var(--color-border);
 }
 
 .hoy-sobre::before {
   content: '';
   position: absolute;
   inset: 0;
-  background-color: var(--color-gofun);
+  background-color: var(--color-fg-strong);
   transition:
     opacity var(--dur-3) var(--ease-sumi),
     transform var(--dur-3) var(--ease-sumi);
@@ -103,12 +103,12 @@
 
 .hoy-texto {
   margin: 0;
-  color: var(--color-gofun-2);
+  color: var(--color-fg-muted);
   font-size: var(--text-sm);
 }
 
 .hoy-texto strong {
-  color: var(--color-gofun);
+  color: var(--color-fg-strong);
   font-weight: 500;
 }
 
@@ -227,7 +227,7 @@
   display: inline-flex;
   align-items: center;
   gap: 0.625rem;
-  color: var(--color-gofun);
+  color: var(--color-fg-strong);
   font-size: var(--text-sm);
   font-weight: 500;
   letter-spacing: 0.02em;
@@ -235,7 +235,7 @@
 
 .sobre-accion-texto {
   text-decoration-line: underline;
-  text-decoration-color: var(--color-shu-akari);
+  text-decoration-color: var(--color-accent-text);
   text-decoration-thickness: 1px;
   text-underline-offset: 0.45em;
 }
@@ -243,8 +243,8 @@
 .sobre-accion-tecla {
   display: none;
   padding: 0.0625rem 0.375rem;
-  border: 1px solid var(--color-yoru-sen);
-  color: var(--color-gofun-2);
+  border: 1px solid var(--color-border);
+  color: var(--color-fg-muted);
   font-size: var(--text-2xs);
   font-weight: 400;
 }
@@ -258,9 +258,9 @@
   position: absolute;
   inset: 0;
   display: block;
-  background-color: var(--color-kinu);
+  background-color: var(--color-fg-strong);
   background-image: url('/washi.png');
-  color: var(--color-sumi);
+  color: var(--color-canvas);
 }
 
 .envoltorio > * {
@@ -272,7 +272,7 @@
 .envoltorio-motivo {
   left: 0;
   right: 0;
-  background-color: var(--color-sen);
+  background-color: var(--color-fg-muted);
   opacity: 0.6;
   -webkit-mask-image: url('/seigaiha.png');
   mask-image: url('/seigaiha.png');
@@ -302,7 +302,7 @@
 }
 
 .envoltorio-kaifu {
-  color: var(--color-nezumi);
+  color: var(--color-border);
   font-family: var(--font-jp);
   font-size: 0.625rem;
   letter-spacing: 0.32em;
@@ -313,7 +313,7 @@
   position: relative;
   width: 1.25rem;
   height: 1px;
-  background-color: var(--color-nezumi);
+  background-color: var(--color-border);
 }
 
 .envoltorio-flecha::after {
@@ -323,8 +323,8 @@
   top: -3px;
   width: 6px;
   height: 6px;
-  border-top: 1px solid var(--color-nezumi);
-  border-right: 1px solid var(--color-nezumi);
+  border-top: 1px solid var(--color-border);
+  border-right: 1px solid var(--color-border);
   transform: rotate(45deg);
 }
 
@@ -333,21 +333,21 @@
   top: 12%;
   left: 4%;
   right: 4%;
-  border-top: 1px dashed var(--color-hai);
+  border-top: 1px dashed var(--color-fg-muted);
 }
 
 .envoltorio-numero {
   top: 16.5%;
   left: 8%;
   padding: 0.1875rem 0.375rem;
-  background-color: var(--color-kinu);
-  color: var(--color-sumi-2);
+  background-color: var(--color-fg-strong);
+  color: var(--color-surface-alt);
   font-size: var(--text-2xs);
   letter-spacing: 0.12em;
 }
 
 .envoltorio-de {
-  color: var(--color-nezumi);
+  color: var(--color-border);
 }
 
 /* Nombre en vertical, como la etiqueta de un paquete japonés. */
@@ -355,9 +355,9 @@
   top: 16.5%;
   right: 8%;
   padding: 0.5rem 0.3125rem;
-  border: 1px solid var(--color-sen);
-  background-color: var(--color-kinu);
-  color: var(--color-sumi-2);
+  border: 1px solid var(--color-fg-muted);
+  background-color: var(--color-fg-strong);
+  color: var(--color-surface-alt);
   font-size: 0.6875rem;
   letter-spacing: 0.3em;
 }
@@ -374,20 +374,20 @@
   justify-content: flex-end;
   gap: 0.4rem;
   padding-bottom: 5.5%;
-  background-color: var(--color-sumi);
-  color: var(--color-kinu);
+  background-color: var(--color-canvas);
+  color: var(--color-fg-strong);
 }
 
 .envoltorio-obi::before {
   content: '';
   position: absolute;
   inset: 4px 0;
-  border-block: 1px solid var(--color-sumi-2);
+  border-block: 1px solid var(--color-surface-alt);
 }
 
 .envoltorio-marca {
   position: relative;
-  font-family: var(--font-serif);
+  font-family: var(--font-display);
   font-size: calc(var(--sobre-ancho) * 0.098);
   font-weight: 500;
   letter-spacing: -0.01em;
@@ -399,7 +399,7 @@
   display: flex;
   align-items: baseline;
   gap: 0.5rem;
-  color: var(--color-gofun-2);
+  color: var(--color-fg-muted);
   font-size: 0.5625rem;
   letter-spacing: 0.16em;
   text-transform: uppercase;
@@ -572,24 +572,24 @@
   display: grid;
   place-items: center;
   overflow: hidden;
-  background-color: var(--color-kinu);
+  background-color: var(--color-fg-strong);
   background-image: url('/washi.png');
   box-shadow:
     0 26px 38px -22px rgb(0 0 0 / 0.95),
-    inset 0 0 0 1px var(--color-sen);
+    inset 0 0 0 1px var(--color-fg-muted);
 }
 
 .naipe-dorso::before {
   content: '';
   position: absolute;
   inset: 5.5%;
-  border: 1px solid var(--color-sen);
+  border: 1px solid var(--color-fg-muted);
 }
 
 .naipe-dorso-motivo {
   position: absolute;
   inset: 5.5%;
-  background-color: var(--color-sumi);
+  background-color: var(--color-canvas);
   opacity: 0.12;
   -webkit-mask-image: url('/asanoha.png');
   mask-image: url('/asanoha.png');
@@ -604,8 +604,8 @@
   box-sizing: border-box;
   width: 38%;
   padding: 7%;
-  background-color: var(--color-kinu);
-  outline: 1px solid var(--color-sen);
+  background-color: var(--color-fg-strong);
+  outline: 1px solid var(--color-fg-muted);
 }
 
 .naipe-dorso-marca {
@@ -613,8 +613,8 @@
   left: 0;
   right: 0;
   bottom: 10%;
-  color: var(--color-sumi-2);
-  font-family: var(--font-serif);
+  color: var(--color-surface-alt);
+  font-family: var(--font-display);
   font-size: var(--text-xs);
   letter-spacing: 0.04em;
   text-align: center;
@@ -715,7 +715,7 @@
   position: absolute;
   inset: -3%;
   z-index: -1;
-  background-color: var(--color-shu);
+  background-color: var(--color-hanko);
   opacity: 0;
   pointer-events: none;
 }
@@ -724,7 +724,7 @@
   content: '';
   position: absolute;
   inset: -6%;
-  border: 1px solid var(--color-shu-akari);
+  border: 1px solid var(--color-accent-text);
   opacity: 0;
 }
 
@@ -837,7 +837,7 @@
 }
 
 .naipe-numero {
-  color: var(--color-gofun-2);
+  color: var(--color-fg-muted);
   font-size: var(--text-2xs);
   letter-spacing: var(--tracking-wide);
 }
@@ -845,7 +845,7 @@
 .naipe-estado {
   grid-column: 2;
   grid-row: 1;
-  color: var(--color-gofun-2);
+  color: var(--color-fg-muted);
   font-size: var(--text-2xs);
   letter-spacing: 0.04em;
 }
@@ -853,7 +853,7 @@
 .naipe-nombre {
   grid-column: 1 / -1;
   margin-top: 0.125rem;
-  font-family: var(--font-serif);
+  font-family: var(--font-display);
   font-size: var(--text-lg);
   line-height: 1.2;
   overflow-wrap: anywhere;
@@ -862,7 +862,7 @@
 .naipe-serie {
   grid-column: 1 / -1;
   overflow: hidden;
-  color: var(--color-gofun-2);
+  color: var(--color-fg-muted);
   font-size: var(--text-xs);
   text-overflow: ellipsis;
   white-space: nowrap;
@@ -928,8 +928,8 @@
 
   .mesa-pie[data-acciones] .mesa-acciones {
     padding: 0.375rem 0.5rem 0.375rem 0.375rem;
-    border: 1px solid var(--color-yoru-sen);
-    background-color: var(--color-yoru);
+    border: 1px solid var(--color-border);
+    background-color: var(--color-canvas);
     box-shadow: 0 12px 24px -12px rgb(0 0 0 / 0.9);
   }
 }
@@ -941,7 +941,7 @@
   justify-content: center;
   gap: 0.75rem;
   margin: 0.25rem 0 0;
-  color: var(--color-gofun-2);
+  color: var(--color-fg-muted);
   font-size: var(--text-xs);
   letter-spacing: var(--tracking-wide);
 }
@@ -954,11 +954,11 @@
 .mesa-posicion-marca {
   width: 0.375rem;
   height: 0.375rem;
-  box-shadow: inset 0 0 0 1px var(--color-gofun-2);
+  box-shadow: inset 0 0 0 1px var(--color-fg-muted);
 }
 
 .mesa-posicion-marca[data-actual] {
-  background-color: var(--color-gofun);
+  background-color: var(--color-fg-strong);
   box-shadow: none;
 }
 
@@ -992,7 +992,7 @@
   .mesa-resumen-datos {
     justify-items: start;
     padding-right: 2.5rem;
-    border-right: 1px solid var(--color-yoru-sen);
+    border-right: 1px solid var(--color-border);
   }
 }
 
@@ -1004,13 +1004,13 @@
   display: grid;
   gap: 0.25rem;
   margin: 0;
-  font-family: var(--font-serif);
+  font-family: var(--font-display);
   font-size: var(--text-2xl);
   line-height: 1.2;
 }
 
 .mesa-resumen-etiqueta {
-  color: var(--color-gofun-2);
+  color: var(--color-fg-muted);
   font-family: var(--font-sans);
   font-size: var(--text-2xs);
   letter-spacing: 0.16em;
@@ -1019,13 +1019,13 @@
 
 .mesa-resumen-total {
   margin: 0;
-  color: var(--color-gofun-2);
+  color: var(--color-fg-muted);
   font-size: var(--text-sm);
 }
 
 .mesa-guardado {
   margin: 0;
-  color: var(--color-gofun-2);
+  color: var(--color-fg-muted);
   font-size: var(--text-sm);
   animation: aparece var(--dur-4) var(--ease-sumi) 300ms both;
 }
@@ -1048,14 +1048,14 @@
 }
 
 .boton-papel {
-  border: 1px solid var(--color-gofun);
-  background-color: var(--color-gofun);
-  color: var(--color-yoru);
+  border: 1px solid var(--color-fg-strong);
+  background-color: var(--color-fg-strong);
+  color: var(--color-canvas);
 }
 
 .boton-papel:hover {
-  border-color: var(--color-kinu);
-  background-color: var(--color-kinu);
+  border-color: var(--color-fg-strong);
+  background-color: var(--color-fg-strong);
 }
 
 .boton-papel:disabled {
@@ -1063,13 +1063,13 @@
 }
 
 .boton-noche {
-  border: 1px solid var(--color-yoru-sen);
+  border: 1px solid var(--color-border);
   background-color: transparent;
-  color: var(--color-gofun);
+  color: var(--color-fg-strong);
 }
 
 .boton-noche:hover {
-  border-color: var(--color-gofun-2);
+  border-color: var(--color-fg-muted);
 }
 
 .boton-texto {
@@ -1077,31 +1077,31 @@
   padding: 0.5rem 0.25rem;
   border: 0;
   background: none;
-  color: var(--color-gofun-2);
+  color: var(--color-fg-muted);
   font: inherit;
   font-size: var(--text-sm);
   text-decoration-line: underline;
-  text-decoration-color: var(--color-yoru-sen);
+  text-decoration-color: var(--color-border);
   text-decoration-thickness: 1px;
   text-underline-offset: 0.3em;
   transition: color var(--dur-2) var(--ease-sumi);
 }
 
 .boton-texto:hover {
-  color: var(--color-gofun);
+  color: var(--color-fg-strong);
 }
 
 .enlace-noche {
-  color: var(--color-gofun);
+  color: var(--color-fg-strong);
   text-decoration-line: underline;
-  text-decoration-color: var(--color-yoru-sen);
+  text-decoration-color: var(--color-border);
   text-decoration-thickness: 1px;
   text-underline-offset: 0.3em;
   transition: text-decoration-color var(--dur-2) var(--ease-sumi);
 }
 
 .enlace-noche:hover {
-  text-decoration-color: var(--color-shu-akari);
+  text-decoration-color: var(--color-accent-text);
 }
 
 /* ==========================================================================
@@ -1123,26 +1123,26 @@
   width: calc(var(--sobre-ancho) * 0.72);
   aspect-ratio: 5 / 8;
   margin-bottom: 1.25rem;
-  border: 1px dashed var(--color-yoru-sen);
+  border: 1px dashed var(--color-border);
   animation: aparece var(--dur-4) var(--ease-sumi) both;
 }
 
 .sin-sobres-ja {
-  color: var(--color-gofun-2);
+  color: var(--color-fg-muted);
   font-size: 2.25rem;
   letter-spacing: 0.35em;
 }
 
 .sin-sobres-titulo {
   margin: 0;
-  font-family: var(--font-serif);
+  font-family: var(--font-display);
   font-size: var(--text-2xl);
   animation: aparece var(--dur-4) var(--ease-sumi) 120ms both;
 }
 
 .sin-sobres-texto {
   margin: 0 0 0.75rem;
-  color: var(--color-gofun-2);
+  color: var(--color-fg-muted);
   animation: aparece var(--dur-4) var(--ease-sumi) 200ms both;
 }
 
@@ -1158,7 +1158,7 @@
 .ultimo {
   margin-top: 4rem;
   padding-top: 2rem;
-  border-top: 1px solid var(--color-yoru-sen);
+  border-top: 1px solid var(--color-border);
 }
 
 .ultimo-titulo {

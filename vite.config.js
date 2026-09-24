@@ -2,14 +2,15 @@ import { defineConfig } from 'vite'
 import react from '@vitejs/plugin-react'
 import tailwindcss from '@tailwindcss/vite'
 import personajes from './src/data/personajes.json' with { type: 'json' }
-import { imagenCarta, TAMANOS } from './src/lib/images.js'
+import { imagenCarta, TAMANOS, urlPublica } from './src/lib/images.js'
+import { LOGO } from './src/lib/marca.js'
 
 // BASE_PATH lo fija el despliegue: "/" con dominio propio, "/<repo>/" en GitHub Pages.
 const base = process.env.BASE_PATH || '/'
 
 // Fuentes de toda la interfaz: se piden desde el HTML, antes que cualquier
 // otra, para que el texto no espere detrás de los glifos japoneses.
-const FUENTES_CRITICAS = /^assets\/(ibm-plex-sans-latin-400-normal|newsreader-latin-400-normal)-[\w-]+\.woff2$/
+const FUENTES_CRITICAS = /^assets\/(ibm-plex-sans-latin-400-normal|zen-old-mincho-latin-700-normal)-[\w-]+\.woff2$/
 
 /** Añade <link rel="preload"> para las fuentes críticas ya con su nombre final. */
 function precargarFuentes() {
@@ -28,6 +29,17 @@ function precargarFuentes() {
         }))
       },
     },
+  }
+}
+
+/** Icono de la pestaña y de la pantalla de inicio: el logo de src/lib/marca.js. */
+function iconos() {
+  return {
+    name: 'iconos',
+    transformIndexHtml: () => [
+      { tag: 'link', attrs: { rel: 'icon', href: urlPublica(LOGO.favicon, base), type: 'image/png' }, injectTo: 'head' },
+      { tag: 'link', attrs: { rel: 'apple-touch-icon', href: urlPublica(LOGO.tactil, base) }, injectTo: 'head' },
+    ],
   }
 }
 
@@ -64,7 +76,7 @@ function precargarPortada() {
 
 export default defineConfig({
   base,
-  plugins: [react(), tailwindcss(), precargarFuentes(), precargarPortada()],
+  plugins: [react(), tailwindcss(), iconos(), precargarFuentes(), precargarPortada()],
   build: {
     target: 'es2022',
     assetsInlineLimit: 0,

@@ -52,7 +52,7 @@ export function App() {
               path="sobres"
               element={
                 // Mientras llega el código (solo si se entra directamente), el escenario ya oscuro.
-                <Suspense fallback={<div className="yoru escenario" />}>
+                <Suspense fallback={<div className="escenario" />}>
                   <sobres.Componente />
                 </Suspense>
               }

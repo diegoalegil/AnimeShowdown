@@ -1,5 +1,5 @@
-/* Shippori Mincho en ~120 trozos con unicode-range: el navegador solo pide
+/* Zen Old Mincho 400 en ~120 trozos con unicode-range: el navegador solo pide
    los que contienen los caracteres visibles. Son muchas reglas @font-face,
    así que esta hoja se carga después de la principal para no bloquear el
    primer pintado; mientras llega, el japonés usa el mincho del sistema. */
-@import '@fontsource/shippori-mincho/400.css';
+@import '@fontsource/zen-old-mincho/400.css';
