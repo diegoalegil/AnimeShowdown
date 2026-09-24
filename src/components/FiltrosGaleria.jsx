@@ -14,12 +14,16 @@ export function FiltrosGaleria({ filtros, onCambiar, total, buscador, selectorSe
       <div className="wrap filtros-fila">
         <label className="campo campo--buscar">
           <span className="campo-etiqueta">Buscar</span>
+          <svg className="campo-icono" viewBox="0 0 16 16" aria-hidden="true">
+            <circle cx="7" cy="7" r="4.75" fill="none" stroke="currentColor" strokeWidth="1.5" />
+            <path d="m10.5 10.5 3.5 3.5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
+          </svg>
           <input
             ref={buscador}
             type="search"
             value={filtros.q}
             onChange={(e) => onCambiar({ q: e.target.value })}
-            placeholder="Nombre o serie"
+            placeholder="Buscar"
             autoComplete="off"
             autoCapitalize="off"
             spellCheck="false"

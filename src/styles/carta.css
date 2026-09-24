@@ -85,7 +85,9 @@
   aspect-ratio: 2 / 3;
   overflow: hidden;
   border-radius: var(--radius-carta);
-  background-color: var(--tono, var(--color-surface-alt));
+  /* Mientras carga (y en el paspartú), el tono de la ilustración hundido en
+     el lienzo: una pista de color que no deslumbra sobre el fondo oscuro. */
+  background-color: color-mix(in srgb, var(--tono, var(--color-surface-alt)) 42%, var(--color-canvas));
   box-shadow:
     0 0 0 1px var(--color-gold-line-strong),
     0 0 0 2px rgb(0 0 0 / 0.55),
@@ -111,6 +113,10 @@
 /* Ilustración que no es 2:3 (lleva `ar` en los datos): se ve entera, centrada
    sobre un paspartú de su propio tono con un filete dorado, como una carta
    enmarcada, en lugar de recortar sus bordes. */
+.carta-lamina[data-paspartu] {
+  background-image: radial-gradient(ellipse 80% 70% at 50% 45%, rgb(255 255 255 / 0.05), rgb(0 0 0 / 0.32) 100%);
+}
+
 .carta-lamina[data-paspartu] img {
   box-sizing: border-box;
   padding: 6%;

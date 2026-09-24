@@ -1,54 +1,85 @@
 /* ==========================================================================
-   Galería: barra de filtros fija, rejilla de cartas y estado vacío.
+   Galería: barra de filtros fija, estandartes de cada serie, rejilla de
+   cartas y estado vacío.
    ========================================================================== */
 
-/* ---- Barra de filtros: una tira de papel entre dos filetes ---- */
+/* ---- Barra de filtros: una franja casi opaca con filete dorado ----
+   Sin backdrop-filter (Safari lo recalcula en cada frame de scroll): el
+   «cristal» es un color sólido semitransparente. */
 .filtros {
   position: sticky;
   top: 0;
   z-index: 5;
   display: block;
-  border-block: 1px solid var(--color-border);
   background-color: var(--color-velo);
+  box-shadow: 0 18px 28px -24px rgb(0 0 0 / 0.95);
+  scroll-margin-top: 0;
+}
+
+.filtros::after {
+  content: '';
+  position: absolute;
+  inset: auto 0 0;
+  height: 1px;
+  background-image: linear-gradient(90deg, transparent, var(--color-gold-line-strong) 25%, var(--color-gold-line-strong) 75%, transparent);
+  pointer-events: none;
 }
 
 .filtros-fila {
   display: grid;
-  grid-template-columns: minmax(0, 1.25fr) minmax(0, 1fr);
-  gap: 0.25rem 1rem;
-  align-items: end;
-  padding-block: 0.625rem 0.5rem;
+  grid-template-columns: minmax(0, 1.1fr) minmax(0, 1fr) auto;
+  gap: 0 0.5rem;
+  align-items: center;
+  padding-block: 0.625rem;
 }
 
 .campo {
   position: relative;
   display: flex;
   flex-direction: column;
-  gap: 0.125rem;
   min-width: 0;
 }
 
+/* Las etiquetas «Buscar» y «Serie» quedan para los lectores de pantalla:
+   el icono y el texto de ayuda ya dicen qué es cada campo. */
 .campo-etiqueta {
-  color: var(--color-fg-muted);
-  font-size: var(--text-2xs);
-  letter-spacing: var(--tracking-wide);
-  text-transform: uppercase;
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
 }
 
 .campo input,
 .campo select {
   width: 100%;
   min-width: 0;
-  height: 2.25rem;
-  padding: 0;
-  border: 0;
-  border-radius: 0;
-  background-color: transparent;
+  height: 2.625rem;
+  padding: 0 0.75rem;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  background-color: var(--color-surface);
   color: var(--color-fg-strong);
   font: inherit;
   /* 16 px: por debajo, Safari en iOS amplía la página al enfocar. */
   font-size: 1rem;
-  box-shadow: inset 0 -1px 0 var(--color-border);
+  transition: border-color var(--dur-2) var(--ease-sumi);
+}
+
+.campo--buscar input {
+  padding-left: 2.25rem;
+}
+
+.campo-icono {
+  position: absolute;
+  top: 50%;
+  left: 0.75rem;
+  width: 1rem;
+  height: 1rem;
+  margin-top: -0.5rem;
+  color: var(--color-gold);
+  pointer-events: none;
 }
 
 .campo input::placeholder {
@@ -64,34 +95,43 @@
 .campo select {
   -webkit-appearance: none;
   appearance: none;
-  padding-right: 1.25rem;
+  padding-right: 2rem;
   text-overflow: ellipsis;
   cursor: pointer;
-  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6'%3E%3Cpath d='M1 1l4 4 4-4' fill='none' stroke='%235e584e' stroke-width='1.2'/%3E%3C/svg%3E");
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6'%3E%3Cpath d='M1 1l4 4 4-4' fill='none' stroke='%23c5a15a' stroke-width='1.4'/%3E%3C/svg%3E");
   background-repeat: no-repeat;
-  background-position: right 0.25rem center;
+  background-position: right 0.75rem center;
+}
+
+.campo select option,
+.campo select optgroup {
+  background-color: var(--color-surface);
+  color: var(--color-fg-strong);
 }
 
 .campo input:hover,
 .campo select:hover {
-  box-shadow: inset 0 -1px 0 var(--color-fg-muted);
+  border-color: var(--color-gold-line-strong);
 }
 
-/* Foco: el filete se vuelve bermellón (sin cambiar la altura). */
+/* Foco: el borde se vuelve dorado, con un anillo fino (sin cambiar el tamaño). */
 .campo input:focus-visible,
 .campo select:focus-visible {
   outline: none;
-  box-shadow: inset 0 -2px 0 var(--color-hanko);
+  border-color: var(--color-gold-bright);
+  box-shadow: 0 0 0 1px var(--color-gold-bright);
 }
 
 .campo-atajo {
   position: absolute;
-  right: 0;
-  bottom: 0.5rem;
+  top: 50%;
+  right: 0.625rem;
   display: none;
   min-width: 1.25rem;
-  padding: 0 0.3rem;
+  margin-top: -0.6875rem;
+  padding: 0.0625rem 0.3rem;
   border: 1px solid var(--color-border);
+  border-radius: 0.25rem;
   color: var(--color-fg-muted);
   font-family: var(--font-sans);
   font-size: var(--text-2xs);
@@ -106,44 +146,40 @@
 }
 
 .filtros-cuenta {
-  grid-column: 1 / -1;
   display: flex;
   align-items: baseline;
-  gap: 0.375rem;
+  justify-content: flex-end;
+  gap: 0.5rem;
   margin: 0;
   color: var(--color-fg-muted);
   font-size: var(--text-xs);
+  white-space: nowrap;
+}
+
+.filtros-cuenta .cifra {
+  color: var(--color-gold-bright);
+  font-weight: 500;
 }
 
 .filtros-quitar {
-  margin-left: auto;
-  padding: 0.375rem 0 0.25rem;
+  padding: 0.5rem 0;
   border: 0;
   background: none;
   color: var(--color-fg-strong);
   font: inherit;
   text-decoration-line: underline;
-  text-decoration-color: var(--color-border);
+  text-decoration-color: var(--color-gold-line-strong);
   text-decoration-thickness: 1px;
   text-underline-offset: 0.25em;
   transition: text-decoration-color var(--dur-2) var(--ease-sumi);
 }
 
 .filtros-quitar:hover {
-  text-decoration-color: currentColor;
+  text-decoration-color: var(--color-gold-bright);
 }
 
-/* Móvil: una sola fila de menos de 60 px. Las etiquetas «Buscar» y «Serie»
-   y las palabras del recuento quedan solo para los lectores de pantalla. */
+/* Móvil: las palabras del recuento quedan solo para los lectores de pantalla. */
 @media (max-width: 47.99rem) {
-  .filtros-fila {
-    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr) auto;
-    align-items: center;
-    gap: 0 0.75rem;
-    padding-block: 0.5rem;
-  }
-
-  .campo-etiqueta,
   .filtros-palabra {
     position: absolute;
     width: 1px;
@@ -154,31 +190,29 @@
   }
 
   .filtros-cuenta {
-    grid-column: auto;
-    gap: 0.5rem;
+    flex-direction: column;
+    align-items: flex-end;
+    gap: 0;
   }
 
   .filtros-quitar {
-    padding: 0.5rem 0;
+    padding: 0.125rem 0;
   }
 }
 
 @media (min-width: 48rem) {
   .filtros-fila {
-    grid-template-columns: minmax(0, 20rem) minmax(0, 15rem) minmax(0, 1fr);
-    gap: 2rem;
-    padding-block: 0.875rem 0.75rem;
+    grid-template-columns: minmax(0, 22rem) minmax(0, 16rem) minmax(0, 1fr);
+    gap: 1rem;
+    padding-block: 0.875rem;
   }
 
   .filtros-cuenta {
-    grid-column: auto;
-    justify-content: flex-end;
-    padding-bottom: 0.5rem;
     font-size: var(--text-sm);
   }
 
   .filtros-quitar {
-    margin-left: 1rem;
+    margin-left: 0.75rem;
     padding: 0;
   }
 }
@@ -190,7 +224,7 @@
 
   /* Reserva el hueco del atajo para que el texto no se monte encima. */
   .campo--buscar input {
-    padding-right: 1.75rem;
+    padding-right: 2.25rem;
   }
 }
 
@@ -260,92 +294,190 @@
   }
 }
 
-/* ---- Salas: cada serie abre su propio tramo de la rejilla ---- */
-.sala + .sala {
-  margin-top: 4rem;
+
+/* ---- Estandartes: cada serie abre su tramo con su escenario ----
+   El escenario ocupa todo el estandarte, recortado a lo ancho, y un
+   degradado fijo lo oscurece hacia el texto y hacia la rejilla. El
+   estandarte se salta fuera de pantalla: su imagen y los glifos del título
+   japonés no se piden hasta que la serie se acerca. */
+.sala {
+  scroll-margin-top: 4.5rem;
 }
 
-/* La cabecera también se salta fuera de pantalla: así su título japonés no
-   pide los glifos del mincho hasta que la serie se acerca. */
+.sala + .sala {
+  margin-top: 4.5rem;
+}
+
 .sala-cabecera {
   content-visibility: auto;
-  contain-intrinsic-block-size: auto 5.25rem;
+  contain-intrinsic-block-size: auto 8.5rem;
+  position: relative;
+  isolation: isolate;
   display: grid;
-  grid-template-columns: auto minmax(0, 1fr) auto;
-  align-items: baseline;
+  grid-template-columns: auto minmax(0, 1fr);
+  grid-template-rows: auto auto;
+  align-items: center;
   column-gap: 0.875rem;
-  row-gap: 0.125rem;
-  margin-bottom: 1.5rem;
-  padding-top: 0.875rem;
-  border-top: 1px solid var(--color-border);
+  row-gap: 0.625rem;
+  min-height: 8.5rem;
+  margin-bottom: 1.75rem;
+  padding: 1rem 1rem 0.875rem;
+  overflow: hidden;
+  border: 1px solid var(--color-gold-line);
+  border-radius: var(--radius-lg);
+  background-color: var(--color-surface);
+  box-shadow: var(--shadow-panel);
+}
+
+.sala-escena {
+  position: absolute;
+  inset: 0;
+  z-index: -2;
+}
+
+.sala-escena img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: 50% 45%;
+}
+
+.sala-cabecera::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  background-image:
+    linear-gradient(90deg, rgb(4 7 12 / 0.94) 0%, rgb(4 7 12 / 0.78) 38%, rgb(4 7 12 / 0.25) 78%, rgb(4 7 12 / 0.1) 100%),
+    linear-gradient(0deg, rgb(4 7 12 / 0.55), transparent 55%);
+  pointer-events: none;
+}
+
+/* Filo dorado interior: un segundo trazo fino, como el marco de una carta. */
+.sala-cabecera::after {
+  content: '';
+  position: absolute;
+  inset: 0.3125rem;
+  border: 1px solid rgb(197 161 90 / 0.14);
+  border-radius: calc(var(--radius-lg) - 0.25rem);
+  pointer-events: none;
+}
+
+.sala-emblema {
+  grid-row: 1;
+  width: 4rem;
+  height: 4rem;
+}
+
+.sala-emblema--sello {
+  width: 3.5rem;
+  height: 3.5rem;
+  margin: 0.25rem;
+}
+
+.sala-texto {
+  grid-row: 1;
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
 }
 
 .sala-orden {
-  grid-row: 1 / span 2;
-  color: var(--color-fg-muted);
-  font-size: var(--text-xs);
-  letter-spacing: var(--tracking-wide);
+  color: var(--color-gold);
+  font-size: var(--text-2xs);
+  font-weight: 500;
+  letter-spacing: var(--tracking-rotulo);
 }
 
 .sala-titulo {
-  grid-column: 2;
-  margin: 0;
-  font-size: var(--text-2xl);
+  margin: 0.125rem 0 0;
+  font-size: var(--text-xl);
   line-height: 1.15;
   overflow-wrap: anywhere;
+  text-shadow: 0 1px 10px rgb(4 7 12 / 0.9);
 }
 
 .sala-nativo {
-  grid-column: 2;
+  margin-top: 0.25rem;
   color: var(--color-fg-muted);
   font-family: var(--font-jp-rotulo);
-  font-size: var(--text-sm);
+  font-size: var(--text-xs);
   letter-spacing: 0.08em;
 }
 
-.sala-ver {
-  grid-column: 3;
-  grid-row: 1;
-  padding: 0.25rem 0;
-  border: 0;
-  background: none;
-  color: var(--color-fg-muted);
+.sala-accion {
+  grid-column: 1 / -1;
+  grid-row: 2;
+  justify-self: end;
+}
+
+.sala-ver,
+.sala-cuenta {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.375rem;
+  min-height: 2.25rem;
+  padding: 0.375rem 0.875rem;
+  border: 1px solid var(--color-gold-line-strong);
+  border-radius: var(--radius-full);
+  background-color: rgb(4 7 12 / 0.72);
+  color: var(--color-gold-pale);
   font: inherit;
   font-size: var(--text-sm);
+  font-weight: 500;
   white-space: nowrap;
-  font-variant-numeric: tabular-nums;
-  transition: color var(--dur-2) var(--ease-sumi);
+}
+
+.sala-ver {
+  transition:
+    border-color var(--dur-2) var(--ease-sumi),
+    background-color var(--dur-2) var(--ease-sumi);
 }
 
 .sala-flecha {
   display: inline-block;
-  margin-left: 0.375rem;
+  color: var(--color-gold-bright);
   transition: transform var(--dur-3) var(--ease-sumi);
 }
 
 .sala-ver:hover {
-  color: var(--color-fg-strong);
+  border-color: var(--color-gold-bright);
+  background-color: rgb(197 161 90 / 0.18);
 }
 
 .sala-ver:hover .sala-flecha {
   transform: translateX(3px);
 }
 
+/* Las especiales: el abanico de cartas encendido al pie del marco SSR. */
+.sala-cabecera[data-especial] .sala-escena img {
+  object-position: 50% 86%;
+}
+
 @media (min-width: 48rem) {
   .sala + .sala {
-    margin-top: 5.5rem;
+    margin-top: 6rem;
   }
 
   .sala-cabecera {
-    contain-intrinsic-block-size: auto 3.75rem;
-    grid-template-columns: 2.5rem minmax(0, auto) minmax(0, 1fr) auto;
-    column-gap: 1.25rem;
-    margin-bottom: 2.25rem;
-    padding-top: 1.125rem;
+    contain-intrinsic-block-size: auto 11rem;
+    grid-template-columns: auto minmax(0, 1fr) auto;
+    grid-template-rows: auto;
+    column-gap: 1.5rem;
+    min-height: 11rem;
+    margin-bottom: 2.5rem;
+    padding: 1.25rem 2rem 1.25rem 1.5rem;
   }
 
-  .sala-orden {
-    grid-row: 1;
+  .sala-emblema {
+    width: 6.5rem;
+    height: 6.5rem;
+  }
+
+  .sala-emblema--sello {
+    width: 5rem;
+    height: 5rem;
+    margin: 0.75rem;
   }
 
   .sala-titulo {
@@ -353,13 +485,13 @@
   }
 
   .sala-nativo {
-    grid-column: 3;
-    grid-row: 1;
-    font-size: var(--text-base);
+    font-size: var(--text-sm);
   }
 
-  .sala-ver {
-    grid-column: 4;
+  .sala-accion {
+    grid-column: 3;
+    grid-row: 1;
+    align-self: end;
   }
 }
 
@@ -368,51 +500,50 @@
   display: none;
 }
 
-/* ---- Sin resultados ---- */
+/* ---- Sin resultados: la ciudad de noche, y qué probar ---- */
 .vacio {
-  display: flex;
-  align-items: flex-start;
-  gap: 1.25rem;
-  padding-block: 2.5rem 4rem;
+  display: grid;
+  gap: 1.5rem;
+  padding-block: 1rem 4rem;
 }
 
-/* Un hueco vacío, como el de un álbum al que aún le falta la carta. */
-.vacio-hueco {
-  flex: none;
-  display: grid;
-  place-items: center;
-  width: 5.5rem;
-  aspect-ratio: 2 / 3;
-  border: 1px solid var(--color-border);
-  outline: 1px solid var(--color-surface-alt);
-  outline-offset: -6px;
+.vacio-escena {
+  position: relative;
+  aspect-ratio: 16 / 9;
+  max-width: 26rem;
+  overflow: hidden;
+  border: 1px solid var(--color-gold-line);
+  border-radius: var(--radius-lg);
+  background-color: var(--color-surface);
+  box-shadow: var(--shadow-panel);
   animation: aparece var(--dur-4) var(--ease-sumi) both;
 }
 
-.vacio-tate {
-  color: var(--color-accent);
-  font-size: var(--text-base);
+.vacio-escena img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
 }
 
-@media (min-width: 48rem) {
-  .vacio {
-    gap: 2.5rem;
-  }
-
-  .vacio-hueco {
-    width: 8rem;
-  }
-
-  .vacio-tate {
-    font-size: var(--text-xl);
-  }
+.vacio-tate {
+  position: absolute;
+  top: 0.875rem;
+  right: 0.875rem;
+  padding: 0.5rem 0.3125rem;
+  border: 1px solid var(--color-gold-line-strong);
+  border-radius: var(--radius-sm);
+  background-color: rgb(4 7 12 / 0.8);
+  color: var(--color-gold-bright);
+  font-size: var(--text-sm);
 }
 
 .vacio-titulo {
   max-width: 30rem;
   margin: 0;
+  color: var(--color-fg-strong);
   font-family: var(--font-display);
   font-size: var(--text-2xl);
+  font-weight: 700;
   line-height: 1.2;
   overflow-wrap: anywhere;
   animation: aparece var(--dur-4) var(--ease-sumi) 80ms both;
@@ -427,16 +558,28 @@
 
 .vacio-boton {
   margin-top: 1.5rem;
-  background: none;
   font-family: inherit;
   animation: aparece var(--dur-4) var(--ease-sumi) 240ms both;
 }
 
+@media (min-width: 48rem) {
+  .vacio {
+    grid-template-columns: minmax(0, 22rem) minmax(0, 1fr);
+    align-items: center;
+    gap: 3rem;
+    padding-block: 2rem 5rem;
+  }
+}
+
 @media (prefers-reduced-motion: reduce) {
-  .vacio-hueco,
+  .vacio-escena,
   .vacio-titulo,
   .vacio-texto,
   .vacio-boton {
     animation-name: funde;
+  }
+
+  .sala-ver:hover .sala-flecha {
+    transform: none;
   }
 }
