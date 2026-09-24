@@ -171,15 +171,14 @@ export function SobreCerrado({ numero, otro, onAbrir }) {
 /**
  * El sobre mientras se rasga: la misma cara recortada en tres piezas (la
  * tira y dos mitades), el sello partido en dos y la luz que sale de dentro:
- * un destello en la línea de rasgado, un halo y un abanico de rayos detrás
- * de las hojas. Lo anima lib/coreografia.
+ * un destello en la línea de rasgado y, detrás de las hojas, un halo con un
+ * abanico de rayos (un solo plano). Lo anima lib/coreografia.
  */
 export function SobreRasgado({ numero }) {
   return (
     <div className="sobre sobre--rasgado" aria-hidden="true">
       <span className="sobre-caja" data-pieza="caja">
         <span className="sobre-sombra" data-pieza="sombra" />
-        <span className="sobre-rayos" data-pieza="rayos" />
         <span className="sobre-luz" data-pieza="luz" />
         {['tira', 'izquierda', 'derecha'].map((pieza) => (
           <span key={pieza} className={`sobre-pieza sobre-pieza--${pieza}`} data-pieza={pieza} style={{ clipPath: PIEZAS[pieza] }}>

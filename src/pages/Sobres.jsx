@@ -190,7 +190,7 @@ export default function Sobres() {
   const numero = SOBRES_POR_DIA - quedan + 1
 
   return (
-    <div ref={escenario} className="sobres">
+    <div ref={escenario} className="sobres" data-fase={cer.fase}>
       <Arena />
       <div className="wrap sobres-cabecera">
         <TituloSeccion ja="開封" sub="Cinco sobres al día, con cinco cartas cada uno.">

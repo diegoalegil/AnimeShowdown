@@ -15,8 +15,7 @@ export const APERTURA = {
   sello: { retardo: 170, duracion: 560 },
   grieta: { retardo: 160, duracion: 600 },
   tira: { retardo: 260, duracion: 640 },
-  luz: { retardo: 460, duracion: 950 },
-  rayos: { retardo: 460, duracion: 1300 },
+  luz: { retardo: 460, duracion: 1200 },
   mitades: { retardo: 520, duracion: 780 },
   cartas: { retardo: 600, paso: 70, duracion: 860 },
 }
@@ -112,8 +111,8 @@ export function animarApertura(mesa) {
   )
 
   // 5. El cuerpo se abre por la mitad; las dos hojas caen hacia fuera y
-  //    detrás estalla la luz: un halo que crece y se apaga y un abanico de
-  //    rayos que gira un poco. Solo escala, giro y opacidad de planos pintados.
+  //    detrás estalla la luz: un halo con un abanico de rayos que crece, gira
+  //    un poco y se apaga. Solo escala, giro y opacidad de un plano pintado.
   for (const [lado, signo] of [
     ['izquierda', -1],
     ['derecha', 1],
@@ -131,20 +130,11 @@ export function animarApertura(mesa) {
   animar(
     pieza('luz'),
     [
-      { transform: 'scale(0.25)', opacity: 0 },
-      { transform: 'scale(0.9)', opacity: 1, offset: 0.3 },
-      { transform: 'scale(1.25)', opacity: 0 },
+      { transform: 'rotate(-8deg) scale(0.3)', opacity: 0 },
+      { transform: 'rotate(0deg) scale(0.9)', opacity: 1, offset: 0.28 },
+      { transform: 'rotate(14deg) scale(1.2)', opacity: 0 },
     ],
     { duration: APERTURA.luz.duracion, delay: APERTURA.luz.retardo, easing: SUAVE },
-  )
-  animar(
-    pieza('rayos'),
-    [
-      { transform: 'rotate(-10deg) scale(0.4)', opacity: 0 },
-      { transform: 'rotate(2deg) scale(0.95)', opacity: 0.9, offset: 0.3 },
-      { transform: 'rotate(22deg) scale(1.15)', opacity: 0 },
-    ],
-    { duration: APERTURA.rayos.duracion, delay: APERTURA.rayos.retardo, easing: SUAVE },
   )
   animar(pieza('sombra'), [{ opacity: 1 }, { opacity: 0 }], {
     duration: APERTURA.mitades.duracion * 0.6,
