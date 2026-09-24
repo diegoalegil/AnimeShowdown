@@ -204,7 +204,8 @@
 /* ---- Especiales: filo irisado y brillo de arcoíris ----
    El filo es un anillo de degradado (máscara fija) sobre el filo dorado. Al
    pasar el puntero, la banda de luz se vuelve un arcoíris dorado. */
-.carta[data-especial] .carta-marco::after {
+.carta[data-especial] .carta-marco::after,
+.carta-marco[data-especial]::after {
   content: '';
   position: absolute;
   inset: -1px;
@@ -230,7 +231,8 @@
   pointer-events: none;
 }
 
-.carta[data-especial] .carta-brillo::after {
+.carta[data-especial] .carta-brillo::after,
+.carta-marco[data-especial] .carta-brillo::after {
   inset: -20% auto -20% -80%;
   width: 150%;
   background-image: linear-gradient(

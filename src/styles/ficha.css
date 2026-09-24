@@ -1,31 +1,61 @@
 /* ==========================================================================
-   Ficha: la carta sobre el escenario oscuro y su cartela en papel.
+   Ficha: la carta sobre el escenario de su serie y, al lado, su panel.
+
+   El telón es el fondo difuminado de la serie (480 px, ya oscurecido al
+   generarlo: estirado no se nota y pesa 1 KB) con la escena encima, tenue,
+   y degradados fijos. Nada de filtros en tiempo de ejecución.
    ========================================================================== */
 
 .ficha {
-  display: grid;
-}
-
-/* ---- Escenario ---- */
-.ficha-escenario {
   position: relative;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
   isolation: isolate;
+  display: grid;
   overflow: clip;
-  padding: 1rem var(--gutter) 2.25rem;
-  /* Foco de luz estático sobre la carta. */
-  background-image: radial-gradient(ellipse 60% 48% at 50% 46%, var(--color-surface-alt), transparent 72%);
+  background-color: var(--color-canvas);
 }
 
-/* El nombre original, enorme y casi negro sobre negro: textura, no texto. */
-.ficha-fondo {
+/* ---- Telón: la serie a toda la anchura ---- */
+.ficha-telon {
   position: absolute;
+  inset: 0;
+  z-index: -1;
+  overflow: hidden;
+  background-color: var(--color-canvas);
+  background-image: var(--fondo, none);
+  background-position: 50% 30%;
+  background-size: cover;
+}
+
+.ficha-telon-escena {
+  position: absolute;
+  inset: 0 0 auto;
+  width: 100%;
+  height: min(100%, 64rem);
+  object-fit: cover;
+  object-position: 50% 35%;
+  opacity: 0.42;
+  animation: funde var(--dur-5) var(--ease-sumi) both;
+}
+
+/* Foco tras la carta, viñeta y fundido con el lienzo al pie: una capa fija. */
+.ficha-telon::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background-image:
+    radial-gradient(ellipse 34rem 30rem at var(--foco-x, 50%) 22rem, rgb(197 161 90 / 0.14), transparent 70%),
+    linear-gradient(180deg, rgb(4 7 12 / 0.55) 0%, rgb(4 7 12 / 0.35) 30%, rgb(4 7 12 / 0.8) 70%, var(--color-canvas) 100%),
+    radial-gradient(ellipse 120% 90% at 50% 30%, transparent 40%, rgb(4 7 12 / 0.85) 100%);
+}
+
+/* El nombre original, enorme y casi invisible: textura, no texto. */
+.ficha-telon-nombre {
+  position: absolute;
+  z-index: 1;
   top: 1.5rem;
   right: -0.5rem;
   writing-mode: vertical-rl;
-  color: var(--color-surface);
+  color: rgb(197 161 90 / 0.07);
   font-family: var(--font-jp);
   font-size: 6.5rem;
   line-height: 1;
@@ -35,10 +65,19 @@
   user-select: none;
 }
 
+/* ---- Escenario de la carta ---- */
+.ficha-escenario {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 1rem var(--gutter) 2.5rem;
+}
+
 .ficha-barra {
   position: relative;
   display: flex;
-  align-items: baseline;
+  align-items: center;
   justify-content: space-between;
   gap: 1rem;
   width: 100%;
@@ -47,21 +86,30 @@
 
 .ficha-volver {
   display: inline-flex;
-  align-items: baseline;
+  align-items: center;
   gap: 0.5rem;
-  padding-block: 0.5rem;
+  min-height: 2.5rem;
+  padding: 0.375rem 0.875rem 0.375rem 0.75rem;
+  border: 1px solid var(--color-gold-line);
+  border-radius: var(--radius-full);
+  background-color: rgb(4 7 12 / 0.7);
   color: var(--color-fg-strong);
   font-weight: 500;
+  transition: border-color var(--dur-2) var(--ease-sumi);
+}
+
+.ficha-volver:hover {
+  border-color: var(--color-gold-bright);
 }
 
 .ficha-volver-flecha {
   display: inline-block;
-  color: var(--color-accent-text);
+  color: var(--color-gold-bright);
   transition: transform var(--dur-3) var(--ease-sumi);
 }
 
 .ficha-volver:hover .ficha-volver-flecha {
-  transform: translateX(-4px);
+  transform: translateX(-3px);
 }
 
 .ficha-posicion {
@@ -78,19 +126,39 @@
   position: relative;
   isolation: isolate;
   width: min(72vw, 22rem);
-  margin-top: 1.25rem;
+  margin-top: 1.5rem;
 }
 
-/* Sombra propia del escenario: la carta flota sobre el negro. Va fuera de
-   la carta (que es el elemento de la View Transition) para que su captura
-   mida lo mismo que la carta de la galería y no se vea doble al transformarse. */
+/* Sombra honda y halo dorado del escenario: fuera de la carta (que es el
+   elemento de la View Transition) para que su captura mida lo mismo que la
+   carta de la galería y no se vea doble al transformarse. */
 .ficha-carta::before {
   content: '';
   position: absolute;
-  inset: 10% 6% 0;
+  inset: 8% 5% 0;
   z-index: -1;
-  box-shadow: 0 34px 60px -24px rgb(0 0 0 / 0.95);
+  border-radius: var(--radius-lg);
+  box-shadow:
+    0 40px 70px -26px rgb(0 0 0 / 0.95),
+    0 0 60px -10px rgb(197 161 90 / 0.35);
   pointer-events: none;
+}
+
+/* Reflejo en el suelo: una elipse de luz fija bajo la carta. */
+.ficha-carta::after {
+  content: '';
+  position: absolute;
+  left: 8%;
+  right: 8%;
+  bottom: -1.75rem;
+  z-index: -1;
+  height: 2.5rem;
+  background-image: radial-gradient(ellipse 50% 50% at 50% 50%, rgb(228 195 111 / 0.26), transparent 70%);
+  pointer-events: none;
+}
+
+.ficha-marco {
+  --radius-carta: 0.875rem;
 }
 
 .ficha-sello {
@@ -176,14 +244,18 @@
   }
 }
 
-/* ---- Versiones: normal y especiales ---- */
+/* ---- Versiones: normal y especiales, en un selector dorado ---- */
 .versiones {
   position: relative;
   display: flex;
   flex-wrap: wrap;
   justify-content: center;
-  gap: 0.5rem;
-  margin-top: 1.75rem;
+  gap: 0.25rem;
+  margin-top: 2.5rem;
+  padding: 0.25rem;
+  border: 1px solid var(--color-gold-line);
+  border-radius: var(--radius-full);
+  background-color: rgb(4 7 12 / 0.75);
 }
 
 .version {
@@ -191,27 +263,27 @@
   align-items: center;
   gap: 0.4rem;
   min-height: 2.25rem;
-  padding: 0.375rem 0.875rem;
-  border: 1px solid var(--color-border);
+  padding: 0.375rem 0.9375rem;
+  border: 1px solid transparent;
+  border-radius: var(--radius-full);
   background-color: transparent;
   color: var(--color-fg-muted);
   font: inherit;
   font-size: var(--text-sm);
+  font-weight: 500;
   transition:
     color var(--dur-2) var(--ease-sumi),
-    border-color var(--dur-2) var(--ease-sumi),
     background-color var(--dur-2) var(--ease-sumi);
 }
 
 .version:hover {
-  border-color: var(--color-fg-muted);
   color: var(--color-fg-strong);
 }
 
 .version[aria-pressed='true'] {
-  border-color: var(--color-fg-strong);
-  background-color: var(--color-fg-strong);
-  color: var(--color-canvas);
+  border-color: var(--color-gold-line-strong);
+  background-color: var(--color-gold-soft);
+  color: var(--color-gold-pale);
   cursor: default;
 }
 
@@ -219,13 +291,43 @@
   width: 1.125rem;
 }
 
-.version[aria-pressed='true'] .hanko-contorno {
-  fill: var(--color-fg-strong);
+/* ---- Panel: «cristal» oscuro con filetes dorados ---- */
+.ficha-info {
+  position: relative;
+  margin: 0 var(--gutter) 3.5rem;
+  padding: 1.75rem 1.25rem 1.5rem;
+  border: 1px solid var(--color-gold-line);
+  border-radius: var(--radius-lg);
+  background-color: var(--color-cristal);
+  box-shadow:
+    inset 0 1px 0 rgb(247 230 162 / 0.08),
+    var(--shadow-panel);
 }
 
-/* ---- Cartela ---- */
-.ficha-info {
-  padding: 2.25rem var(--gutter) 4rem;
+/* Esquinas doradas, como los remates del marco de una carta. */
+.ficha-info::before,
+.ficha-info::after {
+  content: '';
+  position: absolute;
+  width: 1.5rem;
+  height: 1.5rem;
+  border-color: var(--color-gold-line-strong);
+  border-style: solid;
+  pointer-events: none;
+}
+
+.ficha-info::before {
+  top: 0.5rem;
+  left: 0.5rem;
+  border-width: 1px 0 0 1px;
+  border-top-left-radius: 0.5rem;
+}
+
+.ficha-info::after {
+  right: 0.5rem;
+  bottom: 0.5rem;
+  border-width: 0 1px 1px 0;
+  border-bottom-right-radius: 0.5rem;
 }
 
 .ficha-cabecera {
@@ -240,8 +342,8 @@
   flex: none;
   white-space: nowrap;
   padding: 0.375rem 0 0.375rem 0.75rem;
-  border-left: 1px solid var(--color-hanko);
-  color: var(--color-fg);
+  border-left: 1px solid var(--color-accent-hover);
+  color: var(--color-gold-bright);
   font-size: var(--text-lg);
   animation: aparece var(--dur-4) var(--ease-sumi) 120ms both;
 }
@@ -253,40 +355,51 @@
 
 .ficha-numero {
   margin: 0;
-  color: var(--color-fg-muted);
+  color: var(--color-gold);
   font-size: var(--text-xs);
-  letter-spacing: var(--tracking-wide);
+  font-weight: 500;
+  letter-spacing: var(--tracking-rotulo);
 }
 
 .ficha-nombre {
   margin: 0.375rem 0 0;
   font-size: var(--text-4xl);
-  line-height: 1.02;
+  line-height: 1.04;
   overflow-wrap: anywhere;
 }
 
 .ficha-variante {
-  margin: 0.375rem 0 0;
-  color: var(--color-fg);
+  display: inline-block;
+  margin: 0.5rem 0 0;
+  background-image: linear-gradient(180deg, var(--color-gold-pale), var(--color-gold-bright) 55%, var(--color-gold));
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
   font-family: var(--font-display);
   font-size: var(--text-xl);
-  font-style: italic;
+  font-weight: 700;
 }
 
 .ficha-serie {
   display: flex;
   flex-wrap: wrap;
-  align-items: baseline;
-  gap: 0.25rem 0.75rem;
-  margin: 0.75rem 0 0;
+  align-items: center;
+  gap: 0.25rem 0.625rem;
+  margin: 0.875rem 0 0;
   animation: aparece var(--dur-4) var(--ease-sumi) 200ms both;
+}
+
+.ficha-serie-emblema {
+  width: 2.75rem;
+  height: 2.75rem;
+  margin: -0.25rem 0.125rem -0.25rem -0.25rem;
 }
 
 .ficha-serie-titulo {
   color: var(--color-fg);
   font-family: var(--font-display);
-  font-size: var(--text-xl);
-  font-style: italic;
+  font-size: var(--text-lg);
+  font-weight: 700;
 }
 
 .ficha-serie-nativo {
@@ -295,27 +408,56 @@
   letter-spacing: 0.08em;
 }
 
+/* Serie, rareza y colección: pastillas con su rótulo dorado. */
 .ficha-datos {
-  margin: 2rem 0 0;
-  border-top: 1px solid var(--color-border);
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin: 1.75rem 0 0;
   animation: aparece var(--dur-4) var(--ease-sumi) 280ms both;
 }
 
 .ficha-datos > div {
-  display: grid;
-  grid-template-columns: 6.5rem minmax(0, 1fr);
-  gap: 1rem;
-  padding-block: 0.75rem;
-  border-bottom: 1px solid var(--color-border);
+  display: flex;
+  flex-direction: column;
+  gap: 0.125rem;
+  min-width: 0;
+  padding: 0.5rem 0.875rem 0.5625rem;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  background-color: rgb(4 7 12 / 0.55);
 }
 
 .ficha-datos dt {
-  color: var(--color-fg-muted);
-  font-size: var(--text-sm);
+  color: var(--color-gold);
+  font-size: var(--text-2xs);
+  font-weight: 500;
+  letter-spacing: var(--tracking-rotulo);
+  text-transform: uppercase;
 }
 
 .ficha-datos dd {
   margin: 0;
+  color: var(--color-fg-strong);
+  font-size: var(--text-sm);
+}
+
+/* Especial: filo irisado fijo, como el de la carta. */
+.ficha-datos > div[data-especial] {
+  border-color: transparent;
+  background:
+    linear-gradient(var(--color-surface), var(--color-surface)) padding-box,
+    linear-gradient(120deg, var(--color-gold-pale), var(--color-electric-soft), rgb(232 90 100), var(--color-gold-bright)) border-box;
+}
+
+/* Tuya: la pastilla se vuelve dorada. */
+.ficha-datos > div:has(.ficha-la-tienes) {
+  border-color: var(--color-gold-line-strong);
+  background-color: var(--color-gold-soft);
+}
+
+.ficha-datos > div:has(.ficha-la-tienes) dd {
+  color: var(--color-gold-pale);
 }
 
 /* Datos que cambian al girar la carta: se funden con el giro. */
@@ -330,33 +472,38 @@
 }
 
 .ficha-enlace {
+  color: var(--color-fg-strong);
   text-decoration-line: underline;
-  text-decoration-color: var(--color-border);
+  text-decoration-color: var(--color-gold-line-strong);
   text-decoration-thickness: 1px;
   text-underline-offset: 0.25em;
-  transition: text-decoration-color var(--dur-2) var(--ease-sumi), color var(--dur-2) var(--ease-sumi);
+  transition:
+    text-decoration-color var(--dur-2) var(--ease-sumi),
+    color var(--dur-2) var(--ease-sumi);
 }
 
 .ficha-enlace:hover {
-  text-decoration-color: currentColor;
+  color: var(--color-gold-pale);
+  text-decoration-color: var(--color-gold-bright);
 }
 
 .ficha-desc {
   max-width: var(--container-prosa);
-  margin: 1.75rem 0 0;
+  margin: 1.5rem 0 0;
+  padding-top: 1.25rem;
+  border-top: 1px solid var(--color-surface-alt);
   color: var(--color-fg);
-  font-family: var(--font-display);
-  font-size: var(--text-lg);
-  line-height: 1.55;
+  font-size: var(--text-base);
+  line-height: 1.7;
   animation: aparece var(--dur-4) var(--ease-sumi) 340ms both;
 }
 
-/* ---- Anterior / siguiente ---- */
+/* ---- Anterior / siguiente: dos placas con su miniatura ---- */
 .ficha-recorrido {
   display: grid;
   grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
-  gap: 1rem;
-  margin-top: 2.5rem;
+  gap: 0.625rem;
+  margin-top: 1.75rem;
   animation: aparece var(--dur-4) var(--ease-sumi) 400ms both;
 }
 
@@ -365,21 +512,34 @@
   align-items: center;
   gap: 0.75rem;
   min-width: 0;
-  padding-block: 0.25rem;
+  padding: 0.5rem 0.75rem 0.5rem 0.5rem;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  background-color: rgb(4 7 12 / 0.55);
+  transition:
+    border-color var(--dur-2) var(--ease-sumi),
+    background-color var(--dur-2) var(--ease-sumi);
 }
 
 .ficha-vecina--siguiente {
   flex-direction: row-reverse;
+  padding: 0.5rem 0.5rem 0.5rem 0.75rem;
   text-align: right;
+}
+
+.ficha-vecina:hover {
+  border-color: var(--color-gold-line-strong);
+  background-color: var(--color-surface);
 }
 
 .ficha-vecina-mini {
   flex: none;
-  width: 2.5rem;
+  width: 2.625rem;
   aspect-ratio: 2 / 3;
   overflow: hidden;
-  background-color: var(--tono, var(--color-surface-alt));
-  box-shadow: var(--shadow-lamina);
+  border-radius: 0.3125rem;
+  background-color: color-mix(in srgb, var(--tono, var(--color-surface-alt)) 42%, var(--color-canvas));
+  box-shadow: 0 0 0 1px var(--color-gold-line-strong);
   transition: transform var(--dur-3) var(--ease-sumi);
 }
 
@@ -397,35 +557,34 @@
 }
 
 .ficha-vecina-rotulo {
-  color: var(--color-fg-muted);
-  font-size: var(--text-xs);
+  color: var(--color-gold);
+  font-size: var(--text-2xs);
+  font-weight: 500;
+  letter-spacing: var(--tracking-wide);
+  text-transform: uppercase;
 }
 
 .ficha-vecina-nombre {
   overflow: hidden;
+  color: var(--color-fg-strong);
   font-family: var(--font-display);
-  font-size: var(--text-lg);
+  font-size: var(--text-base);
+  font-weight: 700;
   text-overflow: ellipsis;
   white-space: nowrap;
 }
 
-.ficha-vecina:hover .ficha-vecina-nombre {
-  text-decoration: underline;
-  text-decoration-thickness: 1px;
-  text-underline-offset: 0.22em;
-}
-
 .ficha-vecina--anterior:hover .ficha-vecina-mini {
-  transform: translateX(-3px) rotate(-2deg);
+  transform: translateX(-2px) rotate(-3deg);
 }
 
 .ficha-vecina--siguiente:hover .ficha-vecina-mini {
-  transform: translateX(3px) rotate(2deg);
+  transform: translateX(2px) rotate(3deg);
 }
 
 .ficha-atajos {
   display: none;
-  margin: 1.5rem 0 0;
+  margin: 1.25rem 0 0;
   color: var(--color-fg-muted);
   font-size: var(--text-xs);
 }
@@ -435,6 +594,7 @@
   min-width: 1.35rem;
   padding: 0 0.3rem;
   border: 1px solid var(--color-border);
+  border-radius: 0.25rem;
   font-family: var(--font-sans);
   text-align: center;
 }
@@ -451,13 +611,14 @@
     width: min(44vw, 24rem);
   }
 
-  .ficha-fondo {
+  .ficha-telon-nombre {
     font-size: 9rem;
   }
 
   .ficha-info {
-    max-width: 44rem;
-    padding-block: 3rem 5rem;
+    width: min(100% - 2 * var(--gutter), 44rem);
+    margin-inline: auto;
+    padding: 2.25rem 2.25rem 2rem;
   }
 
   .ficha-nombre {
@@ -471,17 +632,25 @@
   .ficha-nativo--largo {
     font-size: var(--text-lg);
   }
+
+  .ficha-vecina-nombre {
+    font-size: var(--text-lg);
+  }
 }
 
-/* ---- Escritorio: escenario y cartela a los lados ---- */
+/* ---- Escritorio: escenario y panel a los lados ---- */
 @media (min-width: 64rem) {
   .ficha {
-    grid-template-columns: minmax(0, 1.08fr) minmax(0, 1fr);
-    min-height: calc(100dvh - 7.25rem);
+    --foco-x: 28%;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+    align-items: center;
+    min-height: calc(100dvh - 4.25rem);
+    padding-inline: max(0px, (100vw - var(--container-page)) / 2);
   }
 
   .ficha-escenario {
-    padding: 1.5rem 3rem 3rem max(var(--gutter), calc((100vw - var(--container-page)) / 2 + var(--gutter)));
+    align-self: stretch;
+    padding: 1.5rem 2.5rem 3.5rem var(--gutter);
   }
 
   .ficha-barra {
@@ -489,21 +658,21 @@
   }
 
   .ficha-carta {
-    width: min(28rem, calc((100dvh - 20rem) * var(--ar, 2 / 3)));
-    min-width: 18rem;
+    width: min(26rem, calc((100dvh - 19rem) * var(--ar, 2 / 3)));
+    min-width: 17rem;
     margin-block: auto;
   }
 
-  .ficha-fondo {
+  .ficha-telon-nombre {
     top: 2rem;
     right: 1.5rem;
     font-size: 11rem;
   }
 
   .ficha-info {
-    align-self: center;
-    max-width: none;
-    padding: 3.5rem max(var(--gutter), calc((100vw - var(--container-page)) / 2 + var(--gutter))) 4rem 4rem;
+    width: auto;
+    margin: 3rem var(--gutter) 3.5rem 0;
+    padding: 2.5rem 2.5rem 2.25rem;
   }
 }
 
@@ -539,5 +708,11 @@
   .ficha-vecina-mini,
   .ficha-volver-flecha {
     transition: none;
+  }
+
+  .ficha-vecina--anterior:hover .ficha-vecina-mini,
+  .ficha-vecina--siguiente:hover .ficha-vecina-mini,
+  .ficha-volver:hover .ficha-volver-flecha {
+    transform: none;
   }
 }

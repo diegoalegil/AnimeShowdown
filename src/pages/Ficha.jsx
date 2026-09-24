@@ -8,6 +8,7 @@ import { catalogo, esEspecial, numeroCarta } from '../lib/catalog.js'
 import { diaCorto } from '../lib/fechas.js'
 import { busquedaDe, etiquetaFiltros, leerFiltros, recorrido } from '../lib/filtros.js'
 import { imagenCarta, proporcionCarta } from '../lib/images.js'
+import { escenaAnime, fondoAnime, simboloAnime } from '../lib/marca.js'
 import { nombrarCompartido } from '../lib/motion.js'
 import { actualizarAncla, irA, volverAtras } from '../lib/navegacion.js'
 import { columnasNombre, MAX_COLUMNA } from '../lib/tategaki.js'
@@ -99,17 +100,39 @@ function FichaCarta({ carta }) {
     return () => document.removeEventListener('keydown', alPulsar)
   }, [navigate, anterior, siguiente, busqueda, volverA])
 
+  const escena = escenaAnime(anime)
+  const fondo = fondoAnime(anime)
+  const simbolo = simboloAnime(anime)
+  // Sin volver atrás de verdad, la galería filtrada se abre en sus cartas.
+  const aGaleria = busqueda ? `/${busqueda}#cartas` : '/'
+
   return (
-    <article className="ficha">
-      <div className="ficha-escenario">
+    <article className="ficha" style={fondo ? { '--fondo': `url(${fondo})` } : undefined}>
+      {/* El escenario de la serie a toda la anchura: el fondo difuminado (1 KB,
+          al instante) y encima la escena, tenue, cuando llega. */}
+      <div className="ficha-telon" aria-hidden="true">
+        {escena && (
+          <img
+            key={anime.id}
+            className="ficha-telon-escena"
+            src={escena.src}
+            srcSet={escena.srcSet}
+            sizes="100vw"
+            alt=""
+            decoding="async"
+            fetchPriority="low"
+          />
+        )}
         {nativo && (
-          <span lang="ja" className="ficha-fondo" aria-hidden="true">
+          <span lang="ja" className="ficha-telon-nombre">
             <TextoVertical texto={nativo} />
           </span>
         )}
+      </div>
 
+      <div className="ficha-escenario">
         <div className="ficha-barra">
-          <Enlace ref={enlaceVolver} to={aColeccion ? '/coleccion' : `/${busqueda}`} className="ficha-volver" onClick={volver}>
+          <Enlace ref={enlaceVolver} to={aColeccion ? '/coleccion' : aGaleria} className="ficha-volver" onClick={volver}>
             <span className="ficha-volver-flecha" aria-hidden="true">
               ←
             </span>
@@ -150,6 +173,18 @@ function FichaCarta({ carta }) {
             </h1>
             {carta.variante && <p className="ficha-variante">{carta.variante}</p>}
             <p className="ficha-serie">
+              {simbolo && (
+                <img
+                  className="ficha-serie-emblema"
+                  src={simbolo.src}
+                  srcSet={simbolo.srcSet}
+                  sizes="44px"
+                  width="160"
+                  height="160"
+                  alt=""
+                  decoding="async"
+                />
+              )}
               <span className="ficha-serie-titulo">{anime.titulo}</span>
               {anime.nativo && (
                 <span lang="ja" className="ficha-serie-nativo">
@@ -160,16 +195,17 @@ function FichaCarta({ carta }) {
           </div>
         </header>
 
+        {/* Serie, rareza y colección: tres pastillas con su rótulo. */}
         <dl className="ficha-datos">
           <div>
             <dt>Serie</dt>
             <dd>
-              <Enlace to={`/?serie=${anime.id}`} className="ficha-enlace">
+              <Enlace to={`/?serie=${anime.id}#cartas`} className="ficha-enlace">
                 Ver sus {anime.count} cartas
               </Enlace>
             </dd>
           </div>
-          <div>
+          <div data-especial={especial || undefined}>
             <dt>Rareza</dt>
             <dd key={carta.id} className="ficha-cambia">
               {especial ? 'Especial' : 'Normal'}
