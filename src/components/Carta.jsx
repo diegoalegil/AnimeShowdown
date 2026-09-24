@@ -10,7 +10,8 @@ import { Hanko } from './Hanko.jsx'
  * listeners propios: puede haber más de mil en la página.
  *
  * - `tamano`: muro | album | sobre | ficha (elige el atributo sizes).
- * - `copias`: cuántas tiene el visitante; 0 no muestra nada.
+ * - `copias`: cuántas tiene el visitante; 0 no muestra nada. En el álbum
+ *   todo es suyo: solo se anotan las repetidas (×N).
  * - `nueva`: sello 新 de carta recién conseguida.
  * - `enlace`: si la carta lleva a su ficha.
  * - `cartela`: nombre y serie bajo la ilustración.
@@ -77,7 +78,7 @@ export const Carta = memo(function Carta({
       <span className="carta-numero cifra">{numero}</span>
       <span className="carta-nombre">{carta.nombre}</span>
       <span className="carta-serie">{serie}</span>
-      {copias > 0 && (
+      {copias > (tamano === 'album' ? 1 : 0) && (
         <span className="carta-copias cifra" title={copias > 1 ? `Tienes ${copias} copias` : 'En tu colección'}>
           <span className="carta-copias-sello" aria-hidden="true" />
           {copias > 1 ? `×${copias}` : null}
