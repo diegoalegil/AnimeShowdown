@@ -20,7 +20,7 @@ import {
 import { alTerminar, animarApertura, animarGuardado } from '../lib/coreografia.js'
 import { recuento, textoRecuento } from '../lib/album.js'
 import { msHastaMedianoche, sobresRestantes } from '../lib/collection.js'
-import { pieza } from '../lib/marca.js'
+import { ESCENARIOS, pieza } from '../lib/marca.js'
 import { movimientoReducido } from '../lib/motion.js'
 import { cuentaRetenida } from '../lib/cuentaRetenida.js'
 import { coleccion, useColeccion } from '../lib/useCollection.js'
@@ -29,7 +29,7 @@ import { useMinuto } from '../lib/useReloj.js'
 import { useTitulo } from '../lib/useTitulo.js'
 
 const esEspecialId = (id) => esEspecial(catalogo.carta(id))
-const ARENA = pieza('sobres-arena')
+const ARENA = pieza(ESCENARIOS.sobres)
 
 export default function Sobres() {
   useTitulo('Sobres')

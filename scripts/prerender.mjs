@@ -8,9 +8,11 @@
 import { mkdirSync, readFileSync, writeFileSync } from 'node:fs'
 import { dirname, join } from 'node:path'
 import { fileURLToPath } from 'node:url'
+import { ESCENARIOS, pieza } from '../src/lib/marca.js'
 import { PAGINAS, descripcionCarta, nombreCarta, tituloDePagina } from '../src/lib/titulos.js'
 
 const raiz = join(dirname(fileURLToPath(import.meta.url)), '..')
+const base = process.env.BASE_PATH || '/'
 const dist = join(raiz, 'dist')
 const leerJson = (nombre) => JSON.parse(readFileSync(join(raiz, 'src/data', nombre), 'utf8'))
 
@@ -22,16 +24,24 @@ for (const marca of ['<title>', 'name="description"', 'property="og:title"', 'pr
   if (!plantilla.includes(marca)) throw new Error(`prerender: index.html no contiene ${marca}`)
 }
 
+/** <link> que precarga el escenario de una sección, igual que su <img> (sizes 100vw). */
+function precargaEscenario(nombre) {
+  const { srcSet } = pieza(nombre, base)
+  return `<link rel="preload" as="image" type="image/webp" imagesrcset="${escapar(srcSet)}" imagesizes="100vw" fetchpriority="high">`
+}
+
 /**
  * HTML de la plantilla con el título y la descripción de una página. Las
- * ilustraciones que precarga la portada (data-portada) solo sirven allí.
+ * ilustraciones que precarga la portada (data-portada) solo sirven allí; una
+ * sección puede precargar en su lugar su propio escenario.
  */
-function pagina(html, { titulo, descripcion }) {
+function pagina(html, { titulo, descripcion, escenario }) {
   const t = escapar(titulo)
   const d = escapar(descripcion)
   // Reemplazos con función: el texto nunca se interpreta como patrón ($1, $&…).
   return html
     .replace(/\s*<link [^>]*data-portada[^>]*>/g, '')
+    .replace('</head>', () => (escenario ? `  ${precargaEscenario(escenario)}\n  </head>` : '</head>'))
     .replace(/<title>[^<]*<\/title>/, () => `<title>${t}</title>`)
     .replace(/(<meta name="description" content=")[^"]*"/, (_, a) => `${a}${d}"`)
     .replace(/(<meta property="og:title" content=")[^"]*"/, (_, a) => `${a}${t}"`)
@@ -50,7 +60,11 @@ for (const carta of cartas) {
   escribir(`carta/${carta.id}`, { titulo: tituloDePagina(nombreCarta(carta)), descripcion: descripcionCarta(carta) })
 }
 for (const clave of ['sobres', 'coleccion']) {
-  escribir(clave, { titulo: tituloDePagina(PAGINAS[clave].titulo), descripcion: PAGINAS[clave].descripcion })
+  escribir(clave, {
+    titulo: tituloDePagina(PAGINAS[clave].titulo),
+    descripcion: PAGINAS[clave].descripcion,
+    escenario: ESCENARIOS[clave],
+  })
 }
 writeFileSync(
   join(dist, '404.html'),
