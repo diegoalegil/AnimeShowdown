@@ -1308,7 +1308,8 @@
 
 .mesa[data-instantaneo] .naipe[data-revelada] .naipe-destello,
 .mesa[data-instantaneo] .naipe[data-revelada] .naipe-rayos,
-.mesa[data-instantaneo] .naipe[data-revelada] .naipe-barrido::before {
+.mesa[data-instantaneo] .naipe[data-revelada] .naipe-barrido::before,
+.mesa[data-instantaneo] .naipe[data-revelada][data-especial] .naipe-barrido::before {
   animation: none;
 }
 
@@ -1641,7 +1642,8 @@
 
   .naipe[data-revelada] .naipe-destello,
   .naipe[data-revelada] .naipe-rayos,
-  .naipe[data-revelada] .naipe-barrido::before {
+  .naipe[data-revelada] .naipe-barrido::before,
+  .naipe[data-revelada][data-especial] .naipe-barrido::before {
     animation: none;
   }
 
