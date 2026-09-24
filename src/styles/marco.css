@@ -414,7 +414,7 @@
   background-color: var(--color-surface-alt);
 }
 
-/* ---- Pie: sobre el lienzo, con una franja de la arena arriba ---- */
+/* ---- Pie: sobre el lienzo, con una franja de la sala de trofeos arriba ---- */
 .pie {
   position: relative;
   isolation: isolate;
@@ -442,8 +442,8 @@
   width: 100%;
   height: 100%;
   object-fit: cover;
-  object-position: 50% 42%;
-  opacity: 0.55;
+  object-position: 50% 62%;
+  opacity: 0.6;
 }
 
 /* Fundido con el lienzo arriba y abajo: un degradado fijo encima. */

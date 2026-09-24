@@ -3,14 +3,14 @@ import { Enlace } from './Enlace.jsx'
 import { EtiquetaVertical } from './EtiquetaVertical.jsx'
 import { Logo } from './Logo.jsx'
 
-const ARENA = pieza('home-hero-vote-arena')
+const SALA = pieza('logros-trophy-hall')
 
 export function Pie() {
   return (
     <footer className="pie">
-      {/* Franja del escenario: la arena de la web, fundida con el lienzo. */}
+      {/* Franja del escenario: la sala de trofeos, fundida con el lienzo. */}
       <div className="pie-escena" aria-hidden="true">
-        <img src={ARENA.src} srcSet={ARENA.srcSet} sizes="100vw" alt="" loading="lazy" decoding="async" />
+        <img src={SALA.src} srcSet={SALA.srcSet} sizes="100vw" alt="" loading="lazy" decoding="async" />
       </div>
 
       <div className="wrap pie-rejilla">
