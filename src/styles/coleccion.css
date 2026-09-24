@@ -285,7 +285,7 @@
   position: relative;
   display: flex;
   align-items: flex-start;
-  gap: 1.25rem;
+  gap: 1rem;
   margin-top: 1.75rem;
   padding: 1.25rem;
   border: 1px solid var(--color-gold-line);
@@ -298,7 +298,7 @@
 
 .album-vacio-hueco {
   flex: none;
-  width: 5.5rem;
+  width: 4.25rem;
   animation: aparece var(--dur-4) var(--ease-sumi) both;
 }
 
@@ -310,7 +310,7 @@
 .album-vacio-titulo {
   max-width: 30rem;
   margin: 0;
-  font-size: var(--text-2xl);
+  font-size: var(--text-xl);
   line-height: 1.2;
   animation: aparece var(--dur-4) var(--ease-sumi) 80ms both;
 }
