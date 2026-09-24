@@ -103,23 +103,49 @@
   background-color: var(--color-accent-hover);
 }
 
-/* ---- Sección que no se pudo cargar (FalloSeccion) ---- */
+/* ---- Sección que no se pudo cargar (FalloSeccion): el archivo sin
+   conexión y la opción de reintentar ---- */
 .fallo {
-  display: flex;
-  align-items: flex-start;
-  gap: 1.25rem;
-  padding-block: 4rem 6rem;
+  display: grid;
+  gap: 1.5rem;
+  padding-block: 3rem 5rem;
+}
+
+.fallo-escena {
+  position: relative;
+  aspect-ratio: 16 / 9;
+  max-width: 26rem;
+  overflow: hidden;
+  border: 1px solid var(--color-gold-line);
+  border-radius: var(--radius-lg);
+  background-color: var(--color-surface);
+  box-shadow: var(--shadow-panel);
+}
+
+.fallo-escena img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
 }
 
 .fallo-tate {
+  position: absolute;
+  top: 0.875rem;
+  right: 0.875rem;
+  padding: 0.5rem 0.3125rem;
+  border: 1px solid var(--color-gold-line-strong);
+  border-radius: var(--radius-sm);
+  background-color: rgb(4 7 12 / 0.8);
   color: var(--color-accent-text);
-  font-size: var(--text-lg);
+  font-size: var(--text-sm);
 }
 
 .fallo-titulo {
   margin: 0;
+  color: var(--color-fg-strong);
   font-family: var(--font-display);
   font-size: var(--text-3xl);
+  font-weight: 700;
   line-height: 1.1;
 }
 
@@ -129,8 +155,124 @@
   color: var(--color-fg-muted);
 }
 
-.fallo-boton {
-  font-family: inherit;
+@media (min-width: 48rem) {
+  .fallo {
+    grid-template-columns: minmax(0, 26rem) minmax(0, 1fr);
+    align-items: center;
+    gap: 3rem;
+    padding-block: 5rem 7rem;
+  }
+}
+
+/* ---- Página no encontrada: el portal perdido ---- */
+.perdida {
+  position: relative;
+  isolation: isolate;
+  display: flex;
+  align-items: center;
+  min-height: min(calc(100svh - 4.5rem), 48rem);
+  overflow: clip;
+  background-color: var(--color-canvas);
+}
+
+.perdida-fondo {
+  position: absolute;
+  inset: 0;
+  z-index: -2;
+}
+
+.perdida-fondo img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  /* En el móvil manda el portal, a la derecha de la ilustración. */
+  object-position: 78% 50%;
+  opacity: 0.8;
+}
+
+/* Oscuro a la izquierda, donde va el texto, y fundido con el pie. Fijo. */
+.perdida::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  background-image:
+    linear-gradient(90deg, rgb(4 7 12 / 0.92) 0%, rgb(4 7 12 / 0.7) 45%, rgb(4 7 12 / 0.15) 80%),
+    linear-gradient(180deg, rgb(4 7 12 / 0.5), transparent 30%, transparent 70%, var(--color-canvas));
+  pointer-events: none;
+}
+
+.perdida-contenido {
+  display: flex;
+  align-items: flex-start;
+  gap: 1.25rem;
+  padding-block: 3rem 4rem;
+}
+
+.perdida-tate {
+  flex: none;
+  padding-top: 0.75rem;
+  padding-left: 0.75rem;
+  border-left: 1px solid var(--color-gold-line-strong);
+  color: var(--color-gold);
+  font-size: var(--text-sm);
+  animation: aparece var(--dur-4) var(--ease-sumi) both;
+}
+
+.perdida-cifra {
+  margin: 0;
+  background-image: linear-gradient(180deg, var(--color-gold-pale) 8%, var(--color-gold-bright) 48%, var(--color-gold) 92%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+  font-family: var(--font-display);
+  font-size: clamp(4.5rem, 20vw, 9rem);
+  font-weight: 700;
+  line-height: 0.9;
+  letter-spacing: -0.02em;
+  animation: aparece var(--dur-5) var(--ease-sumi) both;
+}
+
+.perdida-titulo {
+  max-width: 16ch;
+  margin: 0.75rem 0 0;
+  font-size: clamp(2rem, 7vw, 3.5rem);
+  line-height: 1.06;
+  text-shadow: 0 2px 18px rgb(4 7 12 / 0.9);
+}
+
+.perdida-texto {
+  max-width: var(--container-prosa);
+  margin: 1rem 0 0;
+  color: var(--color-fg);
+  text-shadow: 0 1px 12px rgb(4 7 12 / 0.95);
+  animation: aparece var(--dur-4) var(--ease-sumi) 220ms both;
+}
+
+.perdida-acciones {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+  margin: 2rem 0 0;
+  animation: aparece var(--dur-4) var(--ease-sumi) 300ms both;
+}
+
+.perdida-acciones .boton:not(.boton--principal) {
+  background-color: rgb(16 22 32 / 0.82);
+}
+
+@media (min-width: 48rem) {
+  .perdida-fondo img {
+    object-position: 50% 50%;
+  }
+
+  .perdida-contenido {
+    gap: 1.75rem;
+  }
+
+  .perdida-tate {
+    font-size: var(--text-base);
+  }
 }
 
 /* ---- Cabecera ---- */
@@ -604,7 +746,11 @@
   }
 
   .titulo-seccion-tate,
-  .titulo-seccion-sub {
+  .titulo-seccion-sub,
+  .perdida-tate,
+  .perdida-cifra,
+  .perdida-texto,
+  .perdida-acciones {
     animation-name: funde;
   }
 }
