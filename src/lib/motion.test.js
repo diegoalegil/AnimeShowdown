@@ -135,9 +135,9 @@ describe('ritmoScroll', () => {
 
 describe('calcularInclinacion', () => {
   it('gira hacia el puntero sin pasar del máximo', () => {
-    expect(calcularInclinacion(0.5, 0.5)).toEqual({ rx: 0, ry: 0, brillo: 50 })
-    expect(calcularInclinacion(1, 0)).toEqual({ rx: INCLINACION_MAX, ry: INCLINACION_MAX, brillo: 100 })
-    expect(calcularInclinacion(-3, 9)).toEqual({ rx: -INCLINACION_MAX, ry: -INCLINACION_MAX, brillo: 0 })
+    expect(calcularInclinacion(0.5, 0.5)).toEqual({ rx: 0, ry: 0, brillo: 50, brilloY: 50 })
+    expect(calcularInclinacion(1, 0)).toEqual({ rx: INCLINACION_MAX, ry: INCLINACION_MAX, brillo: 100, brilloY: 0 })
+    expect(calcularInclinacion(-3, 9)).toEqual({ rx: -INCLINACION_MAX, ry: -INCLINACION_MAX, brillo: 0, brilloY: 100 })
   })
 })
 
@@ -172,7 +172,7 @@ describe('activarInclinacion', () => {
     expect(carta.getBoundingClientRect).toHaveBeenCalledTimes(1)
     expect(carta.dataset.inclinada).toBe('')
     frames[0]()
-    expect(carta.style.props).toEqual({ '--rx': '8.00deg', '--ry': '8.00deg', '--brillo': '100.0' })
+    expect(carta.style.props).toEqual({ '--rx': '8.00deg', '--ry': '8.00deg', '--brillo': '100.0', '--brillo-y': '0.0' })
 
     listeners.pointerleave()
     expect(carta.style.props).toEqual({})
