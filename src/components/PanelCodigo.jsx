@@ -78,7 +78,7 @@ function Exportar({ codigo, tengo, actuales }) {
             onFocus={(e) => e.target.select()}
           />
           <div className="codigo-acciones">
-            <button type="button" className="boton-sumi" onClick={copiar}>
+            <button type="button" className="boton boton--principal" onClick={copiar}>
               Copiar código
             </button>
             <p className="codigo-aviso" data-ok={aviso?.ok || undefined} role="status" aria-live="polite">
@@ -144,7 +144,7 @@ function Importar({ estado, actuales }) {
           aria-describedby={paso?.error ? idError : undefined}
         />
         <div className="codigo-acciones">
-          <button type="submit" className="enlace-tinta" disabled={!texto.trim()}>
+          <button type="submit" className="boton" disabled={!texto.trim()}>
             Revisar código
           </button>
           {paso?.error && (
@@ -175,19 +175,19 @@ function Importar({ estado, actuales }) {
           <div className="confirmar-acciones">
             {actuales ? (
               <>
-                <button type="button" className="boton-sumi" onClick={() => aplicar('combinar')}>
+                <button type="button" className="boton boton--principal" onClick={() => aplicar('combinar')}>
                   Combinar ({textoRecuento(recuento(aplicarImportacion(estado, leido, 'combinar').tengo), { total: false })})
                 </button>
-                <button type="button" className="enlace-tinta" onClick={() => aplicar('sustituir')}>
+                <button type="button" className="boton" onClick={() => aplicar('sustituir')}>
                   Sustituir la mía
                 </button>
               </>
             ) : (
-              <button type="button" className="boton-sumi" onClick={() => aplicar('sustituir')}>
+              <button type="button" className="boton boton--principal" onClick={() => aplicar('sustituir')}>
                 Importar
               </button>
             )}
-            <button type="button" className="boton-simple" onClick={() => setPaso(null)}>
+            <button type="button" className="boton-texto" onClick={() => setPaso(null)}>
               Cancelar
             </button>
           </div>

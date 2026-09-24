@@ -413,6 +413,45 @@
   background-color: var(--color-surface-alt);
 }
 
+/* ---- Botón de texto (acción secundaria discreta) y enlace dorado ---- */
+.boton-texto {
+  min-height: 2.75rem;
+  padding: 0.5rem 0.25rem;
+  border: 0;
+  background: none;
+  color: var(--color-fg-muted);
+  font: inherit;
+  font-size: var(--text-sm);
+  text-decoration-line: underline;
+  text-decoration-color: var(--color-border);
+  text-decoration-thickness: 1px;
+  text-underline-offset: 0.3em;
+  transition:
+    color var(--dur-2) var(--ease-sumi),
+    text-decoration-color var(--dur-2) var(--ease-sumi);
+}
+
+.boton-texto:hover {
+  color: var(--color-fg-strong);
+  text-decoration-color: var(--color-gold-line-strong);
+}
+
+.enlace-oro {
+  color: var(--color-gold-bright);
+  text-decoration-line: underline;
+  text-decoration-color: var(--color-gold-line-strong);
+  text-decoration-thickness: 1px;
+  text-underline-offset: 0.3em;
+  transition:
+    color var(--dur-2) var(--ease-sumi),
+    text-decoration-color var(--dur-2) var(--ease-sumi);
+}
+
+.enlace-oro:hover {
+  color: var(--color-gold-pale);
+  text-decoration-color: var(--color-gold-bright);
+}
+
 /* ---- Pie: sobre el lienzo, con una franja de la sala de trofeos arriba ---- */
 .pie {
   position: relative;
