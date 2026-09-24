@@ -30,9 +30,10 @@ navegador.
 
 Las reglas están en `src/config.js`.
 
-Las texturas de papel y los motivos tradicionales de los sobres (`public/washi.png`,
-`public/seigaiha.png` y `public/asanoha.png`) se generan con
-`node scripts/generate-washi.mjs` y `node scripts/generate-patrones.mjs`.
+Los motivos tradicionales de los sobres y los dorsos (`public/seigaiha.png` y
+`public/asanoha.png`), las brasas (`public/brasas.png`) y los rayos de luz
+(`public/rayos.webp`) se generan con `node scripts/generate-patrones.mjs`,
+`node scripts/generate-brasas.mjs` y `node scripts/generate-rayos.mjs`.
 
 ## Ejecutarlo en local
 
