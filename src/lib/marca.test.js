@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import animes from '../data/animes.json'
-import { archivosAnime, archivosComunes, escenaAnime, fondoAnime, LOGO, pieza, simboloAnime } from './marca.js'
+import { archivosAnime, archivosComunes, escenaAnime, fondoAnime, LOGO, PIEZAS, pieza, simboloAnime } from './marca.js'
 
 const frieren = { id: 'frieren', marca: 'frieren-beyond-journey-s-end' }
 
@@ -47,6 +47,14 @@ describe('piezas y logo', () => {
     const hero = pieza('personajes-archive', '/')
     expect(hero.src).toBe('/img/marca/personajes-archive-1672.webp')
     expect(hero.srcSet.split(', ')).toHaveLength(3)
+  })
+
+  it('las piezas recortadas no se amplían y guardan la proporción del recorte', () => {
+    for (const { recorte, anchos, proporcion } of Object.values(PIEZAS).filter((p) => p.recorte)) {
+      expect(Math.max(...anchos)).toBeLessThanOrEqual(recorte[2])
+      expect(proporcion).toBeCloseTo(recorte[2] / recorte[3], 5)
+    }
+    expect(pieza('sobres-arena', '/').src).toBe('/img/marca/sobres-arena-1070.webp')
   })
 
   it('rechaza piezas desconocidas', () => {

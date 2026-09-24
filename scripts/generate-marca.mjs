@@ -5,7 +5,7 @@
 //
 // De la carpeta de origen lee, por cada anime con `marca` en animes.json,
 // <marca>-scene-01.webp y <marca>-symbol-01.webp; además, las piezas de
-// PIEZAS (<nombre>.webp) y el logo (logo.webp y logo.svg; si no están en
+// PIEZAS (<nombre>.webp, o su `origen` recortado) y el logo (logo.webp y logo.svg; si no están en
 // la carpeta de origen se conservan los de public/img/marca).
 //
 // - Escenarios: 768 y 1280 px de ancho.
@@ -161,7 +161,8 @@ for (const { marca } of animes) {
     if (!existsSync(join(origen, `${marca}-${tipo}-01.webp`))) faltan.push(`${marca}-${tipo}-01.webp`)
   }
 }
-for (const nombre of Object.keys(PIEZAS)) if (!existsSync(join(origen, `${nombre}.webp`))) faltan.push(`${nombre}.webp`)
+const fuentePieza = (nombre) => `${PIEZAS[nombre].origen ?? nombre}.webp`
+for (const nombre of Object.keys(PIEZAS)) if (!existsSync(join(origen, fuentePieza(nombre)))) faltan.push(fuentePieza(nombre))
 if (faltan.length) {
   console.error(`generate-marca: faltan en ${origen}:\n  ${faltan.join('\n  ')}`)
   process.exit(1)
@@ -177,10 +178,13 @@ for (const { marca } of animes) {
   trabajos.push(() => fondo(marca))
   for (const ancho of ANCHOS_SIMBOLO) trabajos.push(() => simbolo(marca, ancho))
 }
-for (const [nombre, { anchos }] of Object.entries(PIEZAS)) {
+for (const [nombre, { anchos, recorte }] of Object.entries(PIEZAS)) {
+  const corte = recorte ? ['-crop', ...recorte.map(String)] : []
   for (const ancho of anchos) {
     const calidad = ancho > 1280 ? CALIDAD.piezaMax : CALIDAD.pieza
-    trabajos.push(() => cwebp(join(origen, `${nombre}.webp`), publico(rutaPieza(nombre, ancho)), calidad, ['-resize', String(ancho), '0']))
+    trabajos.push(() =>
+      cwebp(join(origen, fuentePieza(nombre)), publico(rutaPieza(nombre, ancho)), calidad, [...corte, '-resize', String(ancho), '0']),
+    )
   }
 }
 for (const destino of [LOGO.webp, LOGO.svg]) {

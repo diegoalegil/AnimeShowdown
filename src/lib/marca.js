@@ -23,11 +23,16 @@ export const ANCHOS_SIMBOLO = [160, 320]
 
 /**
  * Piezas de portada y escenario: anchos generados y proporción (ancho / alto)
- * del original. Ningún ancho supera el del original.
+ * de la imagen final. Ningún ancho supera el del original (o el del recorte).
+ *
+ * Una pieza puede salir de otra ilustración (`origen`, sin extensión) y de
+ * un trozo de ella (`recorte`: x, y, ancho y alto en píxeles del original).
+ * La arena de los sobres es el centro de la del antiguo inicio: a los lados
+ * tenía los marcadores de ELO de la web de votaciones.
  */
 export const PIEZAS = {
   'personajes-archive': { anchos: [768, 1280, 1672], proporcion: 1672 / 941 },
-  'home-hero-vote-arena': { anchos: [768, 1280], proporcion: 1870 / 841 },
+  'sobres-arena': { origen: 'home-hero-vote-arena', recorte: [400, 0, 1070, 841], anchos: [768, 1070], proporcion: 1070 / 841 },
   'collection-ssr-share': { anchos: [768, 1024], proporcion: 1 },
   'logros-trophy-hall': { anchos: [768, 1280], proporcion: 1672 / 941 },
   'lost-portal': { anchos: [768, 1280], proporcion: 1672 / 941 },
