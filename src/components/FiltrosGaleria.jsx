@@ -10,7 +10,7 @@ export function FiltrosGaleria({ filtros, onCambiar, total, buscador, selectorSe
   const activos = hayFiltros(filtros)
 
   return (
-    <search className="filtros" aria-label="Filtrar cartas">
+    <search id="cartas" className="filtros" aria-label="Filtrar cartas">
       <div className="wrap filtros-fila">
         <label className="campo campo--buscar">
           <span className="campo-etiqueta">Buscar</span>

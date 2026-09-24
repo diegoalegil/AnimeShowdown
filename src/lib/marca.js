@@ -35,6 +35,9 @@ export const PIEZAS = {
   'empty-search-night-city-refresh': { anchos: [768, 1280], proporcion: 1672 / 941 },
 }
 
+/** sizes de la sala de la portada: a partir de 1280 px basta la de 1280. */
+export const TAMANO_SALA = '(min-width: 1280px) 1280px, 100vw'
+
 /**
  * Logo de la web (sello 滅), en un solo sitio para poder cambiarlo: el
  * original (webp y svg), sus versiones pequeñas para la cabecera y el pie, y

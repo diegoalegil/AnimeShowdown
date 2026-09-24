@@ -1,10 +1,9 @@
 import { useDeferredValue, useEffect, useMemo, useRef, useState } from 'react'
 import { useLocation, useNavigate, useNavigationType } from 'react-router'
 import { Carta } from '../components/Carta.jsx'
-import { CartaDelDia } from '../components/CartaDelDia.jsx'
 import { EtiquetaVertical } from '../components/EtiquetaVertical.jsx'
 import { FiltrosGaleria } from '../components/FiltrosGaleria.jsx'
-import { TituloSeccion } from '../components/TituloSeccion.jsx'
+import { Portada } from '../components/Portada.jsx'
 import { catalogo } from '../lib/catalog.js'
 import { agruparPorSerie, busquedaDe, ESPECIALES, etiquetaFiltros, filtrarCartas, leerFiltros } from '../lib/filtros.js'
 import { revelar } from '../lib/motion.js'
@@ -51,11 +50,9 @@ export default function Galeria() {
   const visibles = usePorTramos(cartas, { primero: PRIMER_TRAMO, tramo: TRAMO, completa: volviendo })
   // Sin filtros, las cartas se agrupan por serie; filtradas, van seguidas.
   const agrupar = !q.trim() && !serie
-  // Se cargan de inmediato las cartas de la primera fila (dos en el móvil,
-  // cinco en una pantalla ancha); el resto, al acercarse con el scroll.
+  // La portada ocupa la primera pantalla: las cartas cargan al acercarse con el scroll.
   const disposicion = useDisposicionMuro()
-  const prioritarias = new Set(visibles.slice(0, disposicion.columnas).map((c) => c.id))
-  const propsCarta = { tengo, busqueda, prioritarias, disposicion, entrada: !volviendo }
+  const propsCarta = { tengo, busqueda, disposicion, entrada: !volviendo }
 
   function cambiar(cambios) {
     navigate({ search: busquedaDe({ ...filtros, ...cambios }) }, { replace: true })
@@ -85,15 +82,7 @@ export default function Galeria() {
 
   return (
     <>
-      <div className="wrap galeria-cabecera pt-6 pb-5 md:pt-10 md:pb-10">
-        <TituloSeccion
-          ja="ギャラリー"
-          sub={`${catalogo.personajes.length} cartas de ${catalogo.animes.length} series, y ${catalogo.especiales.length} especiales.`}
-        >
-          Galería
-        </TituloSeccion>
-        <CartaDelDia />
-      </div>
+      <Portada />
 
       <FiltrosGaleria
         filtros={filtros}
@@ -121,11 +110,10 @@ export default function Galeria() {
 }
 
 /**
- * Rejilla de cartas; `prioritarias` son las que se cargan sin esperar al
- * scroll. Las cartas van en grupos de dos o tres filas y cada grupo se salta
+ * Rejilla de cartas. Las cartas van en grupos de dos o tres filas y cada grupo se salta
  * entero mientras está lejos de la pantalla (ver lib/grupos).
  */
-function Muro({ cartas, etiqueta, tengo, busqueda, prioritarias, disposicion, entrada }) {
+function Muro({ cartas, etiqueta, tengo, busqueda, disposicion, entrada }) {
   const { columnas, tamano } = disposicion
   return (
     <div className="muro" role="list" aria-label={etiqueta}>
@@ -142,7 +130,6 @@ function Muro({ cartas, etiqueta, tengo, busqueda, prioritarias, disposicion, en
               <Carta
                 carta={carta}
                 copias={tengo[carta.id] ?? 0}
-                prioridad={prioritarias.has(carta.id)}
                 entrada={entrada}
                 busqueda={busqueda}
               />

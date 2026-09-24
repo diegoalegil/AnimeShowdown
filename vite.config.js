@@ -1,9 +1,8 @@
 import { defineConfig } from 'vite'
 import react from '@vitejs/plugin-react'
 import tailwindcss from '@tailwindcss/vite'
-import personajes from './src/data/personajes.json' with { type: 'json' }
-import { imagenCarta, TAMANOS, urlPublica } from './src/lib/images.js'
-import { LOGO } from './src/lib/marca.js'
+import { urlPublica } from './src/lib/images.js'
+import { LOGO, pieza, TAMANO_SALA } from './src/lib/marca.js'
 
 // BASE_PATH lo fija el despliegue: "/" con dominio propio, "/<repo>/" en GitHub Pages.
 const base = process.env.BASE_PATH || '/'
@@ -43,34 +42,31 @@ function iconos() {
   }
 }
 
-// Ilustraciones que la portada (la galería sin filtros) carga antes que
-// nada: la primera fila del móvil, que son las primeras cartas del catálogo.
-// El HTML las pide a la vez que el JavaScript, con el mismo srcset y sizes
-// que las <img> de la rejilla, así que el navegador elige el mismo archivo.
-// Sin fetchpriority alta: así no retrasan el JavaScript, que pinta la página.
-// Solo van en la portada: scripts/prerender.mjs las quita de las demás rutas.
-const PRIMERA_FILA = 2
-
+// La sala de cartas de la portada (la galería sin filtros) es lo primero que
+// se ve: el HTML la pide a la vez que el JavaScript, con el mismo srcset y
+// sizes que su <img> (ver components/Portada), así que el navegador elige el
+// mismo archivo. Solo va en la portada: scripts/prerender.mjs la quita de las
+// demás rutas.
 function precargarPortada() {
+  const sala = pieza('personajes-archive', base)
   return {
     name: 'precargar-portada',
     apply: 'build',
-    transformIndexHtml: () =>
-      personajes.slice(0, PRIMERA_FILA).map((carta) => {
-        const img = imagenCarta(carta, base)
-        return {
-          tag: 'link',
-          attrs: {
-            rel: 'preload',
-            as: 'image',
-            type: 'image/webp',
-            imagesrcset: img.srcSet,
-            imagesizes: TAMANOS.muro,
-            'data-portada': '',
-          },
-          injectTo: 'head',
-        }
-      }),
+    transformIndexHtml: () => [
+      {
+        tag: 'link',
+        attrs: {
+          rel: 'preload',
+          as: 'image',
+          type: 'image/webp',
+          imagesrcset: sala.srcSet,
+          imagesizes: TAMANO_SALA,
+          fetchpriority: 'high',
+          'data-portada': '',
+        },
+        injectTo: 'head',
+      },
+    ],
   }
 }
 

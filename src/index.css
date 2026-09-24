@@ -17,6 +17,7 @@
 @import './styles/hanko.css' layer(components);
 @import './styles/carta.css' layer(components);
 @import './styles/marco.css' layer(components);
+@import './styles/portada.css' layer(components);
 @import './styles/galeria.css' layer(components);
 @import './styles/ficha.css' layer(components);
 @import './styles/sobres.css' layer(components);
