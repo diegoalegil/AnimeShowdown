@@ -1,8 +1,8 @@
-import { useEffect, useRef } from 'react'
 import { catalogo } from '../lib/catalog.js'
 import { imagenCarta } from '../lib/images.js'
 import { pieza, TAMANO_SALA } from '../lib/marca.js'
 import { cartasDestacadas } from '../lib/portada.js'
+import { usePausaFuera } from '../lib/useMotion.js'
 import { CartaDelDia } from './CartaDelDia.jsx'
 import { Enlace } from './Enlace.jsx'
 
@@ -17,15 +17,7 @@ const TOTAL = catalogo.personajes.length + catalogo.especiales.length
  * portada sale de la pantalla (data-fuera) y con movimiento reducido.
  */
 export function Portada() {
-  const ref = useRef(null)
-
-  useEffect(() => {
-    const seccion = ref.current
-    if (!seccion || typeof window.IntersectionObserver !== 'function') return undefined
-    const io = new window.IntersectionObserver(([entrada]) => seccion.toggleAttribute('data-fuera', !entrada.isIntersecting))
-    io.observe(seccion)
-    return () => io.disconnect()
-  }, [])
+  const ref = usePausaFuera()
 
   return (
     <section ref={ref} className="portada" aria-labelledby="portada-titulo">

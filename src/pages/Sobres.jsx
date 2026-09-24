@@ -20,14 +20,16 @@ import {
 import { alTerminar, animarApertura, animarGuardado } from '../lib/coreografia.js'
 import { recuento, textoRecuento } from '../lib/album.js'
 import { msHastaMedianoche, sobresRestantes } from '../lib/collection.js'
+import { pieza } from '../lib/marca.js'
 import { movimientoReducido } from '../lib/motion.js'
 import { cuentaRetenida } from '../lib/cuentaRetenida.js'
 import { coleccion, useColeccion } from '../lib/useCollection.js'
-import { useInclinacion } from '../lib/useMotion.js'
+import { useInclinacion, usePausaFuera } from '../lib/useMotion.js'
 import { useMinuto } from '../lib/useReloj.js'
 import { useTitulo } from '../lib/useTitulo.js'
 
 const esEspecialId = (id) => esEspecial(catalogo.carta(id))
+const ARENA = pieza('sobres-arena')
 
 export default function Sobres() {
   useTitulo('Sobres')
@@ -37,6 +39,7 @@ export default function Sobres() {
   const [cer, despachar] = useReducer(ceremonia, undefined, estadoInicial)
   const [posicion, setPosicion] = useState({ sobre: 0, i: 0 })
   const mesa = useInclinacion()
+  const escenario = usePausaFuera()
   // Qué enfocar tras el próximo cambio de la ceremonia (lo hace el efecto de abajo).
   const foco = useRef(null)
   // Temporizador que acerca la siguiente carta en el móvil.
@@ -187,10 +190,10 @@ export default function Sobres() {
   const numero = SOBRES_POR_DIA - quedan + 1
 
   return (
-    <div className="escenario sobres">
-      <EtiquetaVertical ja="開封" className="sobres-fondo" />
+    <div ref={escenario} className="sobres">
+      <Arena />
       <div className="wrap sobres-cabecera">
-        <TituloSeccion ja="開封">
+        <TituloSeccion ja="開封" sub="Cinco sobres al día, con cinco cartas cada uno.">
           Sobres
         </TituloSeccion>
         <SobresDeHoy quedan={quedan} />
@@ -234,7 +237,7 @@ export default function Sobres() {
           {enMesa && cer.fase !== 'guardando' && <Posicion actual={posicionActual} total={cer.cartas.length} />}
           {enMesa && !todas && (
             <div className="mesa-acciones">
-              <button type="button" className="boton-noche" onClick={revelarTodas}>
+              <button type="button" className="boton mesa-revelar" onClick={revelarTodas}>
                 Revelar todas
               </button>
               <button type="button" className="boton-texto" onClick={saltar}>
@@ -252,8 +255,16 @@ export default function Sobres() {
                 </p>
                 <p className="mesa-resumen-total cifra">En tu colección: {textoRecuento(recuento(estado.tengo))}</p>
               </div>
-              <button type="button" className="boton-papel mesa-guardar" onClick={guardar} disabled={cer.fase === 'guardando'}>
+              <button
+                type="button"
+                className="boton boton--principal mesa-guardar"
+                onClick={guardar}
+                disabled={cer.fase === 'guardando'}
+              >
                 Guardar en la colección
+                <span className="boton-flecha" aria-hidden="true">
+                  →
+                </span>
               </button>
             </div>
           )}
@@ -261,7 +272,7 @@ export default function Sobres() {
           {cer.fase === 'cerrado' && cer.aviso?.tipo === 'guardado' && (
             <p className="mesa-guardado">
               {cer.aviso.n} cartas guardadas en tu colección.{' '}
-              <Enlace to="/coleccion" className="enlace-noche">
+              <Enlace to="/coleccion" className="enlace-oro">
                 Ver colección
               </Enlace>
             </p>
@@ -294,7 +305,30 @@ function Posicion({ actual, total }) {
   )
 }
 
-/** Cinco pequeños sobres: los que quedan hoy en papel, los abiertos en tinta. */
+/** Escenario: la arena de fondo, los focos que se mecen y las brasas que suben. */
+function Arena() {
+  return (
+    <div className="arena" aria-hidden="true">
+      <img
+        className="arena-escena"
+        src={ARENA.src}
+        srcSet={ARENA.srcSet}
+        sizes="100vw"
+        width="1070"
+        height="841"
+        alt=""
+        fetchPriority="high"
+        decoding="async"
+      />
+      <span className="arena-focos" />
+      <span className="arena-brasas">
+        <span className="brasas" />
+      </span>
+    </div>
+  )
+}
+
+/** Cinco pequeños sobres: en oro los que quedan hoy, vacíos los abiertos. */
 function SobresDeHoy({ quedan }) {
   const abiertos = SOBRES_POR_DIA - quedan
   return (
@@ -328,10 +362,11 @@ function SinSobres() {
       </div>
       <p className="sin-sobres-titulo">Mañana, cinco sobres más.</p>
       <p className="sin-sobres-texto">
-        Vuelven a medianoche: faltan <span className="cifra">{espera}</span>.
+        Vuelven a medianoche. Faltan <span className="sin-sobres-espera cifra">{espera}</span>
       </p>
-      <Enlace to="/coleccion" className="enlace-noche sin-sobres-enlace">
+      <Enlace to="/coleccion" className="enlace-tinta sin-sobres-enlace">
         Ver tu colección
+        <span aria-hidden="true">→</span>
       </Enlace>
     </div>
   )

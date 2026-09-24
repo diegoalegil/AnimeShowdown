@@ -1,15 +1,23 @@
 /* ==========================================================================
-   Sobres: la mesa oscura, el sobre de papel y las cartas que salen de él.
-   La coreografía de apertura y guardado la lleva lib/coreografia (Web
-   Animations); el volteo y los sellos, este archivo a partir de
-   data-revelada. Solo se anima transform y opacity.
+   Sobres: la arena de noche, el sobre de lámina oscura y las cartas que
+   salen de él. La coreografía de apertura y guardado la lleva
+   lib/coreografia (Web Animations); el volteo, los sellos y los destellos,
+   este archivo a partir de data-revelada.
+
+   Rendimiento: solo se anima transform y opacity. La luz (focos, halos,
+   estallidos, brasas) viene pintada en imágenes y degradados fijos; lo que
+   se mueve en bucle (focos y brasas) se para fuera de la pantalla
+   (data-fuera) y con movimiento reducido.
    ========================================================================== */
 
 .sobres {
   position: relative;
+  isolation: isolate;
+  min-height: 70vh;
   overflow-x: clip;
   padding-bottom: 5rem;
-  --sobre-ancho: min(62vw, 16rem);
+  background-color: var(--color-canvas);
+  --sobre-ancho: min(64vw, 15.5rem);
   /* En el móvil, la carta deja ver un trozo de las vecinas y el pie de la mesa. */
   --naipe-ancho: min(60vw, 14.375rem);
   --voltear: 700ms;
@@ -21,32 +29,87 @@
 
 @media (min-width: 48rem) {
   .sobres {
+    --sobre-ancho: 17rem;
     --naipe-ancho: min(12.75rem, calc((100vw - 2 * var(--gutter) - 6rem) / 5));
     --destello-x: 1.5;
     --destello-y: 1.3;
   }
 }
 
-/* 開封, enorme y casi negro: textura del escenario, no texto. */
-.sobres-fondo {
+/* ---- La arena: fondo, focos y brasas, detrás de todo ---- */
+.arena {
   position: absolute;
-  top: 1.25rem;
-  right: -0.75rem;
-  color: var(--color-surface);
-  font-size: 8.5rem;
-  letter-spacing: 0;
+  inset: 0 0 auto;
+  z-index: -1;
+  height: min(100%, 60rem);
+  overflow: hidden;
   pointer-events: none;
-  user-select: none;
 }
 
-@media (min-width: 48rem) {
-  .sobres-fondo {
-    top: 2.5rem;
-    right: calc(var(--gutter) - 1rem);
-    font-size: 14rem;
+.arena-escena {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: 50% 72%;
+  opacity: 0.62;
+}
+
+/* Viñeta y fundidos: oscuro arriba para el título, un foco claro donde se
+   posa el sobre y el lienzo abajo y a los lados. Una sola capa fija. */
+.arena::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background-image:
+    linear-gradient(180deg, rgb(4 7 12 / 0.9) 0%, rgb(4 7 12 / 0.45) 26%, rgb(4 7 12 / 0.2) 55%, var(--color-canvas) 100%),
+    radial-gradient(ellipse 70% 60% at 50% 52%, transparent 40%, rgb(4 7 12 / 0.85) 100%);
+}
+
+/* Focos: un abanico de haces dorados que baja desde lo alto y se mece. */
+.arena-focos {
+  position: absolute;
+  top: 0;
+  left: 50%;
+  z-index: 1;
+  width: min(150vw, 78rem);
+  aspect-ratio: 1;
+  margin-left: calc(min(150vw, 78rem) / -2);
+  background-image: url('/rayos.webp');
+  background-size: 100% 100%;
+  opacity: 0.5;
+  translate: 0 -50%;
+  animation: focos-mecen 18s ease-in-out infinite alternate;
+}
+
+@keyframes focos-mecen {
+  from {
+    transform: rotate(-5deg);
+  }
+
+  to {
+    transform: rotate(5deg);
   }
 }
 
+.arena-brasas {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  overflow: hidden;
+}
+
+.arena-brasas .brasas {
+  opacity: 0.55;
+}
+
+.sobres[data-fuera] .arena-focos,
+.sobres[data-fuera] .brasas {
+  animation-play-state: paused;
+}
+
+/* ---- Cabecera: el título y los sobres que quedan ---- */
 .sobres-cabecera {
   position: relative;
   display: flex;
@@ -57,17 +120,29 @@
   padding-top: 1.75rem;
 }
 
+.sobres-cabecera h1 {
+  text-shadow: 0 2px 18px rgb(4 7 12 / 0.9);
+}
+
 @media (min-width: 48rem) {
   .sobres-cabecera {
-    padding-top: 4rem;
+    padding-top: 3.5rem;
   }
 }
 
-/* ---- Sobres de hoy: cinco sobrecitos, en papel los que quedan ---- */
+/* Sobres de hoy: cinco sobrecitos de oro en una placa oscura; los abiertos
+   quedan en hueco. */
 .hoy {
   display: flex;
   align-items: center;
   gap: 0.875rem;
+  padding: 0.5rem 1rem 0.5rem 0.75rem;
+  border: 1px solid var(--color-gold-line);
+  border-radius: var(--radius-full);
+  background-color: var(--color-cristal);
+  box-shadow:
+    inset 0 1px 0 rgb(247 230 162 / 0.08),
+    var(--shadow-panel);
   animation: aparece var(--dur-4) var(--ease-sumi) 260ms both;
 }
 
@@ -81,16 +156,22 @@
 
 .hoy-sobre {
   position: relative;
-  width: 0.6875rem;
-  height: 1.0625rem;
-  box-shadow: inset 0 0 0 1px var(--color-border);
+  width: 0.75rem;
+  height: 1.125rem;
+  border-radius: 2px;
+  box-shadow: inset 0 0 0 1px var(--color-gold-line-strong);
 }
 
+/* El sobre lleno: lámina dorada con su faja carmesí. Se va con opacidad. */
 .hoy-sobre::before {
   content: '';
   position: absolute;
   inset: 0;
-  background-color: var(--color-fg-strong);
+  border-radius: inherit;
+  background-image:
+    linear-gradient(180deg, transparent 58%, var(--color-accent) 58%, var(--color-accent) 76%, transparent 76%),
+    linear-gradient(160deg, var(--color-gold-pale), var(--color-gold-bright) 45%, var(--color-gold) 100%);
+  box-shadow: 0 0 8px -1px rgb(228 195 111 / 0.55);
   transition:
     opacity var(--dur-3) var(--ease-sumi),
     transform var(--dur-3) var(--ease-sumi);
@@ -103,12 +184,12 @@
 
 .hoy-texto {
   margin: 0;
-  color: var(--color-fg-muted);
+  color: var(--color-fg);
   font-size: var(--text-sm);
 }
 
 .hoy-texto strong {
-  color: var(--color-fg-strong);
+  color: var(--color-gold-bright);
   font-weight: 500;
 }
 
@@ -125,7 +206,7 @@
   grid-template-columns: minmax(0, 1fr);
   place-items: center;
   min-height: calc(var(--naipe-ancho) * 1.5 + 6rem);
-  margin-top: 0.25rem;
+  margin-top: 0.75rem;
 }
 
 .mesa > * {
@@ -134,8 +215,8 @@
 
 @media (min-width: 48rem) {
   .mesa {
-    min-height: calc(var(--sobre-ancho) * 1.6 + 4.5rem);
-    margin-top: 2rem;
+    min-height: calc(var(--sobre-ancho) * 1.6 + 5rem);
+    margin-top: 1.5rem;
   }
 }
 
@@ -913,8 +994,13 @@
 .mesa-acciones {
   display: flex;
   align-items: center;
-  gap: 1.5rem;
+  gap: 1.25rem;
   animation: aparece var(--dur-4) var(--ease-sumi) 1100ms both;
+}
+
+.mesa-revelar {
+  border-color: var(--color-gold-line-strong);
+  background-color: var(--color-cristal);
 }
 
 /* En el móvil, «Revelar todas» y «Saltar» quedan siempre a mano: el pie de
@@ -927,9 +1013,10 @@
   }
 
   .mesa-pie[data-acciones] .mesa-acciones {
-    padding: 0.375rem 0.5rem 0.375rem 0.375rem;
-    border: 1px solid var(--color-border);
-    background-color: var(--color-canvas);
+    padding: 0.375rem 0.625rem 0.375rem 0.375rem;
+    border: 1px solid var(--color-gold-line);
+    border-radius: var(--radius-lg);
+    background-color: var(--color-velo);
     box-shadow: 0 12px 24px -12px rgb(0 0 0 / 0.9);
   }
 }
@@ -952,14 +1039,15 @@
 }
 
 .mesa-posicion-marca {
-  width: 0.375rem;
-  height: 0.375rem;
-  box-shadow: inset 0 0 0 1px var(--color-fg-muted);
+  width: 0.4375rem;
+  height: 0.4375rem;
+  border-radius: 50%;
+  box-shadow: inset 0 0 0 1px var(--color-gold-line-strong);
 }
 
 .mesa-posicion-marca[data-actual] {
-  background-color: var(--color-fg-strong);
-  box-shadow: none;
+  background-color: var(--color-gold-bright);
+  box-shadow: 0 0 8px -1px rgb(228 195 111 / 0.7);
 }
 
 @media (min-width: 48rem) {
@@ -968,11 +1056,32 @@
   }
 }
 
+/* Resumen: una placa oscura con filo dorado, el recuento y «Guardar». */
 .mesa-resumen {
+  position: relative;
   display: grid;
   justify-items: center;
-  gap: 1rem;
+  gap: 1.125rem;
+  width: 100%;
+  max-width: 34rem;
+  padding: 1.25rem 1.25rem 1.375rem;
+  border: 1px solid var(--color-gold-line);
+  border-radius: var(--radius-lg);
+  background-color: var(--color-cristal);
+  box-shadow:
+    inset 0 1px 0 rgb(247 230 162 / 0.08),
+    var(--shadow-panel);
   animation: aparece var(--dur-4) var(--ease-sumi) calc(var(--espera, 0ms) + var(--voltear) * 0.9) both;
+}
+
+/* Filete dorado interior, como en los estandartes. */
+.mesa-resumen::before {
+  content: '';
+  position: absolute;
+  inset: 0.3125rem;
+  border: 1px solid rgb(197 161 90 / 0.14);
+  border-radius: calc(var(--radius-lg) - 0.25rem);
+  pointer-events: none;
 }
 
 .mesa-resumen-datos {
@@ -985,14 +1094,17 @@
   .mesa-resumen {
     grid-auto-flow: column;
     align-items: center;
-    gap: 2.5rem;
+    gap: 2rem;
+    width: auto;
+    max-width: none;
+    padding: 1.25rem 1.5rem 1.25rem 2rem;
     text-align: left;
   }
 
   .mesa-resumen-datos {
     justify-items: start;
-    padding-right: 2.5rem;
-    border-right: 1px solid var(--color-border);
+    padding-right: 2rem;
+    border-right: 1px solid var(--color-gold-line);
   }
 }
 
@@ -1002,18 +1114,21 @@
 
 .mesa-resumen-texto {
   display: grid;
-  gap: 0.25rem;
+  gap: 0.375rem;
   margin: 0;
+  color: var(--color-fg-strong);
   font-family: var(--font-display);
   font-size: var(--text-2xl);
+  font-weight: 700;
   line-height: 1.2;
 }
 
 .mesa-resumen-etiqueta {
-  color: var(--color-fg-muted);
+  color: var(--color-gold-bright);
   font-family: var(--font-sans);
   font-size: var(--text-2xs);
-  letter-spacing: 0.16em;
+  font-weight: 500;
+  letter-spacing: var(--tracking-rotulo);
   text-transform: uppercase;
 }
 
@@ -1023,55 +1138,18 @@
   font-size: var(--text-sm);
 }
 
+.mesa-guardar:disabled {
+  cursor: default;
+}
+
 .mesa-guardado {
   margin: 0;
-  color: var(--color-fg-muted);
+  color: var(--color-fg);
   font-size: var(--text-sm);
   animation: aparece var(--dur-4) var(--ease-sumi) 300ms both;
 }
 
-/* ---- Botones sobre el escenario ---- */
-.boton-papel,
-.boton-noche {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  min-height: 2.75rem;
-  padding: 0.6875rem 1.375rem;
-  font: inherit;
-  font-size: var(--text-sm);
-  font-weight: 500;
-  transition:
-    color var(--dur-2) var(--ease-sumi),
-    border-color var(--dur-2) var(--ease-sumi),
-    background-color var(--dur-2) var(--ease-sumi);
-}
-
-.boton-papel {
-  border: 1px solid var(--color-fg-strong);
-  background-color: var(--color-fg-strong);
-  color: var(--color-canvas);
-}
-
-.boton-papel:hover {
-  border-color: var(--color-fg-strong);
-  background-color: var(--color-fg-strong);
-}
-
-.boton-papel:disabled {
-  cursor: default;
-}
-
-.boton-noche {
-  border: 1px solid var(--color-border);
-  background-color: transparent;
-  color: var(--color-fg-strong);
-}
-
-.boton-noche:hover {
-  border-color: var(--color-fg-muted);
-}
-
+/* ---- Enlaces y botones de texto sobre el escenario ---- */
 .boton-texto {
   min-height: 2.75rem;
   padding: 0.5rem 0.25rem;
@@ -1084,28 +1162,34 @@
   text-decoration-color: var(--color-border);
   text-decoration-thickness: 1px;
   text-underline-offset: 0.3em;
-  transition: color var(--dur-2) var(--ease-sumi);
+  transition:
+    color var(--dur-2) var(--ease-sumi),
+    text-decoration-color var(--dur-2) var(--ease-sumi);
 }
 
 .boton-texto:hover {
   color: var(--color-fg-strong);
+  text-decoration-color: var(--color-gold-line-strong);
 }
 
-.enlace-noche {
-  color: var(--color-fg-strong);
+.enlace-oro {
+  color: var(--color-gold-bright);
   text-decoration-line: underline;
-  text-decoration-color: var(--color-border);
+  text-decoration-color: var(--color-gold-line-strong);
   text-decoration-thickness: 1px;
   text-underline-offset: 0.3em;
-  transition: text-decoration-color var(--dur-2) var(--ease-sumi);
+  transition:
+    color var(--dur-2) var(--ease-sumi),
+    text-decoration-color var(--dur-2) var(--ease-sumi);
 }
 
-.enlace-noche:hover {
-  text-decoration-color: var(--color-accent-text);
+.enlace-oro:hover {
+  color: var(--color-gold-pale);
+  text-decoration-color: var(--color-gold-bright);
 }
 
 /* ==========================================================================
-   Sin sobres hasta mañana
+   Sin sobres hasta mañana: el hueco del sobre y la cuenta atrás en oro
    ========================================================================== */
 
 .sin-sobres {
@@ -1118,36 +1202,64 @@
 }
 
 .sin-sobres-hueco {
+  position: relative;
   display: grid;
   place-items: center;
   width: calc(var(--sobre-ancho) * 0.72);
   aspect-ratio: 5 / 8;
-  margin-bottom: 1.25rem;
-  border: 1px dashed var(--color-border);
+  margin-bottom: 1.5rem;
+  border: 1px dashed var(--color-gold-line-strong);
+  border-radius: var(--radius-md);
+  background-color: rgb(4 7 12 / 0.55);
   animation: aparece var(--dur-4) var(--ease-sumi) both;
 }
 
+.sin-sobres-hueco::before {
+  content: '';
+  position: absolute;
+  inset: 0.5rem;
+  border: 1px solid var(--color-gold-line);
+  border-radius: var(--radius-sm);
+}
+
 .sin-sobres-ja {
-  color: var(--color-fg-muted);
+  color: var(--color-gold-bright);
   font-size: 2.25rem;
   letter-spacing: 0.35em;
 }
 
 .sin-sobres-titulo {
   margin: 0;
+  color: var(--color-fg-strong);
   font-family: var(--font-display);
-  font-size: var(--text-2xl);
+  font-size: var(--text-3xl);
+  font-weight: 700;
+  line-height: 1.1;
+  text-shadow: 0 2px 18px rgb(4 7 12 / 0.9);
   animation: aparece var(--dur-4) var(--ease-sumi) 120ms both;
 }
 
 .sin-sobres-texto {
-  margin: 0 0 0.75rem;
+  display: grid;
+  justify-items: center;
+  gap: 0.25rem;
+  margin: 0.25rem 0 1.25rem;
   color: var(--color-fg-muted);
   animation: aparece var(--dur-4) var(--ease-sumi) 200ms both;
 }
 
+.sin-sobres-espera {
+  background-image: linear-gradient(180deg, var(--color-gold-pale) 8%, var(--color-gold-bright) 48%, var(--color-gold) 92%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+  font-family: var(--font-display);
+  font-size: var(--text-4xl);
+  font-weight: 700;
+  line-height: 1.1;
+}
+
 .sin-sobres-enlace {
-  font-size: var(--text-sm);
   animation: aparece var(--dur-4) var(--ease-sumi) 280ms both;
 }
 
@@ -1156,14 +1268,22 @@
    ========================================================================== */
 
 .ultimo {
+  position: relative;
   margin-top: 4rem;
   padding-top: 2rem;
-  border-top: 1px solid var(--color-border);
+}
+
+.ultimo::before {
+  content: '';
+  position: absolute;
+  inset: 0 0 auto;
+  height: 1px;
+  background-image: linear-gradient(90deg, transparent, var(--color-gold-line-strong) 20%, var(--color-gold-line-strong) 80%, transparent);
 }
 
 .ultimo-titulo {
   margin: 0 0 1.5rem;
-  font-size: var(--text-xl);
+  font-size: var(--text-2xl);
 }
 
 .ultimo-cartas {
@@ -1189,6 +1309,11 @@
   .sobre,
   .hoy {
     animation-name: funde;
+  }
+
+  .arena-focos,
+  .arena-brasas .brasas {
+    animation: none;
   }
 
   .naipe[data-revelada] .naipe-dorso,
