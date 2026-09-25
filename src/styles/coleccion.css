@@ -438,6 +438,9 @@
    reserva su altura por filas (la franja de arriba y los huecos). El relleno
    de la vitrina deja sitio a los sellos que sobresalen de las cartas, a su
    inclinación y a su sombra, que la contención de pintado recortaría. */
+/* Sin sombras difuminadas: con un centenar de vitrinas de dos mil píxeles y
+   mil huecos, Safari las repinta al desplazarse y pierde frames. El relieve
+   lo dan un contorno negro nítido y un canto inferior sin desenfoque. */
 .hoja {
   position: relative;
   padding-bottom: 1.5rem;
@@ -445,19 +448,23 @@
   border-radius: var(--radius-lg);
   background-color: var(--color-surface);
   background-image: linear-gradient(180deg, var(--color-surface), var(--color-bg) 60%);
-  box-shadow: var(--shadow-panel);
+  box-shadow:
+    0 0 0 1px rgb(0 0 0 / 0.55),
+    0 12px 0 -8px rgb(0 0 0 / 0.5);
   content-visibility: auto;
   contain-intrinsic-block-size: auto calc(var(--filas-3) * 15.5rem + 8.5rem);
   scroll-margin-top: 4rem;
 }
 
-/* Serie completa: el filo se vuelve oro vivo, con un halo fijo. */
+/* Serie completa: el filo se vuelve oro vivo, con un halo de anillos
+   nítidos que se desvanecen (sin desenfoque). */
 .hoja[data-completa] {
   border-color: var(--color-gold-line-strong);
   box-shadow:
-    0 0 0 1px rgb(228 195 111 / 0.18),
-    0 0 44px -14px rgb(228 195 111 / 0.45),
-    var(--shadow-panel);
+    0 0 0 1px rgb(228 195 111 / 0.3),
+    0 0 0 4px rgb(228 195 111 / 0.08),
+    0 0 0 8px rgb(228 195 111 / 0.04),
+    0 16px 0 -8px rgb(0 0 0 / 0.5);
 }
 
 .hoja + .hoja {
@@ -708,10 +715,12 @@
   place-items: center;
   aspect-ratio: 2 / 3;
   border-radius: var(--radius-carta);
-  background-image: linear-gradient(180deg, var(--color-canvas), color-mix(in srgb, var(--color-surface) 70%, var(--color-canvas)));
-  box-shadow:
-    inset 0 0 0 1px rgb(197 161 90 / 0.14),
-    inset 0 6px 14px -4px rgb(0 0 0 / 0.85);
+  /* La sombra interior del borde de arriba es un degradado, no un desenfoque:
+     hay más de mil huecos en la página. */
+  background-image:
+    linear-gradient(180deg, rgb(0 0 0 / 0.6), transparent 16%),
+    linear-gradient(180deg, var(--color-canvas), color-mix(in srgb, var(--color-surface) 70%, var(--color-canvas)));
+  box-shadow: inset 0 0 0 1px rgb(197 161 90 / 0.14);
 }
 
 .bolsillo[data-lleno] .bolsillo-hueco {
