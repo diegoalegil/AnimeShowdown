@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { imagenCarta, marcarSiCargada, imagenIntermedia, urlPublica, vigilarImagenes } from './images.js'
+import { cartaEntera, imagenCarta, marcarSiCargada, imagenIntermedia, urlPublica, vigilarImagenes } from './images.js'
 
 describe('urlPublica', () => {
   it('une la base con la ruta sin barras dobles', () => {
@@ -27,6 +27,21 @@ describe('imagenCarta', () => {
     const img = imagenCarta({ img: 'img/especiales/luffy__gear5' }, '/')
     expect(img.src).toBe('/img/especiales/luffy__gear5-600.webp')
     expect(img.srcSet).toContain('/img/especiales/luffy__gear5-300.webp 300w')
+  })
+})
+
+describe('cartaEntera', () => {
+  it('recorta las ilustraciones 2:3 y las un poco más anchas o más altas', () => {
+    expect(cartaEntera({})).toBe(false)
+    expect(cartaEntera({ ar: 0.711 })).toBe(false)
+    expect(cartaEntera({ ar: 0.79 })).toBe(false)
+    expect(cartaEntera({ ar: 0.62 })).toBe(false)
+  })
+
+  it('muestra enteras las muy anchas y las muy altas', () => {
+    expect(cartaEntera({ ar: 0.8 })).toBe(true)
+    expect(cartaEntera({ ar: 0.917 })).toBe(true)
+    expect(cartaEntera({ ar: 0.563 })).toBe(true)
   })
 })
 

@@ -10,16 +10,20 @@ export function FiltrosGaleria({ filtros, onCambiar, total, buscador, selectorSe
   const activos = hayFiltros(filtros)
 
   return (
-    <search className="filtros" aria-label="Filtrar cartas">
+    <search id="cartas" className="filtros" aria-label="Filtrar cartas">
       <div className="wrap filtros-fila">
         <label className="campo campo--buscar">
           <span className="campo-etiqueta">Buscar</span>
+          <svg className="campo-icono" viewBox="0 0 16 16" aria-hidden="true">
+            <circle cx="7" cy="7" r="4.75" fill="none" stroke="currentColor" strokeWidth="1.5" />
+            <path d="m10.5 10.5 3.5 3.5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
+          </svg>
           <input
             ref={buscador}
             type="search"
             value={filtros.q}
             onChange={(e) => onCambiar({ q: e.target.value })}
-            placeholder="Nombre o serie"
+            placeholder="Buscar"
             autoComplete="off"
             autoCapitalize="off"
             spellCheck="false"
@@ -49,7 +53,7 @@ export function FiltrosGaleria({ filtros, onCambiar, total, buscador, selectorSe
         <p className="filtros-cuenta" aria-live="polite">
           <span>
             <span className="cifra">{total}</span>
-            <span className="filtros-palabra"> {total === 1 ? 'carta' : 'cartas'}</span>
+            <span className="filtros-palabra filtros-palabra--total"> {total === 1 ? 'carta' : 'cartas'}</span>
           </span>
           {activos && (
             <button type="button" className="filtros-quitar" onClick={() => onCambiar({ q: '', serie: '' })}>

@@ -1,7 +1,7 @@
 import { esEspecial, numeroCarta } from '../lib/catalog.js'
 import { Carta } from './Carta.jsx'
 import { nombreCarta } from '../lib/titulos.js'
-import { SelloMarca } from './Hanko.jsx'
+import { Logo } from './Logo.jsx'
 
 /** Pose de cada carta en el abanico (solo en pantallas anchas, ver sobres.css). */
 export function poseAbanico(i, total) {
@@ -11,10 +11,12 @@ export function poseAbanico(i, total) {
 }
 
 /**
- * Una carta del sobre sobre la mesa. Empieza boca abajo; al revelarla da
- * media vuelta (dorso → cara) y estampa sus sellos. Todo el movimiento lo
- * hace el CSS a partir de data-revelada; el vuelo desde el sobre y hacia la
- * colección, lib/coreografia sobre el <li>.
+ * Una carta del sobre sobre la mesa. Empieza boca abajo (dorso oscuro con
+ * filo dorado y el sello 滅); al revelarla da media vuelta, un reflejo
+ * recorre la cara y estampa sus sellos. La especial, además, se alza sobre un
+ * halo dorado con un abanico de rayos y su reflejo es irisado. Todo el
+ * movimiento lo hace el CSS a partir de data-revelada; el vuelo desde el
+ * sobre y hacia la colección, lib/coreografia sobre el <li>.
  *
  * El botón cubre la carta entera y sigue ahí tras voltearla (con
  * aria-disabled), para que el foco del teclado no se pierda.
@@ -35,15 +37,28 @@ export function Naipe({ carta, indice, total, nueva, revelada, retardo, copias, 
       style={{ ...poseAbanico(indice, total), '--retardo': `${retardo}ms` }}
     >
       <div className="naipe-pose">
-        <div className="naipe-cuerpo" data-inclinar="">
-          {especial && <span className="naipe-destello" aria-hidden="true" />}
+        {/* Boca abajo se inclina hacia el puntero; al revelarla se endereza y
+            la cara queda limpia, sin reflejo, aunque el puntero siga encima. */}
+        <div className="naipe-cuerpo" data-inclinar={revelada ? undefined : ''}>
+          {especial && (
+            <>
+              <span className="naipe-rayos" aria-hidden="true" />
+              <span className="naipe-destello" aria-hidden="true" />
+            </>
+          )}
           <div className="naipe-dorso" aria-hidden="true">
             <span className="naipe-dorso-motivo" />
-            <SelloMarca className="naipe-dorso-sello" />
-            <span className="naipe-dorso-marca">AnimeShowdown</span>
+            <span className="naipe-dorso-sello">
+              <Logo tamano={64} className="naipe-dorso-logo" prioridad />
+            </span>
+            <span className="naipe-dorso-marca">
+              Anime<span className="naipe-dorso-oro">Showdown</span>
+            </span>
+            <span className="carta-brillo" />
           </div>
           <div className="naipe-cara" aria-hidden="true">
             <Carta carta={carta} tamano="sobre" nueva={nueva} enlace={false} cartela={false} prioridad />
+            <span className="naipe-barrido" />
           </div>
           <button
             type="button"

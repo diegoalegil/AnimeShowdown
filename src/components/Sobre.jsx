@@ -1,5 +1,19 @@
+import { useEffect } from 'react'
 import { CARTAS_POR_SOBRE, SOBRES_POR_DIA } from '../config.js'
-import { SelloMarca } from './Hanko.jsx'
+import { urlPublica } from '../lib/images.js'
+import { Logo } from './Logo.jsx'
+
+// La cara del sobre aplanada que llevan las piezas al rasgarse (ver SobreRasgado).
+const CARA = urlPublica('sobre-cara.webp')
+let cara = null
+
+/** Descarga y decodifica la cara antes de abrir: así las piezas nunca llegan vacías. */
+function precargarCara() {
+  if (cara) return
+  cara = new Image()
+  cara.src = CARA
+  cara.decode().catch(() => {})
+}
 
 // ---------------------------------------------------------------------------
 // Formas del envoltorio: bordes dentados arriba y abajo (el cierre prensado
@@ -86,15 +100,19 @@ const CIERRE = poligono(CIERRE_DIENTES)
 // ---------------------------------------------------------------------------
 
 /**
- * La cara del sobre: papel con olas (seigaiha), la tira de apertura, el
- * nombre en vertical y la faja de tinta con la marca. Solo elementos en
- * línea (va dentro de un botón). `numero` es el sobre del día (1..5).
+ * La cara del sobre: lámina carmesí casi negra con olas (seigaiha) en oro,
+ * los cierres prensados dorados, la tira de apertura, un marco dorado doble
+ * como el de las cartas SSR con la ilustración del sobre y la marca. Solo
+ * elementos en línea (va dentro de un botón). `numero` es el sobre del día
+ * (1..5).
  */
 export function Envoltorio({ numero }) {
   return (
     <span className="envoltorio" style={{ clipPath: CIERRE }}>
-      <span className="envoltorio-motivo envoltorio-motivo--arriba" />
-      <span className="envoltorio-motivo envoltorio-motivo--abajo" />
+      <span className="envoltorio-motivo" />
+      <span className="envoltorio-lamina" />
+      <span className="envoltorio-cierre envoltorio-cierre--arriba" />
+      <span className="envoltorio-cierre envoltorio-cierre--abajo" />
       <span className="envoltorio-tira">
         <span lang="ja" className="envoltorio-kaifu">
           開封口
@@ -102,15 +120,13 @@ export function Envoltorio({ numero }) {
         <span className="envoltorio-flecha" />
       </span>
       <span className="envoltorio-corte" />
-      <span className="envoltorio-numero cifra">
-        Nº {String(numero).padStart(2, '0')}
-        <span className="envoltorio-de"> / {String(SOBRES_POR_DIA).padStart(2, '0')}</span>
-      </span>
-      <span lang="ja" className="envoltorio-tate tate">
-        アニメショーダウン
-      </span>
+      <span className="envoltorio-marco" />
+      <Numero numero={numero} />
+      <span className="envoltorio-arte" />
       <span className="envoltorio-obi">
-        <span className="envoltorio-marca">AnimeShowdown</span>
+        <span className="envoltorio-marca">
+          Anime<span className="envoltorio-oro">Showdown</span>
+        </span>
         <span className="envoltorio-contenido">
           {CARTAS_POR_SOBRE} cartas
           <span lang="ja" className="envoltorio-mai">
@@ -122,12 +138,33 @@ export function Envoltorio({ numero }) {
   )
 }
 
+/** «Nº 02 / 05»: qué sobre del día es. */
+function Numero({ numero }) {
+  return (
+    <span className="envoltorio-numero cifra">
+      Nº {String(numero).padStart(2, '0')}
+      <span className="envoltorio-de"> / {String(SOBRES_POR_DIA).padStart(2, '0')}</span>
+    </span>
+  )
+}
+
+/** El sello 滅 de la marca en un medallón con filo dorado: cierra el sobre. */
+function Sello() {
+  return (
+    <span className="sobre-sello">
+      <Logo tamano={72} className="sobre-sello-logo" prioridad />
+    </span>
+  )
+}
+
 /**
  * El sobre cerrado, listo para abrir: todo él es el botón. Se inclina hacia
- * el puntero como las cartas y entra en escena una vez al montarse.
+ * el puntero como las cartas y entra en escena una vez al montarse, con un
+ * reflejo que recorre la lámina.
  */
 export function SobreCerrado({ numero, otro, onAbrir }) {
   const accion = otro ? 'Abrir otro sobre' : 'Abrir sobre'
+  useEffect(precargarCara, [])
   return (
     <button
       type="button"
@@ -136,10 +173,12 @@ export function SobreCerrado({ numero, otro, onAbrir }) {
       aria-label={`${accion} (${numero} de ${SOBRES_POR_DIA} de hoy)`}
     >
       <span className="sobre-caja">
+        <span className="sobre-halo" />
         <span className="sobre-sombra" />
         <span className="sobre-cuerpo" data-inclinar="">
           <Envoltorio numero={numero} />
-          <SelloMarca className="sobre-sello" />
+          <Sello />
+          <span className="sobre-barrido" />
           <span className="carta-brillo" />
         </span>
       </span>
@@ -153,24 +192,33 @@ export function SobreCerrado({ numero, otro, onAbrir }) {
 
 /**
  * El sobre mientras se rasga: la misma cara recortada en tres piezas (la
- * tira y dos mitades) y el sello partido en dos. Lo anima lib/coreografia.
+ * tira y dos mitades), el sello partido en dos y la luz que sale de dentro:
+ * un destello en la línea de rasgado y, detrás de las hojas, un halo con un
+ * abanico de rayos (un solo plano). Lo anima lib/coreografia.
+ *
+ * Cada pieza no lleva una copia del envoltorio sino su imagen aplanada
+ * (public/sobre-cara.webp, ver scripts/generate-sobre.mjs): una sola imagen
+ * por pieza es lo que Safari puede repintar a 60 fps mientras giran. Encima,
+ * las dos mitades llevan el número del sobre, que no va en la imagen.
  */
 export function SobreRasgado({ numero }) {
   return (
     <div className="sobre sobre--rasgado" aria-hidden="true">
       <span className="sobre-caja" data-pieza="caja">
         <span className="sobre-sombra" data-pieza="sombra" />
+        <span className="sobre-luz" data-pieza="luz" />
         {['tira', 'izquierda', 'derecha'].map((pieza) => (
           <span key={pieza} className={`sobre-pieza sobre-pieza--${pieza}`} data-pieza={pieza} style={{ clipPath: PIEZAS[pieza] }}>
-            <Envoltorio numero={numero} />
+            {pieza !== 'tira' && <Numero numero={numero} />}
           </span>
         ))}
         <span className="sobre-sello-mitad sobre-sello-mitad--izquierda" data-pieza="sello-izquierda">
-          <SelloMarca className="sobre-sello" />
+          <Sello />
         </span>
         <span className="sobre-sello-mitad sobre-sello-mitad--derecha" data-pieza="sello-derecha">
-          <SelloMarca className="sobre-sello" />
+          <Sello />
         </span>
+        <span className="sobre-grieta" data-pieza="grieta" />
       </span>
     </div>
   )

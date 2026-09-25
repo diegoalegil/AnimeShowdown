@@ -1,7 +1,7 @@
 import { useSyncExternalStore } from 'react'
 import { recuento } from './album.js'
 import { catalogo } from './catalog.js'
-import { crearAlmacen } from './collection.js'
+import { crearAlmacen, estadoVacio } from './collection.js'
 import { cuentaRetenida } from './cuentaRetenida.js'
 
 /** Almacén único de la colección de este navegador. */
@@ -15,9 +15,14 @@ export const coleccion = crearAlmacen({
   ventana: typeof window === 'undefined' ? undefined : window,
 })
 
+// El HTML prerenderizado de la portada no conoce la colección de nadie: se
+// hidrata con una vacía y en seguida se pinta la de este navegador.
+const SIN_COLECCION = estadoVacio('')
+const sinColeccion = () => SIN_COLECCION
+
 /** Estado de la colección; el componente se vuelve a pintar cuando cambia. */
 export function useColeccion() {
-  return useSyncExternalStore(coleccion.subscribe, coleccion.getSnapshot, coleccion.getSnapshot)
+  return useSyncExternalStore(coleccion.subscribe, coleccion.getSnapshot, sinColeccion)
 }
 
 /**

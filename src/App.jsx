@@ -4,12 +4,12 @@ import { Cabecera } from './components/Cabecera.jsx'
 import { FalloSeccion } from './components/FalloSeccion.jsx'
 import { Pie } from './components/Pie.jsx'
 import { aplazarLejanos } from './lib/aplazar.js'
+import { useHidratado } from './lib/hidratado.js'
 import { idsAncla, useNavegacionDelegada, useRestaurarScroll } from './lib/navegacion.js'
 import { PaginaActiva } from './lib/paginaActiva.js'
-import Ficha from './pages/Ficha.jsx'
 import Galeria from './pages/Galeria.jsx'
 import NoEncontrada from './pages/NoEncontrada.jsx'
-import { coleccion, sobres } from './paginas.js'
+import { coleccion, ficha, sobres } from './paginas.js'
 
 export function App() {
   useNavegacionDelegada()
@@ -22,6 +22,9 @@ export function App() {
   // no desmonta ni vuelve a montar sus mil cartas, y al volver conserva su
   // scroll exacto.
   const origen = ruta.startsWith('/carta/') ? state?.volver : undefined
+  // La portada llega prerenderizada sin la rejilla (ver pages/Galeria): el pie
+  // espera también, para no asomar pegado a la portada y saltar después.
+  const hidratado = useHidratado()
 
   return (
     <>
@@ -47,12 +50,20 @@ export function App() {
             {/* La galería y la colección se pintan arriba, fuera de las rutas. */}
             <Route index element={null} />
             <Route path="coleccion" element={null} />
-            <Route path="carta/:id" element={<Ficha />} />
+            <Route
+              path="carta/:id"
+              element={
+                // Solo si se entra directamente a una ficha antes de que llegue su código.
+                <Suspense fallback={<div className="escenario escenario--cargando" />}>
+                  <ficha.Componente />
+                </Suspense>
+              }
+            />
             <Route
               path="sobres"
               element={
                 // Mientras llega el código (solo si se entra directamente), el escenario ya oscuro.
-                <Suspense fallback={<div className="yoru escenario" />}>
+                <Suspense fallback={<div className="escenario escenario--cargando" />}>
                   <sobres.Componente />
                 </Suspense>
               }
@@ -61,7 +72,7 @@ export function App() {
           </Routes>
         </FalloSeccion>
       </main>
-      <Pie />
+      {hidratado && <Pie />}
     </>
   )
 }

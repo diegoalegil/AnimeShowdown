@@ -1,6 +1,6 @@
 import { memo } from 'react'
 import { esEspecial, numeroCarta } from '../lib/catalog.js'
-import { imagenCarta, marcarSiCargada, TAMANOS } from '../lib/images.js'
+import { cartaEntera, imagenCarta, marcarSiCargada, TAMANOS } from '../lib/images.js'
 import { revelar } from '../lib/motion.js'
 import { Enlace } from './Enlace.jsx'
 import { Hanko } from './Hanko.jsx'
@@ -10,7 +10,8 @@ import { Hanko } from './Hanko.jsx'
  * listeners propios: puede haber más de mil en la página.
  *
  * - `tamano`: muro | album | sobre | ficha (elige el atributo sizes).
- * - `copias`: cuántas tiene el visitante; 0 no muestra nada.
+ * - `copias`: cuántas tiene el visitante; 0 no muestra nada. En el álbum
+ *   todo es suyo: solo se anotan las repetidas (×N).
  * - `nueva`: sello 新 de carta recién conseguida.
  * - `enlace`: si la carta lleva a su ficha.
  * - `cartela`: nombre y serie bajo la ilustración.
@@ -42,26 +43,35 @@ export const Carta = memo(function Carta({
   // serie y, si la hay, la versión («One Piece · Gear 5»).
   const serie = [carta.anime, especial && carta.variante].filter(Boolean).join(' · ')
 
+  const entera = cartaEntera(carta)
+  const imagen = {
+    src: img.src,
+    srcSet: img.srcSet,
+    sizes: TAMANOS[tamano],
+    loading: prioridad ? 'eager' : 'lazy',
+    decoding: 'async',
+    draggable: 'false',
+  }
+
   const lamina = (
     <div className="carta-marco" data-inclinar="">
-      {/* Las ilustraciones que no son 2:3 se ven enteras, sobre un paspartú de su tono. */}
+      {/* Casi todas las ilustraciones llenan el marco (las que no son 2:3, con
+          un leve recorte). Las muy anchas o muy altas se ven enteras, y las
+          franjas que dejan las llena la misma ilustración, tenue, a sangre
+          (mismo archivo: no se descarga dos veces). */}
       <div
         className="carta-lamina"
-        data-paspartu={carta.ar ? '' : undefined}
+        data-entera={entera || undefined}
         style={{ '--tono': carta.color, viewTransitionName: compartida ? 'carta' : undefined }}
       >
+        {entera && <img className="carta-lamina-fondo" {...imagen} alt="" aria-hidden="true" />}
         <img
           ref={marcarSiCargada}
-          src={img.src}
-          srcSet={img.srcSet}
-          sizes={TAMANOS[tamano]}
+          {...imagen}
           width={img.width}
           height={img.height}
           alt={cartela ? '' : `Carta de ${carta.nombre}, de ${carta.anime}`}
-          loading={prioridad ? 'eager' : 'lazy'}
           fetchPriority={prioridad ? 'high' : undefined}
-          decoding="async"
-          draggable="false"
         />
         <span className="carta-brillo" aria-hidden="true" />
       </div>
@@ -77,7 +87,7 @@ export const Carta = memo(function Carta({
       <span className="carta-numero cifra">{numero}</span>
       <span className="carta-nombre">{carta.nombre}</span>
       <span className="carta-serie">{serie}</span>
-      {copias > 0 && (
+      {copias > (tamano === 'album' ? 1 : 0) && (
         <span className="carta-copias cifra" title={copias > 1 ? `Tienes ${copias} copias` : 'En tu colección'}>
           <span className="carta-copias-sello" aria-hidden="true" />
           {copias > 1 ? `×${copias}` : null}

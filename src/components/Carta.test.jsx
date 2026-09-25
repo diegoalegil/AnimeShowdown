@@ -2,7 +2,7 @@ import { renderToStaticMarkup } from 'react-dom/server'
 import { describe, expect, it } from 'vitest'
 import { Carta } from './Carta.jsx'
 import { EtiquetaVertical } from './EtiquetaVertical.jsx'
-import { Hanko, SelloMarca } from './Hanko.jsx'
+import { Hanko } from './Hanko.jsx'
 
 const FRIEREN = {
   id: 'frieren',
@@ -82,7 +82,6 @@ describe('Hanko y EtiquetaVertical', () => {
   it('los sellos son decorativos salvo que lleven etiqueta', () => {
     expect(renderToStaticMarkup(<Hanko kanji="新" />)).toContain('aria-hidden="true"')
     expect(renderToStaticMarkup(<Hanko kanji="新" etiqueta="Nueva" />)).toContain('aria-label="Nueva"')
-    expect(renderToStaticMarkup(<SelloMarca etiqueta="AnimeShowdown" />)).toContain('role="img"')
   })
 
   it('el texto vertical va marcado en japonés', () => {

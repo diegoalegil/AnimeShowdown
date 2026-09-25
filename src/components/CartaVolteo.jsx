@@ -23,7 +23,7 @@ export function CartaVolteo({ carta, familia }) {
   const especial = esEspecial(carta)
 
   return (
-    <div className="carta-marco ficha-marco" data-inclinar="">
+    <div className="carta-marco ficha-marco" data-inclinar="" data-especial={especial || undefined}>
       <div className="volteo">
         <div
           className="volteo-giro"

@@ -1,16 +1,15 @@
 /* ==========================================================================
    AnimeShowdown — sistema de diseño
-   Papel (washi) y tinta (sumi) como base; bermellón (shu) solo en sellos,
-   estados activos y foco; noche (yoru) para los momentos de contraste.
+   Escenario oscuro de azul noche; carmesí para las acciones principales, oro
+   para los filos, los sellos y lo que se colecciona, y un cian eléctrico
+   para los destellos. Los efectos se pintan una vez (sombras y brillos
+   fijos) y solo se anima transform y opacity.
    ========================================================================== */
 
-/* Tipografías autoalojadas. Cada hoja declara todos los alfabetos de la
-   fuente con su unicode-range, así que el navegador solo descarga los que
-   aparecen en la página (casi siempre, solo el latino básico). El mincho
-   japonés vive en fuentes-jp.css y se carga aparte (ver main.jsx). */
-@import '@fontsource/newsreader/400.css';
-@import '@fontsource/newsreader/500.css';
-@import '@fontsource/newsreader/400-italic.css';
+/* Tipografías autoalojadas. Zen Old Mincho 700 (solo latín) para los
+   títulos e IBM Plex Sans para la interfaz. El mincho japonés, en trozos
+   con unicode-range, vive en fuentes-jp.css y se carga aparte (ver main.jsx). */
+@import '@fontsource/zen-old-mincho/latin-700.css';
 @import '@fontsource/ibm-plex-sans/400.css';
 @import '@fontsource/ibm-plex-sans/500.css';
 
@@ -18,6 +17,7 @@
 @import './styles/hanko.css' layer(components);
 @import './styles/carta.css' layer(components);
 @import './styles/marco.css' layer(components);
+@import './styles/portada.css' layer(components);
 @import './styles/galeria.css' layer(components);
 @import './styles/ficha.css' layer(components);
 @import './styles/sobres.css' layer(components);
@@ -25,47 +25,68 @@
 @source '../index.html';
 @source './**/*.{js,jsx}';
 
+/* Respaldo de Zen Old Mincho con su mismo ancho. La portada llega pintada
+   antes que las fuentes (ver scripts/prerender.mjs): mientras tanto, los
+   títulos usan el mincho del sistema, un 9-10 % más ancho, y al cambiar
+   de fuente cortaban en otro sitio y el texto de debajo saltaba. Reducido
+   a su medida, ocupa las mismas líneas. */
+@font-face {
+  font-family: 'Zen Old Mincho respaldo';
+  font-weight: 700;
+  src: local('Hiragino Mincho ProN W6'), local('HiraMinProN-W6'), local('Georgia Bold'), local('Georgia-Bold'),
+    local('Noto Serif Bold'), local('NotoSerif-Bold');
+  size-adjust: 91%;
+}
+
 @theme static {
   /* Reinicia la paleta por defecto: solo existen los colores de la casa. */
   --color-*: initial;
 
-  /* Papel */
-  --color-washi: #f3efe6;
-  --color-kinu: #faf8f2;
-  --color-hoshi: #ebe5d8;
-  --color-sen: #d4ccbb;
+  /* Escenario */
+  --color-canvas: #04070c;
+  --color-bg: #080b12;
+  --color-surface: #101620;
+  --color-surface-alt: #171f2c;
+  --color-border: #334155;
+  /* «Cristal» sin backdrop-filter: superficies sólidas casi opacas. */
+  --color-cristal: rgb(16 22 32 / 0.9);
+  --color-velo: rgb(4 7 12 / 0.94);
 
-  /* Tinta */
-  --color-sumi: #1c1a17;
-  --color-sumi-2: #3a3631;
-  --color-nezumi: #5e584e;
-  --color-hai: #8a8374;
+  /* Texto */
+  --color-fg: #d7dce7;
+  --color-fg-strong: #f7f3ea;
+  --color-fg-muted: #a8b1c3;
 
-  /* Bermellón */
-  --color-shu: #c23b22;
-  --color-shu-fuka: #93301e;
-  --color-shu-akari: #e8664a;
+  /* Carmesí: acciones principales. accent-text es el tono legible como texto. */
+  --color-accent: #9f1d2c;
+  --color-accent-hover: #be2b38;
+  --color-accent-text: #e85a64;
+  --color-hanko: #d62b2b;
 
-  /* Noche */
-  --color-yoru: #121110;
-  --color-yoru-2: #1b1917;
-  --color-yoru-3: #28251f;
-  --color-yoru-sen: #3b3630;
-  --color-gofun: #eee8dc;
-  --color-gofun-2: #aaa192;
+  /* Oro: filos, sellos y colección */
+  --color-gold: #c5a15a;
+  --color-gold-bright: #e4c36f;
+  --color-gold-pale: #f7e6a2;
+  --color-gold-line: rgb(197 161 90 / 0.3);
+  --color-gold-line-strong: rgb(197 161 90 / 0.62);
+  --color-gold-soft: rgb(197 161 90 / 0.12);
+
+  /* Cian eléctrico: destellos y foco sobre oro */
+  --color-electric: #24c6dc;
+  --color-electric-soft: #8ddfed;
 
   --color-transparent: transparent;
   --color-current: currentColor;
 
   /* Tipografía */
-  --font-serif: 'Newsreader', 'Shippori Mincho', Georgia, 'Times New Roman', serif;
+  --font-display: 'Zen Old Mincho', 'Zen Old Mincho respaldo', 'Hiragino Mincho ProN', 'Yu Mincho', Georgia, 'Times New Roman', serif;
   --font-sans: 'IBM Plex Sans', system-ui, -apple-system, 'Segoe UI', sans-serif;
-  --font-jp: 'Shippori Mincho', 'Hiragino Mincho ProN', 'Yu Mincho', 'Noto Serif JP', serif;
+  --font-jp: 'Zen Old Mincho', 'Hiragino Mincho ProN', 'Yu Mincho', 'Noto Serif JP', serif;
   /* Rótulos japoneses pequeños y muy repetidos (cientos en el álbum): primero
      el mincho del sistema. Con la fuente web, cada tramo de caracteres nuevo
      es una descarga y un nuevo cálculo del texto, y Safari da tirones al
      hacer scroll por listas largas. */
-  --font-jp-rotulo: 'Hiragino Mincho ProN', 'Yu Mincho', 'YuMincho', 'Shippori Mincho', 'Noto Serif JP', serif;
+  --font-jp-rotulo: 'Hiragino Mincho ProN', 'Yu Mincho', 'YuMincho', 'Zen Old Mincho', 'Noto Serif JP', serif;
 
   --text-2xs: 0.6875rem;
   --text-2xs--line-height: 1.35;
@@ -82,19 +103,22 @@
   --text-2xl: 1.625rem;
   --text-2xl--line-height: 1.15;
   --text-3xl: 2.25rem;
-  --text-3xl--line-height: 1.06;
+  --text-3xl--line-height: 1.08;
   --text-4xl: 3rem;
-  --text-4xl--line-height: 1.02;
+  --text-4xl--line-height: 1.04;
   --text-5xl: 4rem;
-  --text-5xl--line-height: 0.98;
+  --text-5xl--line-height: 1;
 
-  --tracking-tight: -0.018em;
+  --tracking-tight: -0.012em;
   --tracking-wide: 0.06em;
+  --tracking-rotulo: 0.16em;
   --tracking-jp: 0.14em;
 
-  /* Esquinas rectas como una obra enmarcada; solo los sellos se redondean un poco. */
-  --radius-none: 0;
-  --radius-sello: 3px;
+  --radius-sm: 0.375rem;
+  --radius-md: 0.625rem;
+  --radius-lg: 1rem;
+  --radius-carta: 0.625rem;
+  --radius-full: 999px;
 
   --container-page: 80rem;
   --container-prosa: 38rem;
@@ -103,8 +127,9 @@
   --ease-fude: cubic-bezier(0.65, 0, 0.35, 1);
   --ease-hane: cubic-bezier(0.34, 1.4, 0.64, 1);
 
-  --shadow-lamina: 0 1px 2px rgb(28 26 23 / 0.16);
-  --shadow-alzada: 0 18px 30px -18px rgb(28 26 23 / 0.45);
+  /* Sombras fijas: se pintan una vez; lo que cambia es la opacidad de su capa. */
+  --shadow-alzada: 0 30px 44px -22px rgb(0 0 0 / 0.95), 0 0 26px -4px rgb(197 161 90 / 0.4);
+  --shadow-panel: 0 24px 48px -28px rgb(0 0 0 / 0.9);
 }
 
 :root {
@@ -116,10 +141,9 @@
   --dur-5: 900ms;
 
   --gutter: 1rem;
-  --foco: var(--color-shu-fuka);
-  --papel: url('/washi.png');
+  --foco: var(--color-gold-bright);
 
-  color-scheme: light;
+  color-scheme: dark;
 }
 
 @media (min-width: 48rem) {
@@ -149,15 +173,14 @@
   html {
     -webkit-text-size-adjust: 100%;
     text-size-adjust: 100%;
-    background-color: var(--color-washi);
+    background-color: var(--color-canvas);
   }
 
   body {
     min-height: 100dvh;
     margin: 0;
-    background-color: var(--color-washi);
-    background-image: var(--papel);
-    color: var(--color-sumi);
+    background-color: var(--color-bg);
+    color: var(--color-fg);
     font-family: var(--font-sans);
     font-size: var(--text-base);
     line-height: var(--text-base--line-height);
@@ -175,8 +198,9 @@
   h1,
   h2,
   h3 {
-    font-family: var(--font-serif);
-    font-weight: 400;
+    color: var(--color-fg-strong);
+    font-family: var(--font-display);
+    font-weight: 700;
     letter-spacing: var(--tracking-tight);
     text-wrap: balance;
   }
@@ -196,8 +220,8 @@
   }
 
   ::selection {
-    background-color: var(--color-shu);
-    color: var(--color-kinu);
+    background-color: var(--color-accent);
+    color: var(--color-fg-strong);
   }
 
   :focus-visible {
@@ -210,18 +234,6 @@
   h1[tabindex='-1']:focus,
   main[tabindex='-1']:focus {
     outline: none;
-  }
-
-  .yoru {
-    --foco: var(--color-shu-akari);
-    --papel: none;
-    background-color: var(--color-yoru);
-    color: var(--color-gofun);
-  }
-
-  .yoru ::selection {
-    background-color: var(--color-shu-akari);
-    color: var(--color-yoru);
   }
 }
 
@@ -257,10 +269,16 @@
 }
 
 @utility filete {
-  /* Filete fino, como el borde irregular de una hoja de washi. */
+  /* Filete dorado que se desvanece en los extremos. */
   height: 1px;
   border: 0;
-  background-color: var(--color-sen);
+  background-image: linear-gradient(
+    90deg,
+    transparent,
+    var(--color-gold-line-strong) 20%,
+    var(--color-gold-line-strong) 80%,
+    transparent
+  );
 }
 
 @utility solo-lectores {
@@ -279,33 +297,15 @@
    Movimiento
    -------------------------------------------------------------------------- */
 
-/* Pincelada: el título se descubre bajo una capa de papel que se retira con
-   un borde de trazo de pincel. Solo se anima transform, una vez. */
-@utility pincel {
-  position: relative;
-  display: inline-block;
-  overflow: clip;
-  overflow-clip-margin: 0.15em;
-  padding-block-end: 0.06em;
-
-  &::after {
-    content: '';
-    position: absolute;
-    /* El borde de pincel ocupa el primer 20 % de la capa: empieza fuera del texto. */
-    inset: -0.1em -0.2em -0.1em -24%;
-    background-color: var(--pincel-fondo, var(--color-washi));
-    background-image: var(--papel);
-    mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 120 100' preserveAspectRatio='none'%3E%3Cpath d='M14 0H120V100H6Q14 94 10 86Q4 78 13 70Q20 62 11 55Q5 47 15 40Q22 33 12 26Q6 18 16 11Q20 5 14 0Z'/%3E%3C/svg%3E");
-    mask-size: 100% 100%;
-    transform: translate3d(0, 0, 0);
-    animation: pincel-retira var(--dur-5) var(--ease-fude) 80ms both;
-    pointer-events: none;
-  }
+/* Entrada de un título: sube y se enciende una vez. Solo transform y opacity. */
+@utility revela-titulo {
+  animation: titulo-entra var(--dur-5) var(--ease-sumi) 60ms both;
 }
 
-@keyframes pincel-retira {
-  to {
-    transform: translate3d(105%, 0, 0);
+@keyframes titulo-entra {
+  from {
+    opacity: 0;
+    transform: translate3d(0, 0.32em, 0);
   }
 }
 
@@ -452,8 +452,8 @@
     transition: opacity var(--dur-2) linear;
   }
 
-  .pincel::after {
-    animation: funde var(--dur-2) linear reverse both;
+  .revela-titulo {
+    animation-name: funde;
   }
 
   *,

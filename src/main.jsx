@@ -1,10 +1,10 @@
 import { StrictMode } from 'react'
-import { createRoot } from 'react-dom/client'
+import { createRoot, hydrateRoot } from 'react-dom/client'
 import { BrowserRouter } from 'react-router'
 import { App } from './App.jsx'
 import { cuandoLibre } from './lib/diferido.js'
 import { vigilarImagenes } from './lib/images.js'
-import { precargarPaginas } from './paginas.js'
+import { coleccion, ficha, precargarPaginas, sobres } from './paginas.js'
 import './index.css'
 
 // Antes de pintar: así ninguna imagen carga sin que se marque.
@@ -15,13 +15,25 @@ vigilarImagenes(document)
 // "/AnimeShowdown?q=…".
 // useTransitions={false}: la navegación se aplica de forma síncrona, que es lo
 // que necesita document.startViewTransition para capturar el estado nuevo.
-createRoot(document.getElementById('root')).render(
+const raiz = document.getElementById('root')
+const aplicacion = (
   <StrictMode>
     <BrowserRouter basename={import.meta.env.BASE_URL} useTransitions={false}>
       <App />
     </BrowserRouter>
-  </StrictMode>,
+  </StrictMode>
 )
+// La portada llega ya pintada (ver scripts/prerender.mjs): React la hidrata y
+// reutiliza su HTML. Las demás páginas llegan vacías y se pintan aquí.
+if (raiz.firstElementChild) hydrateRoot(raiz, aplicacion)
+else createRoot(raiz).render(aplicacion)
 
 import('./fuentes-jp.css')
-cuandoLibre(precargarPaginas)
+// La ficha, en cuanto el navegador queda libre: así abrir una carta pinta la
+// ficha de verdad (y su transición) sin esperar a descargarla. Sobres y
+// colección, cuando la portada ya ha cargado del todo: no compiten con la
+// sala ni con las primeras cartas.
+cuandoLibre(() => precargarPaginas([ficha]))
+const precargarSecciones = () => cuandoLibre(() => precargarPaginas([sobres, coleccion]))
+if (document.readyState === 'complete') precargarSecciones()
+else window.addEventListener('load', precargarSecciones, { once: true })

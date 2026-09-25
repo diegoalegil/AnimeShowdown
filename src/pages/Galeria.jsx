@@ -1,11 +1,13 @@
 import { useDeferredValue, useEffect, useMemo, useRef, useState } from 'react'
 import { useLocation, useNavigate, useNavigationType } from 'react-router'
 import { Carta } from '../components/Carta.jsx'
-import { CartaDelDia } from '../components/CartaDelDia.jsx'
 import { EtiquetaVertical } from '../components/EtiquetaVertical.jsx'
 import { FiltrosGaleria } from '../components/FiltrosGaleria.jsx'
-import { TituloSeccion } from '../components/TituloSeccion.jsx'
+import { Portada } from '../components/Portada.jsx'
+import { Hanko } from '../components/Hanko.jsx'
 import { catalogo } from '../lib/catalog.js'
+import { useHidratado } from '../lib/hidratado.js'
+import { escenaAnime, pieza, simboloAnime } from '../lib/marca.js'
 import { agruparPorSerie, busquedaDe, ESPECIALES, etiquetaFiltros, filtrarCartas, leerFiltros } from '../lib/filtros.js'
 import { revelar } from '../lib/motion.js'
 import { trocear, useDisposicionMuro } from '../lib/grupos.js'
@@ -17,12 +19,34 @@ import { usePorTramos } from '../lib/usePorTramos.js'
 import { useTitulo } from '../lib/useTitulo.js'
 
 
+// Escenario de un estandarte: a lo ancho de la página, menos los márgenes.
+const TAMANO_ESCENA = '(min-width: 80rem) 1170px, (min-width: 48rem) calc(100vw - 5rem), calc(100vw - 2rem)'
+const ESCENA_ESPECIALES = pieza('collection-ssr-share')
+const CIUDAD = pieza('empty-search-night-city-refresh')
+
 // Se pinta primero lo que cabe en pantalla y el resto por tramos (ver usePorTramos).
 const PRIMER_TRAMO = 30
 const TRAMO = 120
 
+/**
+ * La galería: la portada y, debajo, la barra de filtros y las cartas. La
+ * portada va prerenderizada en el HTML (ver scripts/prerender.mjs); la
+ * rejilla depende de la dirección (los filtros), de la colección y de la
+ * pantalla, así que se pinta al hidratar.
+ */
 export default function Galeria() {
   useTitulo()
+  const hidratado = useHidratado()
+  return (
+    <>
+      <Portada />
+      {hidratado && <Cartas />}
+    </>
+  )
+}
+
+/** Filtros y rejilla de la galería, agrupada por series o filtrada. */
+function Cartas() {
   const { search } = useLocation()
   const tipo = useNavigationType()
   const navigate = useNavigate()
@@ -51,11 +75,9 @@ export default function Galeria() {
   const visibles = usePorTramos(cartas, { primero: PRIMER_TRAMO, tramo: TRAMO, completa: volviendo })
   // Sin filtros, las cartas se agrupan por serie; filtradas, van seguidas.
   const agrupar = !q.trim() && !serie
-  // Se cargan de inmediato las cartas de la primera fila (dos en el móvil,
-  // cinco en una pantalla ancha); el resto, al acercarse con el scroll.
+  // La portada ocupa la primera pantalla: las cartas cargan al acercarse con el scroll.
   const disposicion = useDisposicionMuro()
-  const prioritarias = new Set(visibles.slice(0, disposicion.columnas).map((c) => c.id))
-  const propsCarta = { tengo, busqueda, prioritarias, disposicion, entrada: !volviendo }
+  const propsCarta = { tengo, busqueda, disposicion, entrada: !volviendo }
 
   function cambiar(cambios) {
     navigate({ search: busquedaDe({ ...filtros, ...cambios }) }, { replace: true })
@@ -85,16 +107,6 @@ export default function Galeria() {
 
   return (
     <>
-      <div className="wrap galeria-cabecera pt-6 pb-5 md:pt-10 md:pb-10">
-        <TituloSeccion
-          ja="ギャラリー"
-          sub={`${catalogo.personajes.length} cartas de ${catalogo.animes.length} series, y ${catalogo.especiales.length} especiales.`}
-        >
-          Galería
-        </TituloSeccion>
-        <CartaDelDia />
-      </div>
-
       <FiltrosGaleria
         filtros={filtros}
         onCambiar={cambiar}
@@ -113,7 +125,10 @@ export default function Galeria() {
             </Sala>
           ))
         ) : (
-          <Muro cartas={visibles} etiqueta={`Cartas: ${etiqueta}`} {...propsCarta} />
+          <>
+            {serie && <EstandarteFiltro serie={serie} />}
+            <Muro cartas={visibles} etiqueta={`Cartas: ${etiqueta}`} {...propsCarta} />
+          </>
         )}
       </div>
     </>
@@ -121,11 +136,10 @@ export default function Galeria() {
 }
 
 /**
- * Rejilla de cartas; `prioritarias` son las que se cargan sin esperar al
- * scroll. Las cartas van en grupos de dos o tres filas y cada grupo se salta
+ * Rejilla de cartas. Las cartas van en grupos de dos o tres filas y cada grupo se salta
  * entero mientras está lejos de la pantalla (ver lib/grupos).
  */
-function Muro({ cartas, etiqueta, tengo, busqueda, prioritarias, disposicion, entrada }) {
+function Muro({ cartas, etiqueta, tengo, busqueda, disposicion, entrada }) {
   const { columnas, tamano } = disposicion
   return (
     <div className="muro" role="list" aria-label={etiqueta}>
@@ -142,7 +156,6 @@ function Muro({ cartas, etiqueta, tengo, busqueda, prioritarias, disposicion, en
               <Carta
                 carta={carta}
                 copias={tengo[carta.id] ?? 0}
-                prioridad={prioritarias.has(carta.id)}
                 entrada={entrada}
                 busqueda={busqueda}
               />
@@ -154,34 +167,111 @@ function Muro({ cartas, etiqueta, tengo, busqueda, prioritarias, disposicion, en
   )
 }
 
-/** Serie dentro de la galería completa: número, título, título original y recuento. */
+/** Serie dentro de la galería completa: su estandarte y sus cartas. */
 function Sala({ grupo, onVerSerie, children }) {
   const { anime, orden } = grupo
   const id = `serie-${anime.id}`
   return (
     <section className="sala" aria-labelledby={id}>
-      <header className="sala-cabecera" data-revelar="" ref={revelar}>
-        <span className="sala-orden cifra" aria-hidden="true">
-          {String(orden).padStart(2, '0')}
-        </span>
-        <h2 id={id} className="sala-titulo">
-          {anime.titulo}
-        </h2>
-        {anime.nativo && (
-          <span lang="ja" className="sala-nativo">
-            {anime.nativo}
-          </span>
-        )}
+      <Estandarte
+        id={id}
+        titulo={anime.titulo}
+        nativo={anime.nativo}
+        orden={orden}
+        escena={escenaAnime(anime)}
+        simbolo={simboloAnime(anime)}
+      >
         <button type="button" className="sala-ver" onClick={onVerSerie}>
-          {anime.count} {anime.count === 1 ? 'carta' : 'cartas'}
+          <span className="cifra">{anime.count}</span> {anime.count === 1 ? 'carta' : 'cartas'}
           <span className="solo-lectores"> de {anime.titulo}: ver solo esta serie</span>
           <span className="sala-flecha" aria-hidden="true">
             →
           </span>
         </button>
-      </header>
+      </Estandarte>
       {children}
     </section>
+  )
+}
+
+/** Estandarte de la serie filtrada (o de las especiales) sobre sus cartas. */
+function EstandarteFiltro({ serie }) {
+  if (serie === ESPECIALES) {
+    const n = catalogo.especiales.length
+    return (
+      <Estandarte titulo="Especiales" nativo="特別版" escena={ESCENA_ESPECIALES} especial>
+        <span className="sala-cuenta">
+          <span className="cifra">{n}</span> {n === 1 ? 'carta' : 'cartas'}
+        </span>
+      </Estandarte>
+    )
+  }
+  const anime = catalogo.anime(serie)
+  if (!anime) return null
+  return (
+    <Estandarte titulo={anime.titulo} nativo={anime.nativo} escena={escenaAnime(anime)} simbolo={simboloAnime(anime)}>
+      <span className="sala-cuenta">
+        <span className="cifra">{anime.count}</span> {anime.count === 1 ? 'carta' : 'cartas'}
+      </span>
+    </Estandarte>
+  )
+}
+
+/**
+ * Cabecera de una serie: su escenario de fondo, a lo ancho y oscurecido
+ * hacia el texto, su emblema, el número de sala, el título con su nombre
+ * original y, a la derecha, `children` (el recuento o el botón que filtra).
+ * Se salta fuera de pantalla (content-visibility), así que su ilustración y
+ * los glifos japoneses no se piden hasta que la serie se acerca.
+ */
+function Estandarte({ id, titulo, nativo, orden, escena, simbolo, especial = false, children }) {
+  return (
+    <header className="sala-cabecera" data-especial={especial || undefined} data-revelar="" ref={revelar}>
+      {escena && (
+        <div className="sala-escena" aria-hidden="true">
+          <img
+            src={escena.src}
+            srcSet={escena.srcSet}
+            sizes={TAMANO_ESCENA}
+            alt=""
+            loading="lazy"
+            decoding="async"
+            style={escena.foco ? { objectPosition: escena.foco } : undefined}
+          />
+        </div>
+      )}
+      {simbolo ? (
+        <img
+          className="sala-emblema"
+          src={simbolo.src}
+          srcSet={simbolo.srcSet}
+          sizes="(min-width: 48rem) 104px, 64px"
+          width="160"
+          height="160"
+          alt=""
+          loading="lazy"
+          decoding="async"
+        />
+      ) : (
+        especial && <Hanko kanji="特" forma="redondo" estilo="linea" className="sala-emblema sala-emblema--sello" />
+      )}
+      <div className="sala-texto">
+        {orden !== undefined && (
+          <span className="sala-orden cifra" aria-hidden="true">
+            Nº {String(orden).padStart(2, '0')}
+          </span>
+        )}
+        <h2 id={id} className="sala-titulo">
+          {titulo}
+        </h2>
+        {nativo && (
+          <span lang="ja" className="sala-nativo">
+            {nativo}
+          </span>
+        )}
+      </div>
+      <div className="sala-accion">{children}</div>
+    </header>
   )
 }
 
@@ -189,7 +279,8 @@ function SinResultados({ filtros: { q, serie }, onQuitar }) {
   const donde = serie === ESPECIALES ? 'entre las especiales' : serie ? `en ${catalogo.anime(serie)?.titulo}` : ''
   return (
     <div className="vacio">
-      <div className="vacio-hueco" aria-hidden="true">
+      <div className="vacio-escena" aria-hidden="true">
+        <img src={CIUDAD.src} srcSet={CIUDAD.srcSet} sizes="(min-width: 48rem) 22rem, calc(100vw - 2rem)" alt="" decoding="async" />
         <EtiquetaVertical ja="該当なし" className="vacio-tate" />
       </div>
       <div className="min-w-0">

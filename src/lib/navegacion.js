@@ -8,6 +8,7 @@
 import { useEffect, useLayoutEffect, useRef } from 'react'
 import { flushSync } from 'react-dom'
 import { useLocation, useNavigate, useNavigationType } from 'react-router'
+import { useHidratado } from './hidratado.js'
 import { conTransicion, nombrarCompartido } from './motion.js'
 
 /**
@@ -240,6 +241,10 @@ export function useRestaurarScroll() {
   const tipo = useNavigationType()
   const rutaAnterior = useRef(pathname)
   const conservar = Boolean(state?.conservarScroll)
+  // La portada prerenderizada se hidrata sin la rejilla (ver pages/Galeria):
+  // un ancla a ella al entrar (p. ej. «/?serie=…#cartas») se sigue cuando llega.
+  const hidratado = useHidratado()
+  const anclaPendiente = useRef(hidratado ? null : hash)
 
   useEffect(() => {
     if ('scrollRestoration' in window.history) window.history.scrollRestoration = 'manual'
@@ -278,4 +283,10 @@ export function useRestaurarScroll() {
     yaNavego = true
     alMostrarPagina?.()
   }, [key, hash, tipo, pathname, conservar])
+
+  useLayoutEffect(() => {
+    if (!hidratado || !anclaPendiente.current) return
+    irAAncla(anclaPendiente.current)
+    anclaPendiente.current = null
+  }, [hidratado])
 }

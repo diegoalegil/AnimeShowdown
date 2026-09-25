@@ -1,5 +1,6 @@
 // Coreografía de los sobres con la Web Animations API: el envoltorio que se
-// rasga, las cartas que vuelan a la mesa y, al guardar, hacia la colección.
+// rasga, la luz que sale de dentro, las cartas que vuelan a la mesa y, al
+// guardar, hacia la colección.
 // Solo transform y opacity. Todas las medidas se leen de una vez antes de
 // empezar; durante la animación no se toca el layout.
 import { movimientoReducido } from './motion.js'
@@ -12,7 +13,9 @@ const ACELERA = 'cubic-bezier(0.5, 0, 0.75, 0.3)'
 export const APERTURA = {
   presion: 300, // el sobre cede bajo el dedo
   sello: { retardo: 170, duracion: 560 },
+  grieta: { retardo: 160, duracion: 600 },
   tira: { retardo: 260, duracion: 640 },
+  luz: { retardo: 460, duracion: 1200 },
   mitades: { retardo: 520, duracion: 780 },
   cartas: { retardo: 600, paso: 70, duracion: 860 },
 }
@@ -85,7 +88,18 @@ export function animarApertura(mesa) {
     )
   }
 
-  // 3. La tira de arriba se levanta por la línea de puntos y se va.
+  // 3. La línea de rasgado se enciende de lado a lado: dentro hay luz.
+  animar(
+    pieza('grieta'),
+    [
+      { transform: 'scaleX(0)', opacity: 0, easing: SUAVE },
+      { transform: 'scaleX(1)', opacity: 1, offset: 0.5, easing: 'ease-in' },
+      { transform: 'scaleX(1)', opacity: 0 },
+    ],
+    { duration: APERTURA.grieta.duracion, delay: APERTURA.grieta.retardo, easing: 'linear' },
+  )
+
+  // 4. La tira de arriba se levanta por la línea de puntos y se va.
   animar(
     pieza('tira'),
     [
@@ -96,7 +110,9 @@ export function animarApertura(mesa) {
     { duration: APERTURA.tira.duracion, delay: APERTURA.tira.retardo, easing: FIRME },
   )
 
-  // 4. El cuerpo se abre por la mitad; las dos hojas caen hacia fuera.
+  // 5. El cuerpo se abre por la mitad; las dos hojas caen hacia fuera y
+  //    detrás estalla la luz: un halo con un abanico de rayos que crece, gira
+  //    un poco y se apaga. Solo escala, giro y opacidad de un plano pintado.
   for (const [lado, signo] of [
     ['izquierda', -1],
     ['derecha', 1],
@@ -111,13 +127,22 @@ export function animarApertura(mesa) {
       { duration: APERTURA.mitades.duracion, delay: APERTURA.mitades.retardo, easing: SUAVE },
     )
   }
+  animar(
+    pieza('luz'),
+    [
+      { transform: 'rotate(-8deg) scale(0.3)', opacity: 0 },
+      { transform: 'rotate(0deg) scale(0.9)', opacity: 1, offset: 0.28 },
+      { transform: 'rotate(14deg) scale(1.2)', opacity: 0 },
+    ],
+    { duration: APERTURA.luz.duracion, delay: APERTURA.luz.retardo, easing: SUAVE },
+  )
   animar(pieza('sombra'), [{ opacity: 1 }, { opacity: 0 }], {
     duration: APERTURA.mitades.duracion * 0.6,
     delay: APERTURA.mitades.retardo,
     easing: 'linear',
   })
 
-  // 5. Las cartas salen del sobre, apiladas, y vuelan a su sitio en la mesa.
+  // 6. Las cartas salen del sobre, apiladas, y vuelan a su sitio en la mesa.
   const { retardo, paso, duracion: vueloCartas } = APERTURA.cartas
   const mitad = (naipes.length - 1) / 2
   naipes.forEach((naipe, i) => {

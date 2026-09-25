@@ -30,9 +30,13 @@ navegador.
 
 Las reglas están en `src/config.js`.
 
-Las texturas de papel y los motivos tradicionales de los sobres (`public/washi.png`,
-`public/seigaiha.png` y `public/asanoha.png`) se generan con
-`node scripts/generate-washi.mjs` y `node scripts/generate-patrones.mjs`.
+Los motivos tradicionales de los sobres y los dorsos (`public/seigaiha.png` y
+`public/asanoha.png`), las brasas (`public/brasas.png`) y los rayos de luz
+(`public/rayos.webp`) se generan con `node scripts/generate-patrones.mjs`,
+`node scripts/generate-brasas.mjs` y `node scripts/generate-rayos.mjs`. La cara del
+sobre aplanada en una imagen (`public/sobre-cara.webp`), que llevan las piezas del
+sobre al rasgarse, se toma del propio build con `node scripts/generate-sobre.mjs`
+(ver su cabecera); hay que volver a generarla si cambia el envoltorio del sobre.
 
 ## Ejecutarlo en local
 
@@ -43,7 +47,8 @@ npm install
 npm run dev       # servidor de desarrollo
 npm test          # tests
 npm run lint
-npm run build     # valida los datos, construye y genera las páginas en dist/
+npm run build     # valida los datos, construye, genera las páginas en dist/ y
+                  # comprueba que el JavaScript inicial no pase de 100 kB (gzip)
 npm run preview   # sirve dist/
 ```
 
@@ -61,14 +66,15 @@ El despliegue a GitHub Pages lo hace `.github/workflows/deploy.yml` en cada push
    ```
 
    `anime` debe coincidir con el `titulo` de su entrada en `src/data/animes.json`
-   (súmale uno a su `count`, o crea la entrada si la serie es nueva). `color` es el
+   (súmale uno a su `count`, o crea la entrada si la serie es nueva; su arte es
+   opcional, ver [Arte de las series](#arte-de-las-series)). `color` es el
    tono dominante de la ilustración, que se ve mientras carga. `nativo` (nombre en
    japonés) y `desc` (una frase) son opcionales.
 
 2. Copia la ilustración original (formato WebP, ~1024 px de ancho) y genera sus
    tamaños de 300, 450 y 600 px (necesita `cwebp`). Si la ilustración no es 2:3,
-   el script anota además su proporción (`ar`) y la web la muestra entera, sobre
-   un paspartú, sin recortarla:
+   el script anota además su proporción (`ar`): la web la recorta un poco para
+   llenar el marco o, si es muy ancha o muy alta, la muestra entera:
 
    ```
    public/img/Frieren/frieren.webp
@@ -90,6 +96,28 @@ Las cartas especiales viven en `src/data/especiales.json` y `public/img/especial
 con los mismos tamaños. Basta con copiar la ilustración original y ejecutar
 `node scripts/generate-especiales.mjs` (necesita `cwebp` y `dwebp`): crea las versiones
 de 300, 450 y 600 px y anota en los datos la ruta y el tono dominante.
+
+## Arte de las series
+
+Cada serie de `src/data/animes.json` puede llevar su arte de marca: un escenario
+(el fondo de su estandarte en la galería, de su hoja en el álbum y de su ficha) y un
+emblema. Se activa con el campo `marca`, el nombre de sus archivos en
+`public/img/marca/`; sin él, la serie se muestra sin escenario ni emblema. Con
+`marca`, el build exige sus cinco archivos:
+
+```
+<marca>-escena-768.webp   <marca>-escena-1280.webp   (escenario 16:9)
+<marca>-fondo-480.webp                               (fondo difuminado de la ficha)
+<marca>-simbolo-160.webp  <marca>-simbolo-320.webp   (emblema)
+```
+
+Se generan a partir de las ilustraciones originales (`<marca>-scene-01.webp` y
+`<marca>-symbol-01.webp`, que no forman parte del repositorio) con
+`node scripts/generate-marca.mjs <carpeta-de-originales>`, que necesita `cwebp` y
+`dwebp`. De esa misma carpeta salen las piezas comunes (la sala de la portada, la
+arena de los sobres, la sala de trofeos…) y el logo; ver `src/lib/marca.js`.
+Opcionalmente, `foco` (p. ej. `"50% 80%"`) indica dónde está lo importante del
+escenario, para que las franjas estrechas lo recorten por ahí.
 
 ## Derechos
 

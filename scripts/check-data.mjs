@@ -1,11 +1,12 @@
 #!/usr/bin/env node
-// Valida el catálogo estático (src/data/*.json) y que cada carta tenga sus
-// imágenes en public/. Sale con código 1 si encuentra algún error.
+// Valida el catálogo estático (src/data/*.json), que cada carta tenga sus
+// imágenes en public/ y que exista el arte de marca (src/lib/marca.js). Sale con código 1 si encuentra algún error.
 //
 //   node scripts/check-data.mjs
 import { existsSync, readFileSync } from 'node:fs'
 import { dirname, join } from 'node:path'
 import { fileURLToPath } from 'node:url'
+import { archivosAnime, archivosComunes } from '../src/lib/marca.js'
 import { campoProporcion, medidasWebp } from './imagenes.mjs'
 
 const root = join(dirname(fileURLToPath(import.meta.url)), '..')
@@ -75,6 +76,25 @@ const animes = load('animes.json')
 // Animes
 checkRequired(animes, 'animes', ['id', 'titulo'])
 checkUnique(animes, 'animes')
+// El arte de marca es opcional: una serie sin `marca` se muestra sin
+// escenario ni emblema. Si la lleva, deben existir todos sus archivos.
+const marcas = new Map()
+for (const a of animes) {
+  if (!('marca' in a)) continue
+  if (!isText(a.marca) || !/^[a-z0-9]+(-[a-z0-9]+)*$/.test(a.marca)) {
+    fail(`animes: "${a.id}" marca inválida "${a.marca}"`)
+    continue
+  }
+  if (marcas.has(a.marca)) fail(`animes: "${a.id}" repite la marca "${a.marca}" de "${marcas.get(a.marca)}"`)
+  marcas.set(a.marca, a.id)
+  for (const archivo of archivosAnime(a.marca)) checkFile(archivo, `animes "${a.id}"`)
+}
+for (const a of animes) {
+  if ('foco' in a && !(isText(a.foco) && /^\d{1,3}% \d{1,3}%$/.test(a.foco))) {
+    fail(`animes: "${a.id}" foco inválido "${a.foco}" (se espera «50% 80%»)`)
+  }
+}
+for (const archivo of archivosComunes()) checkFile(archivo, 'marca')
 const animeById = new Map(animes.map((a) => [a.id, a]))
 const countByAnime = new Map()
 

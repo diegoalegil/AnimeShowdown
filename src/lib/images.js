@@ -29,6 +29,20 @@ export function urlPublica(ruta, base = import.meta.env.BASE_URL) {
 /** Proporción (ancho / alto) de la ilustración de una carta: `ar` o 2:3. */
 export const proporcionCarta = (carta) => carta.ar ?? 2 / 3
 
+// Hasta dónde se recorta una ilustración que no es 2:3 para llenar el marco
+// de la carta. Casi todas son un poco más anchas (0,70-0,78): recortadas
+// pierden menos de un 8 % por cada lado y el personaje se ve grande, como
+// sus vecinas. Las muy anchas o muy altas perderían demasiado: se ven
+// enteras (ver Carta y carta.css).
+export const ENTERA_SI_ANCHA = 0.8
+export const ENTERA_SI_ALTA = 0.6
+
+/** Si la ilustración se muestra entera en el marco 2:3, en vez de recortada. */
+export function cartaEntera(carta) {
+  const ar = proporcionCarta(carta)
+  return ar >= ENTERA_SI_ANCHA || ar <= ENTERA_SI_ALTA
+}
+
 /**
  * Devuelve { src, srcSet, width, height } para una carta. `src` apunta al
  * tamaño medio como respaldo; `srcSet` deja que el navegador elija. width y

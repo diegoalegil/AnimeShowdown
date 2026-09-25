@@ -34,23 +34,3 @@ export function Hanko({ kanji, forma = 'cuadrado', estilo = 'lleno', etiqueta, c
     </svg>
   )
 }
-
-/** Sello de la marca: ア en blanco sobre bermellón, dibujado con trazos. */
-export function SelloMarca({ className = '', etiqueta }) {
-  return (
-    <svg
-      viewBox="0 0 32 32"
-      className={`hanko ${className}`}
-      role={etiqueta ? 'img' : undefined}
-      aria-label={etiqueta}
-      aria-hidden={etiqueta ? undefined : true}
-    >
-      <path
-        className="hanko-fondo"
-        d="M3.4 2.5 16.2 2.8 28.7 2.3c.8 0 1.1.4 1.1 1.2l-.3 12.6.2 12.4c0 .8-.4 1.1-1.2 1.1l-12.6-.2-12.5.3c-.8 0-1.1-.4-1.1-1.2l.3-12.5-.2-12.4c0-.8.3-1.1 1-1.1Z"
-      />
-      <path className="hanko-trazo" strokeLinejoin="round" d="M8.6 9.4h14.6c-.7 3.3-2.7 5.4-6 6.6" />
-      <path className="hanko-trazo" strokeLinecap="round" d="M15.6 12.6c.4 5.2-1.1 9-4.7 11.4" />
-    </svg>
-  )
-}

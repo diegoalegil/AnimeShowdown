@@ -1,52 +1,130 @@
 /* ==========================================================================
-   Sobres: la mesa oscura, el sobre de papel y las cartas que salen de él.
-   La coreografía de apertura y guardado la lleva lib/coreografia (Web
-   Animations); el volteo y los sellos, este archivo a partir de
-   data-revelada. Solo se anima transform y opacity.
+   Sobres: la arena de noche, el sobre de lámina oscura y las cartas que
+   salen de él. La coreografía de apertura y guardado la lleva
+   lib/coreografia (Web Animations); el volteo, los sellos y los destellos,
+   este archivo a partir de data-revelada.
+
+   Rendimiento: solo se anima transform y opacity. La luz (focos, halos,
+   estallidos, brasas) viene pintada en imágenes y degradados fijos; lo que
+   se mueve en bucle (focos y brasas) se para fuera de la pantalla
+   (data-fuera) y con movimiento reducido.
    ========================================================================== */
 
 .sobres {
   position: relative;
+  isolation: isolate;
+  min-height: 70vh;
   overflow-x: clip;
   padding-bottom: 5rem;
-  --sobre-ancho: min(62vw, 16rem);
-  /* En el móvil, la carta deja ver un trozo de las vecinas y el pie de la mesa. */
-  --naipe-ancho: min(60vw, 14.375rem);
+  background-color: var(--color-canvas);
+  --sobre-ancho: min(64vw, 15.5rem);
+  /* En el móvil, la carta deja ver un trozo de las vecinas y, en pantallas
+     bajas, se encoge para que carta, cartela, marcas y barra de acciones
+     quepan a la vez (17rem: la cartela, las marcas, la barra y el aire). */
+  --naipe-ancho: min(60vw, 14.375rem, (100svh - 17rem) * 2 / 3);
   --voltear: 700ms;
   --voltear-especial: 940ms;
   /* Hasta dónde se abre el destello de la especial (en el móvil, dentro de la fila). */
-  --destello-x: 1.28;
-  --destello-y: 1.12;
+  --destello-x: 1.08;
+  --destello-y: 1.04;
 }
 
 @media (min-width: 48rem) {
   .sobres {
+    --sobre-ancho: 17rem;
     --naipe-ancho: min(12.75rem, calc((100vw - 2 * var(--gutter) - 6rem) / 5));
-    --destello-x: 1.5;
-    --destello-y: 1.3;
+    --destello-x: 1.25;
+    --destello-y: 1.15;
   }
 }
 
-/* 開封, enorme y casi negro: textura del escenario, no texto. */
-.sobres-fondo {
+/* ---- La arena: fondo, focos y brasas, detrás de todo ---- */
+.arena {
   position: absolute;
-  top: 1.25rem;
-  right: -0.75rem;
-  color: var(--color-yoru-2);
-  font-size: 8.5rem;
-  letter-spacing: 0;
+  inset: 0 0 auto;
+  z-index: -1;
+  height: min(100%, 60rem);
+  overflow: hidden;
   pointer-events: none;
-  user-select: none;
 }
 
-@media (min-width: 48rem) {
-  .sobres-fondo {
-    top: 2.5rem;
-    right: calc(var(--gutter) - 1rem);
-    font-size: 14rem;
+.arena-escena {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: 50% 72%;
+  opacity: 0.62;
+}
+
+/* Viñeta y fundidos: oscuro arriba para el título, un foco claro donde se
+   posa el sobre y el lienzo abajo y a los lados. Una sola capa fija. */
+.arena::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background-image:
+    linear-gradient(180deg, rgb(4 7 12 / 0.9) 0%, rgb(4 7 12 / 0.45) 26%, rgb(4 7 12 / 0.2) 55%, var(--color-canvas) 100%),
+    radial-gradient(ellipse 70% 60% at 50% 52%, transparent 40%, rgb(4 7 12 / 0.85) 100%);
+}
+
+/* Focos: un abanico de haces dorados que baja desde lo alto y se mece. */
+.arena-focos {
+  position: absolute;
+  top: 0;
+  left: 50%;
+  z-index: 1;
+  width: min(150vw, 64rem);
+  aspect-ratio: 1;
+  margin-left: calc(min(150vw, 64rem) / -2);
+  background-image: url('/rayos.webp');
+  background-size: 100% 100%;
+  opacity: 0.5;
+  translate: 0 -50%;
+  animation: focos-mecen 18s ease-in-out infinite alternate;
+}
+
+@keyframes focos-mecen {
+  from {
+    transform: rotate(-5deg);
+  }
+
+  to {
+    transform: rotate(5deg);
   }
 }
 
+.arena-brasas {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  overflow: hidden;
+}
+
+.arena-brasas .brasas {
+  opacity: 0.55;
+}
+
+.sobres[data-fuera] .arena-focos,
+.sobres[data-fuera] .brasas {
+  animation-play-state: paused;
+}
+
+/* Mientras el sobre estalla, los focos y las brasas se apagan un momento:
+   manda la luz del sobre (y la escena compone menos capas grandes). */
+.arena-focos,
+.arena-brasas {
+  transition: opacity var(--dur-4) var(--ease-sumi);
+}
+
+.sobres[data-fase='abriendo'] .arena-focos,
+.sobres[data-fase='abriendo'] .arena-brasas {
+  opacity: 0;
+  transition-duration: var(--dur-2);
+}
+
+/* ---- Cabecera: el título y los sobres que quedan ---- */
 .sobres-cabecera {
   position: relative;
   display: flex;
@@ -57,17 +135,29 @@
   padding-top: 1.75rem;
 }
 
+.sobres-cabecera h1 {
+  text-shadow: 0 2px 18px rgb(4 7 12 / 0.9);
+}
+
 @media (min-width: 48rem) {
   .sobres-cabecera {
-    padding-top: 4rem;
+    padding-top: 3.5rem;
   }
 }
 
-/* ---- Sobres de hoy: cinco sobrecitos, en papel los que quedan ---- */
+/* Sobres de hoy: cinco sobrecitos de oro en una placa oscura; los abiertos
+   quedan en hueco. */
 .hoy {
   display: flex;
   align-items: center;
   gap: 0.875rem;
+  padding: 0.5rem 1rem 0.5rem 0.75rem;
+  border: 1px solid var(--color-gold-line);
+  border-radius: var(--radius-full);
+  background-color: var(--color-cristal);
+  box-shadow:
+    inset 0 1px 0 rgb(247 230 162 / 0.08),
+    var(--shadow-panel);
   animation: aparece var(--dur-4) var(--ease-sumi) 260ms both;
 }
 
@@ -81,16 +171,22 @@
 
 .hoy-sobre {
   position: relative;
-  width: 0.6875rem;
-  height: 1.0625rem;
-  box-shadow: inset 0 0 0 1px var(--color-yoru-sen);
+  width: 0.75rem;
+  height: 1.125rem;
+  border-radius: 2px;
+  box-shadow: inset 0 0 0 1px var(--color-gold-line-strong);
 }
 
+/* El sobre lleno: lámina dorada con su faja carmesí. Se va con opacidad. */
 .hoy-sobre::before {
   content: '';
   position: absolute;
   inset: 0;
-  background-color: var(--color-gofun);
+  border-radius: inherit;
+  background-image:
+    linear-gradient(180deg, transparent 58%, var(--color-accent) 58%, var(--color-accent) 76%, transparent 76%),
+    linear-gradient(160deg, var(--color-gold-pale), var(--color-gold-bright) 45%, var(--color-gold) 100%);
+  box-shadow: 0 0 8px -1px rgb(228 195 111 / 0.55);
   transition:
     opacity var(--dur-3) var(--ease-sumi),
     transform var(--dur-3) var(--ease-sumi);
@@ -103,12 +199,12 @@
 
 .hoy-texto {
   margin: 0;
-  color: var(--color-gofun-2);
+  color: var(--color-fg);
   font-size: var(--text-sm);
 }
 
 .hoy-texto strong {
-  color: var(--color-gofun);
+  color: var(--color-gold-bright);
   font-weight: 500;
 }
 
@@ -125,7 +221,7 @@
   grid-template-columns: minmax(0, 1fr);
   place-items: center;
   min-height: calc(var(--naipe-ancho) * 1.5 + 6rem);
-  margin-top: 0.25rem;
+  margin-top: 0.75rem;
 }
 
 .mesa > * {
@@ -134,8 +230,8 @@
 
 @media (min-width: 48rem) {
   .mesa {
-    min-height: calc(var(--sobre-ancho) * 1.6 + 4.5rem);
-    margin-top: 2rem;
+    min-height: calc(var(--sobre-ancho) * 1.6 + 5rem);
+    margin-top: 1.5rem;
   }
 }
 
@@ -143,13 +239,31 @@
    El sobre
    ========================================================================== */
 
+/* Luz en el suelo de la arena, donde se posan el sobre y las cartas. Fija. */
+.mesa::before {
+  content: '';
+  position: absolute;
+  left: 50%;
+  bottom: -0.5rem;
+  width: min(96vw, 46rem);
+  height: 8rem;
+  margin-left: calc(min(96vw, 46rem) / -2);
+  background-image: radial-gradient(
+    ellipse closest-side,
+    rgb(228 195 111 / 0.2),
+    rgb(159 29 44 / 0.12) 55%,
+    transparent
+  );
+  pointer-events: none;
+}
+
 .sobre {
   position: relative;
   z-index: 2;
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 1.375rem;
+  gap: 1.5rem;
   padding: 0;
   border: 0;
   background: none;
@@ -185,6 +299,19 @@
   display: block;
   width: var(--sobre-ancho);
   aspect-ratio: 5 / 8;
+}
+
+/* Halo dorado detrás del sobre cerrado: lo despega del fondo. Fijo. */
+.sobre-halo {
+  position: absolute;
+  inset: -22% -40%;
+  background-image: radial-gradient(
+    ellipse closest-side,
+    rgb(228 195 111 / 0.22),
+    rgb(197 161 90 / 0.08) 55%,
+    transparent
+  );
+  pointer-events: none;
 }
 
 /* La sombra vive aparte: el envoltorio va recortado (clip-path) y la perdería. */
@@ -223,28 +350,74 @@
   }
 }
 
+/* Reflejo que recorre la lámina una vez, cuando el sobre llega a la mesa. */
+.sobre-barrido {
+  position: absolute;
+  inset: -10% auto -10% -60%;
+  width: 60%;
+  background-image: linear-gradient(
+    105deg,
+    rgb(255 255 255 / 0) 20%,
+    rgb(247 230 162 / 0.16) 44%,
+    rgb(255 250 235 / 0.3) 50%,
+    rgb(247 230 162 / 0.16) 56%,
+    rgb(255 255 255 / 0) 80%
+  );
+  opacity: 0;
+  pointer-events: none;
+  animation: barrido 1300ms var(--ease-fude) 650ms both;
+}
+
+@keyframes barrido {
+  0% {
+    opacity: 1;
+    transform: translate3d(0, 0, 0);
+  }
+
+  100% {
+    opacity: 1;
+    transform: translate3d(290%, 0, 0);
+  }
+}
+
+/* «Abrir sobre»: la acción carmesí bajo el sobre (parte del mismo botón). */
 .sobre-accion {
   display: inline-flex;
   align-items: center;
   gap: 0.625rem;
-  color: var(--color-gofun);
   font-size: var(--text-sm);
   font-weight: 500;
-  letter-spacing: 0.02em;
 }
 
 .sobre-accion-texto {
-  text-decoration-line: underline;
-  text-decoration-color: var(--color-shu-akari);
-  text-decoration-thickness: 1px;
-  text-underline-offset: 0.45em;
+  display: inline-flex;
+  align-items: center;
+  min-height: 2.75rem;
+  padding: 0.625rem 1.5rem;
+  border: 1px solid var(--color-accent-hover);
+  border-radius: var(--radius-md);
+  background-color: var(--color-accent);
+  color: var(--color-fg-strong);
+  box-shadow:
+    inset 0 1px 0 rgb(255 255 255 / 0.16),
+    0 10px 24px -12px rgb(159 29 44 / 0.9);
+  transition:
+    background-color var(--dur-2) var(--ease-sumi),
+    border-color var(--dur-2) var(--ease-sumi);
+}
+
+.sobre:hover .sobre-accion-texto {
+  border-color: var(--color-accent-text);
+  background-color: var(--color-accent-hover);
 }
 
 .sobre-accion-tecla {
   display: none;
-  padding: 0.0625rem 0.375rem;
-  border: 1px solid var(--color-yoru-sen);
-  color: var(--color-gofun-2);
+  padding: 0.125rem 0.4375rem;
+  border: 1px solid var(--color-gold-line-strong);
+  border-radius: var(--radius-sm);
+  background-color: var(--color-gold-soft);
+  color: var(--color-gold-pale);
   font-size: var(--text-2xs);
   font-weight: 400;
 }
@@ -253,14 +426,22 @@
   display: inline-block;
 }
 
-/* ---- Envoltorio de papel ---- */
+/* ---- Envoltorio: lámina carmesí casi negra con oro ----
+   Medidas en % de la cara; los textos, en proporción al ancho del sobre. */
 .envoltorio {
   position: absolute;
   inset: 0;
   display: block;
-  background-color: var(--color-kinu);
-  background-image: url('/washi.png');
-  color: var(--color-sumi);
+  background-color: color-mix(in srgb, var(--color-accent) 22%, var(--color-canvas));
+  background-image:
+    radial-gradient(ellipse 85% 50% at 50% 44%, color-mix(in srgb, var(--color-accent) 60%, transparent), transparent 72%),
+    linear-gradient(
+      180deg,
+      color-mix(in srgb, var(--color-accent) 42%, var(--color-canvas)) 0%,
+      color-mix(in srgb, var(--color-accent) 24%, var(--color-canvas)) 62%,
+      color-mix(in srgb, var(--color-accent) 12%, var(--color-canvas)) 100%
+    );
+  color: var(--color-gold-bright);
 }
 
 .envoltorio > * {
@@ -268,43 +449,66 @@
   display: block;
 }
 
-/* Olas (seigaiha) muy tenues: la tesela es una máscara y el color, un token. */
+/* Olas (seigaiha) en oro, muy tenues: la tesela es una máscara. */
 .envoltorio-motivo {
-  left: 0;
-  right: 0;
-  background-color: var(--color-sen);
-  opacity: 0.6;
+  inset: 0;
+  background-color: var(--color-gold);
+  opacity: 0.09;
   -webkit-mask-image: url('/seigaiha.png');
   mask-image: url('/seigaiha.png');
   -webkit-mask-size: 36px 18px;
   mask-size: 36px 18px;
 }
 
-.envoltorio-motivo--arriba {
-  top: 12%;
-  height: 44%;
+/* Brillo fijo de lámina: los bordes enrollados del sobre y una diagonal. */
+.envoltorio-lamina {
+  inset: 0;
+  background-image:
+    linear-gradient(90deg, rgb(255 236 200 / 0.16), transparent 6%, transparent 94%, rgb(255 236 200 / 0.12)),
+    linear-gradient(
+      118deg,
+      transparent 30%,
+      rgb(247 230 162 / 0.07) 40%,
+      rgb(255 250 235 / 0.12) 44%,
+      rgb(247 230 162 / 0.06) 48%,
+      transparent 58%
+    );
 }
 
-.envoltorio-motivo--abajo {
-  top: 78%;
+/* Cierres prensados: bandas de oro con estrías, arriba y abajo. */
+.envoltorio-cierre {
+  left: 0;
+  right: 0;
+  height: 4%;
+  background-image:
+    repeating-linear-gradient(90deg, rgb(0 0 0 / 0.28) 0 1px, transparent 1px 4px),
+    linear-gradient(180deg, var(--color-gold-pale), var(--color-gold) 60%, color-mix(in srgb, var(--color-gold) 55%, var(--color-canvas)));
+}
+
+.envoltorio-cierre--arriba {
+  top: 0;
+}
+
+.envoltorio-cierre--abajo {
   bottom: 0;
+  transform: scaleY(-1);
 }
 
 .envoltorio-tira {
-  top: 0;
+  top: 4%;
   left: 0;
   right: 0;
-  height: 12%;
+  height: 8%;
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 3% 9% 0;
+  padding: 0 9%;
 }
 
 .envoltorio-kaifu {
-  color: var(--color-nezumi);
+  color: var(--color-gold);
   font-family: var(--font-jp);
-  font-size: 0.625rem;
+  font-size: calc(var(--sobre-ancho) * 0.042);
   letter-spacing: 0.32em;
 }
 
@@ -313,7 +517,7 @@
   position: relative;
   width: 1.25rem;
   height: 1px;
-  background-color: var(--color-nezumi);
+  background-color: var(--color-gold);
 }
 
 .envoltorio-flecha::after {
@@ -323,85 +527,116 @@
   top: -3px;
   width: 6px;
   height: 6px;
-  border-top: 1px solid var(--color-nezumi);
-  border-right: 1px solid var(--color-nezumi);
+  border-top: 1px solid var(--color-gold);
+  border-right: 1px solid var(--color-gold);
   transform: rotate(45deg);
 }
 
-/* Línea de puntos por donde se rasga la tira. */
+/* Línea de puntos dorada por donde se rasga la tira. */
 .envoltorio-corte {
   top: 12%;
   left: 4%;
   right: 4%;
-  border-top: 1px dashed var(--color-hai);
+  border-top: 1px dashed var(--color-gold-line-strong);
+}
+
+/* Marco doble como el de las cartas SSR, con un rombo arriba y abajo. */
+.envoltorio-marco {
+  top: 15%;
+  bottom: 6%;
+  left: 6%;
+  right: 6%;
+  border: 1px solid var(--color-gold-line-strong);
+  border-radius: 3px;
+  box-shadow:
+    inset 0 0 0 3px rgb(4 7 12 / 0.3),
+    inset 0 0 0 4px var(--color-gold-line);
+}
+
+.envoltorio-marco::before,
+.envoltorio-marco::after {
+  content: '';
+  position: absolute;
+  left: 50%;
+  width: 9px;
+  height: 9px;
+  margin-left: -4.5px;
+  background-image: linear-gradient(135deg, var(--color-gold-pale), var(--color-gold) 70%);
+  box-shadow: 0 0 0 2px color-mix(in srgb, var(--color-accent) 30%, var(--color-canvas));
+  rotate: 45deg;
+}
+
+.envoltorio-marco::before {
+  top: -5px;
+}
+
+.envoltorio-marco::after {
+  bottom: -5px;
 }
 
 .envoltorio-numero {
-  top: 16.5%;
-  left: 8%;
-  padding: 0.1875rem 0.375rem;
-  background-color: var(--color-kinu);
-  color: var(--color-sumi-2);
-  font-size: var(--text-2xs);
-  letter-spacing: 0.12em;
+  top: 16.6%;
+  left: 0;
+  right: 0;
+  color: var(--color-gold-bright);
+  font-size: calc(var(--sobre-ancho) * 0.04);
+  letter-spacing: 0.16em;
+  text-align: center;
 }
 
 .envoltorio-de {
-  color: var(--color-nezumi);
+  color: var(--color-gold);
 }
 
-/* Nombre en vertical, como la etiqueta de un paquete japonés. */
-.envoltorio-tate {
-  top: 16.5%;
-  right: 8%;
-  padding: 0.5rem 0.3125rem;
-  border: 1px solid var(--color-sen);
-  background-color: var(--color-kinu);
-  color: var(--color-sumi-2);
-  font-size: 0.6875rem;
-  letter-spacing: 0.3em;
+/* La ilustración del sobre (el marco SSR con el abanico de cartas). */
+.envoltorio-arte {
+  top: 21%;
+  left: 14%;
+  right: 14%;
+  aspect-ratio: 1;
+  border-radius: 2px;
+  background-color: var(--color-canvas);
+  background-image: url('/img/marca/collection-ssr-share-768.webp');
+  background-position: center;
+  background-size: cover;
+  box-shadow:
+    0 0 0 1px var(--color-gold-line-strong),
+    0 0 0 3px rgb(4 7 12 / 0.5),
+    0 10px 18px -8px rgb(0 0 0 / 0.9);
 }
 
-/* Faja (obi) de tinta con la marca. */
 .envoltorio-obi {
-  top: 56%;
+  top: 75%;
   left: 0;
   right: 0;
-  height: 22%;
   display: flex;
   flex-direction: column;
   align-items: center;
-  justify-content: flex-end;
-  gap: 0.4rem;
-  padding-bottom: 5.5%;
-  background-color: var(--color-sumi);
-  color: var(--color-kinu);
-}
-
-.envoltorio-obi::before {
-  content: '';
-  position: absolute;
-  inset: 4px 0;
-  border-block: 1px solid var(--color-sumi-2);
+  gap: 0.375rem;
 }
 
 .envoltorio-marca {
-  position: relative;
-  font-family: var(--font-serif);
-  font-size: calc(var(--sobre-ancho) * 0.098);
-  font-weight: 500;
-  letter-spacing: -0.01em;
+  color: var(--color-fg-strong);
+  font-family: var(--font-display);
+  font-size: calc(var(--sobre-ancho) * 0.1);
+  font-weight: 700;
+  letter-spacing: -0.005em;
   line-height: 1;
+  text-shadow: 0 2px 10px rgb(4 7 12 / 0.8);
+}
+
+.envoltorio-oro {
+  color: var(--color-gold-bright);
 }
 
 .envoltorio-contenido {
-  position: relative;
   display: flex;
   align-items: baseline;
   gap: 0.5rem;
-  color: var(--color-gofun-2);
-  font-size: 0.5625rem;
-  letter-spacing: 0.16em;
+  color: var(--color-gold);
+  font-size: calc(var(--sobre-ancho) * 0.036);
+  font-weight: 500;
+  letter-spacing: 0.18em;
   text-transform: uppercase;
 }
 
@@ -410,20 +645,49 @@
   letter-spacing: 0.2em;
 }
 
-/* El sello de la marca cierra el sobre sobre el borde de la faja. */
+/* El sello 滅 en su medallón cierra el sobre sobre el pie de la ilustración. */
 .sobre-sello {
   position: absolute;
-  top: 56%;
+  top: 66%;
   left: 50%;
-  width: 23%;
-  transform: translate(-50%, -62%) rotate(-5deg);
+  display: grid;
+  place-items: center;
+  width: 26%;
+  aspect-ratio: 1;
+  border-radius: 50%;
+  background-image: radial-gradient(circle at 50% 40%, var(--color-surface-alt), var(--color-canvas) 75%);
+  box-shadow:
+    0 0 0 1.5px var(--color-gold-bright),
+    0 0 0 4px rgb(4 7 12 / 0.65),
+    0 0 18px 2px rgb(228 195 111 / 0.35),
+    0 8px 14px -4px rgb(0 0 0 / 0.9);
+  transform: translate(-50%, -50%);
 }
 
-/* ---- Piezas del sobre rasgado (ver components/Sobre y lib/coreografia) ---- */
+.sobre-sello-logo {
+  width: 84%;
+  height: auto;
+}
+
+/* ---- Piezas del sobre rasgado (ver components/Sobre y lib/coreografia) ----
+   Cada pieza es la cara del sobre aplanada en una imagen (la genera
+   scripts/generate-sobre.mjs a partir del envoltorio de arriba), recortada
+   por su línea de rasgado. */
 .sobre-pieza,
 .sobre-sello-mitad {
   position: absolute;
   inset: 0;
+  display: block;
+}
+
+.sobre-pieza {
+  background-image: url('/sobre-cara.webp');
+  background-size: 100% 100%;
+  color: var(--color-gold-bright);
+}
+
+.sobre-pieza .envoltorio-numero {
+  position: absolute;
   display: block;
 }
 
@@ -441,15 +705,59 @@
 
 /* El sello se parte por una grieta en zigzag. */
 .sobre-sello-mitad {
-  transform-origin: 50% 56%;
+  transform-origin: 50% 66%;
 }
 
 .sobre-sello-mitad--izquierda {
-  clip-path: polygon(0 0, 51% 0, 51% 47%, 48.6% 51%, 51.6% 55%, 49% 59%, 50.4% 63%, 50% 100%, 0 100%);
+  clip-path: polygon(0 0, 51% 0, 51% 57%, 48.6% 61%, 51.6% 65%, 49% 69%, 50.4% 73%, 50% 100%, 0 100%);
 }
 
 .sobre-sello-mitad--derecha {
-  clip-path: polygon(51% 0, 100% 0, 100% 100%, 50% 100%, 50.4% 63%, 49% 59%, 51.6% 55%, 48.6% 51%, 51% 47%);
+  clip-path: polygon(51% 0, 100% 0, 100% 100%, 50% 100%, 50.4% 73%, 49% 69%, 51.6% 65%, 48.6% 61%, 51% 57%);
+}
+
+/* La luz de dentro: un halo y el abanico de rayos en un solo plano pintado,
+   invisible hasta que lo anima la coreografía (escala, giro y opacidad). */
+.sobre-luz {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: calc(var(--sobre-ancho) * 3);
+  aspect-ratio: 1;
+  margin: calc(var(--sobre-ancho) * -1.5) 0 0 calc(var(--sobre-ancho) * -1.5);
+  background-image:
+    radial-gradient(
+      circle closest-side,
+      rgb(255 250 232 / 0.95),
+      rgb(247 230 162 / 0.7) 18%,
+      rgb(228 195 111 / 0.28) 38%,
+      rgb(197 161 90 / 0.06) 60%,
+      transparent 72%
+    ),
+    url('/rayos.webp');
+  background-size: 100% 100%;
+  opacity: 0;
+  pointer-events: none;
+}
+
+/* Destello en la línea de rasgado: nace a la izquierda y cruza el sobre. */
+.sobre-grieta {
+  position: absolute;
+  top: 12%;
+  left: -4%;
+  right: -4%;
+  height: 2rem;
+  margin-top: -1rem;
+  background-image: radial-gradient(
+    ellipse closest-side,
+    rgb(255 252 240) 8%,
+    rgb(247 230 162 / 0.7) 30%,
+    rgb(228 195 111 / 0.25) 60%,
+    transparent
+  );
+  transform-origin: 0 50%;
+  opacity: 0;
+  pointer-events: none;
 }
 
 /* ==========================================================================
@@ -530,6 +838,18 @@
   opacity: 1;
 }
 
+/* Revelada, la carta no se inclina (ver Naipe): si el puntero se quedó
+   encima al pulsarla, se endereza con calma y su cara acaba sin reflejo. */
+.naipe[data-revelada] .naipe-cuerpo[data-inclinada] {
+  transform: none;
+  transition-duration: var(--dur-3);
+  transition-timing-function: var(--ease-sumi);
+}
+
+.naipe[data-revelada] .naipe-cuerpo[data-inclinada] .carta-brillo {
+  opacity: 0;
+}
+
 @media (hover: none) {
   .naipe:not([data-revelada]) .naipe-cuerpo:active {
     transform: scale(0.97);
@@ -565,32 +885,41 @@
   backface-visibility: hidden;
 }
 
-/* ---- Dorso: papel sobre el escenario de tinta, hojas de cáñamo y el sello ----
-   Las cartas boca abajo son de washi, como el sobre: el mismo contraste de
-   papel y tinta que recorre la web, en el momento en que más importa. */
+/* ---- Dorso: lámina azul noche con filo dorado doble, hojas de cáñamo en
+   oro y el sello 滅 en su medallón, como el del sobre. ---- */
 .naipe-dorso {
   display: grid;
   place-items: center;
   overflow: hidden;
-  background-color: var(--color-kinu);
-  background-image: url('/washi.png');
+  border-radius: var(--radius-carta);
+  background-color: var(--color-surface);
+  background-image:
+    radial-gradient(ellipse 75% 55% at 50% 46%, color-mix(in srgb, var(--color-gold) 14%, var(--color-surface-alt)), transparent 72%),
+    linear-gradient(180deg, var(--color-surface-alt), var(--color-canvas));
   box-shadow:
-    0 26px 38px -22px rgb(0 0 0 / 0.95),
-    inset 0 0 0 1px var(--color-sen);
+    0 0 0 1px var(--color-gold-line-strong),
+    0 0 0 2px rgb(0 0 0 / 0.55),
+    0 26px 38px -22px rgb(0 0 0 / 0.95);
 }
 
 .naipe-dorso::before {
   content: '';
   position: absolute;
-  inset: 5.5%;
-  border: 1px solid var(--color-sen);
+  inset: 5%;
+  z-index: 1;
+  border: 1px solid var(--color-gold-line-strong);
+  border-radius: calc(var(--radius-carta) - 0.25rem);
+  box-shadow:
+    inset 0 0 0 3px rgb(4 7 12 / 0.4),
+    inset 0 0 0 4px var(--color-gold-line);
+  pointer-events: none;
 }
 
 .naipe-dorso-motivo {
   position: absolute;
-  inset: 5.5%;
-  background-color: var(--color-sumi);
-  opacity: 0.12;
+  inset: 5%;
+  background-color: var(--color-gold);
+  opacity: 0.1;
   -webkit-mask-image: url('/asanoha.png');
   mask-image: url('/asanoha.png');
   -webkit-mask-size: 24px 41.6px;
@@ -601,11 +930,21 @@
 
 .naipe-dorso-sello {
   position: relative;
-  box-sizing: border-box;
-  width: 38%;
-  padding: 7%;
-  background-color: var(--color-kinu);
-  outline: 1px solid var(--color-sen);
+  display: grid;
+  place-items: center;
+  width: 40%;
+  aspect-ratio: 1;
+  border-radius: 50%;
+  background-image: radial-gradient(circle at 50% 40%, var(--color-surface-alt), var(--color-canvas) 75%);
+  box-shadow:
+    0 0 0 1.5px var(--color-gold-bright),
+    0 0 0 4px rgb(4 7 12 / 0.7),
+    0 0 22px 2px rgb(228 195 111 / 0.3);
+}
+
+.naipe-dorso-logo {
+  width: 84%;
+  height: auto;
 }
 
 .naipe-dorso-marca {
@@ -613,11 +952,16 @@
   left: 0;
   right: 0;
   bottom: 10%;
-  color: var(--color-sumi-2);
-  font-family: var(--font-serif);
+  color: var(--color-fg-strong);
+  font-family: var(--font-display);
   font-size: var(--text-xs);
-  letter-spacing: 0.04em;
+  font-weight: 700;
+  letter-spacing: 0.02em;
   text-align: center;
+}
+
+.naipe-dorso-oro {
+  color: var(--color-gold-bright);
 }
 
 /* ---- Cara: la carta de siempre, sin cartela ni enlace ---- */
@@ -626,7 +970,85 @@
 }
 
 .naipe-cara .carta-lamina {
-  box-shadow: 0 26px 38px -22px rgb(0 0 0 / 0.95);
+  box-shadow:
+    0 0 0 1px var(--color-gold-line-strong),
+    0 0 0 2px rgb(0 0 0 / 0.55),
+    0 26px 38px -22px rgb(0 0 0 / 0.95);
+}
+
+/* Reflejo que recorre la cara una vez, al quedar boca arriba: oro en las
+   cartas normales, arcoíris dorado en las especiales. */
+.naipe-barrido {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  overflow: hidden;
+  border-radius: var(--radius-carta);
+  pointer-events: none;
+}
+
+.naipe-barrido::before {
+  content: '';
+  position: absolute;
+  inset: -12% auto -12% -70%;
+  width: 60%;
+  background-image: linear-gradient(
+    105deg,
+    rgb(255 255 255 / 0) 18%,
+    rgb(247 230 162 / 0.22) 42%,
+    rgb(255 252 240 / 0.42) 50%,
+    rgb(247 230 162 / 0.22) 58%,
+    rgb(255 255 255 / 0) 82%
+  );
+  opacity: 0;
+}
+
+.naipe[data-especial] .naipe-barrido::before {
+  width: 110%;
+  left: -115%;
+  background-image: linear-gradient(
+    110deg,
+    rgb(255 255 255 / 0) 12%,
+    rgb(232 90 100 / 0.2) 26%,
+    rgb(247 230 162 / 0.3) 38%,
+    rgb(255 252 240 / 0.42) 46%,
+    rgb(141 223 237 / 0.26) 56%,
+    rgb(160 140 255 / 0.2) 66%,
+    rgb(247 230 162 / 0.18) 76%,
+    rgb(255 255 255 / 0) 88%
+  );
+}
+
+.naipe[data-revelada] .naipe-barrido::before {
+  animation: barrido-cara 900ms var(--ease-fude) calc(var(--retardo, 0ms) + var(--voltear) * 0.8) both;
+}
+
+.naipe[data-revelada][data-especial] .naipe-barrido::before {
+  animation: barrido-cara-especial 1300ms var(--ease-fude) calc(var(--retardo, 0ms) + var(--voltear-especial) * 0.7) both;
+}
+
+@keyframes barrido-cara {
+  0% {
+    opacity: 1;
+    transform: translate3d(0, 0, 0);
+  }
+
+  100% {
+    opacity: 1;
+    transform: translate3d(300%, 0, 0);
+  }
+}
+
+@keyframes barrido-cara-especial {
+  0% {
+    opacity: 1;
+    transform: translate3d(0, 0, 0);
+  }
+
+  100% {
+    opacity: 1;
+    transform: translate3d(215%, 0, 0);
+  }
 }
 
 /* ---- Volteo: el dorso gira hasta ponerse de canto y la cara sigue desde
@@ -710,40 +1132,60 @@
   }
 }
 
-/* ---- Especial: un plano bermellón estalla detrás de la carta, una vez ---- */
-.naipe-destello {
+/* ---- Especial: detrás de la carta estalla un halo dorado y gira un abanico
+   de rayos, una vez. Planos pintados: solo escala, giro y opacidad. ---- */
+.naipe-destello,
+.naipe-rayos {
   position: absolute;
-  inset: -3%;
-  z-index: -1;
-  background-color: var(--color-shu);
   opacity: 0;
   pointer-events: none;
 }
 
-.naipe-destello::after {
-  content: '';
-  position: absolute;
-  inset: -6%;
-  border: 1px solid var(--color-shu-akari);
-  opacity: 0;
+.naipe-destello {
+  inset: -16% -28%;
+  z-index: -1;
+  border-radius: 50%;
+  background-image: radial-gradient(
+    ellipse closest-side,
+    rgb(255 250 235 / 0.9),
+    rgb(247 230 162 / 0.55) 30%,
+    rgb(228 195 111 / 0.2) 62%,
+    transparent
+  );
+}
+
+/* Cuadrado centrado en la carta (los márgenes en % van sobre su ancho). */
+.naipe-rayos {
+  top: 50%;
+  left: 50%;
+  z-index: -2;
+  width: 320%;
+  aspect-ratio: 1;
+  margin: -160% 0 0 -160%;
+  background-image: url('/rayos.webp');
+  background-size: 100% 100%;
 }
 
 .naipe[data-revelada] .naipe-destello {
-  animation: destello 1000ms var(--ease-sumi) calc(var(--retardo, 0ms) + var(--voltear-especial) * 0.5) both;
+  animation: destello 1100ms var(--ease-sumi) calc(var(--retardo, 0ms) + var(--voltear-especial) * 0.5) both;
 }
 
-.naipe[data-revelada] .naipe-destello::after {
-  animation: destello-marco 1200ms var(--ease-sumi) calc(var(--retardo, 0ms) + var(--voltear-especial) * 0.5 + 60ms) both;
+.naipe[data-revelada] .naipe-rayos {
+  animation: rayos-especial 1900ms var(--ease-sumi) calc(var(--retardo, 0ms) + var(--voltear-especial) * 0.5) both;
 }
 
 @keyframes destello {
   0% {
     opacity: 0;
-    transform: scale(0.82);
+    transform: scale(0.55);
   }
 
-  14% {
-    opacity: 0.95;
+  16% {
+    opacity: 1;
+  }
+
+  45% {
+    opacity: 0.75;
   }
 
   100% {
@@ -752,19 +1194,23 @@
   }
 }
 
-@keyframes destello-marco {
+@keyframes rayos-especial {
   0% {
     opacity: 0;
-    transform: scale(0.9);
+    transform: rotate(-12deg) scale(0.4);
   }
 
-  20% {
+  18% {
     opacity: 1;
+  }
+
+  55% {
+    opacity: 0.8;
   }
 
   100% {
     opacity: 0;
-    transform: scale(1.14, 1.1);
+    transform: rotate(26deg) scale(1);
   }
 }
 
@@ -819,8 +1265,10 @@
   }
 }
 
-/* Al guardar vuelan las cartas; su cartela se queda y se apaga. */
-.mesa[data-fase='guardando'] .naipe-cartela {
+/* Al guardar vuelan las cartas; su cartela y las marcas de la fila se
+   quedan y se apagan. */
+.mesa[data-fase='guardando'] .naipe-cartela,
+.mesa[data-fase='guardando'] ~ .mesa-posicion {
   opacity: 0;
   transition: opacity var(--dur-2) linear;
 }
@@ -837,32 +1285,45 @@
 }
 
 .naipe-numero {
-  color: var(--color-gofun-2);
+  color: var(--color-gold);
   font-size: var(--text-2xs);
   letter-spacing: var(--tracking-wide);
 }
 
+/* Repetida: una pastilla dorada con las copias. */
 .naipe-estado {
   grid-column: 2;
-  grid-row: 1;
-  color: var(--color-gofun-2);
+  grid-row: 1 / span 2;
+  align-self: start;
+  padding: 0.125rem 0.4375rem;
+  border: 1px solid var(--color-gold-line);
+  border-radius: var(--radius-full);
+  background-color: var(--color-gold-soft);
+  color: var(--color-gold-pale);
   font-size: var(--text-2xs);
   letter-spacing: 0.04em;
+  white-space: nowrap;
 }
 
 .naipe-nombre {
-  grid-column: 1 / -1;
+  grid-column: 1;
   margin-top: 0.125rem;
-  font-family: var(--font-serif);
+  color: var(--color-fg-strong);
+  font-family: var(--font-display);
   font-size: var(--text-lg);
+  font-weight: 700;
   line-height: 1.2;
-  overflow-wrap: anywhere;
+  overflow-wrap: break-word;
+}
+
+.naipe[data-especial] .naipe-nombre {
+  color: var(--color-gold-pale);
 }
 
 .naipe-serie {
   grid-column: 1 / -1;
   overflow: hidden;
-  color: var(--color-gofun-2);
+  color: var(--color-fg-muted);
   font-size: var(--text-xs);
   text-overflow: ellipsis;
   white-space: nowrap;
@@ -880,7 +1341,9 @@
 }
 
 .mesa[data-instantaneo] .naipe[data-revelada] .naipe-destello,
-.mesa[data-instantaneo] .naipe[data-revelada] .naipe-destello::after {
+.mesa[data-instantaneo] .naipe[data-revelada] .naipe-rayos,
+.mesa[data-instantaneo] .naipe[data-revelada] .naipe-barrido::before,
+.mesa[data-instantaneo] .naipe[data-revelada][data-especial] .naipe-barrido::before {
   animation: none;
 }
 
@@ -913,8 +1376,13 @@
 .mesa-acciones {
   display: flex;
   align-items: center;
-  gap: 1.5rem;
+  gap: 1.25rem;
   animation: aparece var(--dur-4) var(--ease-sumi) 1100ms both;
+}
+
+.mesa-revelar {
+  border-color: var(--color-gold-line-strong);
+  background-color: var(--color-cristal);
 }
 
 /* En el móvil, «Revelar todas» y «Saltar» quedan siempre a mano: el pie de
@@ -924,24 +1392,28 @@
     position: sticky;
     bottom: 1rem;
     z-index: 3;
+    /* Solo la placa: una caja más alta la dejaría flotando más arriba. */
+    min-height: 0;
   }
 
   .mesa-pie[data-acciones] .mesa-acciones {
-    padding: 0.375rem 0.5rem 0.375rem 0.375rem;
-    border: 1px solid var(--color-yoru-sen);
-    background-color: var(--color-yoru);
+    padding: 0.375rem 0.625rem 0.375rem 0.375rem;
+    border: 1px solid var(--color-gold-line);
+    border-radius: var(--radius-lg);
+    background-color: var(--color-velo);
     box-shadow: 0 12px 24px -12px rgb(0 0 0 / 0.9);
   }
 }
 
-/* Posición en la fila deslizable del móvil: «2 / 5» y cinco marcas. */
+/* Posición en la fila deslizable del móvil: «2 / 5» y cinco marcas, bajo
+   la fila (fuera de la barra fija). */
 .mesa-posicion {
   display: flex;
   align-items: center;
   justify-content: center;
   gap: 0.75rem;
   margin: 0.25rem 0 0;
-  color: var(--color-gofun-2);
+  color: var(--color-fg-muted);
   font-size: var(--text-xs);
   letter-spacing: var(--tracking-wide);
 }
@@ -952,14 +1424,15 @@
 }
 
 .mesa-posicion-marca {
-  width: 0.375rem;
-  height: 0.375rem;
-  box-shadow: inset 0 0 0 1px var(--color-gofun-2);
+  width: 0.4375rem;
+  height: 0.4375rem;
+  border-radius: 50%;
+  box-shadow: inset 0 0 0 1px var(--color-gold-line-strong);
 }
 
 .mesa-posicion-marca[data-actual] {
-  background-color: var(--color-gofun);
-  box-shadow: none;
+  background-color: var(--color-gold-bright);
+  box-shadow: 0 0 8px -1px rgb(228 195 111 / 0.7);
 }
 
 @media (min-width: 48rem) {
@@ -968,11 +1441,32 @@
   }
 }
 
+/* Resumen: una placa oscura con filo dorado, el recuento y «Guardar». */
 .mesa-resumen {
+  position: relative;
   display: grid;
   justify-items: center;
-  gap: 1rem;
+  gap: 1.125rem;
+  width: 100%;
+  max-width: 34rem;
+  padding: 1.25rem 1.25rem 1.375rem;
+  border: 1px solid var(--color-gold-line);
+  border-radius: var(--radius-lg);
+  background-color: var(--color-cristal);
+  box-shadow:
+    inset 0 1px 0 rgb(247 230 162 / 0.08),
+    var(--shadow-panel);
   animation: aparece var(--dur-4) var(--ease-sumi) calc(var(--espera, 0ms) + var(--voltear) * 0.9) both;
+}
+
+/* Filete dorado interior, como en los estandartes. */
+.mesa-resumen::before {
+  content: '';
+  position: absolute;
+  inset: 0.3125rem;
+  border: 1px solid rgb(197 161 90 / 0.14);
+  border-radius: calc(var(--radius-lg) - 0.25rem);
+  pointer-events: none;
 }
 
 .mesa-resumen-datos {
@@ -985,14 +1479,17 @@
   .mesa-resumen {
     grid-auto-flow: column;
     align-items: center;
-    gap: 2.5rem;
+    gap: 2rem;
+    width: auto;
+    max-width: none;
+    padding: 1.25rem 1.5rem 1.25rem 2rem;
     text-align: left;
   }
 
   .mesa-resumen-datos {
     justify-items: start;
-    padding-right: 2.5rem;
-    border-right: 1px solid var(--color-yoru-sen);
+    padding-right: 2rem;
+    border-right: 1px solid var(--color-gold-line);
   }
 }
 
@@ -1002,110 +1499,43 @@
 
 .mesa-resumen-texto {
   display: grid;
-  gap: 0.25rem;
+  gap: 0.375rem;
   margin: 0;
-  font-family: var(--font-serif);
+  color: var(--color-fg-strong);
+  font-family: var(--font-display);
   font-size: var(--text-2xl);
+  font-weight: 700;
   line-height: 1.2;
 }
 
 .mesa-resumen-etiqueta {
-  color: var(--color-gofun-2);
+  color: var(--color-gold-bright);
   font-family: var(--font-sans);
   font-size: var(--text-2xs);
-  letter-spacing: 0.16em;
+  font-weight: 500;
+  letter-spacing: var(--tracking-rotulo);
   text-transform: uppercase;
 }
 
 .mesa-resumen-total {
   margin: 0;
-  color: var(--color-gofun-2);
+  color: var(--color-fg-muted);
   font-size: var(--text-sm);
+}
+
+.mesa-guardar:disabled {
+  cursor: default;
 }
 
 .mesa-guardado {
   margin: 0;
-  color: var(--color-gofun-2);
+  color: var(--color-fg);
   font-size: var(--text-sm);
   animation: aparece var(--dur-4) var(--ease-sumi) 300ms both;
 }
 
-/* ---- Botones sobre el escenario ---- */
-.boton-papel,
-.boton-noche {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  min-height: 2.75rem;
-  padding: 0.6875rem 1.375rem;
-  font: inherit;
-  font-size: var(--text-sm);
-  font-weight: 500;
-  transition:
-    color var(--dur-2) var(--ease-sumi),
-    border-color var(--dur-2) var(--ease-sumi),
-    background-color var(--dur-2) var(--ease-sumi);
-}
-
-.boton-papel {
-  border: 1px solid var(--color-gofun);
-  background-color: var(--color-gofun);
-  color: var(--color-yoru);
-}
-
-.boton-papel:hover {
-  border-color: var(--color-kinu);
-  background-color: var(--color-kinu);
-}
-
-.boton-papel:disabled {
-  cursor: default;
-}
-
-.boton-noche {
-  border: 1px solid var(--color-yoru-sen);
-  background-color: transparent;
-  color: var(--color-gofun);
-}
-
-.boton-noche:hover {
-  border-color: var(--color-gofun-2);
-}
-
-.boton-texto {
-  min-height: 2.75rem;
-  padding: 0.5rem 0.25rem;
-  border: 0;
-  background: none;
-  color: var(--color-gofun-2);
-  font: inherit;
-  font-size: var(--text-sm);
-  text-decoration-line: underline;
-  text-decoration-color: var(--color-yoru-sen);
-  text-decoration-thickness: 1px;
-  text-underline-offset: 0.3em;
-  transition: color var(--dur-2) var(--ease-sumi);
-}
-
-.boton-texto:hover {
-  color: var(--color-gofun);
-}
-
-.enlace-noche {
-  color: var(--color-gofun);
-  text-decoration-line: underline;
-  text-decoration-color: var(--color-yoru-sen);
-  text-decoration-thickness: 1px;
-  text-underline-offset: 0.3em;
-  transition: text-decoration-color var(--dur-2) var(--ease-sumi);
-}
-
-.enlace-noche:hover {
-  text-decoration-color: var(--color-shu-akari);
-}
-
 /* ==========================================================================
-   Sin sobres hasta mañana
+   Sin sobres hasta mañana: el hueco del sobre y la cuenta atrás en oro
    ========================================================================== */
 
 .sin-sobres {
@@ -1118,36 +1548,64 @@
 }
 
 .sin-sobres-hueco {
+  position: relative;
   display: grid;
   place-items: center;
   width: calc(var(--sobre-ancho) * 0.72);
   aspect-ratio: 5 / 8;
-  margin-bottom: 1.25rem;
-  border: 1px dashed var(--color-yoru-sen);
+  margin-bottom: 1.5rem;
+  border: 1px dashed var(--color-gold-line-strong);
+  border-radius: var(--radius-md);
+  background-color: rgb(4 7 12 / 0.55);
   animation: aparece var(--dur-4) var(--ease-sumi) both;
 }
 
+.sin-sobres-hueco::before {
+  content: '';
+  position: absolute;
+  inset: 0.5rem;
+  border: 1px solid var(--color-gold-line);
+  border-radius: var(--radius-sm);
+}
+
 .sin-sobres-ja {
-  color: var(--color-gofun-2);
+  color: var(--color-gold-bright);
   font-size: 2.25rem;
   letter-spacing: 0.35em;
 }
 
 .sin-sobres-titulo {
   margin: 0;
-  font-family: var(--font-serif);
-  font-size: var(--text-2xl);
+  color: var(--color-fg-strong);
+  font-family: var(--font-display);
+  font-size: var(--text-3xl);
+  font-weight: 700;
+  line-height: 1.1;
+  text-shadow: 0 2px 18px rgb(4 7 12 / 0.9);
   animation: aparece var(--dur-4) var(--ease-sumi) 120ms both;
 }
 
 .sin-sobres-texto {
-  margin: 0 0 0.75rem;
-  color: var(--color-gofun-2);
+  display: grid;
+  justify-items: center;
+  gap: 0.25rem;
+  margin: 0.25rem 0 1.25rem;
+  color: var(--color-fg-muted);
   animation: aparece var(--dur-4) var(--ease-sumi) 200ms both;
 }
 
+.sin-sobres-espera {
+  background-image: linear-gradient(180deg, var(--color-gold-pale) 8%, var(--color-gold-bright) 48%, var(--color-gold) 92%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+  font-family: var(--font-display);
+  font-size: var(--text-4xl);
+  font-weight: 700;
+  line-height: 1.1;
+}
+
 .sin-sobres-enlace {
-  font-size: var(--text-sm);
   animation: aparece var(--dur-4) var(--ease-sumi) 280ms both;
 }
 
@@ -1156,14 +1614,22 @@
    ========================================================================== */
 
 .ultimo {
+  position: relative;
   margin-top: 4rem;
   padding-top: 2rem;
-  border-top: 1px solid var(--color-yoru-sen);
+}
+
+.ultimo::before {
+  content: '';
+  position: absolute;
+  inset: 0 0 auto;
+  height: 1px;
+  background-image: linear-gradient(90deg, transparent, var(--color-gold-line-strong) 20%, var(--color-gold-line-strong) 80%, transparent);
 }
 
 .ultimo-titulo {
   margin: 0 0 1.5rem;
-  font-size: var(--text-xl);
+  font-size: var(--text-2xl);
 }
 
 .ultimo-cartas {
@@ -1191,6 +1657,15 @@
     animation-name: funde;
   }
 
+  .sobre-barrido {
+    animation: none;
+  }
+
+  .arena-focos,
+  .arena-brasas .brasas {
+    animation: none;
+  }
+
   .naipe[data-revelada] .naipe-dorso,
   .naipe[data-revelada][data-especial] .naipe-dorso {
     animation: funde var(--dur-2) linear reverse both;
@@ -1203,7 +1678,9 @@
   }
 
   .naipe[data-revelada] .naipe-destello,
-  .naipe[data-revelada] .naipe-destello::after {
+  .naipe[data-revelada] .naipe-rayos,
+  .naipe[data-revelada] .naipe-barrido::before,
+  .naipe[data-revelada][data-especial] .naipe-barrido::before {
     animation: none;
   }
 

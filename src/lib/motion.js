@@ -181,8 +181,8 @@ export function revelar(elemento) {
 }
 
 // ---------------------------------------------------------------------------
-// Inclinación: la carta bajo el puntero gira hacia él (máx. ~8°) y un brillo
-// la recorre. Un solo par de listeners por contenedor, cálculo en
+// Inclinación: la carta bajo el puntero gira hacia él (máx. ~8°) y el brillo
+// holográfico (un reflejo que sigue al puntero y una banda de luz) la recorre. Un solo par de listeners por contenedor, cálculo en
 // requestAnimationFrame y sin lecturas de layout dentro del bucle.
 // ---------------------------------------------------------------------------
 
@@ -196,6 +196,7 @@ export function calcularInclinacion(px, py, max = INCLINACION_MAX) {
     rx: (0.5 - y) * 2 * max,
     ry: (x - 0.5) * 2 * max,
     brillo: x * 100,
+    brilloY: y * 100,
   }
 }
 
@@ -218,6 +219,7 @@ export function activarInclinacion(contenedor, { selector = '[data-inclinar]', m
     actual.style.removeProperty('--rx')
     actual.style.removeProperty('--ry')
     actual.style.removeProperty('--brillo')
+    actual.style.removeProperty('--brillo-y')
     delete actual.dataset.inclinada
     actual = null
     caja = null
@@ -226,7 +228,7 @@ export function activarInclinacion(contenedor, { selector = '[data-inclinar]', m
   function pintar() {
     frame = 0
     if (!actual || !caja || !puntero) return
-    const { rx, ry, brillo } = calcularInclinacion(
+    const { rx, ry, brillo, brilloY } = calcularInclinacion(
       (puntero.x - caja.left) / caja.width,
       (puntero.y - caja.top) / caja.height,
       max,
@@ -234,6 +236,7 @@ export function activarInclinacion(contenedor, { selector = '[data-inclinar]', m
     actual.style.setProperty('--rx', `${rx.toFixed(2)}deg`)
     actual.style.setProperty('--ry', `${ry.toFixed(2)}deg`)
     actual.style.setProperty('--brillo', brillo.toFixed(1))
+    actual.style.setProperty('--brillo-y', brilloY.toFixed(1))
   }
 
   function mover(evento) {

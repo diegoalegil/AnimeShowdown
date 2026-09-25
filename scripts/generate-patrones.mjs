@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 // Genera las teselas de los motivos tradicionales que usan los sobres:
 //
-//   public/seigaiha.png  olas (青海波) para el envoltorio de papel
+//   public/seigaiha.png  olas (青海波) para la lámina del sobre
 //   public/asanoha.png   hojas de cáñamo (麻の葉) para el dorso de las cartas
 //
 // Son máscaras: solo importa el alfa (las líneas). El color lo pone el CSS

@@ -1,6 +1,7 @@
 import { memo } from 'react'
 import { filasHoja, fraccion } from '../lib/album.js'
-import { numeroCarta } from '../lib/catalog.js'
+import { catalogo, numeroCarta } from '../lib/catalog.js'
+import { escenaAnime, pieza, simboloAnime } from '../lib/marca.js'
 import { revelar } from '../lib/motion.js'
 import { crearPegado } from '../lib/pegado.js'
 import { coleccion } from '../lib/useCollection.js'
@@ -11,10 +12,23 @@ import { Hanko } from './Hanko.jsx'
 // Las cartas nuevas se marcan como vistas cuando se pegan en su hueco.
 const pegarAlVer = crearPegado((ids) => coleccion.pegar(ids))
 
+// La franja del escenario ocupa el ancho de la hoja.
+const TAMANO_ESCENA = '(min-width: 80rem) 1170px, (min-width: 48rem) calc(100vw - 5rem), calc(100vw - 2rem)'
+const ESCENA_ESPECIALES = pieza('collection-ssr-share')
+
+/** Escenario y emblema de la hoja: los de su serie, o el marco SSR para las especiales. */
+function arteHoja(hoja) {
+  if (hoja.especiales) return { escena: ESCENA_ESPECIALES, simbolo: null }
+  const anime = catalogo.anime(hoja.id)
+  return { escena: escenaAnime(anime), simbolo: simboloAnime(anime) }
+}
+
 /**
- * Hoja del álbum: una serie (o las especiales) con un hueco numerado por
- * carta. Las que se tienen ocupan su hueco; las que faltan dejan el hueco
- * vacío con su número.
+ * Hoja del álbum: una vitrina oscura por serie (o para las especiales) con
+ * una franja de su escenario y su emblema arriba y un hueco numerado por
+ * carta. Las que se tienen ocupan su hueco, sujetas por esquinas doradas;
+ * las que faltan dejan el hueco vacío con su número. La serie completa lleva
+ * el sello 完 en oro.
  *
  * Mientras no está en pantalla, el navegador no la pinta (content-visibility,
  * con la altura reservada por filas). Va en memo: la página le pasa como
@@ -30,6 +44,7 @@ export const Hoja = memo(function Hoja({ hoja, tengo, porPegar = '', recientes =
   const numero = especiales ? null : String(orden).padStart(2, '0')
   const pendientes = new Set(porPegar ? porPegar.split(' ') : [])
   const nuevas = new Set(recientes ? recientes.split(' ') : [])
+  const { escena, simbolo } = arteHoja(hoja)
 
   return (
     <section
@@ -40,37 +55,56 @@ export const Hoja = memo(function Hoja({ hoja, tengo, porPegar = '', recientes =
       data-completa={completa || undefined}
       style={{ '--filas-3': filas[3], '--filas-5': filas[5], '--filas-6': filas[6] }}
     >
-      {/* Lomo: número de la hoja y título original en vertical; acompaña al scroll. */}
-      <div className="hoja-lomo" aria-hidden="true">
-        <div className="hoja-lomo-fijo">
-          {numero && <span className="hoja-orden cifra">{numero}</span>}
+      <header className="hoja-cabecera" data-revelar="" ref={revelar}>
+        {escena && (
+          <div className="hoja-escena" aria-hidden="true">
+            <img
+              src={escena.src}
+              srcSet={escena.srcSet}
+              sizes={TAMANO_ESCENA}
+              alt=""
+              loading="lazy"
+              decoding="async"
+              style={escena.foco ? { objectPosition: escena.foco } : undefined}
+            />
+          </div>
+        )}
+        {simbolo ? (
+          <img
+            className="hoja-emblema"
+            src={simbolo.src}
+            srcSet={simbolo.srcSet}
+            sizes="(min-width: 48rem) 88px, 48px"
+            width="160"
+            height="160"
+            alt=""
+            loading="lazy"
+            decoding="async"
+          />
+        ) : (
+          especiales && <Hanko kanji="特" forma="redondo" estilo="linea" className="hoja-emblema hoja-emblema--sello" />
+        )}
+        <div className="hoja-texto">
+          {numero && (
+            <span className="hoja-orden cifra" aria-hidden="true">
+              <span className="hoja-orden-no">Nº </span>
+              {numero}
+            </span>
+          )}
+          <h2 id={idTitulo} className="hoja-titulo">
+            {titulo}
+          </h2>
           {nativo && (
-            <span lang="ja" className="hoja-lomo-ja">
-              <TextoVertical texto={nativo} />
+            <span lang="ja" className="hoja-nativo" aria-hidden="true">
+              {nativo}
             </span>
           )}
         </div>
-      </div>
-
-      <header className="hoja-cabecera" data-revelar="" ref={revelar}>
-        {numero && (
-          <span className="hoja-orden hoja-orden--movil cifra" aria-hidden="true">
-            {numero}
-          </span>
-        )}
-        <h2 id={idTitulo} className="hoja-titulo">
-          {titulo}
-        </h2>
-        {nativo && (
-          <span lang="ja" className="hoja-nativo" aria-hidden="true">
-            {nativo}
-          </span>
-        )}
         <p className="hoja-cuenta cifra">
+          {completa && <Hanko kanji="完" forma="redondo" estilo="linea" className="hoja-completa" etiqueta="Serie completa" />}
           <span className="hoja-cuenta-n">{n}</span>
           <span className="hoja-cuenta-de">/{cartas.length}</span>
           <span className="solo-lectores"> cartas en tu colección</span>
-          {completa && <Hanko kanji="完" className="hoja-completa" etiqueta="Serie completa" />}
         </p>
         <span className="linea hoja-linea" style={{ '--p': fraccion({ tengo: n, total: cartas.length }) }} aria-hidden="true">
           <span className="linea-relleno" />

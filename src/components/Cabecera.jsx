@@ -1,8 +1,7 @@
 import { useLocation } from 'react-router'
 import { useCuentaVisible } from '../lib/useCollection.js'
 import { Enlace } from './Enlace.jsx'
-import { EtiquetaVertical } from './EtiquetaVertical.jsx'
-import { SelloMarca } from './Hanko.jsx'
+import { Logo } from './Logo.jsx'
 
 const SECCIONES = [
   { to: '/', es: 'Galería', ja: 'ギャラリー', activa: (ruta) => ruta === '/' || ruta.startsWith('/carta/') },
@@ -29,9 +28,10 @@ export function Cabecera() {
     <header className="cabecera">
       <div className="wrap cabecera-fila">
         <Enlace to="/" className="marca" aria-label="AnimeShowdown, ir a la galería">
-          <SelloMarca className="marca-sello" />
-          <span className="marca-nombre">AnimeShowdown</span>
-          <EtiquetaVertical ja={'アニメ\nショーダウン'} className="marca-tate" />
+          <Logo tamano={40} className="marca-logo" prioridad />
+          <span className="marca-nombre">
+            Anime<span className="marca-nombre-oro">Showdown</span>
+          </span>
         </Enlace>
 
         <nav aria-label="Secciones" className="nav">
