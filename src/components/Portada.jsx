@@ -19,7 +19,8 @@ const TOTAL = catalogo.personajes.length + catalogo.especiales.length
  */
 export function Portada() {
   const ref = usePausaFuera()
-  // La carta del día depende del día del visitante: no va en el HTML prerenderizado.
+  // La carta del día depende del día del visitante: el HTML prerenderizado
+  // solo lleva su hueco.
   const hidratado = useHidratado()
 
   return (
@@ -95,8 +96,23 @@ export function Portada() {
             Ver todas las cartas
           </a>
         </div>
-        {hidratado && <CartaDelDia />}
+        {hidratado ? <CartaDelDia /> : <ReservaDelDia />}
       </div>
     </section>
+  )
+}
+
+/**
+ * Hueco invisible de la carta del día, del mismo alto (una carta del mismo
+ * ancho en el mismo panel): al llegar la carta de verdad, la portada no
+ * cambia de alto ni mueve su sala de fondo.
+ */
+function ReservaDelDia() {
+  return (
+    <div className="del-dia del-dia--reserva" aria-hidden="true">
+      <div className="carta del-dia-carta">
+        <div className="carta-lamina" />
+      </div>
+    </div>
   )
 }

@@ -11,8 +11,9 @@ describe('esqueletoPortada', () => {
     expect(html).toMatch(/<a [^>]*href="[^"]*\/sobres"[^>]*>Abrir los sobres de hoy/)
   })
 
-  it('deja fuera lo que depende del visitante: carta del día, rejilla, pie y colección', () => {
-    expect(html).not.toContain('del-dia')
+  it('deja fuera lo que depende del visitante: carta del día (solo su hueco), rejilla, pie y colección', () => {
+    expect(html).toContain('del-dia--reserva')
+    expect(html).not.toContain('del-dia-nombre')
     expect(html).not.toContain('class="filtros"')
     expect(html).not.toContain('class="pie"')
     expect(html).not.toContain('nav-cuenta')

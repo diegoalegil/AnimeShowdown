@@ -204,7 +204,9 @@
 }
 
 .portada-titulo {
-  max-width: 15ch;
+  /* ≈ 15ch de Zen Old Mincho, en em: el ch se calcularía con la fuente de
+     respaldo mientras llega la web y el título cortaría en otro sitio. */
+  max-width: 9.1em;
   margin: 1.125rem 0 0;
   font-size: clamp(2rem, 9vw, 4.5rem);
   line-height: 1.06;
@@ -268,6 +270,11 @@
 .del-dia-carta {
   width: 4.75rem;
   rotate: -5deg;
+}
+
+/* En el HTML prerenderizado, el hueco de la carta del día (ver Portada). */
+.del-dia--reserva {
+  visibility: hidden;
 }
 
 .del-dia-carta .carta-lamina {

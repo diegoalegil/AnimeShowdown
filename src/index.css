@@ -25,6 +25,19 @@
 @source '../index.html';
 @source './**/*.{js,jsx}';
 
+/* Respaldo de Zen Old Mincho con su mismo ancho. La portada llega pintada
+   antes que las fuentes (ver scripts/prerender.mjs): mientras tanto, los
+   títulos usan el mincho del sistema, un 9-10 % más ancho, y al cambiar
+   de fuente cortaban en otro sitio y el texto de debajo saltaba. Reducido
+   a su medida, ocupa las mismas líneas. */
+@font-face {
+  font-family: 'Zen Old Mincho respaldo';
+  font-weight: 700;
+  src: local('Hiragino Mincho ProN W6'), local('HiraMinProN-W6'), local('Georgia Bold'), local('Georgia-Bold'),
+    local('Noto Serif Bold'), local('NotoSerif-Bold');
+  size-adjust: 91%;
+}
+
 @theme static {
   /* Reinicia la paleta por defecto: solo existen los colores de la casa. */
   --color-*: initial;
@@ -66,7 +79,7 @@
   --color-current: currentColor;
 
   /* Tipografía */
-  --font-display: 'Zen Old Mincho', 'Hiragino Mincho ProN', 'Yu Mincho', Georgia, 'Times New Roman', serif;
+  --font-display: 'Zen Old Mincho', 'Zen Old Mincho respaldo', 'Hiragino Mincho ProN', 'Yu Mincho', Georgia, 'Times New Roman', serif;
   --font-sans: 'IBM Plex Sans', system-ui, -apple-system, 'Segoe UI', sans-serif;
   --font-jp: 'Zen Old Mincho', 'Hiragino Mincho ProN', 'Yu Mincho', 'Noto Serif JP', serif;
   /* Rótulos japoneses pequeños y muy repetidos (cientos en el álbum): primero
