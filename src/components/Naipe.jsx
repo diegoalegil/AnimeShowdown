@@ -37,7 +37,9 @@ export function Naipe({ carta, indice, total, nueva, revelada, retardo, copias, 
       style={{ ...poseAbanico(indice, total), '--retardo': `${retardo}ms` }}
     >
       <div className="naipe-pose">
-        <div className="naipe-cuerpo" data-inclinar="">
+        {/* Boca abajo se inclina hacia el puntero; al revelarla se endereza y
+            la cara queda limpia, sin reflejo, aunque el puntero siga encima. */}
+        <div className="naipe-cuerpo" data-inclinar={revelada ? undefined : ''}>
           {especial && (
             <>
               <span className="naipe-rayos" aria-hidden="true" />

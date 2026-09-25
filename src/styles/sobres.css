@@ -838,6 +838,18 @@
   opacity: 1;
 }
 
+/* Revelada, la carta no se inclina (ver Naipe): si el puntero se quedó
+   encima al pulsarla, se endereza con calma y su cara acaba sin reflejo. */
+.naipe[data-revelada] .naipe-cuerpo[data-inclinada] {
+  transform: none;
+  transition-duration: var(--dur-3);
+  transition-timing-function: var(--ease-sumi);
+}
+
+.naipe[data-revelada] .naipe-cuerpo[data-inclinada] .carta-brillo {
+  opacity: 0;
+}
+
 @media (hover: none) {
   .naipe:not([data-revelada]) .naipe-cuerpo:active {
     transform: scale(0.97);
