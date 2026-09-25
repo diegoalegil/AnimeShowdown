@@ -200,6 +200,54 @@
   }
 }
 
+/* Móvil: la búsqueda y el recuento («24 cartas  Quitar») arriba y
+   la serie debajo, a todo el ancho, para que su nombre quepa entero (Safari
+   no pone puntos suspensivos en un <select>: lo corta). */
+@media (max-width: 39.99rem) {
+  .filtros-fila {
+    grid-template-columns: minmax(0, 1fr) auto;
+    grid-template-areas:
+      'buscar cuenta'
+      'serie serie';
+    row-gap: 0.5rem;
+  }
+
+  .campo--buscar {
+    grid-area: buscar;
+  }
+
+  .campo--serie {
+    grid-area: serie;
+  }
+
+  .filtros-cuenta {
+    grid-area: cuenta;
+    flex-direction: row;
+    align-items: baseline;
+    gap: 0.625rem;
+    padding-left: 0.25rem;
+  }
+
+  .filtros-palabra--total {
+    position: static;
+    width: auto;
+    height: auto;
+    overflow: visible;
+    clip-path: none;
+  }
+
+  .filtros-quitar {
+    padding: 0.5rem 0;
+  }
+
+  /* La barra fija es más alta: la carta a la que se llega con el teclado no
+     queda debajo. */
+  .muro .carta-enlace,
+  .sala-ver {
+    scroll-margin-block-start: 9rem;
+  }
+}
+
 @media (min-width: 48rem) {
   .filtros-fila {
     grid-template-columns: minmax(0, 1.3fr) minmax(0, 1fr) auto;
