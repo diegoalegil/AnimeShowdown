@@ -110,27 +110,25 @@
   opacity: 1;
 }
 
-/* Ilustración que no es 2:3 (lleva `ar` en los datos): se ve entera, centrada
-   sobre un paspartú de su propio tono con un filete dorado, como una carta
-   enmarcada, en lugar de recortar sus bordes. */
-.carta-lamina[data-paspartu] {
-  background-image: radial-gradient(ellipse 80% 70% at 50% 45%, rgb(255 255 255 / 0.05), rgb(0 0 0 / 0.32) 100%);
-}
-
-.carta-lamina[data-paspartu] img {
-  box-sizing: border-box;
-  padding: 6%;
+/* Ilustración muy ancha o muy alta (ver lib/images, cartaEntera): se ve
+   entera, centrada, y las franjas que deja arriba y abajo (o a los lados) las
+   llena la misma ilustración a sangre, apagada con opacidad sobre el tono
+   oscuro de la lámina. Las demás que no son 2:3 llenan el marco con un leve
+   recorte, como las de siempre. */
+.carta-lamina[data-entera] img {
+  position: relative;
   object-fit: contain;
   object-position: 50% 50%;
 }
 
-.carta-lamina[data-paspartu]::before {
-  content: '';
+.carta-lamina img.carta-lamina-fondo {
   position: absolute;
-  inset: 0.3125rem;
-  border: 1px solid var(--color-gold-line-strong);
-  border-radius: calc(var(--radius-carta) - 0.25rem);
-  pointer-events: none;
+  inset: 0;
+  object-fit: cover;
+}
+
+.carta-lamina img.carta-lamina-fondo[data-cargada] {
+  opacity: 0.3;
 }
 
 .carta-lamina[data-rota] img {

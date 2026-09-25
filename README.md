@@ -71,8 +71,8 @@ El despliegue a GitHub Pages lo hace `.github/workflows/deploy.yml` en cada push
 
 2. Copia la ilustración original (formato WebP, ~1024 px de ancho) y genera sus
    tamaños de 300, 450 y 600 px (necesita `cwebp`). Si la ilustración no es 2:3,
-   el script anota además su proporción (`ar`) y la web la muestra entera, sobre
-   un paspartú, sin recortarla:
+   el script anota además su proporción (`ar`): la web la recorta un poco para
+   llenar el marco o, si es muy ancha o muy alta, la muestra entera:
 
    ```
    public/img/Frieren/frieren.webp
