@@ -58,7 +58,15 @@ export const Hoja = memo(function Hoja({ hoja, tengo, porPegar = '', recientes =
       <header className="hoja-cabecera" data-revelar="" ref={revelar}>
         {escena && (
           <div className="hoja-escena" aria-hidden="true">
-            <img src={escena.src} srcSet={escena.srcSet} sizes={TAMANO_ESCENA} alt="" loading="lazy" decoding="async" />
+            <img
+              src={escena.src}
+              srcSet={escena.srcSet}
+              sizes={TAMANO_ESCENA}
+              alt=""
+              loading="lazy"
+              decoding="async"
+              style={escena.foco ? { objectPosition: escena.foco } : undefined}
+            />
           </div>
         )}
         {simbolo ? (

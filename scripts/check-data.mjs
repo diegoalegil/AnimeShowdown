@@ -84,6 +84,11 @@ for (const a of animes) {
   marcas.set(a.marca, a.id)
   for (const archivo of archivosAnime(a.marca)) checkFile(archivo, `animes "${a.id}"`)
 }
+for (const a of animes) {
+  if ('foco' in a && !(isText(a.foco) && /^\d{1,3}% \d{1,3}%$/.test(a.foco))) {
+    fail(`animes: "${a.id}" foco inválido "${a.foco}" (se espera «50% 80%»)`)
+  }
+}
 for (const archivo of archivosComunes()) checkFile(archivo, 'marca')
 const animeById = new Map(animes.map((a) => [a.id, a]))
 const countByAnime = new Map()

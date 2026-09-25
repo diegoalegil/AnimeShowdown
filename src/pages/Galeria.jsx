@@ -229,7 +229,15 @@ function Estandarte({ id, titulo, nativo, orden, escena, simbolo, especial = fal
     <header className="sala-cabecera" data-especial={especial || undefined} data-revelar="" ref={revelar}>
       {escena && (
         <div className="sala-escena" aria-hidden="true">
-          <img src={escena.src} srcSet={escena.srcSet} sizes={TAMANO_ESCENA} alt="" loading="lazy" decoding="async" />
+          <img
+            src={escena.src}
+            srcSet={escena.srcSet}
+            sizes={TAMANO_ESCENA}
+            alt=""
+            loading="lazy"
+            decoding="async"
+            style={escena.foco ? { objectPosition: escena.foco } : undefined}
+          />
         </div>
       )}
       {simbolo ? (

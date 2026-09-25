@@ -75,7 +75,7 @@
   {"id":"neon-genesis-evangelion","titulo":"Neon Genesis Evangelion","nativo":"新世紀エヴァンゲリオン","count":7,"marca":"neon-genesis-evangelion"},
   {"id":"nisekoi","titulo":"Nisekoi","nativo":"ニセコイ","count":5,"marca":"nisekoi"},
   {"id":"no-game-no-life","titulo":"No Game No Life","nativo":"ノーゲーム・ノーライフ","count":12,"marca":"no-game-no-life"},
-  {"id":"one-piece","titulo":"One Piece","nativo":"ワンピース","count":24,"marca":"one-piece"},
+  {"id":"one-piece","titulo":"One Piece","nativo":"ワンピース","count":24,"marca":"one-piece","foco":"50% 80%"},
   {"id":"one-punch-man","titulo":"One Punch Man","nativo":"ワンパンマン","count":13,"marca":"one-punch-man"},
   {"id":"oreimo","titulo":"Oreimo","nativo":"俺の妹がこんなに可愛いわけがない","count":5,"marca":"oreimo"},
   {"id":"oshi-no-ko","titulo":"Oshi no Ko","nativo":"【推しの子】","count":6,"marca":"oshi-no-ko"},

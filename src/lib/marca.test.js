@@ -14,6 +14,11 @@ describe('arte de marca por anime', () => {
     expect(escena.proporcion).toBeCloseTo(16 / 9, 1)
   })
 
+  it('lleva el foco del escenario si el anime lo anota', () => {
+    expect(escenaAnime(frieren, '/').foco).toBeUndefined()
+    expect(escenaAnime({ ...frieren, foco: '50% 80%' }, '/').foco).toBe('50% 80%')
+  })
+
   it('da el fondo difuminado y el símbolo', () => {
     expect(fondoAnime(frieren, '/')).toBe('/img/marca/frieren-beyond-journey-s-end-fondo-480.webp')
     expect(simboloAnime(frieren, '/').srcSet).toContain('/img/marca/frieren-beyond-journey-s-end-simbolo-160.webp 160w')

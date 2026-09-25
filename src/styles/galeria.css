@@ -348,14 +348,17 @@
   object-position: 50% 45%;
 }
 
+/* El escenario se ve casi entero: el degradado solo oscurece el lado del
+   texto, y una mancha oscura local detrás del título lo mantiene legible. */
 .sala-cabecera::before {
   content: '';
   position: absolute;
   inset: 0;
   z-index: -1;
   background-image:
-    linear-gradient(90deg, rgb(4 7 12 / 0.94) 0%, rgb(4 7 12 / 0.78) 38%, rgb(4 7 12 / 0.25) 78%, rgb(4 7 12 / 0.1) 100%),
-    linear-gradient(0deg, rgb(4 7 12 / 0.55), transparent 55%);
+    radial-gradient(ellipse 34% 62% at 14% 52%, rgb(4 7 12 / 0.55), transparent 100%),
+    linear-gradient(90deg, rgb(4 7 12 / 0.85) 0%, rgb(4 7 12 / 0.5) 30%, rgb(4 7 12 / 0.05) 60%),
+    linear-gradient(0deg, rgb(4 7 12 / 0.4), transparent 40%);
   pointer-events: none;
 }
 
@@ -466,11 +469,11 @@
   }
 
   .sala-cabecera {
-    contain-intrinsic-block-size: auto 11rem;
+    contain-intrinsic-block-size: auto 14.5rem;
     grid-template-columns: auto minmax(0, 1fr) auto;
     grid-template-rows: auto;
     column-gap: 1.5rem;
-    min-height: 11rem;
+    min-height: 14.5rem;
     margin-bottom: 2.5rem;
     padding: 1.25rem 2rem 1.25rem 1.5rem;
   }

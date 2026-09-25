@@ -107,10 +107,18 @@ function conjunto(ruta, anchos, base) {
   }
 }
 
-/** Escenario de un anime, o null si no tiene arte de marca. */
+/**
+ * Escenario de un anime, o null si no tiene arte de marca. `foco` es su
+ * object-position («50% 80%») si el anime lo anota: dónde está lo importante
+ * de la escena, para que las franjas estrechas la recorten por ahí.
+ */
 export function escenaAnime(anime, base) {
   if (!anime?.marca) return null
-  return { ...conjunto((ancho) => rutaEscena(anime.marca, ancho), ANCHOS_ESCENA, base), proporcion: PROPORCION_ESCENA }
+  return {
+    ...conjunto((ancho) => rutaEscena(anime.marca, ancho), ANCHOS_ESCENA, base),
+    proporcion: PROPORCION_ESCENA,
+    foco: anime.foco,
+  }
 }
 
 /** URL del fondo difuminado de un anime, o null si no tiene arte de marca. */
