@@ -1,84 +1,116 @@
 # AnimeShowdown
 
-Galería de cartas de personajes de anime. Más de mil cartas para mirar, cinco
-sobres al día para abrir y un álbum para completar. Es una web estática: no hay
-cuentas ni servidor, y la colección de cada visitante se guarda en su propio
-navegador.
+Galería de cartas de personajes de anime: más de mil cartas para mirar, cinco sobres
+al día para abrir y un álbum para completar. Sin cuentas ni servidor.
 
-## Cómo se juega
+[![Ver la web](https://img.shields.io/badge/Ver_la_web-diegoalegil.github.io%2FAnimeShowdown-b3202c?style=for-the-badge)](https://diegoalegil.github.io/AnimeShowdown/)
 
-- La **galería** muestra todas las cartas, las tengas o no, agrupadas por serie.
-  Se puede buscar por nombre o serie (atajo `/`) y filtrar por serie o por las
+![React 19](https://img.shields.io/badge/React-19.3-149eca?logo=react&logoColor=white)
+![Vite 8](https://img.shields.io/badge/Vite-8.3-646cff?logo=vite&logoColor=white)
+![Tailwind CSS 4](https://img.shields.io/badge/Tailwind_CSS-4.3-38bdf8?logo=tailwindcss&logoColor=white)
+![React Router 8](https://img.shields.io/badge/React_Router-8.4-ca4245?logo=reactrouter&logoColor=white)
+![Vitest 5](https://img.shields.io/badge/Vitest-5.0-6e9f18?logo=vitest&logoColor=white)
+![Licencia MIT](https://img.shields.io/badge/licencia-MIT-c9a45c)
+
+![Portada de la galería](docs/capturas/galeria.webp)
+
+<p>
+  <img src="docs/capturas/ficha.webp" alt="Ficha de una carta" width="49%">
+  <img src="docs/capturas/sobres.webp" alt="Sobre recién abierto con sus cinco cartas" width="49%">
+</p>
+<p>
+  <img src="docs/capturas/serie.webp" alt="Una serie dentro de la galería" width="49%">
+  <img src="docs/capturas/coleccion.webp" alt="Álbum de la colección" width="49%">
+</p>
+<p align="center">
+  <img src="docs/capturas/movil.webp" alt="La galería en el móvil" width="260">
+</p>
+
+## Qué es
+
+- **Galería.** 1086 cartas de personajes de 105 series y 52 cartas especiales, agrupadas
+  por serie. Búsqueda por nombre o serie (atajo `/`) y filtros por serie o por
   especiales; los filtros quedan en la dirección, así que se pueden compartir.
-- Cada carta tiene su **ficha**: `←` y `→` recorren las cartas en el orden de la
-  galería, `Esc` vuelve a ella y, si el personaje tiene versión especial, la carta
-  se puede girar para verla.
-- Cada día (a medianoche, hora local) hay **5 sobres** de **5 cartas**. Las cuatro
-  primeras son personajes al azar; la quinta tiene un 15 % de probabilidad de ser
-  una **carta especial**. Las repetidas se acumulan.
-- En **Sobres** se rasga el sobre y las cartas quedan boca abajo sobre la mesa:
-  se voltean una a una (también con `Intro` o `Espacio`), todas a la vez con
-  «Revelar todas» o se va directo al resumen con «Saltar». Las cartas se guardan
-  en cuanto se abre el sobre, así que recargar a mitad no pierde ninguna.
-- La **colección** es un álbum con una hoja por serie y otra para las especiales:
-  cada carta tiene su hueco numerado, ocupado si la tienes y vacío si no. Las
-  cartas conseguidas desde la última visita se pegan en su hueco la primera vez
-  que se ven. Se puede ver una sola serie o solo las empezadas.
-- La colección vive en el navegador. Desde el álbum se copia como un código para
-  guardarla o llevarla a otro navegador; al pegar un código se puede combinar con
-  la colección actual o sustituirla.
+- **Fichas.** Cada carta tiene su propia página, con el nombre japonés del personaje
+  en vertical. `←` y `→` recorren la galería, `Esc` vuelve a ella y, si el personaje
+  tiene versión especial, la carta se gira para verla.
+- **Sobres diarios.** Cada día (a medianoche, hora local) hay 5 sobres de 5 cartas; la
+  quinta tiene un 15 % de probabilidad de ser especial. Se rasga el sobre y las cartas
+  se voltean una a una, todas a la vez o se salta al resumen. Se guardan en cuanto se
+  abre el sobre, así que recargar a mitad no pierde ninguna.
+- **Colección.** Un álbum con una hoja por serie y otra para las especiales, con un
+  hueco numerado por carta. Vive en el navegador (`localStorage`) y se puede copiar
+  como un código para guardarla o llevarla a otro navegador, combinándola con la que
+  haya o sustituyéndola.
+- **Arte por serie.** Cada serie tiene su escenario y su emblema, que aparecen en la
+  galería, en su hoja del álbum y en las fichas.
+- **Nombres japoneses** de personajes y series, tomados de AniList.
 
-Las reglas están en `src/config.js`.
+Las reglas de los sobres están en `src/config.js`.
 
-Los motivos tradicionales de los sobres y los dorsos (`public/seigaiha.png` y
-`public/asanoha.png`), las brasas (`public/brasas.png`) y los rayos de luz
-(`public/rayos.webp`) se generan con `node scripts/generate-patrones.mjs`,
-`node scripts/generate-brasas.mjs` y `node scripts/generate-rayos.mjs`. La cara del
-sobre aplanada en una imagen (`public/sobre-cara.webp`), que llevan las piezas del
-sobre al rasgarse, se toma del propio build con `node scripts/generate-sobre.mjs`
-(ver su cabecera); hay que volver a generarla si cambia el envoltorio del sobre.
+## Cómo está hecho
+
+- **React 19**, **React Router 8** y **Vite 8**, con **Tailwind CSS 4** y hojas CSS por
+  página. Tests con **Vitest 5** y lint con **ESLint 10** y `eslint-plugin-react-hooks`.
+- Tipografías servidas desde el propio sitio con Fontsource: Zen Old Mincho para
+  títulos y japonés, IBM Plex Sans para la interfaz.
+- Todo es estático: los datos son JSON en `src/data` y las imágenes, WebP en `public/`.
+  No hay backend, base de datos ni servicios externos. Scripts de Node validan los
+  datos, generan los tamaños de las imágenes y prerenderizan las páginas.
+- GitHub Actions ejecuta lint, tests y build en cada push a `main` y publica `dist/`
+  en GitHub Pages. Cada ruta (portada, sobres, colección y las 1138 fichas) sale como
+  un HTML propio con su título y descripción, y `404.html` arranca la aplicación en
+  cualquier otra dirección.
+
+Decisiones de rendimiento:
+
+- **Presupuesto de JavaScript.** El build falla si el JavaScript inicial de la portada
+  pasa de 100 kB con gzip (hoy, 97,3 kB). El catálogo va en su propio archivo y las
+  demás páginas se descargan aparte.
+- **Portada prerenderizada.** La sala, el título y las acciones llegan ya pintados en el
+  HTML y React los hidrata; la imagen de la sala y las dos fuentes críticas se piden
+  desde el `<head>`.
+- **Imágenes a medida.** Cada carta tiene versiones de 300, 450 y 600 px en WebP y el
+  navegador elige con `srcset`. El japonés de Zen Old Mincho va en ~120 trozos con
+  `unicode-range`, cargados después de la hoja principal.
+- **Animaciones baratas.** Solo se anima `transform` y `opacity`, y no se usa
+  `backdrop-filter` (Safari lo recalcula en cada fotograma de scroll).
 
 ## Ejecutarlo en local
 
 Necesitas Node 22 (ver `.nvmrc`).
 
 ```bash
-npm install
+npm ci
 npm run dev       # servidor de desarrollo
 npm test          # tests
 npm run lint
-npm run build     # valida los datos, construye, genera las páginas en dist/ y
-                  # comprueba que el JavaScript inicial no pase de 100 kB (gzip)
+npm run build     # valida los datos, construye, prerenderiza en dist/ y
+                  # comprueba el presupuesto de JavaScript
 npm run preview   # sirve dist/
 ```
 
 Para publicar bajo una subcarpeta, construye con `BASE_PATH=/<carpeta>/ npm run build`.
-El despliegue a GitHub Pages lo hace `.github/workflows/deploy.yml` en cada push a
-`main`; si existe `public/CNAME`, la web se sirve desde la raíz del dominio.
+El despliegue lo fija solo: `/<repositorio>/` en GitHub Pages, o `/` si existe
+`public/CNAME`.
 
 ## Añadir un personaje
 
-1. Añade una línea al final de `src/data/personajes.json` con el siguiente número
-   `n` libre:
+1. Añade una línea al final de `src/data/personajes.json` con el siguiente número `n`
+   (la numeración debe ser correlativa):
 
    ```json
-   {"id":"frieren","n":1087,"nombre":"Frieren","anime":"Frieren: Beyond Journey's End","animeId":"frieren","img":"img/Frieren/frieren","color":"#8a9aa6","nativo":"フリーレン"}
+   {"id":"eisen","n":1087,"nombre":"Eisen","anime":"Frieren: Beyond Journey's End","animeId":"frieren","img":"img/Frieren/eisen","color":"#5a4a3c","nativo":"アイゼン"}
    ```
 
-   `anime` debe coincidir con el `titulo` de su entrada en `src/data/animes.json`
-   (súmale uno a su `count`, o crea la entrada si la serie es nueva; su arte es
-   opcional, ver [Arte de las series](#arte-de-las-series)). `color` es el
-   tono dominante de la ilustración, que se ve mientras carga. `nativo` (nombre en
-   japonés) y `desc` (una frase) son opcionales.
+   `anime` debe coincidir con el `titulo` de su serie en `src/data/animes.json`; súmale
+   uno a su `count`, o crea la entrada si la serie es nueva. `img` va sin extensión.
+   `color` es el tono dominante de la ilustración, que se ve mientras carga. `nativo`
+   (nombre japonés) y `desc` (una frase) son opcionales.
 
-2. Copia la ilustración original (formato WebP, ~1024 px de ancho) y genera sus
-   tamaños de 300, 450 y 600 px (necesita `cwebp`). Si la ilustración no es 2:3,
-   el script anota además su proporción (`ar`): la web la recorta un poco para
-   llenar el marco o, si es muy ancha o muy alta, la muestra entera:
-
-   ```
-   public/img/Frieren/frieren.webp
-   ```
+2. Copia la ilustración original en WebP (~1024 px de ancho), p. ej.
+   `public/img/Frieren/eisen.webp`, y genera sus tamaños de 300, 450 y 600 px
+   (necesita `cwebp`). Si no es 2:3, el script anota además su proporción (`ar`):
 
    ```bash
    node scripts/generate-tamanos.mjs
@@ -90,34 +122,43 @@ El despliegue a GitHub Pages lo hace `.github/workflows/deploy.yml` en cada push
    node scripts/check-data.mjs
    ```
 
-   También se ejecuta al construir: si falta un archivo o un campo, el build falla.
+   Valida campos obligatorios, ids únicos, numeración, que la serie y su `count`
+   cuadren, que existan los cuatro archivos de imagen y que `ar` corresponda a la
+   ilustración. También se ejecuta al construir: si algo falla, el build se para.
 
-Las cartas especiales viven en `src/data/especiales.json` y `public/img/especiales/`,
-con los mismos tamaños. Basta con copiar la ilustración original y ejecutar
-`node scripts/generate-especiales.mjs` (necesita `cwebp` y `dwebp`): crea las versiones
-de 300, 450 y 600 px y anota en los datos la ruta y el tono dominante.
+Las **especiales** viven en `src/data/especiales.json` (ids con prefijo `e-`) y
+`public/img/especiales/`. Tras copiar la ilustración original,
+`node scripts/generate-especiales.mjs` (necesita `cwebp` y `dwebp`) crea los tamaños y
+anota la ruta y el tono dominante.
 
-## Arte de las series
+El **arte de una serie** se activa con el campo `marca` de `animes.json`, el nombre de
+sus archivos en `public/img/marca/`: escenario 16:9 (`-escena-768` y `-escena-1280`),
+fondo de la ficha (`-fondo-480`) y emblema (`-simbolo-160` y `-simbolo-320`). Se
+generan con `node scripts/generate-marca.mjs <carpeta-de-originales>` (necesita `cwebp`
+y `dwebp`); el campo opcional `foco` (p. ej. `"50% 80%"`) indica por dónde recortar el
+escenario. Sin `marca`, la serie se muestra sin escenario ni emblema.
 
-Cada serie de `src/data/animes.json` puede llevar su arte de marca: un escenario
-(el fondo de su estandarte en la galería, de su hoja en el álbum y de su ficha) y un
-emblema. Se activa con el campo `marca`, el nombre de sus archivos en
-`public/img/marca/`; sin él, la serie se muestra sin escenario ni emblema. Con
-`marca`, el build exige sus cinco archivos:
+## Estructura
 
 ```
-<marca>-escena-768.webp   <marca>-escena-1280.webp   (escenario 16:9)
-<marca>-fondo-480.webp                               (fondo difuminado de la ficha)
-<marca>-simbolo-160.webp  <marca>-simbolo-320.webp   (emblema)
+src/
+  pages/          Galeria, Ficha, Sobres, Coleccion
+  components/     carta, sobre, álbum, cabecera…
+  lib/            catálogo, colección, filtros, coreografías (con sus tests)
+  styles/         CSS por página y por pieza
+  data/           personajes.json, animes.json, especiales.json
+  config.js       reglas de los sobres
+public/
+  img/            ilustraciones por serie, especiales/ y marca/
+scripts/          check-data, check-size, prerender y generadores de imágenes
+docs/capturas/    capturas de este README
 ```
 
-Se generan a partir de las ilustraciones originales (`<marca>-scene-01.webp` y
-`<marca>-symbol-01.webp`, que no forman parte del repositorio) con
-`node scripts/generate-marca.mjs <carpeta-de-originales>`, que necesita `cwebp` y
-`dwebp`. De esa misma carpeta salen las piezas comunes (la sala de la portada, la
-arena de los sobres, la sala de trofeos…) y el logo; ver `src/lib/marca.js`.
-Opcionalmente, `foco` (p. ej. `"50% 80%"`) indica dónde está lo importante del
-escenario, para que las franjas estrechas lo recorten por ahí.
+Los motivos de los sobres y dorsos, las brasas, los rayos de luz y la cara aplanada
+del sobre salen de los `scripts/generate-*.mjs` correspondientes (ver sus cabeceras).
+
+AnimeShowdown empezó como una plataforma de votaciones con backend propio; esa versión
+se retiró y sigue en el historial de git.
 
 ## Derechos
 
@@ -127,5 +168,5 @@ editoriales. Las ilustraciones de las cartas son obras derivadas creadas por fan
 muestran solo con fines de exposición; si eres titular de derechos y quieres que se
 retire alguna, abre un issue.
 
-El código se publica bajo licencia MIT (ver `LICENSE`). La licencia no cubre las
-ilustraciones ni los personajes.
+El código se publica bajo licencia MIT (ver [LICENSE](LICENSE)). La licencia no cubre
+las ilustraciones ni los personajes.
