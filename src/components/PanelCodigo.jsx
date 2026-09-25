@@ -1,5 +1,6 @@
 import { useId, useMemo, useRef, useState } from 'react'
 import { recuento, textoRecuento } from '../lib/album.js'
+import { catalogo } from '../lib/catalog.js'
 import { aplicarImportacion, cartasDistintas, exportar, previsionImportacion } from '../lib/collection.js'
 import { coleccion, useColeccion } from '../lib/useCollection.js'
 import { EtiquetaVertical } from './EtiquetaVertical.jsx'
@@ -15,7 +16,7 @@ export function PanelCodigo() {
   const estado = useColeccion()
   const { tengo, desde } = estado
   const codigo = useMemo(() => exportar({ tengo, desde }), [tengo, desde])
-  const actuales = cartasDistintas(estado)
+  const actuales = cartasDistintas(estado, catalogo.existe)
 
   return (
     <section id="codigo" className="codigo" aria-labelledby="codigo-titulo">
@@ -136,7 +137,7 @@ function Importar({ estado, actuales }) {
   }
 
   const leido = paso?.leido
-  const prevision = leido && previsionImportacion(estado, leido)
+  const prevision = leido && previsionImportacion(estado, leido, catalogo.existe)
 
   return (
     <div className="codigo-bloque">

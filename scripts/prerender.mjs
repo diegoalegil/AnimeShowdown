@@ -8,7 +8,8 @@
 // src/esqueleto.jsx): la sala, el título y las acciones se ven sin esperar al
 // JavaScript, que después lo hidrata. Las demás páginas arrancan vacías.
 //
-// Las fichas salen del mismo catálogo que usa la aplicación (src/lib/catalog.js).
+// Las fichas salen del mismo catálogo que usa la aplicación (src/lib/catalog.js):
+// una carta oculta no tiene página y su dirección da la 404.
 //
 //   node scripts/prerender.mjs
 import { mkdirSync, readFileSync, readdirSync, writeFileSync } from 'node:fs'

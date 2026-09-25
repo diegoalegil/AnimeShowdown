@@ -47,6 +47,8 @@ export default function Sobres() {
   const pie = useRef(null)
 
   const todas = todasReveladas(cer)
+  // El último sobre puede traer cartas que después se ocultaron: no se muestran.
+  const ultimo = estado.ultimo.filter(catalogo.existe)
   const copias = (id) => estado.tengo[id] ?? 0
   const aviso = textoAviso(cer, { carta: catalogo.carta, copias, esEspecial: esEspecialId })
 
@@ -300,8 +302,8 @@ export default function Sobres() {
           {aviso}
         </p>
 
-        {cer.abiertosEnVisita === 0 && cer.fase === 'cerrado' && estado.ultimo.length > 0 && (
-          <UltimoSobre ids={estado.ultimo} estado={estado} hoy={hoy} />
+        {cer.abiertosEnVisita === 0 && cer.fase === 'cerrado' && ultimo.length > 0 && (
+          <UltimoSobre ids={ultimo} estado={estado} hoy={hoy} />
         )}
       </div>
     </div>
