@@ -51,6 +51,9 @@ export function Portada() {
                     width={img.width}
                     height={img.height}
                     alt=""
+                    // Diferida: el navegador no pide las que el CSS oculta en
+                    // pantallas estrechas (display: none).
+                    loading="lazy"
                     decoding="async"
                     fetchPriority="low"
                   />
