@@ -1,5 +1,4 @@
 import { describe, expect, it } from 'vitest'
-import animes from '../data/animes.json'
 import { archivosAnime, archivosComunes, escenaAnime, fondoAnime, LOGO, PIEZAS, pieza, simboloAnime } from './marca.js'
 
 const frieren = { id: 'frieren', marca: 'frieren-beyond-journey-s-end' }
@@ -38,12 +37,6 @@ describe('arte de marca por anime', () => {
       'img/marca/naruto-simbolo-160.webp',
       'img/marca/naruto-simbolo-320.webp',
     ])
-  })
-
-  it('todos los animes del catálogo tienen marca propia', () => {
-    const marcas = animes.map((a) => a.marca)
-    expect(marcas.every(Boolean)).toBe(true)
-    expect(new Set(marcas).size).toBe(animes.length)
   })
 })
 

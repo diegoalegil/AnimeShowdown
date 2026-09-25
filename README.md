@@ -66,7 +66,8 @@ El despliegue a GitHub Pages lo hace `.github/workflows/deploy.yml` en cada push
    ```
 
    `anime` debe coincidir con el `titulo` de su entrada en `src/data/animes.json`
-   (súmale uno a su `count`, o crea la entrada si la serie es nueva). `color` es el
+   (súmale uno a su `count`, o crea la entrada si la serie es nueva; su arte es
+   opcional, ver [Arte de las series](#arte-de-las-series)). `color` es el
    tono dominante de la ilustración, que se ve mientras carga. `nativo` (nombre en
    japonés) y `desc` (una frase) son opcionales.
 
@@ -95,6 +96,28 @@ Las cartas especiales viven en `src/data/especiales.json` y `public/img/especial
 con los mismos tamaños. Basta con copiar la ilustración original y ejecutar
 `node scripts/generate-especiales.mjs` (necesita `cwebp` y `dwebp`): crea las versiones
 de 300, 450 y 600 px y anota en los datos la ruta y el tono dominante.
+
+## Arte de las series
+
+Cada serie de `src/data/animes.json` puede llevar su arte de marca: un escenario
+(el fondo de su estandarte en la galería, de su hoja en el álbum y de su ficha) y un
+emblema. Se activa con el campo `marca`, el nombre de sus archivos en
+`public/img/marca/`; sin él, la serie se muestra sin escenario ni emblema. Con
+`marca`, el build exige sus cinco archivos:
+
+```
+<marca>-escena-768.webp   <marca>-escena-1280.webp   (escenario 16:9)
+<marca>-fondo-480.webp                               (fondo difuminado de la ficha)
+<marca>-simbolo-160.webp  <marca>-simbolo-320.webp   (emblema)
+```
+
+Se generan a partir de las ilustraciones originales (`<marca>-scene-01.webp` y
+`<marca>-symbol-01.webp`, que no forman parte del repositorio) con
+`node scripts/generate-marca.mjs <carpeta-de-originales>`, que necesita `cwebp` y
+`dwebp`. De esa misma carpeta salen las piezas comunes (la sala de la portada, la
+arena de los sobres, la sala de trofeos…) y el logo; ver `src/lib/marca.js`.
+Opcionalmente, `foco` (p. ej. `"50% 80%"`) indica dónde está lo importante del
+escenario, para que las franjas estrechas lo recorten por ahí.
 
 ## Derechos
 

@@ -74,12 +74,17 @@ const especiales = load('especiales.json')
 const animes = load('animes.json')
 
 // Animes
-checkRequired(animes, 'animes', ['id', 'titulo', 'marca'])
+checkRequired(animes, 'animes', ['id', 'titulo'])
 checkUnique(animes, 'animes')
+// El arte de marca es opcional: una serie sin `marca` se muestra sin
+// escenario ni emblema. Si la lleva, deben existir todos sus archivos.
 const marcas = new Map()
 for (const a of animes) {
-  if (!isText(a.marca)) continue
-  if (!/^[a-z0-9]+(-[a-z0-9]+)*$/.test(a.marca)) fail(`animes: "${a.id}" marca inválida "${a.marca}"`)
+  if (!('marca' in a)) continue
+  if (!isText(a.marca) || !/^[a-z0-9]+(-[a-z0-9]+)*$/.test(a.marca)) {
+    fail(`animes: "${a.id}" marca inválida "${a.marca}"`)
+    continue
+  }
   if (marcas.has(a.marca)) fail(`animes: "${a.id}" repite la marca "${a.marca}" de "${marcas.get(a.marca)}"`)
   marcas.set(a.marca, a.id)
   for (const archivo of archivosAnime(a.marca)) checkFile(archivo, `animes "${a.id}"`)

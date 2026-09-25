@@ -17,7 +17,7 @@
 //
 // Necesita cwebp y dwebp (libwebp) en el PATH.
 //
-//   node scripts/generate-marca.mjs [carpeta-origen]   (por defecto ../AnimeShowdown/_inbox/brand)
+//   node scripts/generate-marca.mjs <carpeta-de-originales>
 import { execFile } from 'node:child_process'
 import { copyFileSync, existsSync, mkdirSync, mkdtempSync, readFileSync, rmSync, statSync, writeFileSync } from 'node:fs'
 import { availableParallelism, tmpdir } from 'node:os'
@@ -44,7 +44,11 @@ import {
 
 const ejecutar = promisify(execFile)
 const raiz = join(dirname(fileURLToPath(import.meta.url)), '..')
-const origen = resolve(process.argv[2] ?? join(raiz, '../AnimeShowdown/_inbox/brand'))
+if (!process.argv[2]) {
+  console.error('Uso: node scripts/generate-marca.mjs <carpeta-de-originales>')
+  process.exit(1)
+}
+const origen = resolve(process.argv[2])
 const publico = (ruta) => join(raiz, 'public', ruta)
 const temporal = mkdtempSync(join(tmpdir(), 'marca-'))
 
