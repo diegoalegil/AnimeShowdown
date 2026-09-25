@@ -2,6 +2,9 @@
 // Valida el catálogo estático (src/data/*.json), que cada carta tenga sus
 // imágenes en public/ y que exista el arte de marca (src/lib/marca.js). Sale con código 1 si encuentra algún error.
 //
+// Las cartas ocultas (ocultas.json) se validan como las demás: siguen en los
+// datos, con su número y sus imágenes, y el `count` de animes.json las cuenta.
+//
 //   node scripts/check-data.mjs
 import { existsSync, readFileSync } from 'node:fs'
 import { dirname, join } from 'node:path'
@@ -72,6 +75,7 @@ function checkProporcion(item, name) {
 const personajes = load('personajes.json')
 const especiales = load('especiales.json')
 const animes = load('animes.json')
+const ocultas = load('ocultas.json')
 
 // Animes
 checkRequired(animes, 'animes', ['id', 'titulo'])
@@ -135,6 +139,14 @@ for (const e of especiales) {
   }
 }
 
+// Ocultas: [{ id, motivo }] de cartas que existen.
+checkRequired(ocultas, 'ocultas', ['id', 'motivo'])
+checkUnique(ocultas, 'ocultas')
+const todas = new Set([...personajes, ...especiales].map((c) => c.id))
+for (const o of ocultas) {
+  if (isText(o.id) && !todas.has(o.id)) fail(`ocultas: "${o.id}" no es ninguna carta`)
+}
+
 // Avisos (no rompen el build): en los nombres originales, los signos ASCII
 // !?() se tuercen en vertical; van en ancho completo (！？（）).
 const warnings = []
@@ -149,4 +161,9 @@ if (errors.length) {
   if (errors.length > 50) console.error(`  … y ${errors.length - 50} más`)
   process.exit(1)
 }
-console.log(`check-data: OK — ${personajes.length} personajes, ${especiales.length} especiales, ${animes.length} animes`)
+const idsOcultos = new Set(ocultas.map((o) => o.id))
+const visibles = (lista) => lista.filter((c) => !idsOcultos.has(c.id)).length
+console.log(
+  `check-data: OK — ${personajes.length} personajes, ${especiales.length} especiales, ${animes.length} animes; ` +
+    `${ocultas.length} ocultas (se muestran ${visibles(personajes)} personajes y ${visibles(especiales)} especiales)`,
+)

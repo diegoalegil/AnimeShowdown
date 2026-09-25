@@ -8,6 +8,9 @@
 // src/esqueleto.jsx): la sala, el título y las acciones se ven sin esperar al
 // JavaScript, que después lo hidrata. Las demás páginas arrancan vacías.
 //
+// Las fichas salen del mismo catálogo que usa la aplicación (src/lib/catalog.js):
+// una carta oculta no tiene página y su dirección da la 404.
+//
 //   node scripts/prerender.mjs
 import { mkdirSync, readFileSync, readdirSync, writeFileSync } from 'node:fs'
 import { dirname, join } from 'node:path'
@@ -19,7 +22,6 @@ import { PAGINAS, descripcionCarta, nombreCarta, tituloDePagina } from '../src/l
 const raiz = join(dirname(fileURLToPath(import.meta.url)), '..')
 const base = process.env.BASE_PATH || '/'
 const dist = join(raiz, 'dist')
-const leerJson = (nombre) => JSON.parse(readFileSync(join(raiz, 'src/data', nombre), 'utf8'))
 
 const escapar = (texto) =>
   String(texto).replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[c])
@@ -72,7 +74,25 @@ function escribir(ruta, datos) {
   writeFileSync(destino, pagina(plantilla, datos))
 }
 
-const cartas = [...leerJson('personajes.json'), ...leerJson('especiales.json')]
+// Un servidor de Vite (sin red) carga los módulos de la aplicación: el
+// catálogo, que importa los JSON, y la portada, que es JSX.
+const vite = await createServer({
+  root: raiz,
+  base,
+  logLevel: 'error',
+  appType: 'custom',
+  server: { middlewareMode: true, hmr: false, ws: false },
+})
+let catalogo, htmlPortada
+try {
+  ;({ catalogo } = await vite.ssrLoadModule('/src/lib/catalog.js'))
+  // HTML de la portada, con la misma base que el build (ver src/esqueleto.jsx).
+  htmlPortada = (await vite.ssrLoadModule('/src/esqueleto.jsx')).esqueletoPortada(base)
+} finally {
+  await vite.close()
+}
+
+const cartas = [...catalogo.personajes, ...catalogo.especiales]
 for (const carta of cartas) {
   if (!/^[\w-]+$/.test(carta.id)) throw new Error(`prerender: id no apto para una ruta: ${carta.id}`)
   escribir(`carta/${carta.id}`, {
@@ -97,26 +117,9 @@ writeFileSync(
   pagina(plantilla, { titulo: tituloDePagina('Página no encontrada'), descripcion: PAGINAS.galeria.descripcion }),
 )
 
-/** HTML de la portada, con la misma base que el build (ver src/esqueleto.jsx). */
-async function esqueleto() {
-  const vite = await createServer({
-    root: raiz,
-    base,
-    logLevel: 'error',
-    appType: 'custom',
-    server: { middlewareMode: true, hmr: false, ws: false },
-  })
-  try {
-    const { esqueletoPortada } = await vite.ssrLoadModule('/src/esqueleto.jsx')
-    return esqueletoPortada(base)
-  } finally {
-    await vite.close()
-  }
-}
-
 // React emite al principio las precargas de las imágenes prioritarias: van
 // al <head>, salvo las que la plantilla ya tiene (la sala de la portada).
-const [, precargas, cuerpo] = (await esqueleto()).match(/^((?:<link [^>]*>)*)([\s\S]*)$/)
+const [, precargas, cuerpo] = htmlPortada.match(/^((?:<link [^>]*>)*)([\s\S]*)$/)
 const nuevas = (precargas.match(/<link [^>]*>/g) ?? []).filter((enlace) => {
   const srcset = enlace.match(/imageSrcSet="([^"]*)"/i)?.[1]
   return !srcset || !plantilla.includes(srcset)

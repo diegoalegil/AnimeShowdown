@@ -83,6 +83,6 @@ describe('catálogo real', () => {
     expect(catalogo.especiales.length).toBeGreaterThan(0)
     expect(catalogo.total).toBe(catalogo.personajes.length + catalogo.especiales.length)
     expect(catalogo.carta('frieren')?.nombre).toBe('Frieren')
-    for (const e of catalogo.especiales) expect(catalogo.existe(e.personajeId)).toBe(true)
+    for (const e of catalogo.especiales) expect(catalogo.conocida(e.personajeId)).toBe(true)
   })
 })

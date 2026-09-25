@@ -15,6 +15,10 @@
 // `pegadas` recuerda qué cartas se han visto ya en su hueco del álbum: las
 // demás se «pegan» con una pequeña animación en la próxima visita. Es un campo
 // añadido después; si falta, ninguna carta se ha pegado aún.
+//
+// El almacén conserva también las cartas ocultas del catálogo (ver
+// lib/catalog.js): no se borran, pero las cuentas y listas que se muestran
+// reciben `visible` (id → boolean) y las dejan fuera.
 import {
   CARTAS_POR_SOBRE,
   CLAVE_ALMACEN,
@@ -91,11 +95,14 @@ export function sobresRestantes(estado, dia) {
   return Math.max(0, SOBRES_POR_DIA - estado.abiertos)
 }
 
-/** Número de cartas distintas en la colección. */
-export const cartasDistintas = (estado) => Object.keys(estado.tengo).length
+const todas = () => true
 
-/** Número total de copias, contando repetidas. */
-export const copiasTotales = (estado) => Object.values(estado.tengo).reduce((a, n) => a + n, 0)
+/** Número de cartas distintas en la colección (las que acepte `visible`). */
+export const cartasDistintas = (estado, visible = todas) => Object.keys(estado.tengo).filter(visible).length
+
+/** Número total de copias, contando repetidas (de las que acepte `visible`). */
+export const copiasTotales = (estado, visible = todas) =>
+  Object.entries(estado.tengo).reduce((a, [id, n]) => a + (visible(id) ? n : 0), 0)
 
 /** Una carta es «nueva» (sello 新) el día en que se consiguió por primera vez. */
 export const esNueva = (estado, id, dia) => estado.desde[id] === dia
@@ -177,6 +184,7 @@ export function leerCodigo(codigo, { existe, dia } = {}) {
   }
   const { tengo, desde, descartadas } = limpiarCartas(datos.tengo, datos.desde, { existe, diaPorDefecto: dia })
   // Un código sin cartas no se acepta: «Sustituir» vaciaría la colección.
+  // Uno con solo cartas ocultas sí, pero la confirmación solo deja combinarlo.
   if (!Object.keys(tengo).length) {
     return {
       ok: false,
@@ -216,10 +224,10 @@ export function aplicarImportacion(estado, { tengo, desde }, modo = 'sustituir')
  * Qué pasaría al importar: cuántas cartas distintas trae el código, cuántas
  * hay ahora y cuántas quedarían al sustituir o al combinar.
  */
-export function previsionImportacion(estado, { tengo }) {
-  const entrantes = Object.keys(tengo)
+export function previsionImportacion(estado, { tengo }, visible = todas) {
+  const entrantes = Object.keys(tengo).filter(visible)
   const nuevas = entrantes.filter((id) => !Object.hasOwn(estado.tengo, id)).length
-  const actuales = cartasDistintas(estado)
+  const actuales = cartasDistintas(estado, visible)
   return { entrantes: entrantes.length, actuales, nuevas, alCombinar: actuales + nuevas }
 }
 
@@ -232,9 +240,9 @@ export function pegar(estado, ids) {
 }
 
 /** Cartas de la colección que aún no se han visto en su hueco del álbum. */
-export function porPegar(estado) {
+export function porPegar(estado, visible = todas) {
   const pegadas = new Set(estado.pegadas)
-  return Object.keys(estado.tengo).filter((id) => !pegadas.has(id))
+  return Object.keys(estado.tengo).filter((id) => !pegadas.has(id) && visible(id))
 }
 
 // ---------------------------------------------------------------------------
@@ -281,7 +289,7 @@ export function almacenSeguro(obtener) {
  * @param {object} opciones
  * @param {() => Storage} opciones.storage  acceso perezoso a localStorage
  * @param {{ personajes: string[], especiales: string[] }} opciones.ids
- * @param {(id: string) => boolean} opciones.existe
+ * @param {(id: string) => boolean} opciones.existe  cartas que se guardan (también las ocultas)
  * @param {() => Date} [opciones.ahora]
  * @param {Window} [opciones.ventana]  para escuchar otras pestañas y la medianoche
  */

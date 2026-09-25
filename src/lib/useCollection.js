@@ -4,14 +4,18 @@ import { catalogo } from './catalog.js'
 import { crearAlmacen, estadoVacio } from './collection.js'
 import { cuentaRetenida } from './cuentaRetenida.js'
 
-/** Almacén único de la colección de este navegador. */
+/**
+ * Almacén único de la colección de este navegador. Los sobres solo sacan
+ * cartas visibles; las ocultas que ya se tenían se guardan igual (y viajan en
+ * el código de la colección), aunque no se muestren ni se cuenten.
+ */
 export const coleccion = crearAlmacen({
   storage: () => window.localStorage,
   ids: {
     personajes: catalogo.personajes.map((c) => c.id),
     especiales: catalogo.especiales.map((c) => c.id),
   },
-  existe: catalogo.existe,
+  existe: catalogo.conocida,
   ventana: typeof window === 'undefined' ? undefined : window,
 })
 

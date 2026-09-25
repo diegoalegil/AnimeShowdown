@@ -64,7 +64,7 @@ export default function Coleccion() {
   // Cartas nuevas desde la última visita: esperan en su hueco hasta que se
   // ven y se pegan. `recientes` las recuerda durante toda la visita (para su
   // sello 新), también las que llegan con la página abierta (al importar).
-  const pendientes = porPegar(estado)
+  const pendientes = porPegar(estado, catalogo.existe)
   const [recientes, setRecientes] = useState(() => new Set(pendientes))
   const sinAnotar = pendientes.filter((id) => !recientes.has(id))
   if (sinAnotar.length) setRecientes(new Set([...recientes, ...sinAnotar]))
