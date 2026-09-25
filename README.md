@@ -20,7 +20,7 @@ al día para abrir y un álbum para completar. Sin cuentas ni servidor.
 </p>
 <p>
   <img src="docs/capturas/serie.webp" alt="Una serie dentro de la galería" width="49%">
-  <img src="docs/capturas/coleccion.webp" alt="Álbum de la colección" width="49%">
+  <img src="docs/capturas/coleccion.webp" alt="Colección con el progreso del álbum" width="49%">
 </p>
 <p align="center">
   <img src="docs/capturas/movil.webp" alt="La galería en el móvil" width="260">
@@ -30,9 +30,9 @@ al día para abrir y un álbum para completar. Sin cuentas ni servidor.
 
 - **Galería.** 1086 cartas de personajes de 105 series y 52 cartas especiales, agrupadas
   por serie. Búsqueda por nombre o serie (atajo `/`) y filtros por serie o por
-  especiales; los filtros quedan en la dirección, así que se pueden compartir.
+  especiales; los filtros quedan en la URL, así que se pueden compartir.
 - **Fichas.** Cada carta tiene su propia página, con el nombre japonés del personaje
-  en vertical. `←` y `→` recorren la galería, `Esc` vuelve a ella y, si el personaje
+  en vertical. `←` y `→` recorren la galería, `Esc` vuelve atrás y, si el personaje
   tiene versión especial, la carta se gira para verla.
 - **Sobres diarios.** Cada día (a medianoche, hora local) hay 5 sobres de 5 cartas; la
   quinta tiene un 15 % de probabilidad de ser especial. Se rasga el sobre y las cartas
@@ -47,6 +47,9 @@ al día para abrir y un álbum para completar. Sin cuentas ni servidor.
 - **Nombres japoneses** de personajes y series, tomados de AniList.
 
 Las reglas de los sobres están en `src/config.js`.
+
+AnimeShowdown empezó como una plataforma de votaciones con backend propio; esa versión
+se retiró y sigue en el historial de git.
 
 ## Cómo está hecho
 
@@ -64,9 +67,10 @@ Las reglas de los sobres están en `src/config.js`.
 
 Decisiones de rendimiento:
 
-- **Presupuesto de JavaScript.** El build falla si el JavaScript inicial de la portada
-  pasa de 100 kB con gzip (hoy, 97,3 kB). El catálogo va en su propio archivo y las
-  demás páginas se descargan aparte.
+- **Presupuesto de JavaScript.** El build falla si el JavaScript inicial de la portada,
+  sin contar el catálogo de cartas, pasa de 100 kB con gzip (hoy, 97,3 kB). El catálogo
+  (unos 73 kB con gzip, crece con cada carta) va en su propio archivo y las demás
+  páginas se descargan aparte.
 - **Portada prerenderizada.** La sala, el título y las acciones llegan ya pintados en el
   HTML y React los hidrata; la imagen de la sala y las dos fuentes críticas se piden
   desde el `<head>`.
@@ -78,7 +82,7 @@ Decisiones de rendimiento:
 
 ## Ejecutarlo en local
 
-Necesitas Node 22 (ver `.nvmrc`).
+Necesitas Node 22.22 o superior (ver `.nvmrc`).
 
 ```bash
 npm ci
@@ -96,8 +100,8 @@ El despliegue lo fija solo: `/<repositorio>/` en GitHub Pages, o `/` si existe
 
 ## Añadir un personaje
 
-1. Añade una línea al final de `src/data/personajes.json` con el siguiente número `n`
-   (la numeración debe ser correlativa):
+1. Añade una línea al final de `src/data/personajes.json` (con una coma tras la línea
+   anterior) con el siguiente número `n`; la numeración debe ser correlativa:
 
    ```json
    {"id":"eisen","n":1087,"nombre":"Eisen","anime":"Frieren: Beyond Journey's End","animeId":"frieren","img":"img/Frieren/eisen","color":"#5a4a3c","nativo":"アイゼン"}
@@ -105,7 +109,7 @@ El despliegue lo fija solo: `/<repositorio>/` en GitHub Pages, o `/` si existe
 
    `anime` debe coincidir con el `titulo` de su serie en `src/data/animes.json`; súmale
    uno a su `count`, o crea la entrada si la serie es nueva. `img` va sin extensión.
-   `color` es el tono dominante de la ilustración, que se ve mientras carga. `nativo`
+   `color` es el tono medio de la ilustración, que se ve mientras carga. `nativo`
    (nombre japonés) y `desc` (una frase) son opcionales.
 
 2. Copia la ilustración original en WebP (~1024 px de ancho), p. ej.
@@ -126,10 +130,12 @@ El despliegue lo fija solo: `/<repositorio>/` en GitHub Pages, o `/` si existe
    cuadren, que existan los cuatro archivos de imagen y que `ar` corresponda a la
    ilustración. También se ejecuta al construir: si algo falla, el build se para.
 
-Las **especiales** viven en `src/data/especiales.json` (ids con prefijo `e-`) y
-`public/img/especiales/`. Tras copiar la ilustración original,
-`node scripts/generate-especiales.mjs` (necesita `cwebp` y `dwebp`) crea los tamaños y
-anota la ruta y el tono dominante.
+Para añadir una **especial**, crea su entrada en `src/data/especiales.json` (id con
+prefijo `e-`, `n` correlativo, `personajeId` si es la versión especial de un personaje,
+`nombre`, `anime`, `animeId` e `img`), copia la ilustración original en
+`public/img/especiales/` y ejecuta `node scripts/generate-especiales.mjs` (necesita
+`cwebp` y `dwebp`): genera los tamaños, quita la extensión de `img` si la lleva y
+rellena `color` con el tono medio si falta.
 
 El **arte de una serie** se activa con el campo `marca` de `animes.json`, el nombre de
 sus archivos en `public/img/marca/`: escenario 16:9 (`-escena-768` y `-escena-1280`),
@@ -156,9 +162,6 @@ docs/capturas/    capturas de este README
 
 Los motivos de los sobres y dorsos, las brasas, los rayos de luz y la cara aplanada
 del sobre salen de los `scripts/generate-*.mjs` correspondientes (ver sus cabeceras).
-
-AnimeShowdown empezó como una plataforma de votaciones con backend propio; esa versión
-se retiró y sigue en el historial de git.
 
 ## Derechos
 
