@@ -184,6 +184,7 @@ export function leerCodigo(codigo, { existe, dia } = {}) {
   }
   const { tengo, desde, descartadas } = limpiarCartas(datos.tengo, datos.desde, { existe, diaPorDefecto: dia })
   // Un código sin cartas no se acepta: «Sustituir» vaciaría la colección.
+  // Uno con solo cartas ocultas sí, pero la confirmación solo deja combinarlo.
   if (!Object.keys(tengo).length) {
     return {
       ok: false,

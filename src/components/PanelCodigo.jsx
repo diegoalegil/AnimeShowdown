@@ -10,7 +10,8 @@ const cartas = (n) => `${n} ${n === 1 ? 'carta' : 'cartas'}`
 /**
  * Copia de la colección: el código para llevarla a otro navegador y el
  * formulario para pegar uno. Importar siempre pide confirmación y deja
- * elegir entre combinar con la colección actual o sustituirla.
+ * elegir entre combinar con la colección actual o sustituirla (salvo si el
+ * código solo trae cartas ocultas: entonces solo se combinan).
  */
 export function PanelCodigo() {
   const estado = useColeccion()
@@ -34,7 +35,7 @@ export function PanelCodigo() {
 
             <div className="codigo-rejilla">
               <Exportar codigo={codigo} tengo={tengo} actuales={actuales} />
-              <Importar estado={estado} actuales={actuales} />
+              <Importar estado={estado} />
             </div>
           </div>
         </header>
@@ -92,7 +93,7 @@ function Exportar({ codigo, tengo, actuales }) {
   )
 }
 
-function Importar({ estado, actuales }) {
+function Importar({ estado }) {
   const idError = useId()
   const confirmacion = useRef(null)
   const campo = useRef(null)
@@ -184,43 +185,72 @@ function Importar({ estado, actuales }) {
       </form>
 
       {prevision && (
-        <div ref={confirmacion} className="confirmar" tabIndex={-1} role="group" aria-labelledby="confirmar-titulo">
-          <p id="confirmar-titulo" className="confirmar-titulo">
-            Este código trae {textoRecuento(recuento(leido.tengo), { total: false })}.
-          </p>
-          <p className="confirmar-texto">
-            {leido.descartadas > 0 &&
-              `${cartas(leido.descartadas)} del código ya no ${leido.descartadas === 1 ? 'existe' : 'existen'} y se ${leido.descartadas === 1 ? 'omite' : 'omiten'}. `}
-            {actuales
-              ? `Ahora tienes ${textoRecuento(recuento(estado.tengo), { total: false })}. Puedes combinar las dos colecciones o sustituir la tuya por la del código.`
-              : 'Tu colección está vacía: pasará a ser la del código.'}
-          </p>
-          <div className="confirmar-acciones">
-            {actuales ? (
-              <>
-                <button type="button" className="boton boton--principal" onClick={() => aplicar('combinar')}>
-                  Combinar ({textoRecuento(recuento(aplicarImportacion(estado, leido, 'combinar').tengo), { total: false })})
-                </button>
-                <button type="button" className="boton" onClick={() => aplicar('sustituir')}>
-                  Sustituir la mía
-                </button>
-              </>
-            ) : (
-              <button type="button" className="boton boton--principal" onClick={() => aplicar('sustituir')}>
-                Importar
-              </button>
-            )}
-            <button type="button" className="boton-texto" onClick={cancelar}>
-              Cancelar
+        <ConfirmarImportacion
+          ref={confirmacion}
+          estado={estado}
+          leido={leido}
+          prevision={prevision}
+          alAplicar={aplicar}
+          alCancelar={cancelar}
+        />
+      )}
+    </div>
+  )
+}
+
+/**
+ * Confirmación de un código ya leído. Si el código solo trae cartas ocultas
+ * (`entrantes` = 0), sustituir dejaría sin nada visible: solo se ofrece
+ * guardarlas junto a las tuyas, para cuando vuelvan a mostrarse.
+ */
+export function ConfirmarImportacion({ ref, estado, leido, prevision, alAplicar, alCancelar }) {
+  const { actuales, entrantes } = prevision
+  const soloOcultas = entrantes === 0
+
+  return (
+    <div ref={ref} className="confirmar" tabIndex={-1} role="group" aria-labelledby="confirmar-titulo">
+      <p id="confirmar-titulo" className="confirmar-titulo">
+        {soloOcultas
+          ? 'Las cartas de este código están ocultas por ahora.'
+          : `Este código trae ${textoRecuento(recuento(leido.tengo), { total: false })}.`}
+      </p>
+      <p className="confirmar-texto">
+        {leido.descartadas > 0 &&
+          `${cartas(leido.descartadas)} del código ya no ${leido.descartadas === 1 ? 'existe' : 'existen'} y se ${leido.descartadas === 1 ? 'omite' : 'omiten'}. `}
+        {soloOcultas
+          ? 'Se guardarán en tu colección y aparecerán cuando vuelvan.'
+          : actuales
+            ? `Ahora tienes ${textoRecuento(recuento(estado.tengo), { total: false })}. Puedes combinar las dos colecciones o sustituir la tuya por la del código.`
+            : 'Tu colección está vacía: pasará a ser la del código.'}
+      </p>
+      <div className="confirmar-acciones">
+        {soloOcultas ? (
+          <button type="button" className="boton boton--principal" onClick={() => alAplicar('combinar')}>
+            Guardar
+          </button>
+        ) : actuales ? (
+          <>
+            <button type="button" className="boton boton--principal" onClick={() => alAplicar('combinar')}>
+              Combinar ({textoRecuento(recuento(aplicarImportacion(estado, leido, 'combinar').tengo), { total: false })})
             </button>
-          </div>
-          {actuales > 0 && (
-            <p className="confirmar-nota">
-              Al sustituir, las cartas que no estén en el código se pierden. Combinar conserva todas: de cada carta, el
-              mayor número de copias.
-            </p>
-          )}
-        </div>
+            <button type="button" className="boton" onClick={() => alAplicar('sustituir')}>
+              Sustituir la mía
+            </button>
+          </>
+        ) : (
+          <button type="button" className="boton boton--principal" onClick={() => alAplicar('sustituir')}>
+            Importar
+          </button>
+        )}
+        <button type="button" className="boton-texto" onClick={alCancelar}>
+          Cancelar
+        </button>
+      </div>
+      {actuales > 0 && !soloOcultas && (
+        <p className="confirmar-nota">
+          Al sustituir, las cartas que no estén en el código se pierden. Combinar conserva todas: de cada carta, el
+          mayor número de copias.
+        </p>
       )}
     </div>
   )
