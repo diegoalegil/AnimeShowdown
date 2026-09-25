@@ -454,6 +454,11 @@
   box-shadow:
     0 0 0 1px rgb(0 0 0 / 0.55),
     0 12px 0 -8px rgb(0 0 0 / 0.5);
+  /* Cada vitrina en su propia capa: al volver sobre lo ya visto, Safari
+     reutiliza su pintura en lugar de repintar la página (con el equipo
+     cargado, 22 → 56 fps desplazándose deprisa hacia arriba). Las que están
+     lejos no se pintan (content-visibility). */
+  will-change: transform;
   content-visibility: auto;
   contain-intrinsic-block-size: auto calc(var(--filas-3) * 15.5rem + 8.5rem);
   scroll-margin-top: 4rem;
