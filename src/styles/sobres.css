@@ -18,8 +18,10 @@
   padding-bottom: 5rem;
   background-color: var(--color-canvas);
   --sobre-ancho: min(64vw, 15.5rem);
-  /* En el móvil, la carta deja ver un trozo de las vecinas y el pie de la mesa. */
-  --naipe-ancho: min(60vw, 14.375rem);
+  /* En el móvil, la carta deja ver un trozo de las vecinas y, en pantallas
+     bajas, se encoge para que carta, cartela, marcas y barra de acciones
+     quepan a la vez (17rem: la cartela, las marcas, la barra y el aire). */
+  --naipe-ancho: min(60vw, 14.375rem, (100svh - 17rem) * 2 / 3);
   --voltear: 700ms;
   --voltear-especial: 940ms;
   /* Hasta dónde se abre el destello de la especial (en el móvil, dentro de la fila). */
@@ -1251,8 +1253,10 @@
   }
 }
 
-/* Al guardar vuelan las cartas; su cartela se queda y se apaga. */
-.mesa[data-fase='guardando'] .naipe-cartela {
+/* Al guardar vuelan las cartas; su cartela y las marcas de la fila se
+   quedan y se apagan. */
+.mesa[data-fase='guardando'] .naipe-cartela,
+.mesa[data-fase='guardando'] ~ .mesa-posicion {
   opacity: 0;
   transition: opacity var(--dur-2) linear;
 }
@@ -1376,6 +1380,8 @@
     position: sticky;
     bottom: 1rem;
     z-index: 3;
+    /* Solo la placa: una caja más alta la dejaría flotando más arriba. */
+    min-height: 0;
   }
 
   .mesa-pie[data-acciones] .mesa-acciones {
@@ -1387,7 +1393,8 @@
   }
 }
 
-/* Posición en la fila deslizable del móvil: «2 / 5» y cinco marcas. */
+/* Posición en la fila deslizable del móvil: «2 / 5» y cinco marcas, bajo
+   la fila (fuera de la barra fija). */
 .mesa-posicion {
   display: flex;
   align-items: center;

@@ -44,6 +44,7 @@ export default function Sobres() {
   const foco = useRef(null)
   // Temporizador que acerca la siguiente carta en el móvil.
   const acercar = useRef(0)
+  const pie = useRef(null)
 
   const todas = todasReveladas(cer)
   const copias = (id) => estado.tengo[id] ?? 0
@@ -89,6 +90,19 @@ export default function Sobres() {
       viva = false
       for (const a of animaciones) a.cancel()
     }
+  }, [cer.fase, mesa])
+
+  // Móvil: cuando las cartas se posan, si la barra fija de acciones tapa su
+  // cartela o la posición en la fila, la página sube lo justo para dejarlas
+  // a la vista por encima de ella.
+  useEffect(() => {
+    if (cer.fase !== 'abierto') return
+    const marcas = mesa.current?.parentElement?.querySelector('.mesa-posicion')
+    const barra = pie.current
+    // Sin marcas visibles (pantallas anchas) o sin barra fija, no hay nada que tape.
+    if (!marcas?.offsetParent || !barra || getComputedStyle(barra).position !== 'sticky') return
+    const tapado = marcas.getBoundingClientRect().bottom + 8 - barra.getBoundingClientRect().top
+    if (tapado > 0) window.scrollBy({ top: tapado, behavior: movimientoReducido() ? 'auto' : 'smooth' })
   }, [cer.fase, mesa])
 
   // Si se sale de la página a mitad de la ceremonia, la cabecera muestra ya
@@ -229,12 +243,15 @@ export default function Sobres() {
           )}
         </div>
 
+        {/* Bajo la fila, en su sitio: nunca queda debajo de la barra fija de acciones. */}
+        {enMesa && <Posicion actual={posicionActual} total={cer.cartas.length} />}
+
         <div
+          ref={pie}
           className="mesa-pie"
           data-guardando={cer.fase === 'guardando' || undefined}
           data-acciones={(enMesa && !todas) || undefined}
         >
-          {enMesa && cer.fase !== 'guardando' && <Posicion actual={posicionActual} total={cer.cartas.length} />}
           {enMesa && !todas && (
             <div className="mesa-acciones">
               <button type="button" className="boton mesa-revelar" onClick={revelarTodas}>
