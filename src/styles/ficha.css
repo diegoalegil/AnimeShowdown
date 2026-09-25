@@ -574,6 +574,8 @@
 }
 
 .ficha-vecina-rotulo {
+  /* La flecha y la palabra, siempre juntas en una línea. */
+  white-space: nowrap;
   color: var(--color-gold);
   font-size: var(--text-2xs);
   font-weight: 500;
@@ -597,6 +599,14 @@
 
 .ficha-vecina--siguiente:hover .ficha-vecina-mini {
   transform: translateX(2px) rotate(3deg);
+}
+
+/* Pantallas muy estrechas: sin miniatura, para que «← Anterior» y el
+   nombre quepan en su placa. */
+@media (max-width: 23rem) {
+  .ficha-vecina-mini {
+    display: none;
+  }
 }
 
 .ficha-atajos {
