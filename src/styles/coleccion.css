@@ -37,7 +37,7 @@
   inset: 0;
   z-index: -1;
   background-image:
-    linear-gradient(180deg, rgb(4 7 12 / 0.88) 0%, rgb(4 7 12 / 0.35) 30%, rgb(4 7 12 / 0.4) 65%, var(--color-bg) 100%),
+    linear-gradient(180deg, rgb(4 7 12 / 0.88) 0%, rgb(4 7 12 / 0.2) 30%, rgb(4 7 12 / 0.3) 65%, var(--color-bg) 100%),
     radial-gradient(ellipse 90% 80% at 50% 40%, transparent 45%, rgb(4 7 12 / 0.8) 100%);
   pointer-events: none;
 }
@@ -334,8 +334,11 @@
   animation: aparece var(--dur-4) var(--ease-sumi) 300ms both;
 }
 
+/* En pantallas anchas la placa se queda a la izquierda, a la medida de su
+   texto, y la sala de trofeos se ve a su derecha. */
 @media (min-width: 48rem) {
   .album-vacio {
+    max-width: 44rem;
     gap: 2.5rem;
     margin-top: 2.5rem;
     padding: 2rem 2.25rem;
