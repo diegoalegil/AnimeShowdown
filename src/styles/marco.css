@@ -520,6 +520,12 @@
   background-image: radial-gradient(ellipse 70% 55% at 50% 38%, var(--color-surface-alt), transparent 70%);
 }
 
+/* Mientras llega el código de una página: ocupa la pantalla entera, así el
+   pie no asoma debajo para saltar después. */
+.escenario--cargando {
+  min-height: 100vh;
+}
+
 /* Grano estático sobre los focos de luz oscuros: disuelve los anillos del
    degradado entre dos negros tan cercanos (ver scripts/generate-grano). Va
    detrás del contenido y no se anima. */

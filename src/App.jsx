@@ -54,7 +54,7 @@ export function App() {
               path="carta/:id"
               element={
                 // Solo si se entra directamente a una ficha antes de que llegue su código.
-                <Suspense fallback={<div className="escenario" />}>
+                <Suspense fallback={<div className="escenario escenario--cargando" />}>
                   <ficha.Componente />
                 </Suspense>
               }
@@ -63,7 +63,7 @@ export function App() {
               path="sobres"
               element={
                 // Mientras llega el código (solo si se entra directamente), el escenario ya oscuro.
-                <Suspense fallback={<div className="escenario" />}>
+                <Suspense fallback={<div className="escenario escenario--cargando" />}>
                   <sobres.Componente />
                 </Suspense>
               }
