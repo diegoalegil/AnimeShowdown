@@ -29,4 +29,7 @@ if (raiz.firstElementChild) hydrateRoot(raiz, aplicacion)
 else createRoot(raiz).render(aplicacion)
 
 import('./fuentes-jp.css')
-cuandoLibre(precargarPaginas)
+// Las otras páginas se precargan cuando la portada ya ha cargado del todo y
+// el navegador está libre: no compiten con la sala ni con las primeras cartas.
+if (document.readyState === 'complete') cuandoLibre(precargarPaginas)
+else window.addEventListener('load', () => cuandoLibre(precargarPaginas), { once: true })
