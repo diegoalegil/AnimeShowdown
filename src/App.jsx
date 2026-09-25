@@ -4,6 +4,7 @@ import { Cabecera } from './components/Cabecera.jsx'
 import { FalloSeccion } from './components/FalloSeccion.jsx'
 import { Pie } from './components/Pie.jsx'
 import { aplazarLejanos } from './lib/aplazar.js'
+import { useHidratado } from './lib/hidratado.js'
 import { idsAncla, useNavegacionDelegada, useRestaurarScroll } from './lib/navegacion.js'
 import { PaginaActiva } from './lib/paginaActiva.js'
 import Ficha from './pages/Ficha.jsx'
@@ -22,6 +23,9 @@ export function App() {
   // no desmonta ni vuelve a montar sus mil cartas, y al volver conserva su
   // scroll exacto.
   const origen = ruta.startsWith('/carta/') ? state?.volver : undefined
+  // La portada llega prerenderizada sin la rejilla (ver pages/Galeria): el pie
+  // espera también, para no asomar pegado a la portada y saltar después.
+  const hidratado = useHidratado()
 
   return (
     <>
@@ -61,7 +65,7 @@ export function App() {
           </Routes>
         </FalloSeccion>
       </main>
-      <Pie />
+      {hidratado && <Pie />}
     </>
   )
 }

@@ -6,6 +6,7 @@ import { FiltrosGaleria } from '../components/FiltrosGaleria.jsx'
 import { Portada } from '../components/Portada.jsx'
 import { Hanko } from '../components/Hanko.jsx'
 import { catalogo } from '../lib/catalog.js'
+import { useHidratado } from '../lib/hidratado.js'
 import { escenaAnime, pieza, simboloAnime } from '../lib/marca.js'
 import { agruparPorSerie, busquedaDe, ESPECIALES, etiquetaFiltros, filtrarCartas, leerFiltros } from '../lib/filtros.js'
 import { revelar } from '../lib/motion.js'
@@ -27,8 +28,25 @@ const CIUDAD = pieza('empty-search-night-city-refresh')
 const PRIMER_TRAMO = 30
 const TRAMO = 120
 
+/**
+ * La galería: la portada y, debajo, la barra de filtros y las cartas. La
+ * portada va prerenderizada en el HTML (ver scripts/prerender.mjs); la
+ * rejilla depende de la dirección (los filtros), de la colección y de la
+ * pantalla, así que se pinta al hidratar.
+ */
 export default function Galeria() {
   useTitulo()
+  const hidratado = useHidratado()
+  return (
+    <>
+      <Portada />
+      {hidratado && <Cartas />}
+    </>
+  )
+}
+
+/** Filtros y rejilla de la galería, agrupada por series o filtrada. */
+function Cartas() {
   const { search } = useLocation()
   const tipo = useNavigationType()
   const navigate = useNavigate()
@@ -89,8 +107,6 @@ export default function Galeria() {
 
   return (
     <>
-      <Portada />
-
       <FiltrosGaleria
         filtros={filtros}
         onCambiar={cambiar}

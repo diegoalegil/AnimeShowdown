@@ -1,4 +1,5 @@
 import { catalogo } from '../lib/catalog.js'
+import { useHidratado } from '../lib/hidratado.js'
 import { imagenCarta } from '../lib/images.js'
 import { pieza, TAMANO_SALA } from '../lib/marca.js'
 import { cartasDestacadas } from '../lib/portada.js'
@@ -18,6 +19,8 @@ const TOTAL = catalogo.personajes.length + catalogo.especiales.length
  */
 export function Portada() {
   const ref = usePausaFuera()
+  // La carta del día depende del día del visitante: no va en el HTML prerenderizado.
+  const hidratado = useHidratado()
 
   return (
     <section ref={ref} className="portada" aria-labelledby="portada-titulo">
@@ -92,7 +95,7 @@ export function Portada() {
             Ver todas las cartas
           </a>
         </div>
-        <CartaDelDia />
+        {hidratado && <CartaDelDia />}
       </div>
     </section>
   )

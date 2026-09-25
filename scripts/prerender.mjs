@@ -4,10 +4,15 @@
 // metadatos correctos en /carta/<id>/, /sobres/ y /coleccion/. Escribe además
 // dist/404.html para que cualquier otra ruta arranque la aplicación.
 //
+// La portada (dist/index.html) lleva además su HTML ya pintado (ver
+// src/esqueleto.jsx): la sala, el título y las acciones se ven sin esperar al
+// JavaScript, que después lo hidrata. Las demás páginas arrancan vacías.
+//
 //   node scripts/prerender.mjs
 import { mkdirSync, readFileSync, writeFileSync } from 'node:fs'
 import { dirname, join } from 'node:path'
 import { fileURLToPath } from 'node:url'
+import { createServer } from 'vite'
 import { ESCENARIOS, pieza } from '../src/lib/marca.js'
 import { PAGINAS, descripcionCarta, nombreCarta, tituloDePagina } from '../src/lib/titulos.js'
 
@@ -71,4 +76,36 @@ writeFileSync(
   pagina(plantilla, { titulo: tituloDePagina('Página no encontrada'), descripcion: PAGINAS.galeria.descripcion }),
 )
 
-console.log(`prerender: ${cartas.length} fichas, 2 secciones y 404.html`)
+/** HTML de la portada, con la misma base que el build (ver src/esqueleto.jsx). */
+async function esqueleto() {
+  const vite = await createServer({
+    root: raiz,
+    base,
+    logLevel: 'error',
+    appType: 'custom',
+    server: { middlewareMode: true, hmr: false, ws: false },
+  })
+  try {
+    const { esqueletoPortada } = await vite.ssrLoadModule('/src/esqueleto.jsx')
+    return esqueletoPortada(base)
+  } finally {
+    await vite.close()
+  }
+}
+
+// React emite al principio las precargas de las imágenes prioritarias: van
+// al <head>, salvo las que la plantilla ya tiene (la sala de la portada).
+const [, precargas, cuerpo] = (await esqueleto()).match(/^((?:<link [^>]*>)*)([\s\S]*)$/)
+const nuevas = (precargas.match(/<link [^>]*>/g) ?? []).filter((enlace) => {
+  const srcset = enlace.match(/imageSrcSet="([^"]*)"/i)?.[1]
+  return !srcset || !plantilla.includes(srcset)
+})
+if (!plantilla.includes('<div id="root"></div>')) throw new Error('prerender: index.html no tiene <div id="root"></div>')
+writeFileSync(
+  join(dist, 'index.html'),
+  plantilla
+    .replace('</head>', () => `${nuevas.map((enlace) => `  ${enlace}\n`).join('')}  </head>`)
+    .replace('<div id="root"></div>', () => `<div id="root">${cuerpo}</div>`),
+)
+
+console.log(`prerender: portada, ${cartas.length} fichas, 2 secciones y 404.html`)

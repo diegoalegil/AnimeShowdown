@@ -1,5 +1,5 @@
 import { StrictMode } from 'react'
-import { createRoot } from 'react-dom/client'
+import { createRoot, hydrateRoot } from 'react-dom/client'
 import { BrowserRouter } from 'react-router'
 import { App } from './App.jsx'
 import { cuandoLibre } from './lib/diferido.js'
@@ -15,13 +15,18 @@ vigilarImagenes(document)
 // "/AnimeShowdown?q=…".
 // useTransitions={false}: la navegación se aplica de forma síncrona, que es lo
 // que necesita document.startViewTransition para capturar el estado nuevo.
-createRoot(document.getElementById('root')).render(
+const raiz = document.getElementById('root')
+const aplicacion = (
   <StrictMode>
     <BrowserRouter basename={import.meta.env.BASE_URL} useTransitions={false}>
       <App />
     </BrowserRouter>
-  </StrictMode>,
+  </StrictMode>
 )
+// La portada llega ya pintada (ver scripts/prerender.mjs): React la hidrata y
+// reutiliza su HTML. Las demás páginas llegan vacías y se pintan aquí.
+if (raiz.firstElementChild) hydrateRoot(raiz, aplicacion)
+else createRoot(raiz).render(aplicacion)
 
 import('./fuentes-jp.css')
 cuandoLibre(precargarPaginas)
