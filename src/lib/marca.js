@@ -46,8 +46,14 @@ export const PIEZAS = {
  */
 export const ESCENARIOS = { sobres: 'sobres-arena', coleccion: 'logros-trophy-hall' }
 
-/** sizes de la sala de la portada: a partir de 1280 px basta la de 1280. */
-export const TAMANO_SALA = '(min-width: 1280px) 1280px, 100vw'
+/**
+ * sizes de la sala de la portada: a partir de 1280 px basta la de 1280. En
+ * el móvil la sala es un fondo recortado y oscurecido tras el título y la de
+ * 768 px no se distingue de las grandes: se declaran 256 px para que el
+ * navegador la elija en cualquier densidad (hasta 3×). Pesa la mitad, y es
+ * lo que más tarda en llegar de la primera pantalla.
+ */
+export const TAMANO_SALA = '(min-width: 1280px) 1280px, (min-width: 48rem) 100vw, 256px'
 
 /**
  * Logo de la web (sello 滅), en un solo sitio para poder cambiarlo: el
