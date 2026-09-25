@@ -314,7 +314,8 @@
   font-size: var(--text-lg);
   font-weight: 700;
   line-height: 1.22;
-  overflow-wrap: anywhere;
+  /* Parte una palabra solo si no cabe entera en la línea. */
+  overflow-wrap: break-word;
   text-decoration-line: underline;
   text-decoration-color: transparent;
   text-decoration-thickness: 1px;
@@ -329,7 +330,7 @@
   color: var(--color-fg-muted);
   font-size: var(--text-sm);
   line-height: 1.35;
-  overflow-wrap: anywhere;
+  overflow-wrap: break-word;
 }
 
 /* En tu colección: un sello dorado y, si hay más de una, ×N. */
@@ -414,6 +415,33 @@
    sobra; solo se anotan las copias (×N). */
 .carta--album .carta-copias-sello {
   display: none;
+}
+
+/* Álbum en el móvil (tres columnas estrechas): las copias suben junto al
+   número y el nombre y la serie ocupan todo el ancho. */
+@media (max-width: 47.99rem) {
+  /* La fila del número mide lo que la pastilla, la haya o no: los nombres
+     quedan alineados de carta a carta. */
+  .carta--album .carta-cartela {
+    grid-template-rows: minmax(1.375rem, auto);
+    align-items: center;
+  }
+
+  .carta--album .carta-copias {
+    grid-row: 1;
+    align-self: center;
+  }
+
+  .carta--album .carta-nombre,
+  .carta--album .carta-serie {
+    grid-column: 1 / -1;
+  }
+}
+
+@media (max-width: 29.99rem) {
+  .carta--album .carta-nombre {
+    font-size: var(--text-sm);
+  }
 }
 
 @media (prefers-reduced-motion: reduce) {
