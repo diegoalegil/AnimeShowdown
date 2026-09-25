@@ -7,10 +7,9 @@ import { aplazarLejanos } from './lib/aplazar.js'
 import { useHidratado } from './lib/hidratado.js'
 import { idsAncla, useNavegacionDelegada, useRestaurarScroll } from './lib/navegacion.js'
 import { PaginaActiva } from './lib/paginaActiva.js'
-import Ficha from './pages/Ficha.jsx'
 import Galeria from './pages/Galeria.jsx'
 import NoEncontrada from './pages/NoEncontrada.jsx'
-import { coleccion, sobres } from './paginas.js'
+import { coleccion, ficha, sobres } from './paginas.js'
 
 export function App() {
   useNavegacionDelegada()
@@ -51,7 +50,15 @@ export function App() {
             {/* La galería y la colección se pintan arriba, fuera de las rutas. */}
             <Route index element={null} />
             <Route path="coleccion" element={null} />
-            <Route path="carta/:id" element={<Ficha />} />
+            <Route
+              path="carta/:id"
+              element={
+                // Solo si se entra directamente a una ficha antes de que llegue su código.
+                <Suspense fallback={<div className="escenario" />}>
+                  <ficha.Componente />
+                </Suspense>
+              }
+            />
             <Route
               path="sobres"
               element={

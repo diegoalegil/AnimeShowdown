@@ -4,7 +4,7 @@ import { BrowserRouter } from 'react-router'
 import { App } from './App.jsx'
 import { cuandoLibre } from './lib/diferido.js'
 import { vigilarImagenes } from './lib/images.js'
-import { precargarPaginas } from './paginas.js'
+import { coleccion, ficha, precargarPaginas, sobres } from './paginas.js'
 import './index.css'
 
 // Antes de pintar: así ninguna imagen carga sin que se marque.
@@ -29,7 +29,11 @@ if (raiz.firstElementChild) hydrateRoot(raiz, aplicacion)
 else createRoot(raiz).render(aplicacion)
 
 import('./fuentes-jp.css')
-// Las otras páginas se precargan cuando la portada ya ha cargado del todo y
-// el navegador está libre: no compiten con la sala ni con las primeras cartas.
-if (document.readyState === 'complete') cuandoLibre(precargarPaginas)
-else window.addEventListener('load', () => cuandoLibre(precargarPaginas), { once: true })
+// La ficha, en cuanto el navegador queda libre: así abrir una carta pinta la
+// ficha de verdad (y su transición) sin esperar a descargarla. Sobres y
+// colección, cuando la portada ya ha cargado del todo: no compiten con la
+// sala ni con las primeras cartas.
+cuandoLibre(() => precargarPaginas([ficha]))
+const precargarSecciones = () => cuandoLibre(() => precargarPaginas([sobres, coleccion]))
+if (document.readyState === 'complete') precargarSecciones()
+else window.addEventListener('load', precargarSecciones, { once: true })

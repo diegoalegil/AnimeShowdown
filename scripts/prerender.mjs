@@ -9,7 +9,7 @@
 // JavaScript, que después lo hidrata. Las demás páginas arrancan vacías.
 //
 //   node scripts/prerender.mjs
-import { mkdirSync, readFileSync, writeFileSync } from 'node:fs'
+import { mkdirSync, readFileSync, readdirSync, writeFileSync } from 'node:fs'
 import { dirname, join } from 'node:path'
 import { fileURLToPath } from 'node:url'
 import { createServer } from 'vite'
@@ -35,18 +35,31 @@ function precargaEscenario(nombre) {
   return `<link rel="preload" as="image" type="image/webp" imagesrcset="${escapar(srcSet)}" imagesizes="100vw" fetchpriority="high">`
 }
 
+const trozos = readdirSync(join(dist, 'assets'))
+
+/**
+ * <link> que precarga el código de una página diferida (ver src/paginas.js):
+ * al entrar directamente en ella se pide a la vez que el código inicial.
+ */
+function precargaCodigo(nombre) {
+  const archivo = trozos.find((f) => f.startsWith(`${nombre}-`) && f.endsWith('.js'))
+  if (!archivo) throw new Error(`prerender: no hay código ${nombre}-*.js en dist/assets`)
+  return `<link rel="modulepreload" crossorigin href="${base}assets/${archivo}">`
+}
+
 /**
  * HTML de la plantilla con el título y la descripción de una página. Las
  * ilustraciones que precarga la portada (data-portada) solo sirven allí; una
- * sección puede precargar en su lugar su propio escenario.
+ * sección puede precargar en su lugar su propio escenario y su código.
  */
-function pagina(html, { titulo, descripcion, escenario }) {
+function pagina(html, { titulo, descripcion, escenario, codigo }) {
   const t = escapar(titulo)
   const d = escapar(descripcion)
+  const precargas = [escenario && precargaEscenario(escenario), codigo && precargaCodigo(codigo)].filter(Boolean)
   // Reemplazos con función: el texto nunca se interpreta como patrón ($1, $&…).
   return html
     .replace(/\s*<link [^>]*data-portada[^>]*>/g, '')
-    .replace('</head>', () => (escenario ? `  ${precargaEscenario(escenario)}\n  </head>` : '</head>'))
+    .replace(/\n\s*<\/head>/, () => `\n${precargas.map((p) => `    ${p}\n`).join('')}  </head>`)
     .replace(/<title>[^<]*<\/title>/, () => `<title>${t}</title>`)
     .replace(/(<meta name="description" content=")[^"]*"/, (_, a) => `${a}${d}"`)
     .replace(/(<meta property="og:title" content=")[^"]*"/, (_, a) => `${a}${t}"`)
@@ -62,13 +75,21 @@ function escribir(ruta, datos) {
 const cartas = [...leerJson('personajes.json'), ...leerJson('especiales.json')]
 for (const carta of cartas) {
   if (!/^[\w-]+$/.test(carta.id)) throw new Error(`prerender: id no apto para una ruta: ${carta.id}`)
-  escribir(`carta/${carta.id}`, { titulo: tituloDePagina(nombreCarta(carta)), descripcion: descripcionCarta(carta) })
+  escribir(`carta/${carta.id}`, {
+    titulo: tituloDePagina(nombreCarta(carta)),
+    descripcion: descripcionCarta(carta),
+    codigo: 'Ficha',
+  })
 }
-for (const clave of ['sobres', 'coleccion']) {
+for (const [clave, codigo] of [
+  ['sobres', 'Sobres'],
+  ['coleccion', 'Coleccion'],
+]) {
   escribir(clave, {
     titulo: tituloDePagina(PAGINAS[clave].titulo),
     descripcion: PAGINAS[clave].descripcion,
     escenario: ESCENARIOS[clave],
+    codigo,
   })
 }
 writeFileSync(
@@ -104,7 +125,7 @@ if (!plantilla.includes('<div id="root"></div>')) throw new Error('prerender: in
 writeFileSync(
   join(dist, 'index.html'),
   plantilla
-    .replace('</head>', () => `${nuevas.map((enlace) => `  ${enlace}\n`).join('')}  </head>`)
+    .replace(/\n\s*<\/head>/, () => `\n${nuevas.map((enlace) => `    ${enlace}\n`).join('')}  </head>`)
     .replace('<div id="root"></div>', () => `<div id="root">${cuerpo}</div>`),
 )
 
