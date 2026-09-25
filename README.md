@@ -47,7 +47,8 @@ npm install
 npm run dev       # servidor de desarrollo
 npm test          # tests
 npm run lint
-npm run build     # valida los datos, construye y genera las páginas en dist/
+npm run build     # valida los datos, construye, genera las páginas en dist/ y
+                  # comprueba que el JavaScript inicial no pase de 100 kB (gzip)
 npm run preview   # sirve dist/
 ```
 
