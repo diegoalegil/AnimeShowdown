@@ -161,6 +161,23 @@
   --radius-carta: 0.875rem;
 }
 
+/* Lo que no gira con la carta (el filo irisado de la especial, la sombra de
+   carta alzada y la sombra honda del escenario) se apaga mientras da la
+   vuelta: a media vuelta no debe quedar un marco vacío ni una losa oscura
+   detrás. Solo opacidad. */
+.ficha-marco::before,
+.ficha-marco::after,
+.ficha-carta::before {
+  transition: opacity var(--dur-3) var(--ease-sumi);
+}
+
+.ficha-marco:has(.volteo-giro[data-girando])::before,
+.ficha-marco:has(.volteo-giro[data-girando])::after,
+.ficha-carta:has(.volteo-giro[data-girando])::before {
+  opacity: 0;
+  transition-duration: var(--dur-1);
+}
+
 .ficha-sello {
   width: clamp(2.25rem, 13%, 3.25rem);
   animation: estampa var(--dur-4) var(--ease-hane) 420ms both;
