@@ -667,11 +667,25 @@
   height: auto;
 }
 
-/* ---- Piezas del sobre rasgado (ver components/Sobre y lib/coreografia) ---- */
+/* ---- Piezas del sobre rasgado (ver components/Sobre y lib/coreografia) ----
+   Cada pieza es la cara del sobre aplanada en una imagen (la genera
+   scripts/generate-sobre.mjs a partir del envoltorio de arriba), recortada
+   por su línea de rasgado. */
 .sobre-pieza,
 .sobre-sello-mitad {
   position: absolute;
   inset: 0;
+  display: block;
+}
+
+.sobre-pieza {
+  background-image: url('/sobre-cara.webp');
+  background-size: 100% 100%;
+  color: var(--color-gold-bright);
+}
+
+.sobre-pieza .envoltorio-numero {
+  position: absolute;
   display: block;
 }
 

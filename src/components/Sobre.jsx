@@ -1,5 +1,19 @@
+import { useEffect } from 'react'
 import { CARTAS_POR_SOBRE, SOBRES_POR_DIA } from '../config.js'
+import { urlPublica } from '../lib/images.js'
 import { Logo } from './Logo.jsx'
+
+// La cara del sobre aplanada que llevan las piezas al rasgarse (ver SobreRasgado).
+const CARA = urlPublica('sobre-cara.webp')
+let cara = null
+
+/** Descarga y decodifica la cara antes de abrir: así las piezas nunca llegan vacías. */
+function precargarCara() {
+  if (cara) return
+  cara = new Image()
+  cara.src = CARA
+  cara.decode().catch(() => {})
+}
 
 // ---------------------------------------------------------------------------
 // Formas del envoltorio: bordes dentados arriba y abajo (el cierre prensado
@@ -107,10 +121,7 @@ export function Envoltorio({ numero }) {
       </span>
       <span className="envoltorio-corte" />
       <span className="envoltorio-marco" />
-      <span className="envoltorio-numero cifra">
-        Nº {String(numero).padStart(2, '0')}
-        <span className="envoltorio-de"> / {String(SOBRES_POR_DIA).padStart(2, '0')}</span>
-      </span>
+      <Numero numero={numero} />
       <span className="envoltorio-arte" />
       <span className="envoltorio-obi">
         <span className="envoltorio-marca">
@@ -123,6 +134,16 @@ export function Envoltorio({ numero }) {
           </span>
         </span>
       </span>
+    </span>
+  )
+}
+
+/** «Nº 02 / 05»: qué sobre del día es. */
+function Numero({ numero }) {
+  return (
+    <span className="envoltorio-numero cifra">
+      Nº {String(numero).padStart(2, '0')}
+      <span className="envoltorio-de"> / {String(SOBRES_POR_DIA).padStart(2, '0')}</span>
     </span>
   )
 }
@@ -143,6 +164,7 @@ function Sello() {
  */
 export function SobreCerrado({ numero, otro, onAbrir }) {
   const accion = otro ? 'Abrir otro sobre' : 'Abrir sobre'
+  useEffect(precargarCara, [])
   return (
     <button
       type="button"
@@ -173,6 +195,11 @@ export function SobreCerrado({ numero, otro, onAbrir }) {
  * tira y dos mitades), el sello partido en dos y la luz que sale de dentro:
  * un destello en la línea de rasgado y, detrás de las hojas, un halo con un
  * abanico de rayos (un solo plano). Lo anima lib/coreografia.
+ *
+ * Cada pieza no lleva una copia del envoltorio sino su imagen aplanada
+ * (public/sobre-cara.webp, ver scripts/generate-sobre.mjs): una sola imagen
+ * por pieza es lo que Safari puede repintar a 60 fps mientras giran. Encima,
+ * las dos mitades llevan el número del sobre, que no va en la imagen.
  */
 export function SobreRasgado({ numero }) {
   return (
@@ -182,7 +209,7 @@ export function SobreRasgado({ numero }) {
         <span className="sobre-luz" data-pieza="luz" />
         {['tira', 'izquierda', 'derecha'].map((pieza) => (
           <span key={pieza} className={`sobre-pieza sobre-pieza--${pieza}`} data-pieza={pieza} style={{ clipPath: PIEZAS[pieza] }}>
-            <Envoltorio numero={numero} />
+            {pieza !== 'tira' && <Numero numero={numero} />}
           </span>
         ))}
         <span className="sobre-sello-mitad sobre-sello-mitad--izquierda" data-pieza="sello-izquierda">

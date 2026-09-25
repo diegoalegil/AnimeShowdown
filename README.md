@@ -33,7 +33,10 @@ Las reglas están en `src/config.js`.
 Los motivos tradicionales de los sobres y los dorsos (`public/seigaiha.png` y
 `public/asanoha.png`), las brasas (`public/brasas.png`) y los rayos de luz
 (`public/rayos.webp`) se generan con `node scripts/generate-patrones.mjs`,
-`node scripts/generate-brasas.mjs` y `node scripts/generate-rayos.mjs`.
+`node scripts/generate-brasas.mjs` y `node scripts/generate-rayos.mjs`. La cara del
+sobre aplanada en una imagen (`public/sobre-cara.webp`), que llevan las piezas del
+sobre al rasgarse, se toma del propio build con `node scripts/generate-sobre.mjs`
+(ver su cabecera); hay que volver a generarla si cambia el envoltorio del sobre.
 
 ## Ejecutarlo en local
 
