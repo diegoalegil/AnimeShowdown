@@ -12,4 +12,9 @@ describe('PanelCodigo', () => {
     expect(html).not.toContain('aria-label="Código de tu colección"')
     expect(html).toContain('Cuando consigas cartas')
   })
+
+  it('el aviso de importación está siempre montado y puede recibir el foco', () => {
+    const html = renderToStaticMarkup(<PanelCodigo />)
+    expect(html).toMatch(/<p class="codigo-aviso" role="status" aria-live="polite" tabindex="-1"><\/p>/)
+  })
 })

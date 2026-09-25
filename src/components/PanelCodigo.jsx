@@ -94,6 +94,9 @@ function Exportar({ codigo, tengo, actuales }) {
 function Importar({ estado, actuales }) {
   const idError = useId()
   const confirmacion = useRef(null)
+  const campo = useRef(null)
+  const botonRevisar = useRef(null)
+  const mensaje = useRef(null)
   const [texto, setTexto] = useState('')
   // null | { error } | { leido } (esperando confirmación) | { hecho }
   const [paso, setPaso] = useState(null)
@@ -110,14 +113,26 @@ function Importar({ estado, actuales }) {
     requestAnimationFrame(() => confirmacion.current?.focus())
   }
 
+  // La confirmación, que tenía el foco, desaparece al elegir: el foco pasa
+  // a lo que sigue (cuando ya está pintado), nunca a <body>.
+  const enfocar = (ref) => requestAnimationFrame(() => ref.current?.focus())
+
   function aplicar(modo) {
     const resultado = coleccion.importar(texto, modo)
     if (!resultado.ok) {
       setPaso({ error: resultado.error })
+      enfocar(campo)
       return
     }
     setTexto('')
     setPaso({ hecho: textoRecuento(recuento(coleccion.getSnapshot().tengo), { total: false }) })
+    // El aviso de «Listo» se lee al recibir el foco.
+    enfocar(mensaje)
+  }
+
+  function cancelar() {
+    setPaso(null)
+    enfocar(botonRevisar)
   }
 
   const leido = paso?.leido
@@ -129,6 +144,7 @@ function Importar({ estado, actuales }) {
       <p className="codigo-texto">Para recuperar tu colección o traerla desde otro navegador.</p>
       <form onSubmit={revisar}>
         <textarea
+          ref={campo}
           className="codigo-campo cifra"
           value={texto}
           onChange={(e) => {
@@ -144,7 +160,7 @@ function Importar({ estado, actuales }) {
           aria-describedby={paso?.error ? idError : undefined}
         />
         <div className="codigo-acciones">
-          <button type="submit" className="boton" disabled={!texto.trim()}>
+          <button ref={botonRevisar} type="submit" className="boton" disabled={!texto.trim()}>
             Revisar código
           </button>
           {paso?.error && (
@@ -152,11 +168,17 @@ function Importar({ estado, actuales }) {
               {paso.error}
             </p>
           )}
-          {paso?.hecho !== undefined && (
-            <p className="codigo-aviso" data-ok="" role="status">
-              Listo: tu colección tiene ahora {paso.hecho}.
-            </p>
-          )}
+          {/* Siempre montado: los lectores de pantalla anuncian el cambio de texto. */}
+          <p
+            ref={mensaje}
+            className="codigo-aviso"
+            data-ok={paso?.hecho !== undefined || undefined}
+            role="status"
+            aria-live="polite"
+            tabIndex={-1}
+          >
+            {paso?.hecho !== undefined && `Listo: tu colección tiene ahora ${paso.hecho}.`}
+          </p>
         </div>
       </form>
 
@@ -187,7 +209,7 @@ function Importar({ estado, actuales }) {
                 Importar
               </button>
             )}
-            <button type="button" className="boton-texto" onClick={() => setPaso(null)}>
+            <button type="button" className="boton-texto" onClick={cancelar}>
               Cancelar
             </button>
           </div>

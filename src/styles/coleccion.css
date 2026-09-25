@@ -1059,6 +1059,12 @@
   color: var(--color-accent-text);
 }
 
+/* Tras importar, el foco pasa al aviso de «Listo» (ver PanelCodigo). */
+.codigo-aviso:focus-visible {
+  border-radius: var(--radius-sm);
+  outline-offset: 4px;
+}
+
 .codigo-aviso:not(:empty) {
   animation: aparece var(--dur-3) var(--ease-sumi) both;
 }
