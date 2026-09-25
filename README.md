@@ -28,7 +28,7 @@ al día para abrir y un álbum para completar. Sin cuentas ni servidor.
 
 ## Qué es
 
-- **Galería.** 1086 cartas de personajes de 105 series y 52 cartas especiales, agrupadas
+- **Galería.** 1038 cartas de personajes de 105 series y 51 cartas especiales, agrupadas
   por serie. Búsqueda por nombre o serie (atajo `/`) y filtros por serie o por
   especiales; los filtros quedan en la URL, así que se pueden compartir.
 - **Fichas.** Cada carta tiene su propia página, con el nombre japonés del personaje
@@ -61,14 +61,14 @@ se retiró y sigue en el historial de git.
   No hay backend, base de datos ni servicios externos. Scripts de Node validan los
   datos, generan los tamaños de las imágenes y prerenderizan las páginas.
 - GitHub Actions ejecuta lint, tests y build en cada push a `main` y publica `dist/`
-  en GitHub Pages. Cada ruta (portada, sobres, colección y las 1138 fichas) sale como
-  un HTML propio con su título y descripción, y `404.html` arranca la aplicación en
-  cualquier otra dirección.
+  en GitHub Pages. Cada ruta (portada, sobres, colección y la ficha de cada carta)
+  sale como un HTML propio con su título y descripción, y `404.html` arranca la
+  aplicación en cualquier otra dirección.
 
 Decisiones de rendimiento:
 
 - **Presupuesto de JavaScript.** El build falla si el JavaScript inicial de la portada,
-  sin contar el catálogo de cartas, pasa de 100 kB con gzip (hoy, 97,3 kB). El catálogo
+  sin contar el catálogo de cartas, pasa de 100 kB con gzip (hoy, 97,6 kB). El catálogo
   (unos 73 kB con gzip, crece con cada carta) va en su propio archivo y las demás
   páginas se descargan aparte.
 - **Portada prerenderizada.** La sala, el título y las acciones llegan ya pintados en el
@@ -137,6 +137,19 @@ prefijo `e-`, `n` correlativo, `personajeId` si es la versión especial de un pe
 `cwebp` y `dwebp`): genera los tamaños, quita la extensión de `img` si la lleva y
 rellena `color` con el tono medio si falta.
 
+Para **ocultar una carta** sin borrarla (p. ej. si su ilustración es de otro
+personaje), añade una línea a `src/data/ocultas.json`:
+
+```json
+{"id":"kurome","motivo":"nombre de otro personaje: pone Akame"}
+```
+
+Deja de salir en la galería, los sobres, el álbum y las cuentas, y su ficha da 404,
+pero conserva su número, sus imágenes y su sitio en el `count` de la serie; quien ya la
+tuviera la sigue teniendo guardada. Una especial cuyo personaje está oculto se muestra
+sola, sin versión normal. Para volver a mostrarla, borra su línea (y la coma que sobre):
+reaparece en las colecciones con sus copias.
+
 El **arte de una serie** se activa con el campo `marca` de `animes.json`, el nombre de
 sus archivos en `public/img/marca/`: escenario 16:9 (`-escena-768` y `-escena-1280`),
 fondo de la ficha (`-fondo-480`) y emblema (`-simbolo-160` y `-simbolo-320`). Se
@@ -152,7 +165,7 @@ src/
   components/     carta, sobre, álbum, cabecera…
   lib/            catálogo, colección, filtros, coreografías (con sus tests)
   styles/         CSS por página y por pieza
-  data/           personajes.json, animes.json, especiales.json
+  data/           personajes.json, animes.json, especiales.json, ocultas.json
   config.js       reglas de los sobres
 public/
   img/            ilustraciones por serie, especiales/ y marca/
