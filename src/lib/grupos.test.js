@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { DISPOSICIONES, disposicion, trocear } from './grupos.js'
+import { DISPOSICIONES, DISPOSICIONES_ALBUM, disposicion, trocear } from './grupos.js'
 
 describe('trocear', () => {
   it('parte la lista en grupos del tamaño pedido; el último puede ser menor', () => {
@@ -19,6 +19,25 @@ describe('disposicion', () => {
   it('cada grupo tiene entre seis y doce cartas', () => {
     for (const d of [...DISPOSICIONES, disposicion()]) {
       expect(d.columnas * d.filas).toBeGreaterThanOrEqual(6)
+      expect(d.columnas * d.filas).toBeLessThanOrEqual(12)
+    }
+  })
+})
+
+describe('disposicion del álbum', () => {
+  const album = (coincide) => disposicion(coincide, DISPOSICIONES_ALBUM, { columnas: 3, filas: 3 })
+
+  it('las columnas de .bolsillos: 3, 5 desde 48rem y 6 desde 68.75rem', () => {
+    expect(album(() => false).columnas).toBe(3)
+    expect(album((q) => q === '(min-width: 48rem)').columnas).toBe(5)
+    expect(album(() => true).columnas).toBe(6)
+  })
+
+  it('grupos de dos o tres filas, de nueve a doce huecos', () => {
+    for (const d of [...DISPOSICIONES_ALBUM, album(() => false)]) {
+      expect(d.filas).toBeGreaterThanOrEqual(2)
+      expect(d.filas).toBeLessThanOrEqual(3)
+      expect(d.columnas * d.filas).toBeGreaterThanOrEqual(9)
       expect(d.columnas * d.filas).toBeLessThanOrEqual(12)
     }
   })

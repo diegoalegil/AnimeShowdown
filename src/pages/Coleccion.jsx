@@ -19,6 +19,7 @@ import {
 } from '../lib/album.js'
 import { catalogo } from '../lib/catalog.js'
 import { porPegar } from '../lib/collection.js'
+import { useDisposicionAlbum } from '../lib/grupos.js'
 import { ESCENARIOS, pieza } from '../lib/marca.js'
 import { ESPECIALES } from '../lib/filtros.js'
 import { esVuelta } from '../lib/navegacion.js'
@@ -71,9 +72,12 @@ export default function Coleccion() {
   const clavePendientes = pendientes.join(' ')
   const pegarPorHoja = useMemo(() => idsPorHoja(clavePendientes ? clavePendientes.split(' ') : []), [clavePendientes])
   const recientesPorHoja = useMemo(() => idsPorHoja(recientes), [recientes])
+  const { columnas, tamano } = useDisposicionAlbum()
   const propsHoja = (hoja) => ({
     hoja,
     tengo,
+    columnas,
+    tamano,
     porPegar: pegarPorHoja.get(hoja.id),
     recientes: recientesPorHoja.get(hoja.id),
   })

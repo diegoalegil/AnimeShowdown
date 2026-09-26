@@ -5,7 +5,6 @@ import {
   cuantasTengo,
   EMPEZADAS,
   etiquetaHoja,
-  filasHoja,
   filtrarHojas,
   fraccion,
   idsPorHoja,
@@ -106,10 +105,8 @@ describe('filtros del álbum', () => {
     ])
   })
 
-  it('etiqueta cada serie con su progreso y calcula sus filas', () => {
+  it('etiqueta cada serie con su progreso', () => {
     expect(etiquetaHoja(hojas[1], 3)).toBe('Chainsaw Man 3/3')
-    expect(filasHoja(22)).toEqual({ 3: 8, 5: 5, 6: 4 })
-    expect(filasHoja(1)).toEqual({ 3: 1, 5: 1, 6: 1 })
   })
 })
 

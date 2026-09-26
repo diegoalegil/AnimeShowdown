@@ -5,12 +5,12 @@ import { EtiquetaVertical } from '../components/EtiquetaVertical.jsx'
 import { FiltrosGaleria } from '../components/FiltrosGaleria.jsx'
 import { Portada } from '../components/Portada.jsx'
 import { Hanko } from '../components/Hanko.jsx'
+import { refCabecera } from '../lib/cabecera.js'
 import { catalogo } from '../lib/catalog.js'
 import { useHidratado } from '../lib/hidratado.js'
 import { anticipar } from '../lib/images.js'
 import { escenaAnime, pieza, simboloAnime, TAMANO_ESCENA } from '../lib/marca.js'
 import { agruparPorSerie, busquedaDe, ESPECIALES, etiquetaFiltros, filtrarCartas, leerFiltros } from '../lib/filtros.js'
-import { revelar } from '../lib/motion.js'
 import { trocear, useDisposicionMuro } from '../lib/grupos.js'
 import { esVuelta } from '../lib/navegacion.js'
 import { usePaginaActiva } from '../lib/paginaActiva.js'
@@ -221,16 +221,6 @@ function EstandarteFiltro({ serie }) {
   )
 }
 
-/** Ref del estandarte: entra con la coreografía y su arte se pide al acercarse. */
-function refEstandarte(cabecera) {
-  const dejarDeRevelar = revelar(cabecera)
-  const dejarDeAnticipar = anticipar(cabecera)
-  return () => {
-    dejarDeRevelar?.()
-    dejarDeAnticipar?.()
-  }
-}
-
 /**
  * Cabecera de una serie: su escenario de fondo, a lo ancho y oscurecido
  * hacia el texto, su emblema, el número de sala, el título con su nombre
@@ -240,7 +230,7 @@ function refEstandarte(cabecera) {
  */
 function Estandarte({ id, titulo, nativo, orden, escena, simbolo, especial = false, children }) {
   return (
-    <header className="sala-cabecera" data-especial={especial || undefined} data-revelar="" ref={refEstandarte}>
+    <header className="sala-cabecera" data-especial={especial || undefined} data-revelar="" ref={refCabecera}>
       {escena && (
         <div className="sala-escena" aria-hidden="true">
           <img

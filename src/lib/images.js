@@ -77,13 +77,14 @@ export function marcarSiCargada(img) {
 // Carga anticipada. Las ilustraciones van con loading="lazy" y cada
 // navegador decide cuándo pedirlas: Chrome, algo más de una pantalla antes
 // de que se vean; Safari no ve las que están dentro de un contenedor que
-// content-visibility se salta (los grupos de la rejilla, las hojas del
-// álbum, los estandartes) y las pedía con la carta ya en pantalla, que se
-// quedaba vacía mientras llegaban. Un único IntersectionObserver vigila esos
-// contenedores: mientras uno está a menos de pantalla y media de la vista
-// lleva data-cerca y sus imágenes pasan a loading="eager", así que llegan
-// antes que la carta, sin pintar el contenedor antes de tiempo. Lo lejano
-// sigue sin pedirse.
+// content-visibility se salta (los grupos de cartas de la galería y del
+// álbum, las cabeceras de serie) y las pedía con la carta ya en pantalla, que
+// se quedaba vacía mientras llegaban. Un único IntersectionObserver vigila
+// esos contenedores: mientras uno está a menos de pantalla y media de la
+// vista lleva data-cerca y sus imágenes pasan a loading="eager", así que
+// llegan antes que la carta, sin pintar el contenedor antes de tiempo. Son
+// pequeños (dos o tres filas, ver lib/grupos): solo se pide lo que está a
+// punto de verse y lo lejano sigue sin pedirse.
 // ---------------------------------------------------------------------------
 
 export const MARGEN_ANTICIPO = '150% 0px'

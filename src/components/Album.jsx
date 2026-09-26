@@ -1,6 +1,8 @@
 import { memo } from 'react'
-import { filasHoja, fraccion } from '../lib/album.js'
+import { fraccion } from '../lib/album.js'
+import { refCabecera } from '../lib/cabecera.js'
 import { catalogo, numeroCarta } from '../lib/catalog.js'
+import { trocear } from '../lib/grupos.js'
 import { anticipar } from '../lib/images.js'
 import { escenaAnime, pieza, simboloAnime, TAMANO_ESCENA } from '../lib/marca.js'
 import { revelar } from '../lib/motion.js'
@@ -29,17 +31,19 @@ function arteHoja(hoja) {
  * las que faltan dejan el hueco vacío con su número. La serie completa lleva
  * el sello 完 en oro.
  *
- * Mientras no está en pantalla, el navegador no la pinta (content-visibility,
- * con la altura reservada por filas); sus imágenes se piden al acercarse
- * (ver anticipar en lib/images). Va en memo: la página le pasa como
- * texto («id id …») las cartas de esta hoja por pegar y las pegadas en esta
- * visita, así que lo que pasa en otra serie no la vuelve a pintar.
+ * Los huecos van en grupos de dos o tres filas (`columnas` y `tamano`, las
+ * cartas por grupo, de useDisposicionAlbum en lib/grupos), como la rejilla de
+ * la galería: el navegador se salta la franja y cada grupo mientras están
+ * lejos de la pantalla (content-visibility, con la altura reservada por
+ * filas) y sus imágenes se piden al acercarse (ver anticipar en lib/images),
+ * grupo a grupo y no la serie entera de golpe. Va en memo: la página le pasa
+ * como texto («id id …») las cartas de esta hoja por pegar y las pegadas en
+ * esta visita, así que lo que pasa en otra serie no la vuelve a pintar.
  */
-export const Hoja = memo(function Hoja({ hoja, tengo, porPegar = '', recientes = '' }) {
+export const Hoja = memo(function Hoja({ hoja, tengo, porPegar = '', recientes = '', columnas = 3, tamano = 9 }) {
   const { id, titulo, nativo, orden, cartas, especiales } = hoja
   const n = cartas.reduce((suma, c) => suma + (Object.hasOwn(tengo, c.id) ? 1 : 0), 0)
   const completa = n === cartas.length
-  const filas = filasHoja(cartas.length)
   const idTitulo = `hoja-${id}-titulo`
   const numero = especiales ? null : String(orden).padStart(2, '0')
   const pendientes = new Set(porPegar ? porPegar.split(' ') : [])
@@ -51,12 +55,9 @@ export const Hoja = memo(function Hoja({ hoja, tengo, porPegar = '', recientes =
       id={`hoja-${id}`}
       className={especiales ? 'hoja hoja--especiales' : 'hoja'}
       aria-labelledby={idTitulo}
-      data-diferido=""
-      ref={anticipar}
       data-completa={completa || undefined}
-      style={{ '--filas-3': filas[3], '--filas-5': filas[5], '--filas-6': filas[6] }}
     >
-      <header className="hoja-cabecera" data-revelar="" ref={revelar}>
+      <header className="hoja-cabecera" data-revelar="" ref={refCabecera}>
         {escena && (
           <div className="hoja-escena" aria-hidden="true">
             <img
@@ -112,21 +113,32 @@ export const Hoja = memo(function Hoja({ hoja, tengo, porPegar = '', recientes =
         </span>
       </header>
 
-      <ol className="bolsillos">
-        {cartas.map((carta) =>
-          Object.hasOwn(tengo, carta.id) ? (
-            <BolsilloLleno
-              key={carta.id}
-              carta={carta}
-              copias={tengo[carta.id]}
-              pegar={pendientes.has(carta.id)}
-              nueva={nuevas.has(carta.id)}
-            />
-          ) : (
-            <BolsilloVacio key={carta.id} carta={carta} />
-          ),
-        )}
-      </ol>
+      <div className="bolsillos" role="list">
+        {trocear(cartas, tamano).map((grupo, i) => (
+          <div
+            key={i}
+            className="bolsillos-grupo"
+            role="none"
+            data-diferido=""
+            ref={anticipar}
+            style={{ '--filas': Math.ceil(grupo.length / columnas) }}
+          >
+            {grupo.map((carta) =>
+              Object.hasOwn(tengo, carta.id) ? (
+                <BolsilloLleno
+                  key={carta.id}
+                  carta={carta}
+                  copias={tengo[carta.id]}
+                  pegar={pendientes.has(carta.id)}
+                  nueva={nuevas.has(carta.id)}
+                />
+              ) : (
+                <BolsilloVacio key={carta.id} carta={carta} />
+              ),
+            )}
+          </div>
+        ))}
+      </div>
     </section>
   )
 })
@@ -138,8 +150,9 @@ export const Hoja = memo(function Hoja({ hoja, tengo, porPegar = '', recientes =
  */
 function BolsilloLleno({ carta, copias, pegar, nueva }) {
   return (
-    <li
+    <div
       id={`bolsillo-${carta.id}`}
+      role="listitem"
       className="bolsillo"
       data-lleno=""
       data-pegar={pegar ? carta.id : undefined}
@@ -149,14 +162,14 @@ function BolsilloLleno({ carta, copias, pegar, nueva }) {
         <span className="bolsillo-numero cifra">{numeroCarta(carta)}</span>
       </span>
       <Carta carta={carta} tamano="album" copias={copias} nueva={nueva} entrada={!nueva} />
-    </li>
+    </div>
   )
 }
 
 function BolsilloVacio({ carta }) {
   const numero = numeroCarta(carta)
   return (
-    <li className="bolsillo" data-revelar="" ref={revelar}>
+    <div role="listitem" className="bolsillo" data-revelar="" ref={revelar}>
       <span className="bolsillo-hueco" aria-hidden="true">
         <span className="bolsillo-numero cifra">{numero}</span>
         {carta.nativo && (
@@ -171,6 +184,6 @@ function BolsilloVacio({ carta }) {
         {carta.variante && <span className="bolsillo-variante"> · {carta.variante}</span>}
         <span className="solo-lectores">: aún no la tienes.</span>
       </p>
-    </li>
+    </div>
   )
 }

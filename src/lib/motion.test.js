@@ -94,10 +94,10 @@ describe('nombrarCompartido', () => {
     expect(lamina.style.viewTransitionName).toBe('')
   })
 
-  it('también saca de content-visibility las hojas del álbum (data-diferido)', () => {
+  it('también saca de content-visibility los grupos del álbum (data-diferido)', () => {
     const props = {}
-    const hoja = { style: { setProperty: (k, v) => (props[k] = v), removeProperty: (k) => delete props[k] } }
-    const lamina = { style: {}, closest: (sel) => (sel.split(', ').includes('[data-diferido]') ? hoja : null) }
+    const grupo = { style: { setProperty: (k, v) => (props[k] = v), removeProperty: (k) => delete props[k] } }
+    const lamina = { style: {}, closest: (sel) => (sel.split(', ').includes('[data-diferido]') ? grupo : null) }
     nombrarCompartido(lamina)
     expect(props['content-visibility']).toBe('visible')
     nombrarCompartido(null)

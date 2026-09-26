@@ -53,7 +53,7 @@ export function conTransicion(actualizar, { tipo } = {}) {
 // nombre a la vez, así que se quita del anterior antes de ponerlo.
 //
 // Safari no captura elementos con nombre dentro de un contenedor con
-// content-visibility: auto (los grupos de la rejilla, las hojas del álbum),
+// content-visibility: auto (los grupos de cartas de la galería y del álbum),
 // así que mientras la carta lleva el nombre, su contenedor pasa a
 // content-visibility: visible. Esos contenedores llevan data-diferido.
 // ---------------------------------------------------------------------------
