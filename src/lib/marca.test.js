@@ -1,5 +1,16 @@
 import { describe, expect, it } from 'vitest'
-import { archivosAnime, archivosComunes, escenaAnime, fondoAnime, LOGO, PIEZAS, pieza, simboloAnime } from './marca.js'
+import {
+  ANCHOS_ESCENA,
+  archivosAnime,
+  archivosComunes,
+  escenaAnime,
+  fondoAnime,
+  LOGO,
+  PIEZAS,
+  pieza,
+  simboloAnime,
+  TAMANO_ESCENA,
+} from './marca.js'
 
 const frieren = { id: 'frieren', marca: 'frieren-beyond-journey-s-end' }
 
@@ -11,6 +22,12 @@ describe('arte de marca por anime', () => {
       '/base/img/marca/frieren-beyond-journey-s-end-escena-768.webp 768w, /base/img/marca/frieren-beyond-journey-s-end-escena-1280.webp 1280w',
     )
     expect(escena.proporcion).toBeCloseTo(16 / 9, 1)
+  })
+
+  it('en el móvil el escenario pide la versión pequeña hasta en densidad 3', () => {
+    const movil = TAMANO_ESCENA.split(', ').at(-1)
+    expect(movil).toMatch(/^\d+px$/)
+    expect(parseInt(movil, 10) * 3).toBeLessThanOrEqual(ANCHOS_ESCENA[0])
   })
 
   it('lleva el foco del escenario si el anime lo anota', () => {

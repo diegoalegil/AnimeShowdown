@@ -62,11 +62,65 @@ export function imagenCarta(carta, base) {
 /**
  * Ref de callback para las ilustraciones: si la imagen ya estaba en caché y
  * está completa al montarse, se marca en el acto, sin fundido (al volver a
- * la galería o al llegar a una ficha no parpadea). Es la misma función para
- * todas, sin closures por carta.
+ * la galería o al llegar a una ficha no parpadea). Si no, y se monta dentro
+ * de un contenedor que ya está cerca de la pantalla (una carta del tramo
+ * siguiente, ver anticipar), se pide ya. Es la misma función para todas, sin
+ * closures por carta.
  */
 export function marcarSiCargada(img) {
-  if (img?.complete && img.naturalWidth > 0) img.dataset.cargada = ''
+  if (!img) return
+  if (img.complete && img.naturalWidth > 0) img.dataset.cargada = ''
+  else if (img.loading === 'lazy' && img.closest?.(CERCA)) img.loading = 'eager'
+}
+
+// ---------------------------------------------------------------------------
+// Carga anticipada. Las ilustraciones van con loading="lazy" y cada
+// navegador decide cuándo pedirlas: Chrome, algo más de una pantalla antes
+// de que se vean; Safari no ve las que están dentro de un contenedor que
+// content-visibility se salta (los grupos de cartas de la galería y del
+// álbum, las cabeceras de serie) y las pedía con la carta ya en pantalla, que
+// se quedaba vacía mientras llegaban. Un único IntersectionObserver vigila
+// esos contenedores: mientras uno está a menos de pantalla y media de la
+// vista lleva data-cerca y sus imágenes pasan a loading="eager", así que
+// llegan antes que la carta, sin pintar el contenedor antes de tiempo. Son
+// pequeños (dos o tres filas, ver lib/grupos): solo se pide lo que está a
+// punto de verse y lo lejano sigue sin pedirse.
+// ---------------------------------------------------------------------------
+
+export const MARGEN_ANTICIPO = '150% 0px'
+const CERCA = '[data-cerca]'
+let anticipador = null
+
+/** Pasa a carga inmediata las imágenes diferidas de `contenedor`. */
+export function adelantarImagenes(contenedor) {
+  for (const img of contenedor.querySelectorAll('img[loading="lazy"]')) img.loading = 'eager'
+}
+
+function obtenerAnticipador() {
+  if (anticipador || typeof window === 'undefined' || typeof window.IntersectionObserver !== 'function') return anticipador
+  anticipador = new window.IntersectionObserver(
+    (entradas) => {
+      for (const { target, isIntersecting } of entradas) {
+        target.toggleAttribute('data-cerca', isIntersecting)
+        if (isIntersecting) adelantarImagenes(target)
+      }
+    },
+    { rootMargin: MARGEN_ANTICIPO },
+  )
+  return anticipador
+}
+
+/**
+ * Ref de callback para los contenedores de cartas e ilustraciones
+ * (`<div data-diferido ref={anticipar}>`): sus imágenes se piden al
+ * acercarse a la pantalla. Es la misma función para todos. Sin
+ * IntersectionObserver queda la carga diferida del navegador.
+ */
+export function anticipar(contenedor) {
+  const io = contenedor ? obtenerAnticipador() : null
+  if (!io) return undefined
+  io.observe(contenedor)
+  return () => io.unobserve(contenedor)
 }
 
 /**

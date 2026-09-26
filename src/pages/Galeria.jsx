@@ -5,11 +5,12 @@ import { EtiquetaVertical } from '../components/EtiquetaVertical.jsx'
 import { FiltrosGaleria } from '../components/FiltrosGaleria.jsx'
 import { Portada } from '../components/Portada.jsx'
 import { Hanko } from '../components/Hanko.jsx'
+import { refCabecera } from '../lib/cabecera.js'
 import { catalogo } from '../lib/catalog.js'
 import { useHidratado } from '../lib/hidratado.js'
-import { escenaAnime, pieza, simboloAnime } from '../lib/marca.js'
+import { anticipar } from '../lib/images.js'
+import { escenaAnime, pieza, simboloAnime, TAMANO_ESCENA } from '../lib/marca.js'
 import { agruparPorSerie, busquedaDe, ESPECIALES, etiquetaFiltros, filtrarCartas, leerFiltros } from '../lib/filtros.js'
-import { revelar } from '../lib/motion.js'
 import { trocear, useDisposicionMuro } from '../lib/grupos.js'
 import { esVuelta } from '../lib/navegacion.js'
 import { usePaginaActiva } from '../lib/paginaActiva.js'
@@ -19,8 +20,10 @@ import { usePorTramos } from '../lib/usePorTramos.js'
 import { useTitulo } from '../lib/useTitulo.js'
 
 
-// Escenario de un estandarte: a lo ancho de la página, menos los márgenes.
-const TAMANO_ESCENA = '(min-width: 80rem) 1170px, (min-width: 48rem) calc(100vw - 5rem), calc(100vw - 2rem)'
+// Emblema del estandarte: 4rem en el móvil, 6,5rem desde 48rem. En el móvil
+// su nitidez se limita a densidad 2, como la de las cartas (ver TAMANOS en
+// lib/images): en densidad 3 basta la versión de 160 px.
+const TAMANO_EMBLEMA = '(min-width: 48rem) 104px, (min-resolution: 2.5dppx) calc(4rem * 2 / 3), 4rem'
 const ESCENA_ESPECIALES = pieza('collection-ssr-share')
 const CIUDAD = pieza('empty-search-night-city-refresh')
 
@@ -149,6 +152,7 @@ function Muro({ cartas, etiqueta, tengo, busqueda, disposicion, entrada }) {
           className="muro-grupo"
           role="none"
           data-diferido=""
+          ref={anticipar}
           style={{ '--filas': Math.ceil(grupo.length / columnas) }}
         >
           {grupo.map((carta) => (
@@ -221,12 +225,12 @@ function EstandarteFiltro({ serie }) {
  * Cabecera de una serie: su escenario de fondo, a lo ancho y oscurecido
  * hacia el texto, su emblema, el número de sala, el título con su nombre
  * original y, a la derecha, `children` (el recuento o el botón que filtra).
- * Se salta fuera de pantalla (content-visibility), así que su ilustración y
- * los glifos japoneses no se piden hasta que la serie se acerca.
+ * Se salta fuera de pantalla (content-visibility); su ilustración y su
+ * emblema se piden al acercarse (ver anticipar en lib/images).
  */
 function Estandarte({ id, titulo, nativo, orden, escena, simbolo, especial = false, children }) {
   return (
-    <header className="sala-cabecera" data-especial={especial || undefined} data-revelar="" ref={revelar}>
+    <header className="sala-cabecera" data-especial={especial || undefined} data-revelar="" ref={refCabecera}>
       {escena && (
         <div className="sala-escena" aria-hidden="true">
           <img
@@ -245,7 +249,7 @@ function Estandarte({ id, titulo, nativo, orden, escena, simbolo, especial = fal
           className="sala-emblema"
           src={simbolo.src}
           srcSet={simbolo.srcSet}
-          sizes="(min-width: 48rem) 104px, 64px"
+          sizes={TAMANO_EMBLEMA}
           width="160"
           height="160"
           alt=""

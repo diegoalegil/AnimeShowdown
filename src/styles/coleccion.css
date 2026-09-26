@@ -437,10 +437,9 @@
   }
 }
 
-/* Hoja: una vitrina oscura con filo dorado. Fuera de pantalla no se pinta;
-   reserva su altura por filas (la franja de arriba y los huecos). El relleno
-   de la vitrina deja sitio a los sellos que sobresalen de las cartas, a su
-   inclinación y a su sombra, que la contención de pintado recortaría. */
+/* Hoja: una vitrina oscura con filo dorado. Fuera de pantalla no se pintan
+   su franja ni sus huecos, que se saltan por grupos de filas como la rejilla
+   de la galería (ver .bolsillos-grupo): la vitrina solo pinta su fondo. */
 /* Sin sombras difuminadas: con un centenar de vitrinas de dos mil píxeles y
    mil huecos, Safari las repinta al desplazarse y pierde frames. El relieve
    lo dan un contorno negro nítido y un canto inferior sin desenfoque. */
@@ -456,11 +455,9 @@
     0 12px 0 -8px rgb(0 0 0 / 0.5);
   /* Cada vitrina en su propia capa: al volver sobre lo ya visto, Safari
      reutiliza su pintura en lugar de repintar la página (con el equipo
-     cargado, 22 → 56 fps desplazándose deprisa hacia arriba). Las que están
-     lejos no se pintan (content-visibility). */
+     cargado, 22 → 56 fps desplazándose deprisa hacia arriba). Lo que está
+     lejos no se pinta (content-visibility en la franja y en los grupos). */
   will-change: transform;
-  content-visibility: auto;
-  contain-intrinsic-block-size: auto calc(var(--filas-3) * 15.5rem + 8.5rem);
   scroll-margin-top: 4rem;
 }
 
@@ -482,7 +479,6 @@
 @media (min-width: 48rem) {
   .hoja {
     padding-bottom: 2.25rem;
-    contain-intrinsic-block-size: auto calc(var(--filas-5) * 17.5rem + 12rem);
   }
 
   .hoja + .hoja {
@@ -490,14 +486,12 @@
   }
 }
 
-@media (min-width: 68.75rem) {
-  .hoja {
-    contain-intrinsic-block-size: auto calc(var(--filas-6) * 21.5rem + 12rem);
-  }
-}
-
-/* ---- Cabecera: la franja del escenario de la serie con su emblema ---- */
+/* ---- Cabecera: la franja del escenario de la serie con su emblema ----
+   Se salta fuera de pantalla, como el estandarte de la galería: su escenario
+   y su emblema se piden al acercarse (ver anticipar en lib/images). */
 .hoja-cabecera {
+  content-visibility: auto;
+  contain-intrinsic-block-size: auto 4.75rem;
   position: relative;
   isolation: isolate;
   display: grid;
@@ -631,6 +625,7 @@
 
 @media (min-width: 48rem) {
   .hoja-cabecera {
+    contain-intrinsic-block-size: auto 8.5rem;
     column-gap: 1.25rem;
     min-height: 8.5rem;
     margin-bottom: 2.25rem;
@@ -683,28 +678,50 @@
   animation: estampa var(--dur-4) var(--ease-hane) calc(var(--retardo, 0ms) + 900ms) both;
 }
 
-/* ---- Huecos ---- */
+/* ---- Huecos ----
+   Van en grupos de dos o tres filas (ver lib/grupos, con las mismas
+   columnas): cada grupo es una rejilla y el navegador se salta los que
+   quedan lejos de la pantalla. Mientras no se pinta, un grupo reserva la
+   altura estimada de sus filas (--paso-fila: un hueco con su cartela y el
+   espacio hasta el siguiente); después recuerda la real. El relleno deja
+   sitio a los sellos que sobresalen de las cartas, a su inclinación y a su
+   sombra, que la contención de pintado recortaría. */
 .bolsillos {
+  --columnas: 3;
+  --hueco-fila: 1.75rem;
+  --hueco-columna: 0.875rem;
+  --paso-fila: 15.5rem;
   display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: 1.75rem 0.875rem;
-  margin: 0;
+  row-gap: var(--hueco-fila);
   padding: 0 1rem;
-  list-style: none;
+}
+
+.bolsillos-grupo {
+  display: grid;
+  grid-template-columns: repeat(var(--columnas), minmax(0, 1fr));
+  gap: var(--hueco-fila) var(--hueco-columna);
+  padding: 1rem;
+  margin: -1rem;
+  content-visibility: auto;
+  contain-intrinsic-block-size: auto calc(var(--filas, 1) * var(--paso-fila) - var(--hueco-fila));
 }
 
 @media (min-width: 48rem) {
   .bolsillos {
-    grid-template-columns: repeat(5, minmax(0, 1fr));
-    gap: 2.5rem 1.375rem;
+    --columnas: 5;
+    --hueco-fila: 2.5rem;
+    --hueco-columna: 1.375rem;
+    --paso-fila: 17.5rem;
     padding: 0 1.75rem;
   }
 }
 
 @media (min-width: 68.75rem) {
   .bolsillos {
-    grid-template-columns: repeat(6, minmax(0, 1fr));
-    gap: 2.75rem 1.625rem;
+    --columnas: 6;
+    --hueco-fila: 2.75rem;
+    --hueco-columna: 1.625rem;
+    --paso-fila: 21.5rem;
   }
 }
 

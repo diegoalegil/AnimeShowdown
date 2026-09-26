@@ -133,11 +133,3 @@ export function idsPorHoja(ids, cat = catalogo) {
   }
   return new Map([...listas].map(([hoja, lista]) => [hoja, lista.join(' ')]))
 }
-
-/**
- * Filas que ocupa una hoja con 3, 5 y 6 columnas: el CSS las usa para
- * reservar su altura mientras no se pinta (content-visibility).
- */
-export function filasHoja(n) {
-  return { 3: Math.ceil(n / 3), 5: Math.ceil(n / 5), 6: Math.ceil(n / 6) }
-}

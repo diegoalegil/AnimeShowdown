@@ -38,10 +38,18 @@ describe('Hoja del álbum', () => {
     expect(html).toContain('aria-label="Serie completa"')
   })
 
-  it('reserva su altura por filas mientras no se pinta', () => {
-    const html = renderToStaticMarkup(<Hoja hoja={HOJA} tengo={{}} />)
-    expect(html).toContain('data-diferido=""')
-    expect(html).toContain('--filas-3:1;--filas-5:1;--filas-6:1')
+  it('los huecos van en grupos de filas que reservan su altura mientras no se pintan', () => {
+    const cartas = Array.from({ length: 13 }, (_, i) => carta(`c${i}`, i + 1))
+    const html = renderToStaticMarkup(<Hoja hoja={{ ...HOJA, cartas }} tengo={{}} columnas={5} tamano={10} />)
+    const grupos = html.match(/<div class="bolsillos-grupo"[^>]*>/g)
+    expect(grupos).toHaveLength(2)
+    for (const g of grupos) expect(g).toContain('data-diferido=""')
+    expect(grupos[0]).toContain('--filas:2')
+    expect(grupos[1]).toContain('--filas:1')
+    // Una sola lista para los lectores de pantalla; la hoja no se salta entera.
+    expect(html.match(/role="list"/g)).toHaveLength(1)
+    expect(html.match(/role="listitem"/g)).toHaveLength(13)
+    expect(html).toMatch(/<section[^>]*class="hoja"(?![^>]*data-diferido)[^>]*>/)
   })
 })
 

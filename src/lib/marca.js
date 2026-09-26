@@ -56,6 +56,16 @@ export const ESCENARIOS = { sobres: 'sobres-arena', coleccion: 'logros-trophy-ha
 export const TAMANO_SALA = '(min-width: 1280px) 1280px, (min-width: 48rem) 100vw, 256px'
 
 /**
+ * sizes del escenario de una serie (el estandarte de la galería y la
+ * cabecera de su hoja en el álbum): a lo ancho de la página, menos los
+ * márgenes. En el móvil, como la sala, es una franja baja recortada y
+ * oscurecida hacia el texto: se declaran 256 px para que el navegador elija
+ * la de 768 en cualquier densidad (hasta 3×) y no la de 1280, que pesa más
+ * del doble y compite con las cartas de la serie.
+ */
+export const TAMANO_ESCENA = '(min-width: 80rem) 1170px, (min-width: 48rem) calc(100vw - 5rem), 256px'
+
+/**
  * Logo de la web (sello 滅), en un solo sitio para poder cambiarlo: el
  * original (webp y svg), sus versiones pequeñas para la cabecera y el pie, y
  * los PNG del icono de la pestaña y de la pantalla de inicio. Las versiones
