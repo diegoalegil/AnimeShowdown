@@ -99,8 +99,11 @@
   height: 100%;
   object-fit: cover;
   object-position: 50% 20%;
+  /* Se funde sobre el tono de la lámina al llegar. Casi siempre llega antes
+     de que la carta entre en pantalla (ver anticipar en lib/images); si no,
+     un fundido corto: uno largo haría esperar a una imagen que ya está. */
   opacity: 0;
-  transition: opacity var(--dur-4) var(--ease-sumi);
+  transition: opacity var(--dur-2) var(--ease-sumi);
   user-select: none;
   -webkit-user-drag: none;
 }
