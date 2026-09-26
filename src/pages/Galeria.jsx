@@ -8,7 +8,7 @@ import { Hanko } from '../components/Hanko.jsx'
 import { catalogo } from '../lib/catalog.js'
 import { useHidratado } from '../lib/hidratado.js'
 import { anticipar } from '../lib/images.js'
-import { escenaAnime, pieza, simboloAnime } from '../lib/marca.js'
+import { escenaAnime, pieza, simboloAnime, TAMANO_ESCENA } from '../lib/marca.js'
 import { agruparPorSerie, busquedaDe, ESPECIALES, etiquetaFiltros, filtrarCartas, leerFiltros } from '../lib/filtros.js'
 import { revelar } from '../lib/motion.js'
 import { trocear, useDisposicionMuro } from '../lib/grupos.js'
@@ -20,8 +20,10 @@ import { usePorTramos } from '../lib/usePorTramos.js'
 import { useTitulo } from '../lib/useTitulo.js'
 
 
-// Escenario de un estandarte: a lo ancho de la página, menos los márgenes.
-const TAMANO_ESCENA = '(min-width: 80rem) 1170px, (min-width: 48rem) calc(100vw - 5rem), calc(100vw - 2rem)'
+// Emblema del estandarte: 4rem en el móvil, 6,5rem desde 48rem. En el móvil
+// su nitidez se limita a densidad 2, como la de las cartas (ver TAMANOS en
+// lib/images): en densidad 3 basta la versión de 160 px.
+const TAMANO_EMBLEMA = '(min-width: 48rem) 104px, (min-resolution: 2.5dppx) calc(4rem * 2 / 3), 4rem'
 const ESCENA_ESPECIALES = pieza('collection-ssr-share')
 const CIUDAD = pieza('empty-search-night-city-refresh')
 
@@ -257,7 +259,7 @@ function Estandarte({ id, titulo, nativo, orden, escena, simbolo, especial = fal
           className="sala-emblema"
           src={simbolo.src}
           srcSet={simbolo.srcSet}
-          sizes="(min-width: 48rem) 104px, 64px"
+          sizes={TAMANO_EMBLEMA}
           width="160"
           height="160"
           alt=""

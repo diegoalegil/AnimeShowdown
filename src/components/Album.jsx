@@ -2,7 +2,7 @@ import { memo } from 'react'
 import { filasHoja, fraccion } from '../lib/album.js'
 import { catalogo, numeroCarta } from '../lib/catalog.js'
 import { anticipar } from '../lib/images.js'
-import { escenaAnime, pieza, simboloAnime } from '../lib/marca.js'
+import { escenaAnime, pieza, simboloAnime, TAMANO_ESCENA } from '../lib/marca.js'
 import { revelar } from '../lib/motion.js'
 import { crearPegado } from '../lib/pegado.js'
 import { coleccion } from '../lib/useCollection.js'
@@ -13,8 +13,6 @@ import { Hanko } from './Hanko.jsx'
 // Las cartas nuevas se marcan como vistas cuando se pegan en su hueco.
 const pegarAlVer = crearPegado((ids) => coleccion.pegar(ids))
 
-// La franja del escenario ocupa el ancho de la hoja.
-const TAMANO_ESCENA = '(min-width: 80rem) 1170px, (min-width: 48rem) calc(100vw - 5rem), calc(100vw - 2rem)'
 const ESCENA_ESPECIALES = pieza('collection-ssr-share')
 
 /** Escenario y emblema de la hoja: los de su serie, o el marco SSR para las especiales. */
