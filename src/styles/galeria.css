@@ -352,8 +352,9 @@
 /* ---- Estandartes: cada serie abre su tramo con su escenario ----
    El escenario ocupa todo el estandarte, recortado a lo ancho, y un
    degradado fijo lo oscurece hacia el texto y hacia la rejilla. El
-   estandarte se salta fuera de pantalla: su imagen y los glifos del título
-   japonés no se piden hasta que la serie se acerca. */
+   estandarte se salta fuera de pantalla: los glifos del título japonés no se
+   piden hasta que la serie se acerca, y su escenario y su emblema, al
+   acercarse (ver anticipar en lib/images). */
 .sala {
   scroll-margin-top: 4.5rem;
 }

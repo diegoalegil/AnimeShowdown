@@ -1,6 +1,7 @@
 import { memo } from 'react'
 import { filasHoja, fraccion } from '../lib/album.js'
 import { catalogo, numeroCarta } from '../lib/catalog.js'
+import { anticipar } from '../lib/images.js'
 import { escenaAnime, pieza, simboloAnime } from '../lib/marca.js'
 import { revelar } from '../lib/motion.js'
 import { crearPegado } from '../lib/pegado.js'
@@ -31,7 +32,8 @@ function arteHoja(hoja) {
  * el sello 完 en oro.
  *
  * Mientras no está en pantalla, el navegador no la pinta (content-visibility,
- * con la altura reservada por filas). Va en memo: la página le pasa como
+ * con la altura reservada por filas); sus imágenes se piden al acercarse
+ * (ver anticipar en lib/images). Va en memo: la página le pasa como
  * texto («id id …») las cartas de esta hoja por pegar y las pegadas en esta
  * visita, así que lo que pasa en otra serie no la vuelve a pintar.
  */
@@ -52,6 +54,7 @@ export const Hoja = memo(function Hoja({ hoja, tengo, porPegar = '', recientes =
       className={especiales ? 'hoja hoja--especiales' : 'hoja'}
       aria-labelledby={idTitulo}
       data-diferido=""
+      ref={anticipar}
       data-completa={completa || undefined}
       style={{ '--filas-3': filas[3], '--filas-5': filas[5], '--filas-6': filas[6] }}
     >

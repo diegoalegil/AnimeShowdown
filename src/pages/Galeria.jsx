@@ -7,6 +7,7 @@ import { Portada } from '../components/Portada.jsx'
 import { Hanko } from '../components/Hanko.jsx'
 import { catalogo } from '../lib/catalog.js'
 import { useHidratado } from '../lib/hidratado.js'
+import { anticipar } from '../lib/images.js'
 import { escenaAnime, pieza, simboloAnime } from '../lib/marca.js'
 import { agruparPorSerie, busquedaDe, ESPECIALES, etiquetaFiltros, filtrarCartas, leerFiltros } from '../lib/filtros.js'
 import { revelar } from '../lib/motion.js'
@@ -149,6 +150,7 @@ function Muro({ cartas, etiqueta, tengo, busqueda, disposicion, entrada }) {
           className="muro-grupo"
           role="none"
           data-diferido=""
+          ref={anticipar}
           style={{ '--filas': Math.ceil(grupo.length / columnas) }}
         >
           {grupo.map((carta) => (
@@ -217,16 +219,26 @@ function EstandarteFiltro({ serie }) {
   )
 }
 
+/** Ref del estandarte: entra con la coreografía y su arte se pide al acercarse. */
+function refEstandarte(cabecera) {
+  const dejarDeRevelar = revelar(cabecera)
+  const dejarDeAnticipar = anticipar(cabecera)
+  return () => {
+    dejarDeRevelar?.()
+    dejarDeAnticipar?.()
+  }
+}
+
 /**
  * Cabecera de una serie: su escenario de fondo, a lo ancho y oscurecido
  * hacia el texto, su emblema, el número de sala, el título con su nombre
  * original y, a la derecha, `children` (el recuento o el botón que filtra).
- * Se salta fuera de pantalla (content-visibility), así que su ilustración y
- * los glifos japoneses no se piden hasta que la serie se acerca.
+ * Se salta fuera de pantalla (content-visibility); su ilustración y su
+ * emblema se piden al acercarse (ver anticipar en lib/images).
  */
 function Estandarte({ id, titulo, nativo, orden, escena, simbolo, especial = false, children }) {
   return (
-    <header className="sala-cabecera" data-especial={especial || undefined} data-revelar="" ref={revelar}>
+    <header className="sala-cabecera" data-especial={especial || undefined} data-revelar="" ref={refEstandarte}>
       {escena && (
         <div className="sala-escena" aria-hidden="true">
           <img
