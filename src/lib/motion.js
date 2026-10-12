@@ -59,12 +59,14 @@ export function conTransicion(actualizar, { tipo } = {}) {
 // ---------------------------------------------------------------------------
 
 const DIFERIDOS = '[data-diferido]'
+const INCLINABLES = '[data-inclinar]'
 let compartido = null
 let contenedor = null
 
 export function nombrarCompartido(elemento, nombre = 'carta') {
   if (compartido && compartido !== elemento) {
     compartido.style.viewTransitionName = ''
+    compartido.closest?.(INCLINABLES)?.removeAttribute('data-compartida')
     contenedor?.style.removeProperty('content-visibility')
     contenedor = null
   }
@@ -73,6 +75,11 @@ export function nombrarCompartido(elemento, nombre = 'carta') {
   elemento.style.viewTransitionName = nombre
   contenedor = elemento.closest?.(DIFERIDOS) ?? null
   contenedor?.style.setProperty('content-visibility', 'visible')
+  // La carta se captura plana: si estaba inclinada bajo el puntero, la
+  // transición arrancaría desde su matriz 3D y la «desdoblaría» en el vuelo
+  // (data-compartida anula el transform y su transición, ver carta.css).
+  elemento.closest?.(INCLINABLES)?.setAttribute('data-compartida', '')
+  for (const soltar of inclinaciones) soltar()
 }
 
 // ---------------------------------------------------------------------------
@@ -202,6 +209,9 @@ export function calcularInclinacion(px, py, max = INCLINACION_MAX) {
 
 const puedeInclinar = () => !movimientoReducido() && coincide('(hover: hover) and (pointer: fine)')
 
+// Las inclinaciones activas, para soltarlas todas antes de una transición compartida.
+const inclinaciones = new Set()
+
 /**
  * Activa la inclinación en todas las `[data-inclinar]` dentro de
  * `contenedor`. Devuelve una función que la desactiva.
@@ -213,6 +223,7 @@ export function activarInclinacion(contenedor, { selector = '[data-inclinar]', m
   let caja = null
   let puntero = null
   let frame = 0
+  let reubicando = 0
 
   function soltar() {
     if (!actual) return
@@ -225,8 +236,15 @@ export function activarInclinacion(contenedor, { selector = '[data-inclinar]', m
     caja = null
   }
 
+  function adoptar(objetivo) {
+    soltar()
+    if (!objetivo || !contenedor.contains(objetivo)) return false
+    actual = objetivo
+    actual.dataset.inclinada = ''
+    return true
+  }
+
   function pintar() {
-    frame = 0
     if (!actual || !caja || !puntero) return
     const { rx, ry, brillo, brilloY } = calcularInclinacion(
       (puntero.x - caja.left) / caja.width,
@@ -239,35 +257,59 @@ export function activarInclinacion(contenedor, { selector = '[data-inclinar]', m
     actual.style.setProperty('--brillo-y', brilloY.toFixed(1))
   }
 
+  // pointermove y pointerover: el segundo es lo único que llega cuando el
+  // scroll cambia la carta que hay bajo un puntero quieto.
   function mover(evento) {
     if (evento.pointerType === 'touch') return
     const objetivo = typeof evento.target?.closest === 'function' ? evento.target.closest(selector) : null
-    if (objetivo !== actual) {
-      soltar()
-      if (!objetivo || !contenedor.contains(objetivo)) return
-      actual = objetivo
-      actual.dataset.inclinada = ''
-    }
+    if (objetivo !== actual && !adoptar(objetivo)) return
     if (!actual) return
-    // Una lectura de layout al entrar en la carta (o tras un scroll), nunca en el frame.
+    // Una lectura de layout al entrar en la carta, nunca en el frame.
     if (!caja) caja = actual.getBoundingClientRect()
     puntero = { x: evento.clientX, y: evento.clientY }
-    if (!frame) frame = requestAnimationFrame(pintar)
+    if (!frame) {
+      frame = requestAnimationFrame(() => {
+        frame = 0
+        pintar()
+      })
+    }
   }
 
-  function invalidarCaja() {
-    caja = null
+  // Algo ha movido la carta sin que el puntero se moviera (scroll, cambio de
+  // tamaño, reflujo): se mira de nuevo qué hay debajo y se relee su caja. Si
+  // ya no hay carta, se suelta; si no, se quedaba inclinada y encendida.
+  function reubicar() {
+    if (!actual || !puntero || reubicando) return
+    reubicando = requestAnimationFrame(() => {
+      reubicando = 0
+      if (!actual || !puntero) return
+      const bajo = typeof document.elementFromPoint === 'function' ? document.elementFromPoint(puntero.x, puntero.y) : null
+      const objetivo = bajo?.closest?.(selector) ?? null
+      if (objetivo !== actual && !adoptar(objetivo)) return
+      caja = actual.getBoundingClientRect()
+      pintar()
+    })
   }
 
   contenedor.addEventListener('pointermove', mover, { passive: true })
+  contenedor.addEventListener('pointerover', mover, { passive: true })
   contenedor.addEventListener('pointerleave', soltar, { passive: true })
-  window.addEventListener('scroll', invalidarCaja, { passive: true })
+  window.addEventListener('scroll', reubicar, { passive: true })
+  window.addEventListener('resize', reubicar, { passive: true })
+  const observadorTamano = typeof ResizeObserver === 'function' ? new ResizeObserver(reubicar) : null
+  observadorTamano?.observe(contenedor)
+  inclinaciones.add(soltar)
 
   return () => {
     contenedor.removeEventListener('pointermove', mover)
+    contenedor.removeEventListener('pointerover', mover)
     contenedor.removeEventListener('pointerleave', soltar)
-    window.removeEventListener('scroll', invalidarCaja)
+    window.removeEventListener('scroll', reubicar)
+    window.removeEventListener('resize', reubicar)
+    observadorTamano?.disconnect()
+    inclinaciones.delete(soltar)
     if (frame) cancelAnimationFrame(frame)
+    if (reubicando) cancelAnimationFrame(reubicando)
     soltar()
   }
 }

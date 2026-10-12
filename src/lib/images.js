@@ -123,12 +123,17 @@ export function anticipar(contenedor) {
   return () => io.unobserve(contenedor)
 }
 
+// Lo que ya se descargó de cada carta: la URL que el navegador eligió del
+// srcset al pintarla en la galería, el álbum o los sobres.
+const descargadas = new Map()
+
 /**
- * URL de la versión de 600 px: la que la galería suele haber descargado ya
- * (pantallas de densidad 2 o más), útil como fondo mientras carga la grande.
+ * Imagen de fondo de la ficha mientras llega la grande: la que ya está en
+ * caché si la carta se vio antes (así no viaja vacía en la transición
+ * compartida) y, si no, la versión de 600 px.
  */
 export function imagenIntermedia(carta, base) {
-  return urlPublica(`${carta.img}-600.webp`, base)
+  return descargadas.get(carta.id) ?? urlPublica(`${carta.img}-600.webp`, base)
 }
 
 /**
@@ -142,7 +147,11 @@ export function vigilarImagenes(raiz = document) {
     return img?.tagName === 'IMG' ? img.closest?.('.carta-lamina') : null
   }
   const alCargar = (evento) => {
-    if (laminaDe(evento)) evento.target.dataset.cargada = ''
+    if (!laminaDe(evento)) return
+    const img = evento.target
+    img.dataset.cargada = ''
+    const id = img.closest?.('.carta')?.dataset.id
+    if (id && img.currentSrc) descargadas.set(id, img.currentSrc)
   }
   const alFallar = (evento) => {
     const lamina = laminaDe(evento)
