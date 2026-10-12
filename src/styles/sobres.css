@@ -70,19 +70,23 @@
     radial-gradient(ellipse 70% 60% at 50% 52%, transparent 40%, rgb(4 7 12 / 0.85) 100%);
 }
 
-/* Focos: un abanico de haces dorados que baja desde lo alto y se mece. */
+/* Focos: un abanico de haces dorados que baja desde lo alto y se mece. Solo
+   la mitad inferior de la textura, que es la que se ve: la capa que el
+   compositor mezcla en cada frame tiene la mitad de píxeles. El giro va
+   sobre el centro de la textura, en el borde superior. */
 .arena-focos {
   position: absolute;
   top: 0;
   left: 50%;
   z-index: 1;
   width: min(150vw, 64rem);
-  aspect-ratio: 1;
+  aspect-ratio: 2 / 1;
   margin-left: calc(min(150vw, 64rem) / -2);
   background-image: url('/rayos.webp');
-  background-size: 100% 100%;
+  background-size: 100% 200%;
+  background-position: 50% 100%;
   opacity: 0.5;
-  translate: 0 -50%;
+  transform-origin: 50% 0;
   animation: focos-mecen 18s ease-in-out infinite alternate;
 }
 
