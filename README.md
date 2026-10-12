@@ -110,7 +110,11 @@ El despliegue lo fija solo: `/<repositorio>/` en GitHub Pages, o `/` si existe
    `anime` debe coincidir con el `titulo` de su serie en `src/data/animes.json`; súmale
    uno a su `count`, o crea la entrada si la serie es nueva. `img` va sin extensión.
    `color` es el tono medio de la ilustración, que se ve mientras carga. `nativo`
-   (nombre japonés) y `desc` (una frase) son opcionales.
+   (nombre japonés) y `desc` (una frase) son opcionales. Los datos para los
+   minijuegos los rellena `node scripts/anilist.mjs` desde AniList: en el personaje,
+   `genero` (`"F"`, `"M"` o `null`), `favs` (favoritos en AniList) y `cumple`
+   (`"MM-DD"`, si se conoce); en la serie, `anio` de estreno, `generos`, `episodios`
+   y `favs`. Si una carta nueva no los tiene, basta con volver a ejecutar el script.
 
 2. Copia la ilustración original en WebP (~1024 px de ancho), p. ej.
    `public/img/Frieren/eisen.webp`, y genera sus tamaños de 300, 450 y 600 px

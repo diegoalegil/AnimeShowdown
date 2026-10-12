@@ -30,6 +30,13 @@ function load(name) {
 
 const HEX = /^#[0-9a-f]{6}$/
 const isText = (v) => typeof v === 'string' && v.trim() !== ''
+const DIAS_MES = [31, 29, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31]
+function esCumple(v) {
+  const m = typeof v === 'string' && /^(\d{2})-(\d{2})$/.exec(v)
+  if (!m) return false
+  const [mes, dia] = [Number(m[1]), Number(m[2])]
+  return mes >= 1 && mes <= 12 && dia >= 1 && dia <= DIAS_MES[mes - 1]
+}
 
 function checkRequired(list, name, fields) {
   list.forEach((item, i) => {
@@ -97,6 +104,11 @@ for (const a of animes) {
   if ('foco' in a && !(isText(a.foco) && /^\d{1,3}% \d{1,3}%$/.test(a.foco))) {
     fail(`animes: "${a.id}" foco inválido "${a.foco}" (se espera «50% 80%»)`)
   }
+  // Datos de AniList (scripts/anilist.mjs), opcionales: se omiten si no hay dato.
+  if ('anio' in a && !(Number.isInteger(a.anio) && a.anio >= 1960 && a.anio <= 2100)) fail(`animes: "${a.id}" anio inválido "${a.anio}"`)
+  if ('generos' in a && !(Array.isArray(a.generos) && a.generos.length && a.generos.every(isText))) fail(`animes: "${a.id}" generos inválidos`)
+  if ('episodios' in a && !(Number.isInteger(a.episodios) && a.episodios > 0)) fail(`animes: "${a.id}" episodios inválidos "${a.episodios}"`)
+  if ('favs' in a && !(Number.isInteger(a.favs) && a.favs >= 0)) fail(`animes: "${a.id}" favs inválidos "${a.favs}"`)
 }
 for (const archivo of archivosComunes()) checkFile(archivo, 'marca')
 const animeById = new Map(animes.map((a) => [a.id, a]))
@@ -109,6 +121,11 @@ checkNumbering(personajes, 'personajes')
 for (const p of personajes) {
   if (p.color && !HEX.test(p.color)) fail(`personajes: "${p.id}" color inválido "${p.color}"`)
   if ('nativo' in p && !isText(p.nativo)) fail(`personajes: "${p.id}" nativo vacío`)
+  // Datos de AniList (scripts/anilist.mjs): `genero` siempre está (null si no
+  // se conoce); `favs` y `cumple` se omiten cuando no hay dato.
+  if (!['F', 'M', null].includes(p.genero)) fail(`personajes: "${p.id}" genero inválido "${p.genero}" (F, M o null)`)
+  if ('favs' in p && !(Number.isInteger(p.favs) && p.favs >= 0)) fail(`personajes: "${p.id}" favs inválidos "${p.favs}"`)
+  if ('cumple' in p && !esCumple(p.cumple)) fail(`personajes: "${p.id}" cumple inválido "${p.cumple}" (se espera «MM-DD»)`)
   const anime = animeById.get(p.animeId)
   if (!anime) fail(`personajes: "${p.id}" animeId desconocido "${p.animeId}"`)
   else if (anime.titulo !== p.anime) fail(`personajes: "${p.id}" anime "${p.anime}" no coincide con "${anime.titulo}"`)
