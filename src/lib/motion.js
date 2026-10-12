@@ -35,7 +35,7 @@ export const transicionActiva = () => soportaTransiciones() && !movimientoReduci
 export function conTransicion(actualizar, { tipo } = {}) {
   if (!transicionActiva()) {
     const resultado = actualizar()
-    return Promise.resolve(resultado).then(() => {})
+    return Promise.resolve(resultado).then(desaplanar)
   }
   const dataset = document.documentElement?.dataset
   if (dataset && tipo) dataset.vt = tipo
@@ -44,7 +44,14 @@ export function conTransicion(actualizar, { tipo } = {}) {
     .finished.catch(() => {})
     .finally(() => {
       if (dataset && tipo && dataset.vt === tipo) delete dataset.vt
+      desaplanar()
     })
+}
+
+// La carta compartida se aplana solo mientras se captura (ver nombrarCompartido).
+function desaplanar() {
+  if (typeof document === 'undefined' || typeof document.querySelectorAll !== 'function') return
+  for (const marco of document.querySelectorAll('[data-compartida]')) marco.removeAttribute('data-compartida')
 }
 
 // ---------------------------------------------------------------------------

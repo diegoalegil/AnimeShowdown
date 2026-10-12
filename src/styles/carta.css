@@ -63,15 +63,6 @@
   opacity: 1;
 }
 
-/* La carta que viaja a la ficha (nombrarCompartido, lib/motion) se captura
-   plana y al instante: la transición compartida arrancaría desde su matriz
-   3D y la desdoblaría durante el vuelo. */
-.carta-marco[data-compartida],
-.carta-enlace:hover .carta-marco[data-compartida] {
-  transform: none;
-  transition: none;
-}
-
 @media (hover: hover) and (pointer: fine) {
   .carta-enlace:hover .carta-marco:not([data-inclinada]) {
     transform: translateY(-4px);
@@ -84,6 +75,16 @@
     transform: scale(0.97);
     transition-duration: var(--dur-1);
   }
+}
+
+/* La carta que viaja a la ficha (nombrarCompartido, lib/motion) se captura
+   plana y al instante, hasta que termina la transición: arrancaría desde su
+   matriz 3D y se desdoblaría durante el vuelo. */
+.carta-marco[data-compartida],
+.carta-enlace:hover .carta-marco[data-compartida],
+.carta-enlace:active .carta-marco[data-compartida] {
+  transform: none;
+  transition: none;
 }
 
 /* ---- Lámina: ilustración a proporción fija 2:3 ----
