@@ -12,6 +12,9 @@ export function volteoInicial(id, familia) {
 /** Siguiente estado al mostrar `id`; devuelve el mismo objeto si no cambia. */
 export function volteoHacia(estado, id, familia) {
   if (estado.id === id) return estado
+  // Mientras da la vuelta no se empieza otra: la carta nueva espera a que
+  // termine (volteoQuieto) y entonces gira hacia ella, sin saltar a plano.
+  if (estado.girando) return estado
   const base = familia[0]?.id ?? id
   const visible = estado.giro % 2
   if (estado.base !== base) {
