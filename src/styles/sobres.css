@@ -20,8 +20,9 @@
   --sobre-ancho: min(64vw, 15.5rem);
   /* En el móvil, la carta deja ver un trozo de las vecinas y, en pantallas
      bajas, se encoge para que carta, cartela, marcas y barra de acciones
-     quepan a la vez (17rem: la cartela, las marcas, la barra y el aire). */
-  --naipe-ancho: min(60vw, 14.375rem, (100svh - 17rem) * 2 / 3);
+     quepan a la vez (17rem: la cartela, las marcas, la barra y el aire), pero
+     nunca por debajo de lo legible (en apaisado, la cartela queda bajo el pliegue). */
+  --naipe-ancho: min(60vw, 14.375rem, max(9.5rem, (100svh - 17rem) * 2 / 3));
   --voltear: 700ms;
   --voltear-especial: 940ms;
   /* Hasta dónde se abre el destello de la especial (en el móvil, dentro de la fila). */
