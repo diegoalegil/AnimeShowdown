@@ -35,7 +35,7 @@ export const transicionActiva = () => soportaTransiciones() && !movimientoReduci
 export function conTransicion(actualizar, { tipo } = {}) {
   if (!transicionActiva()) {
     const resultado = actualizar()
-    return Promise.resolve(resultado).then(() => {})
+    return Promise.resolve(resultado).then(desaplanar)
   }
   const dataset = document.documentElement?.dataset
   if (dataset && tipo) dataset.vt = tipo
@@ -44,7 +44,14 @@ export function conTransicion(actualizar, { tipo } = {}) {
     .finished.catch(() => {})
     .finally(() => {
       if (dataset && tipo && dataset.vt === tipo) delete dataset.vt
+      desaplanar()
     })
+}
+
+// La carta compartida se aplana solo mientras se captura (ver nombrarCompartido).
+function desaplanar() {
+  if (typeof document === 'undefined' || typeof document.querySelectorAll !== 'function') return
+  for (const marco of document.querySelectorAll('[data-compartida]')) marco.removeAttribute('data-compartida')
 }
 
 // ---------------------------------------------------------------------------
@@ -59,12 +66,14 @@ export function conTransicion(actualizar, { tipo } = {}) {
 // ---------------------------------------------------------------------------
 
 const DIFERIDOS = '[data-diferido]'
+const INCLINABLES = '[data-inclinar]'
 let compartido = null
 let contenedor = null
 
 export function nombrarCompartido(elemento, nombre = 'carta') {
   if (compartido && compartido !== elemento) {
     compartido.style.viewTransitionName = ''
+    compartido.closest?.(INCLINABLES)?.removeAttribute('data-compartida')
     contenedor?.style.removeProperty('content-visibility')
     contenedor = null
   }
@@ -73,6 +82,11 @@ export function nombrarCompartido(elemento, nombre = 'carta') {
   elemento.style.viewTransitionName = nombre
   contenedor = elemento.closest?.(DIFERIDOS) ?? null
   contenedor?.style.setProperty('content-visibility', 'visible')
+  // La carta se captura plana: si estaba inclinada bajo el puntero, la
+  // transición arrancaría desde su matriz 3D y la «desdoblaría» en el vuelo
+  // (data-compartida anula el transform y su transición, ver carta.css).
+  elemento.closest?.(INCLINABLES)?.setAttribute('data-compartida', '')
+  for (const soltar of inclinaciones) soltar()
 }
 
 // ---------------------------------------------------------------------------
@@ -86,14 +100,22 @@ let observador = null
 
 // Ritmo del scroll. Con scroll rápido las cartas aparecen sin coreografía:
 // no daría tiempo a verla y ocultar y volver a mostrar decenas de cartas
-// cuesta frames en un móvil modesto. Mientras el scroll va con calma, <html>
-// lleva data-calma y solo entonces las cartas esperan ocultas su entrada
-// (ver [data-revelar] en index.css). Hay histéresis para no alternar a cada
-// frame: se pasa a rápido por encima de 1,2 px/ms y se vuelve a la calma por
-// debajo de 0,4 px/ms.
+// cuesta frames en un móvil modesto. Mientras el scroll va con calma, los
+// grupos cercanos a la pantalla ([data-cerca], ver anticipar en lib/images)
+// llevan data-calma y solo entonces sus cartas esperan ocultas su entrada
+// (ver [data-revelar] en index.css). Se anota en los grupos y no en <html>:
+// cambiarlo en la raíz obligaba a recalcular el estilo de todas las cartas
+// pendientes de la página (más de mil en el álbum) a cada cambio de ritmo.
+// Hay histéresis para no alternar a cada frame: se pasa a rápido por encima
+// de 1,2 px/ms y se vuelve a la calma por debajo de 0,4 px/ms.
 export const VELOCIDAD_RAPIDA = 1.2
 export const VELOCIDAD_CALMA = 0.4
 let rapido = false
+const CERCA = '[data-cerca]'
+
+function marcarCalma() {
+  for (const grupo of document.querySelectorAll(CERCA)) grupo.toggleAttribute('data-calma', !rapido)
+}
 
 /** true mientras el scroll va rápido (ver ritmoScroll). */
 export const scrollRapido = () => rapido
@@ -107,7 +129,6 @@ function seguirRitmo() {
   let previa = null
   let frame = 0
   let reposo = 0
-  const raiz = document.documentElement
   const medir = (t) => {
     frame = 0
     const y = window.scrollY
@@ -115,7 +136,7 @@ function seguirRitmo() {
       const nuevo = ritmoScroll(rapido, Math.abs(y - previa.y) / Math.max(t - previa.t, 1))
       if (nuevo !== rapido) {
         rapido = nuevo
-        raiz.toggleAttribute('data-calma', !rapido)
+        marcarCalma()
       }
     }
     previa = { t, y }
@@ -125,7 +146,7 @@ function seguirRitmo() {
       previa = null
       if (rapido) {
         rapido = false
-        raiz.setAttribute('data-calma', '')
+        marcarCalma()
       }
     }, 160)
   }
@@ -147,6 +168,12 @@ function marcarVisto(elemento, retardo = 0, directo = rapido) {
   elemento.dataset.revelar = 'visto'
 }
 
+// Elementos a la espera dentro de cada grupo lejano ([data-diferido]). Solo
+// se observan los de los grupos cercanos: con mil cartas observadas a la vez,
+// calcular sus intersecciones se llevaba la mitad del hilo principal en cada
+// frame de scroll de un móvil.
+const pendientes = new WeakMap()
+
 function obtenerObservador() {
   if (observador || !hayVentana() || typeof window.IntersectionObserver !== 'function') return observador
   observador = new window.IntersectionObserver(
@@ -155,6 +182,7 @@ function obtenerObservador() {
       for (const entrada of entradas) {
         if (!entrada.isIntersecting) continue
         observador.unobserve(entrada.target)
+        pendientes.get(entrada.target.closest?.(DIFERIDOS))?.delete(entrada.target)
         marcarVisto(entrada.target, Math.min(orden * PASO_MS, MAX_RETARDO_MS))
         orden++
       }
@@ -167,7 +195,8 @@ function obtenerObservador() {
 
 /**
  * Ref de callback para React: `<li data-revelar ref={revelar}>`. Es la misma
- * función para todos los elementos, así que no crea closures por carta.
+ * función para todos los elementos, así que no crea closures por carta. Los
+ * elementos de un grupo lejano esperan a que el grupo se acerque (acercarGrupo).
  */
 export function revelar(elemento) {
   if (!elemento || elemento.dataset.revelar === 'visto') return undefined
@@ -176,14 +205,42 @@ export function revelar(elemento) {
     marcarVisto(elemento)
     return undefined
   }
+  const grupo = elemento.closest?.(DIFERIDOS)
+  if (grupo && !grupo.hasAttribute('data-cerca')) {
+    let conjunto = pendientes.get(grupo)
+    if (!conjunto) pendientes.set(grupo, (conjunto = new Set()))
+    conjunto.add(elemento)
+    return () => {
+      conjunto.delete(elemento)
+      io.unobserve(elemento)
+    }
+  }
   io.observe(elemento)
   return () => io.unobserve(elemento)
 }
 
+/**
+ * Un grupo (o cabecera) se acerca a la pantalla o se aleja (lo avisa
+ * anticipar, en lib/images): toma la calma del scroll y sus elementos
+ * pendientes empiezan o dejan de observarse.
+ */
+export function acercarGrupo(grupo, cerca) {
+  grupo.toggleAttribute('data-calma', cerca && !rapido)
+  const conjunto = pendientes.get(grupo)
+  if (!conjunto || !observador) return
+  for (const elemento of conjunto) {
+    if (cerca) observador.observe(elemento)
+    else observador.unobserve(elemento)
+  }
+}
+
 // ---------------------------------------------------------------------------
 // Inclinación: la carta bajo el puntero gira hacia él (máx. ~8°) y el brillo
-// holográfico (un reflejo que sigue al puntero y una banda de luz) la recorre. Un solo par de listeners por contenedor, cálculo en
-// requestAnimationFrame y sin lecturas de layout dentro del bucle.
+// holográfico (un reflejo que sigue al puntero y una banda de luz) la
+// recorre. Un solo juego de listeners por contenedor, cálculo en
+// requestAnimationFrame y, mientras el puntero se mueve, sin lecturas de
+// layout; la caja se vuelve a leer cuando algo mueve la carta por debajo
+// (scroll, redimensionado, reflujo del contenedor).
 // ---------------------------------------------------------------------------
 
 export const INCLINACION_MAX = 8
@@ -202,6 +259,9 @@ export function calcularInclinacion(px, py, max = INCLINACION_MAX) {
 
 const puedeInclinar = () => !movimientoReducido() && coincide('(hover: hover) and (pointer: fine)')
 
+// Las inclinaciones activas, para soltarlas todas antes de una transición compartida.
+const inclinaciones = new Set()
+
 /**
  * Activa la inclinación en todas las `[data-inclinar]` dentro de
  * `contenedor`. Devuelve una función que la desactiva.
@@ -213,6 +273,7 @@ export function activarInclinacion(contenedor, { selector = '[data-inclinar]', m
   let caja = null
   let puntero = null
   let frame = 0
+  let reubicando = 0
 
   function soltar() {
     if (!actual) return
@@ -225,8 +286,15 @@ export function activarInclinacion(contenedor, { selector = '[data-inclinar]', m
     caja = null
   }
 
+  function adoptar(objetivo) {
+    soltar()
+    if (!objetivo || !contenedor.contains(objetivo)) return false
+    actual = objetivo
+    actual.dataset.inclinada = ''
+    return true
+  }
+
   function pintar() {
-    frame = 0
     if (!actual || !caja || !puntero) return
     const { rx, ry, brillo, brilloY } = calcularInclinacion(
       (puntero.x - caja.left) / caja.width,
@@ -239,35 +307,59 @@ export function activarInclinacion(contenedor, { selector = '[data-inclinar]', m
     actual.style.setProperty('--brillo-y', brilloY.toFixed(1))
   }
 
+  // pointermove y pointerover: el segundo es lo único que llega cuando el
+  // scroll cambia la carta que hay bajo un puntero quieto.
   function mover(evento) {
     if (evento.pointerType === 'touch') return
     const objetivo = typeof evento.target?.closest === 'function' ? evento.target.closest(selector) : null
-    if (objetivo !== actual) {
-      soltar()
-      if (!objetivo || !contenedor.contains(objetivo)) return
-      actual = objetivo
-      actual.dataset.inclinada = ''
-    }
+    if (objetivo !== actual && !adoptar(objetivo)) return
     if (!actual) return
-    // Una lectura de layout al entrar en la carta (o tras un scroll), nunca en el frame.
+    // Una lectura de layout al entrar en la carta, nunca en el frame.
     if (!caja) caja = actual.getBoundingClientRect()
     puntero = { x: evento.clientX, y: evento.clientY }
-    if (!frame) frame = requestAnimationFrame(pintar)
+    if (!frame) {
+      frame = requestAnimationFrame(() => {
+        frame = 0
+        pintar()
+      })
+    }
   }
 
-  function invalidarCaja() {
-    caja = null
+  // Algo ha movido la carta sin que el puntero se moviera (scroll, cambio de
+  // tamaño, reflujo): se mira de nuevo qué hay debajo y se relee su caja. Si
+  // ya no hay carta, se suelta; si no, se quedaba inclinada y encendida.
+  function reubicar() {
+    if (!actual || !puntero || reubicando) return
+    reubicando = requestAnimationFrame(() => {
+      reubicando = 0
+      if (!actual || !puntero) return
+      const bajo = typeof document.elementFromPoint === 'function' ? document.elementFromPoint(puntero.x, puntero.y) : null
+      const objetivo = bajo?.closest?.(selector) ?? null
+      if (objetivo !== actual && !adoptar(objetivo)) return
+      caja = actual.getBoundingClientRect()
+      pintar()
+    })
   }
 
   contenedor.addEventListener('pointermove', mover, { passive: true })
+  contenedor.addEventListener('pointerover', mover, { passive: true })
   contenedor.addEventListener('pointerleave', soltar, { passive: true })
-  window.addEventListener('scroll', invalidarCaja, { passive: true })
+  window.addEventListener('scroll', reubicar, { passive: true })
+  window.addEventListener('resize', reubicar, { passive: true })
+  const observadorTamano = typeof ResizeObserver === 'function' ? new ResizeObserver(reubicar) : null
+  observadorTamano?.observe(contenedor)
+  inclinaciones.add(soltar)
 
   return () => {
     contenedor.removeEventListener('pointermove', mover)
+    contenedor.removeEventListener('pointerover', mover)
     contenedor.removeEventListener('pointerleave', soltar)
-    window.removeEventListener('scroll', invalidarCaja)
+    window.removeEventListener('scroll', reubicar)
+    window.removeEventListener('resize', reubicar)
+    observadorTamano?.disconnect()
+    inclinaciones.delete(soltar)
     if (frame) cancelAnimationFrame(frame)
+    if (reubicando) cancelAnimationFrame(reubicando)
     soltar()
   }
 }

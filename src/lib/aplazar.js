@@ -33,8 +33,11 @@ export function ordenLejanos(total, k, margen = MARGEN_GRUPOS) {
 export function aplazarLejanos(raiz, ids = []) {
   if (!raiz) return () => {}
   const grupos = [...raiz.querySelectorAll('[data-diferido]')]
-  const carta = ids.map((id) => raiz.querySelector(`[data-id="${CSS.escape(id)}"]`)).find(Boolean)
-  const k = carta ? grupos.findIndex((g) => g.contains(carta)) : -1
+  // Se busca dentro de los grupos: la carta del día de la portada repite el
+  // id de una del muro. Si se vuelve a una carta que solo está fuera (la
+  // portada), se aplaza desde el primer grupo.
+  const carta = ids.map((id) => raiz.querySelector(`[data-diferido] [data-id="${CSS.escape(id)}"]`)).find(Boolean)
+  const k = carta ? grupos.findIndex((g) => g.contains(carta)) : ids.length && grupos.length ? 0 : -1
   if (k < 0) return () => {}
   const lejanos = ordenLejanos(grupos.length, k).map((i) => grupos[i])
   for (const g of lejanos) g.dataset.lejos = ''

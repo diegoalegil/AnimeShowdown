@@ -23,14 +23,14 @@ describe('volteo', () => {
     expect(b).toMatchObject({ giro: 1, girando: true, caras: ['naruto', 'e-naruto__b'] })
     expect(volteoQuieto(b)).toMatchObject({ giro: 1, girando: false })
     expect(b.caras[caraVisible(b)]).toBe('e-naruto__b')
-    const c = volteoHacia(b, 'naruto', naruto)
+    const c = volteoHacia(volteoQuieto(b), 'naruto', naruto)
     expect(c).toMatchObject({ giro: 2, caras: ['naruto', 'e-naruto__b'] })
     expect(c.caras[caraVisible(c)]).toBe('naruto')
   })
 
   it('no gira al pasar a otro personaje', () => {
     const a = volteoHacia(volteoInicial('naruto', naruto), 'e-naruto__a', naruto)
-    const b = volteoHacia(a, 'e-frieren', frieren)
+    const b = volteoHacia(volteoQuieto(a), 'e-frieren', frieren)
     expect(b.giro).toBe(a.giro)
     expect(b.girando).toBe(false)
     expect(b.caras[caraVisible(b)]).toBe('e-frieren')
@@ -41,5 +41,18 @@ describe('volteo', () => {
     const a = volteoInicial('frieren', frieren)
     expect(volteoHacia(a, 'frieren', frieren)).toBe(a)
     expect(volteoQuieto(a)).toBe(a)
+  })
+})
+
+describe('volteoHacia mientras gira', () => {
+  it('espera a que termine la media vuelta y entonces gira hacia la carta nueva', () => {
+    const a = volteoInicial('naruto', naruto)
+    const girando = volteoHacia(a, 'e-naruto__a', naruto)
+    expect(girando.girando).toBe(true)
+    expect(volteoHacia(girando, 'naruto', naruto)).toBe(girando)
+    const quieto = volteoQuieto(girando)
+    const vuelta = volteoHacia(quieto, 'naruto', naruto)
+    expect(vuelta).toMatchObject({ id: 'naruto', giro: 2, girando: true })
+    expect(caraVisible(vuelta)).toBe(0)
   })
 })

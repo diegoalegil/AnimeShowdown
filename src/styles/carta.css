@@ -77,6 +77,16 @@
   }
 }
 
+/* La carta que viaja a la ficha (nombrarCompartido, lib/motion) se captura
+   plana y al instante, hasta que termina la transición: arrancaría desde su
+   matriz 3D y se desdoblaría durante el vuelo. */
+.carta-marco[data-compartida],
+.carta-enlace:hover .carta-marco[data-compartida],
+.carta-enlace:active .carta-marco[data-compartida] {
+  transform: none;
+  transition: none;
+}
+
 /* ---- Lámina: ilustración a proporción fija 2:3 ----
    El filo es un anillo dorado de 1 px con un contorno negro por fuera (así
    se despega de cualquier fondo) y una sombra corta, todo fijo. */
@@ -99,8 +109,11 @@
   height: 100%;
   object-fit: cover;
   object-position: 50% 20%;
+  /* Se funde sobre el tono de la lámina al llegar. Casi siempre llega antes
+     de que la carta entre en pantalla (ver anticipar en lib/images); si no,
+     un fundido corto: uno largo haría esperar a una imagen que ya está. */
   opacity: 0;
-  transition: opacity var(--dur-4) var(--ease-sumi);
+  transition: opacity var(--dur-2) var(--ease-sumi);
   user-select: none;
   -webkit-user-drag: none;
 }
@@ -178,7 +191,6 @@
     rgb(255 245 220 / 0.1) 13%,
     rgb(255 245 220 / 0) 30%
   );
-  transform: translate3d(calc((var(--brillo, 50) - 50) * 0.5%), calc((var(--brillo-y, 50) - 50) * 0.5%), 0);
 }
 
 .carta-brillo::after {
@@ -192,11 +204,21 @@
     rgb(247 230 162 / 0.12) 54%,
     rgb(255 255 255 / 0) 78%
   );
-  transform: translate3d(calc((100 - var(--brillo, 50)) * 1.9%), 0, 0);
 }
 
+/* Solo se desplazan (y solo son capas 3D) mientras la carta está inclinada:
+   con el transform permanente, cada carta pintada arrastraba tres capas de
+   composición aunque el brillo estuviera apagado. */
 .carta-marco[data-inclinada] .carta-brillo {
   opacity: 1;
+}
+
+.carta-marco[data-inclinada] .carta-brillo::before {
+  transform: translate3d(calc((var(--brillo, 50) - 50) * 0.5%), calc((var(--brillo-y, 50) - 50) * 0.5%), 0);
+}
+
+.carta-marco[data-inclinada] .carta-brillo::after {
+  transform: translate3d(calc((100 - var(--brillo, 50)) * 1.9%), 0, 0);
 }
 
 /* ---- Especiales: filo irisado y brillo de arcoíris ----

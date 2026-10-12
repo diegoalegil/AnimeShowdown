@@ -27,10 +27,11 @@ export function CartaVolteo({ carta, familia }) {
       <div className="volteo">
         <div
           className="volteo-giro"
-          // Dos nombres alternos para que la animación se reinicie en cada vuelta.
+          // Dos valores alternos para que la animación se reinicie en cada vuelta.
           data-girando={siguiente.girando ? siguiente.giro % 2 : undefined}
+          // Cada cara lleva su animación: la vuelta termina cuando acaba la de la que entra.
           onAnimationEnd={(evento) => {
-            if (evento.target === evento.currentTarget) setVolteo(volteoQuieto)
+            if (evento.target.matches?.('.volteo-cara:not([data-oculta])')) setVolteo(volteoQuieto)
           }}
         >
           {siguiente.caras.map((id, cara) =>

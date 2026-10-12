@@ -185,9 +185,12 @@
 
 /* ---- Volteo 3D: media vuelta al cambiar de versión ----
    En reposo la carta es plana y solo se ve la cara visible. Mientras gira
-   (data-girando), la cara que sale va delante, la que entra detrás (girada
-   180°) y el conjunto da media vuelta; al acabar, la que entra queda derecha
-   (180° + 180°) y se vuelve a la carta plana sin salto. */
+   (data-girando) cada cara da su propia media vuelta, con su perspectiva en
+   el transform, como los naipes de los sobres: la que sale gira hasta
+   ponerse de canto y la que entra sigue desde el otro canto, con el relevo
+   por opacidad a mitad. Sin preserve-3d ni backface-visibility: Safari
+   pintaba la cara trasera en espejo y saltaba al terminar. Los nombres se
+   alternan (a/b) para que cada vuelta arranque de cero. */
 .volteo-giro {
   position: relative;
   aspect-ratio: var(--ar, 2 / 3);
@@ -210,54 +213,102 @@
   background-size: cover;
 }
 
-.volteo-giro[data-girando] {
-  transform-style: preserve-3d;
-}
-
-.volteo-giro[data-girando='0'] {
-  animation: gira-a var(--dur-5) var(--ease-fude) both;
-}
-
-.volteo-giro[data-girando='1'] {
-  animation: gira-b var(--dur-5) var(--ease-fude) both;
-}
-
 .volteo-giro[data-girando] .volteo-cara {
   visibility: visible;
-  -webkit-backface-visibility: hidden;
-  backface-visibility: hidden;
+  animation: var(--dur-5) linear both;
 }
 
-.volteo-giro[data-girando] .volteo-cara:not([data-oculta]) {
-  transform: rotateY(180deg);
+.volteo-giro[data-girando='0'] .volteo-cara[data-oculta] {
+  animation-name: cara-sale-a;
 }
 
-/* Media vuelta; a mitad de giro la carta se aleja un poco. */
-@keyframes gira-a {
-  from {
+.volteo-giro[data-girando='1'] .volteo-cara[data-oculta] {
+  animation-name: cara-sale-b;
+}
+
+.volteo-giro[data-girando='0'] .volteo-cara:not([data-oculta]) {
+  animation-name: cara-entra-a;
+}
+
+.volteo-giro[data-girando='1'] .volteo-cara:not([data-oculta]) {
+  animation-name: cara-entra-b;
+}
+
+/* La que sale: de frente a de canto, alejándose un poco. */
+@keyframes cara-sale-a {
+  0% {
+    opacity: 1;
     transform: perspective(1800px) rotateY(0deg);
+    animation-timing-function: cubic-bezier(0.45, 0, 0.85, 0.4);
   }
 
   50% {
+    opacity: 1;
     transform: perspective(1800px) rotateY(90deg) scale(0.92);
   }
 
-  to {
-    transform: perspective(1800px) rotateY(180deg);
+  50.1%,
+  100% {
+    opacity: 0;
+    transform: perspective(1800px) rotateY(90deg) scale(0.92);
   }
 }
 
-@keyframes gira-b {
-  from {
+@keyframes cara-sale-b {
+  0% {
+    opacity: 1;
     transform: perspective(1800px) rotateY(0deg);
+    animation-timing-function: cubic-bezier(0.45, 0, 0.85, 0.4);
   }
 
   50% {
+    opacity: 1;
     transform: perspective(1800px) rotateY(90deg) scale(0.92);
   }
 
-  to {
-    transform: perspective(1800px) rotateY(180deg);
+  50.1%,
+  100% {
+    opacity: 0;
+    transform: perspective(1800px) rotateY(90deg) scale(0.92);
+  }
+}
+
+/* La que entra: desde el otro canto hasta quedar de frente. */
+@keyframes cara-entra-a {
+  0%,
+  49.9% {
+    opacity: 0;
+    transform: perspective(1800px) rotateY(-90deg) scale(0.92);
+  }
+
+  50% {
+    opacity: 1;
+    transform: perspective(1800px) rotateY(-90deg) scale(0.92);
+    animation-timing-function: cubic-bezier(0.15, 0.85, 0.3, 1);
+  }
+
+  100% {
+    opacity: 1;
+    transform: perspective(1800px) rotateY(0deg);
+  }
+}
+
+@keyframes cara-entra-b {
+  0%,
+  49.9% {
+    opacity: 0;
+    transform: perspective(1800px) rotateY(-90deg) scale(0.92);
+  }
+
+  50% {
+    opacity: 1;
+    transform: perspective(1800px) rotateY(-90deg) scale(0.92);
+    animation-timing-function: cubic-bezier(0.15, 0.85, 0.3, 1);
+  }
+
+  100% {
+    opacity: 1;
+    transform: perspective(1800px) rotateY(0deg);
   }
 }
 
@@ -706,18 +757,14 @@
 @media (prefers-reduced-motion: reduce) {
   /* Sin giro: la cara nueva se funde en su sitio (la animación sigue
      existiendo para que su final devuelva la carta al reposo). */
-  .volteo-giro[data-girando] {
-    transform-style: flat;
+  .volteo-giro[data-girando] .volteo-cara:not([data-oculta]) {
     animation-name: funde;
     animation-duration: var(--dur-2);
   }
 
-  .volteo-giro[data-girando] .volteo-cara:not([data-oculta]) {
-    transform: none;
-  }
-
   .volteo-giro[data-girando] .volteo-cara[data-oculta] {
     visibility: hidden;
+    animation: none;
   }
 
   .ficha-sello {

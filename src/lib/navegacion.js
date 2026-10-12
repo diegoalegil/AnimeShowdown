@@ -147,11 +147,14 @@ export function volverAtras(navigate, { alLlegar } = {}) {
 const posiciones = new Map()
 
 // La primera página se muestra sin haber navegado: un POP entonces es la
-// carga inicial, no una vuelta atrás (las dos usan la clave «default»).
-let yaNavego = false
+// carga inicial, no una vuelta atrás (las dos usan la clave «default»). Se
+// anotan las páginas mostradas por su clave: el efecto que las anota corre en
+// el commit de la hidratación, antes de que la galería monte sus cartas, así
+// que un simple «ya navegó» estaría puesto cuando ella pregunta.
+const mostradas = new Set()
 
 /** true si la página se monta al volver con atrás/adelante (no en la carga inicial). */
-export const esVuelta = (tipo) => tipo === 'POP' && yaNavego
+export const esVuelta = (tipo) => tipo === 'POP' && mostradas.size > 1
 
 // Ancla de vuelta: la carta que se abrió desde una página larga y a qué
 // altura de la pantalla estaba. Al volver, la página se coloca para que esa
@@ -280,7 +283,7 @@ export function useRestaurarScroll() {
       window.scrollTo(0, 0)
       enfocarPagina()
     }
-    yaNavego = true
+    mostradas.add(key)
     alMostrarPagina?.()
   }, [key, hash, tipo, pathname, conservar])
 
