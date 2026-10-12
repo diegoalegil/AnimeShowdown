@@ -1,0 +1,664 @@
+/* ==========================================================================
+   Omikuji: el santuario con su cilindro hexagonal de madera y laca, la
+   varilla que cae, el papelito que se despliega y el papel grande con la
+   fortuna, el consejo y el guardián. Solo se anima transform y opacity; el
+   vaivén del agitado lo pinta el JS en tres variables (--omikuji-rz/-rx/-tx)
+   y la fuerza del medidor en --omikuji-fuerza.
+   ========================================================================== */
+
+/* ---- Tono por suerte: la tinta del kanji y el filo del papel ---- */
+.omikuji-mesa,
+.omikuji-suerte {
+  --omikuji-tinta: var(--color-gold-bright);
+  --omikuji-tinta-linea: var(--color-gold-line-strong);
+  --omikuji-tinta-suave: var(--color-gold-soft);
+}
+
+.omikuji-mesa[data-tono='cian'],
+.omikuji-suerte[data-tono='cian'] {
+  --omikuji-tinta: var(--color-electric-soft);
+  --omikuji-tinta-linea: rgb(36 198 220 / 0.5);
+  --omikuji-tinta-suave: rgb(36 198 220 / 0.12);
+}
+
+.omikuji-mesa[data-tono='papel'],
+.omikuji-suerte[data-tono='papel'] {
+  --omikuji-tinta: var(--color-gold-pale);
+}
+
+.omikuji-mesa[data-tono='tinta'],
+.omikuji-suerte[data-tono='tinta'] {
+  --omikuji-tinta: var(--color-fg-strong);
+  --omikuji-tinta-linea: rgb(215 220 231 / 0.4);
+  --omikuji-tinta-suave: rgb(215 220 231 / 0.08);
+}
+
+.omikuji-mesa[data-tono='carmesi'],
+.omikuji-suerte[data-tono='carmesi'] {
+  --omikuji-tinta: var(--color-accent-text);
+  --omikuji-tinta-linea: rgb(232 90 100 / 0.5);
+  --omikuji-tinta-suave: rgb(159 29 44 / 0.2);
+}
+
+/* ---- La mesa: el santuario y, al revelar, el papel al lado ---- */
+.omikuji-mesa {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 1.5rem;
+  align-items: start;
+}
+
+@media (min-width: 60rem) {
+  .omikuji-mesa[data-fase='revelado'] {
+    grid-template-columns: minmax(0, 24rem) minmax(0, 1fr);
+    gap: 2.5rem;
+  }
+}
+
+/* ---- El santuario: escenario de tamaño fijo con el cilindro arriba ---- */
+.omikuji-santuario {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.75rem;
+  width: 100%;
+  max-width: 24rem;
+  margin-inline: auto;
+  touch-action: manipulation;
+  user-select: none;
+  -webkit-user-select: none;
+}
+
+/* Un torii de tinta tenue detrás del cilindro. */
+.omikuji-santuario::before {
+  content: '籤';
+  position: absolute;
+  top: -2rem;
+  left: 50%;
+  z-index: -1;
+  color: var(--color-surface);
+  font-family: var(--font-jp);
+  font-size: 15rem;
+  line-height: 1;
+  transform: translateX(-50%);
+  pointer-events: none;
+  user-select: none;
+}
+
+.omikuji-cilindro-boton {
+  position: relative;
+  width: 100%;
+  height: 28.5rem;
+  padding: 0;
+  border: 0;
+  border-radius: var(--radius-lg);
+  background: none;
+  color: inherit;
+  cursor: grab;
+  touch-action: none;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.omikuji-cilindro-boton:active {
+  cursor: grabbing;
+}
+
+.omikuji-cilindro-boton:disabled {
+  cursor: default;
+}
+
+.omikuji-cilindro-boton:focus-visible {
+  outline: 2px solid var(--foco);
+  outline-offset: 4px;
+}
+
+/* ---- El cilindro: prisma hexagonal de 6 caras (92 × 210, apotema 80) ---- */
+.omikuji-cilindro {
+  --omikuji-rz: 0deg;
+  --omikuji-rx: 0deg;
+  --omikuji-tx: 0px;
+  position: absolute;
+  top: 1rem;
+  left: 50%;
+  width: 184px;
+  height: 210px;
+  margin-left: -92px;
+  perspective: 950px;
+  perspective-origin: 50% 28%;
+}
+
+.omikuji-prisma,
+.omikuji-tapa {
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 184px;
+  height: 210px;
+  transform-style: preserve-3d;
+  -webkit-transform-style: preserve-3d;
+}
+
+/* Vista inclinada; el vaivén se suma encima sin cambiar qué cara se ve. */
+.omikuji-prisma {
+  transform: translateX(var(--omikuji-tx)) rotateX(calc(24deg + var(--omikuji-rx))) rotateY(-16deg)
+    rotateZ(var(--omikuji-rz));
+  will-change: transform;
+}
+
+/* Cada cara: madera (oro apagado) con veta vertical, aros de laca carmesí y
+   un sombreado fijo según su ángulo. */
+.omikuji-cara {
+  --sombra: 0;
+  position: absolute;
+  left: 46px;
+  top: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 92px;
+  height: 210px;
+  background-color: var(--color-gold);
+  background-image:
+    linear-gradient(rgb(4 7 12 / var(--sombra)), rgb(4 7 12 / var(--sombra))),
+    linear-gradient(
+      180deg,
+      var(--color-accent) 0,
+      var(--color-accent) 13px,
+      rgb(4 7 12 / 0.35) 13px,
+      rgb(4 7 12 / 0.35) 14px,
+      transparent 14px,
+      transparent calc(100% - 25px),
+      rgb(4 7 12 / 0.35) calc(100% - 25px),
+      rgb(4 7 12 / 0.35) calc(100% - 24px),
+      var(--color-accent) calc(100% - 24px),
+      var(--color-accent) 100%
+    ),
+    repeating-linear-gradient(90deg, rgb(4 7 12 / 0.14) 0 2px, transparent 2px 9px),
+    linear-gradient(rgb(8 11 18 / 0.42), rgb(8 11 18 / 0.42));
+  box-shadow: inset 0 0 0 1px rgb(8 11 18 / 0.55);
+  transform: rotateY(calc(var(--i) * 60deg)) translateZ(80px);
+  backface-visibility: hidden;
+  -webkit-backface-visibility: hidden;
+}
+
+.omikuji-cara[data-cara='1'],
+.omikuji-cara[data-cara='5'] {
+  --sombra: 0.22;
+}
+
+.omikuji-cara[data-cara='2'],
+.omikuji-cara[data-cara='4'] {
+  --sombra: 0.46;
+}
+
+.omikuji-cara[data-cara='3'] {
+  --sombra: 0.6;
+}
+
+.omikuji-cara-kanji {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.375rem;
+  color: var(--color-gold-pale);
+  font-family: var(--font-jp);
+  font-weight: 400;
+  line-height: 1;
+  text-shadow: 0 1px 0 rgb(4 7 12 / 0.6);
+}
+
+.omikuji-cara-kanji span:first-child {
+  font-size: 2.75rem;
+}
+
+.omikuji-cara-kanji span {
+  font-size: 1.375rem;
+  opacity: 0.85;
+}
+
+/* Las tapas: dos hexágonos de laca, arriba y abajo. */
+.omikuji-tapa {
+  height: 160px;
+  top: 25px;
+  background-color: var(--color-accent);
+  background-image:
+    radial-gradient(circle at 50% 50%, rgb(4 7 12 / 0.7) 0 22px, transparent 23px),
+    linear-gradient(rgb(247 230 162 / 0.12), rgb(4 7 12 / 0.35));
+  clip-path: polygon(25% 0, 75% 0, 100% 50%, 75% 100%, 25% 100%, 0 50%);
+  backface-visibility: visible;
+  -webkit-backface-visibility: visible;
+}
+
+.omikuji-tapa--arriba {
+  transform: translateX(var(--omikuji-tx)) rotateX(calc(24deg + var(--omikuji-rx))) rotateY(-16deg)
+    rotateZ(var(--omikuji-rz)) rotateX(90deg) translateZ(105px);
+}
+
+.omikuji-tapa--abajo {
+  transform: translateX(var(--omikuji-tx)) rotateX(calc(24deg + var(--omikuji-rx))) rotateY(-16deg)
+    rotateZ(var(--omikuji-rz)) rotateX(-90deg) translateZ(105px);
+}
+
+/* ---- Medidor de fuerza ---- */
+.omikuji-medidor {
+  --omikuji-fuerza: 0;
+  position: absolute;
+  top: 15.25rem;
+  left: 50%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.375rem;
+  width: 8.75rem;
+  transform: translateX(-50%);
+  opacity: 0;
+  transition: opacity var(--dur-2) var(--ease-sumi);
+  pointer-events: none;
+}
+
+.omikuji-mesa[data-fase='agitando'] .omikuji-medidor,
+.omikuji-mesa[data-fase='asentando'] .omikuji-medidor {
+  opacity: 1;
+}
+
+.omikuji-medidor-barra {
+  display: block;
+  width: 100%;
+  height: 2px;
+  background-color: var(--color-gold-soft);
+  overflow: hidden;
+}
+
+.omikuji-medidor-barra::after {
+  content: '';
+  display: block;
+  width: 100%;
+  height: 100%;
+  background-color: var(--color-gold-bright);
+  transform: scaleX(var(--omikuji-fuerza));
+  transform-origin: left;
+}
+
+.omikuji-medidor-texto {
+  color: var(--color-gold);
+  font-size: var(--text-2xs);
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+}
+
+/* ---- La varilla: cae por la ventana bajo la boca del cilindro ---- */
+.omikuji-boca {
+  position: absolute;
+  top: 16.5rem;
+  left: 50%;
+  width: 8.75rem;
+  height: 5.5rem;
+  transform: translateX(-50%);
+  overflow: hidden;
+  pointer-events: none;
+}
+
+.omikuji-varilla {
+  position: absolute;
+  top: 0;
+  left: 50%;
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  width: 0.75rem;
+  height: 5rem;
+  margin-left: -0.375rem;
+  border-radius: var(--radius-sm);
+  background-color: var(--color-gold);
+  background-image: linear-gradient(
+    180deg,
+    var(--color-accent) 0,
+    var(--color-accent) 14px,
+    rgb(8 11 18 / 0.2) 19px,
+    rgb(8 11 18 / 0.38) 55%,
+    rgb(8 11 18 / 0.55) 100%
+  );
+  box-shadow: 0 6px 10px -6px rgb(0 0 0 / 0.9);
+  transform: translateY(-120%);
+  opacity: 0;
+}
+
+.omikuji-varilla-numero {
+  padding-bottom: 0.25rem;
+  color: var(--color-gold-pale);
+  font-size: var(--text-2xs);
+  writing-mode: vertical-rl;
+}
+
+.omikuji-mesa[data-fase='cayendo'] .omikuji-varilla {
+  animation: omikuji-cae var(--dur-4) var(--ease-fude) both;
+}
+
+.omikuji-mesa[data-fase='desplegando'] .omikuji-varilla,
+.omikuji-mesa[data-fase='revelado'] .omikuji-varilla {
+  transform: translateY(0);
+  opacity: 1;
+}
+
+@keyframes omikuji-cae {
+  0% {
+    transform: translateY(-120%);
+    opacity: 0;
+  }
+  12% {
+    opacity: 1;
+  }
+  45% {
+    transform: translateY(0);
+  }
+  62% {
+    transform: translateY(-14%);
+  }
+  78% {
+    transform: translateY(0);
+  }
+  90% {
+    transform: translateY(-4%);
+  }
+  100% {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+/* ---- El papelito que se despliega: washi marfil con el kanji ---- */
+.omikuji-papelito {
+  position: absolute;
+  top: 21.25rem;
+  left: 50%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  width: 9.5rem;
+  height: 7.5rem;
+  padding: 0.75rem 0.625rem 0.5rem;
+  border-radius: var(--radius-sm);
+  background-color: var(--color-gold-pale);
+  background-image: linear-gradient(180deg, rgb(197 161 90 / 0.18), rgb(197 161 90 / 0.34));
+  box-shadow:
+    0 1px 0 rgb(247 230 162 / 0.5) inset,
+    var(--shadow-panel);
+  color: var(--color-canvas);
+  transform: translateX(-50%) scaleY(0);
+  transform-origin: top;
+  opacity: 0;
+  pointer-events: none;
+}
+
+/* Un cordel desde la varilla. */
+.omikuji-papelito::before {
+  content: '';
+  position: absolute;
+  top: -0.75rem;
+  left: 50%;
+  width: 2px;
+  height: 0.75rem;
+  background-color: var(--color-gold-line-strong);
+}
+
+.omikuji-papelito-cabecera {
+  color: rgb(159 29 44 / 0.85);
+  font-family: var(--font-jp);
+  font-size: var(--text-sm);
+  letter-spacing: 0.4em;
+  padding-left: 0.4em;
+}
+
+.omikuji-papelito-kanji {
+  margin-top: 0.25rem;
+  color: var(--color-accent);
+  font-family: var(--font-jp);
+  font-size: 3rem;
+  line-height: 1;
+}
+
+.omikuji-papelito-numero {
+  margin-top: auto;
+  color: rgb(4 7 12 / 0.7);
+  font-size: var(--text-2xs);
+}
+
+.omikuji-mesa[data-fase='desplegando'] .omikuji-papelito {
+  animation: omikuji-despliega var(--dur-4) var(--ease-hane) both;
+}
+
+.omikuji-mesa[data-fase='revelado'] .omikuji-papelito {
+  transform: translateX(-50%) scaleY(1);
+  opacity: 1;
+}
+
+@keyframes omikuji-despliega {
+  from {
+    transform: translateX(-50%) scaleY(0);
+    opacity: 0;
+  }
+  to {
+    transform: translateX(-50%) scaleY(1);
+    opacity: 1;
+  }
+}
+
+/* ---- Guía bajo el santuario y botones del ritual ---- */
+.omikuji-guia {
+  min-height: 2.5rem;
+  margin: 0;
+  color: var(--color-fg-muted);
+  font-size: var(--text-sm);
+  text-align: center;
+}
+
+.omikuji-saltar {
+  margin-top: -0.5rem;
+}
+
+/* ---- El papel grande: la fortuna del día ---- */
+.omikuji-papel {
+  position: relative;
+  display: grid;
+  gap: 0.75rem;
+  max-width: 36rem;
+  padding: 1.5rem 1.5rem 1.625rem;
+  border: 1px solid var(--omikuji-tinta-linea);
+  border-radius: var(--radius-lg);
+  background-color: var(--color-surface);
+  background-image:
+    linear-gradient(180deg, var(--omikuji-tinta-suave), transparent 40%),
+    linear-gradient(180deg, var(--color-surface-alt), var(--color-surface) 50%);
+  box-shadow:
+    inset 0 1px 0 rgb(247 230 162 / 0.08),
+    var(--shadow-panel);
+  animation: aparece var(--dur-4) var(--ease-sumi) both;
+}
+
+.omikuji-papel::before {
+  content: '';
+  position: absolute;
+  inset: 0.3125rem;
+  border: 1px solid rgb(197 161 90 / 0.14);
+  border-radius: calc(var(--radius-lg) - 0.25rem);
+  pointer-events: none;
+}
+
+.omikuji-papel:focus {
+  outline: none;
+}
+
+.omikuji-papel:focus-visible {
+  outline: 2px solid var(--foco);
+  outline-offset: 3px;
+}
+
+.omikuji-papel-sello {
+  position: absolute;
+  top: 1.125rem;
+  right: 1.125rem;
+  width: 2.75rem;
+  height: 2.75rem;
+  transform: rotate(8deg);
+}
+
+.omikuji-papel-rotulo {
+  justify-self: start;
+}
+
+.omikuji-papel-kanji {
+  margin: 0.25rem 0 0;
+  color: var(--omikuji-tinta);
+  font-family: var(--font-jp);
+  font-size: clamp(4.5rem, 16vw, 6.5rem);
+  font-weight: 400;
+  line-height: 1;
+  letter-spacing: 0.04em;
+  animation: aparece var(--dur-5) var(--ease-sumi) 120ms both;
+}
+
+.omikuji-papel-nombre {
+  margin: 0;
+  color: var(--color-fg-strong);
+  font-family: var(--font-display);
+  font-size: var(--text-xl);
+}
+
+.omikuji-papel-romaji {
+  color: var(--omikuji-tinta);
+  font-style: italic;
+}
+
+.omikuji-papel-texto {
+  margin: 0;
+  color: var(--color-fg);
+  font-size: var(--text-base);
+  line-height: var(--text-base--line-height);
+}
+
+.omikuji-papel-consejo {
+  display: grid;
+  gap: 0.375rem;
+  justify-items: start;
+  margin: 0.25rem 0 0;
+  padding: 0.875rem 1rem;
+  border-left: 2px solid var(--omikuji-tinta);
+  background-color: var(--omikuji-tinta-suave);
+  border-radius: 0 var(--radius-md) var(--radius-md) 0;
+  color: var(--color-fg-strong);
+  font-family: var(--font-display);
+  font-size: var(--text-lg);
+  line-height: var(--text-lg--line-height);
+}
+
+.omikuji-guardian {
+  display: grid;
+  gap: 0.75rem;
+  justify-items: start;
+  margin-top: 0.5rem;
+}
+
+.omikuji-guardian-rotulo {
+  margin: 0;
+}
+
+.omikuji-guardian-carta {
+  width: min(52vw, 11rem);
+}
+
+.omikuji-papel-pie {
+  margin: 0.25rem 0 0;
+  color: var(--color-fg-muted);
+  font-size: var(--text-sm);
+}
+
+/* ---- Las cinco suertes ---- */
+.omikuji-tabla {
+  display: grid;
+  gap: 0.875rem;
+  max-width: 36rem;
+  margin-top: 2.5rem;
+}
+
+.omikuji-tabla-titulo {
+  justify-self: start;
+  margin: 0;
+}
+
+.omikuji-suertes {
+  display: grid;
+  gap: 0.375rem;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.omikuji-suerte {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 0.875rem;
+  min-height: 2.75rem;
+  padding: 0.5rem 0.875rem;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  background-color: var(--color-surface);
+  color: var(--color-fg);
+  font-size: var(--text-sm);
+}
+
+.omikuji-suerte[aria-current='true'] {
+  border-color: var(--omikuji-tinta-linea);
+  background-color: var(--omikuji-tinta-suave);
+}
+
+.omikuji-suerte-kanji {
+  min-width: 2.75rem;
+  color: var(--omikuji-tinta);
+  font-family: var(--font-jp);
+  font-size: var(--text-xl);
+  line-height: 1;
+}
+
+.omikuji-suerte-nombre {
+  display: grid;
+  color: var(--color-fg-strong);
+}
+
+.omikuji-suerte-romaji {
+  color: var(--color-fg-muted);
+  font-size: var(--text-xs);
+  font-style: italic;
+}
+
+.omikuji-suerte-peso {
+  color: var(--color-fg-muted);
+}
+
+/* ---- Movimiento reducido: nada cae ni se despliega, todo se funde ---- */
+@media (prefers-reduced-motion: reduce) {
+  .omikuji-mesa[data-fase='cayendo'] .omikuji-varilla,
+  .omikuji-mesa[data-fase='desplegando'] .omikuji-papelito,
+  .omikuji-papel,
+  .omikuji-papel-kanji {
+    animation-name: funde;
+    animation-duration: var(--dur-3);
+  }
+
+  .omikuji-mesa[data-fase='cayendo'] .omikuji-varilla {
+    transform: translateY(0);
+    opacity: 1;
+  }
+
+  .omikuji-mesa[data-fase='desplegando'] .omikuji-papelito {
+    transform: translateX(-50%) scaleY(1);
+    opacity: 1;
+  }
+
+  .omikuji-prisma,
+  .omikuji-tapa,
+  .omikuji-medidor {
+    transition: none;
+  }
+}
