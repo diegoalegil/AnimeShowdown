@@ -35,9 +35,16 @@ al día para abrir y un álbum para completar. Sin cuentas ni servidor.
   en vertical. `←` y `→` recorren la galería, `Esc` vuelve atrás y, si el personaje
   tiene versión especial, la carta se gira para verla.
 - **Sobres diarios.** Cada día (a medianoche, hora local) hay 5 sobres de 5 cartas; la
-  quinta tiene un 15 % de probabilidad de ser especial. Se rasga el sobre y las cartas
+  quinta tiene un 15 % de probabilidad de ser especial. Los sobres ganados en los juegos se
+  suman y no caducan. Se rasga el sobre y las cartas
   se voltean una a una, todas a la vez o se salta al resumen. Se guardan en cuanto se
   abre el sobre, así que recargar a mitad no pierde ninguna.
+- **Minijuegos.** Diez juegos en `/juegos`, ilimitados y sin cuenta: Silueta, ¿De qué
+  serie?, AniGrid, Nexo, Impostor, Oráculo y ¿Quién es más popular? dan un sobre extra
+  por ronda ganada; la Ruleta del destino, el Omikuji y Mi Top 5 son por gusto. Rachas y
+  récords se guardan en el navegador. Usan datos de AniList (género y favoritos de cada
+  personaje; año, géneros y episodios de cada serie, ver `scripts/anilist.mjs`) y las
+  siluetas de `scripts/generate-siluetas.mjs`.
 - **Colección.** Un álbum con una hoja por serie y otra para las especiales, con un
   hueco numerado por carta. Vive en el navegador (`localStorage`) y se puede copiar
   como un código para guardarla o llevarla a otro navegador, combinándola con la que
@@ -165,14 +172,15 @@ escenario. Sin `marca`, la serie se muestra sin escenario ni emblema.
 
 ```
 src/
-  pages/          Galeria, Ficha, Sobres, Coleccion
+  pages/          Galeria, Ficha, Sobres, Coleccion, Juegos, Juego
   components/     carta, sobre, álbum, cabecera…
   lib/            catálogo, colección, filtros, coreografías (con sus tests)
+  juegos/         un juego por carpeta, y comun/ (marco, resultado, buscadores, azar, progreso)
   styles/         CSS por página y por pieza
   data/           personajes.json, animes.json, especiales.json, ocultas.json
   config.js       reglas de los sobres
 public/
-  img/            ilustraciones por serie, especiales/ y marca/
+  img/            ilustraciones por serie, especiales/, marca/ y siluetas/
 scripts/          check-data, check-size, prerender y generadores de imágenes
 docs/capturas/    capturas de este README
 ```
