@@ -11,13 +11,16 @@ import {
   esNueva,
   estadoVacio,
   exportar,
+  ganarSobres,
   generarSobre,
   leerCodigo,
+  MAX_EXTRAS,
   msHastaMedianoche,
   pegar,
   porPegar,
   previsionImportacion,
   sanear,
+  sobresDelDia,
   sobresRestantes,
 } from './collection.js'
 
@@ -161,6 +164,70 @@ describe('sanear', () => {
     expect(sanear({ v: 1, tengo: {}, dia: '2026-02-28', abiertos: 5 }, { dia }).abiertos).toBe(0)
     expect(sanear({ v: 1, tengo: {}, dia, abiertos: 99 }, { dia }).abiertos).toBe(SOBRES_POR_DIA)
     expect(sanear({ v: 1, tengo: {}, dia, abiertos: -3 }, { dia }).abiertos).toBe(0)
+  })
+
+  it('conserva los sobres extra de otro día y descarta cantidades imposibles', () => {
+    expect(sanear({ v: 1, tengo: {}, dia: '2026-02-28', abiertos: 5, extras: 3 }, { dia }).extras).toBe(3)
+    // Guardado antes de existir el campo: ningún sobre extra.
+    expect(sanear({ v: 1, tengo: {}, dia, abiertos: 0 }, { dia }).extras).toBe(0)
+    for (const extras of [-1, 1.5, '2', null, [], {}]) {
+      expect(sanear({ v: 1, tengo: {}, dia, abiertos: 0, extras }, { dia }).extras).toBe(0)
+    }
+    expect(sanear({ v: 1, tengo: {}, dia, abiertos: 0, extras: 10 ** 9 }, { dia }).extras).toBe(MAX_EXTRAS)
+  })
+})
+
+describe('sobres ganados en los juegos', () => {
+  const dia = '2026-03-01'
+
+  it('se suman de uno en uno (o varios) y nunca pasan del tope', () => {
+    const estado = estadoVacio(dia)
+    const con2 = ganarSobres(ganarSobres(estado), 1)
+    expect(con2.extras).toBe(2)
+    expect(ganarSobres(con2, 3).extras).toBe(5)
+    expect(ganarSobres(con2, MAX_EXTRAS).extras).toBe(MAX_EXTRAS)
+    // Cantidades que no son enteros positivos no cambian nada (mismo objeto).
+    for (const n of [0, -1, 1.5, '1', null]) expect(ganarSobres(con2, n)).toBe(con2)
+    expect(estado.extras).toBe(0)
+  })
+
+  it('cuentan como sobres por abrir, aparte de los del día', () => {
+    const estado = ganarSobres(estadoVacio(dia), 2)
+    expect(sobresDelDia(estado, dia)).toBe(SOBRES_POR_DIA)
+    expect(sobresRestantes(estado, dia)).toBe(SOBRES_POR_DIA + 2)
+    // Al día siguiente vuelven los del día y los extra siguen ahí.
+    expect(sobresRestantes({ ...estado, abiertos: SOBRES_POR_DIA }, '2026-03-02')).toBe(SOBRES_POR_DIA + 2)
+  })
+
+  it('al abrir se gastan primero los del día y después los extra', () => {
+    let estado = ganarSobres(estadoVacio(dia), 2)
+    for (let i = 0; i < SOBRES_POR_DIA; i++) {
+      const abierto = abrirSobre(estado, ['a'], dia)
+      expect(abierto.extra).toBe(false)
+      estado = abierto.estado
+    }
+    expect(estado).toMatchObject({ abiertos: SOBRES_POR_DIA, extras: 2 })
+    expect(sobresDelDia(estado, dia)).toBe(0)
+    expect(sobresRestantes(estado, dia)).toBe(2)
+
+    const sexto = abrirSobre(estado, ['b'], dia)
+    expect(sexto.extra).toBe(true)
+    expect(sexto.estado).toMatchObject({ abiertos: SOBRES_POR_DIA, extras: 1, tengo: { a: SOBRES_POR_DIA, b: 1 } })
+    expect(sexto.nuevas).toEqual(['b'])
+    const septimo = abrirSobre(sexto.estado, ['c'], dia).estado
+    expect(septimo.extras).toBe(0)
+    expect(() => abrirSobre(septimo, ['d'], dia)).toThrow('Hoy ya no quedan sobres')
+    // Al día siguiente, el primero vuelve a ser del día aunque no quede ningún extra.
+    expect(abrirSobre(septimo, ['d'], '2026-03-02')).toMatchObject({ extra: false, estado: { abiertos: 1, extras: 0 } })
+  })
+
+  it('no viajan en el código de la colección ni cambian al importar', () => {
+    const estado = { ...ganarSobres(estadoVacio(dia), 4), tengo: { a: 1 }, desde: { a: dia } }
+    const datos = JSON.parse(new TextDecoder().decode(Uint8Array.from(atob(exportar(estado)), (c) => c.charCodeAt(0))))
+    expect(datos).toEqual({ v: 1, tengo: { a: 1 }, desde: { a: dia } })
+    const codigo = { tengo: { b: 2 }, desde: { b: dia } }
+    expect(aplicarImportacion(estado, codigo).extras).toBe(4)
+    expect(aplicarImportacion(estado, codigo, 'combinar').extras).toBe(4)
   })
 })
 
@@ -383,6 +450,29 @@ describe('crearAlmacen', () => {
     almacen.abrirSobre(() => 0)
     almacen.importar(exportar({ tengo: { b: 2 }, desde: { b: '2026-01-01' } }), 'combinar')
     expect(almacen.getSnapshot().tengo).toEqual({ a: CARTAS_POR_SOBRE - 1, 'e-a': 1, b: 2 })
+  })
+
+  it('guarda los sobres ganados en los juegos y los abre después de los del día', () => {
+    const storage = storageFalso()
+    const { almacen, reloj } = crear(storage)
+    const oyente = vi.fn()
+    almacen.subscribe(oyente)
+    expect(almacen.ganarSobres()).toBe(1)
+    expect(almacen.ganarSobres(2)).toBe(3)
+    expect(oyente).toHaveBeenCalledTimes(2)
+    expect(JSON.parse(storage.datos.get(CLAVE_ALMACEN)).extras).toBe(3)
+    // Una cantidad inválida no escribe ni avisa.
+    expect(almacen.ganarSobres(0)).toBe(3)
+    expect(oyente).toHaveBeenCalledTimes(2)
+
+    for (let i = 0; i < SOBRES_POR_DIA; i++) expect(almacen.abrirSobre(() => 0).extra).toBe(false)
+    expect(sobresRestantes(almacen.getSnapshot(), almacen.hoy())).toBe(3)
+    expect(almacen.abrirSobre(() => 0).extra).toBe(true)
+    expect(almacen.getSnapshot()).toMatchObject({ abiertos: SOBRES_POR_DIA, extras: 2 })
+    // Siguen ahí al recargar y al cambiar de día.
+    expect(crear(storage).almacen.getSnapshot().extras).toBe(2)
+    reloj.fecha = new Date(2026, 2, 2, 9)
+    expect(almacen.getSnapshot()).toMatchObject({ dia: '2026-03-02', abiertos: 0, extras: 2 })
   })
 
   it('pega cartas en el álbum y lo guarda, sin avisar si no cambia nada', () => {

@@ -19,7 +19,7 @@ import {
 } from '../lib/ceremonia.js'
 import { alTerminar, animarApertura, animarGuardado } from '../lib/coreografia.js'
 import { recuento, textoRecuento } from '../lib/album.js'
-import { msHastaMedianoche, sobresRestantes } from '../lib/collection.js'
+import { msHastaMedianoche, sobresDelDia } from '../lib/collection.js'
 import { ESCENARIOS, pieza } from '../lib/marca.js'
 import { movimientoReducido } from '../lib/motion.js'
 import { cuentaRetenida } from '../lib/cuentaRetenida.js'
@@ -35,9 +35,14 @@ export default function Sobres() {
   useTitulo('Sobres')
   const estado = useColeccion()
   const hoy = coleccion.hoy()
-  const quedan = sobresRestantes(estado, hoy)
+  // Los del día se abren primero; después, los ganados en los juegos.
+  const delDia = sobresDelDia(estado, hoy)
+  const extras = estado.extras
+  const quedan = delDia + extras
   const [cer, despachar] = useReducer(ceremonia, undefined, estadoInicial)
   const [posicion, setPosicion] = useState({ sobre: 0, i: 0 })
+  // Si el sobre que se está abriendo es uno de los ganados en los juegos.
+  const [abriendoExtra, setAbriendoExtra] = useState(false)
   const mesa = useInclinacion()
   const escenario = usePausaFuera()
   // Qué enfocar tras el próximo cambio de la ceremonia (lo hace el efecto de abajo).
@@ -145,6 +150,7 @@ export default function Sobres() {
       return // Ya no quedan sobres hoy: la página se actualiza sola.
     }
     foco.current = '.naipe-boton'
+    setAbriendoExtra(resultado.extra)
     despachar({ tipo: 'abrir', ids: resultado.ids, nuevas: resultado.nuevas })
   }
 
@@ -203,7 +209,9 @@ export default function Sobres() {
     const i = Math.round((fila.scrollLeft / recorrido) * (cer.cartas.length - 1))
     if (i !== posicionActual) setPosicion({ sobre: cer.abiertosEnVisita, i })
   }
-  const numero = SOBRES_POR_DIA - quedan + 1
+  // Qué sobre del día es; con los del día agotados, el que toca es un extra.
+  const numero = SOBRES_POR_DIA - delDia + 1
+  const extra = delDia === 0
 
   return (
     <div ref={escenario} className="sobres" data-fase={cer.fase}>
@@ -212,19 +220,25 @@ export default function Sobres() {
         <TituloSeccion ja="開封" sub="Cinco sobres al día, con cinco cartas cada uno.">
           Sobres
         </TituloSeccion>
-        <SobresDeHoy quedan={quedan} />
+        <SobresDeHoy delDia={delDia} extras={extras} />
       </div>
 
       <div className="wrap sobres-mesa" style={{ '--espera': `${ultimoRetardo(cer)}ms` }}>
         <div ref={mesa} className="mesa" data-fase={cer.fase} data-instantaneo={cer.instantaneo || undefined}>
           {cer.fase === 'cerrado' &&
             (quedan > 0 ? (
-              <SobreCerrado key={cer.abiertosEnVisita} numero={numero} otro={cer.abiertosEnVisita > 0} onAbrir={abrir} />
+              <SobreCerrado
+                key={cer.abiertosEnVisita}
+                numero={numero}
+                extra={extra}
+                otro={cer.abiertosEnVisita > 0}
+                onAbrir={abrir}
+              />
             ) : (
               <SinSobres />
             ))}
 
-          {cer.fase === 'abriendo' && <SobreRasgado numero={numero - 1} />}
+          {cer.fase === 'abriendo' && <SobreRasgado numero={numero - 1} extra={abriendoExtra} />}
 
           {enMesa && (
             <ol className="abanico" aria-label="Cartas del sobre" onScroll={seguirPosicion}>
@@ -347,9 +361,17 @@ function Arena() {
   )
 }
 
-/** Cinco pequeños sobres: en oro los que quedan hoy, vacíos los abiertos. */
-function SobresDeHoy({ quedan }) {
-  const abiertos = SOBRES_POR_DIA - quedan
+/**
+ * Cinco pequeños sobres: en oro los que quedan hoy, vacíos los abiertos. Si
+ * hay sobres ganados en los juegos, una pastilla «+N» y el texto lo dicen.
+ */
+export function SobresDeHoy({ delDia, extras = 0 }) {
+  const abiertos = SOBRES_POR_DIA - delDia
+  const ganados = (
+    <>
+      <strong className="cifra">{extras}</strong> {extras === 1 ? 'ganado' : 'ganados'} en los juegos
+    </>
+  )
   return (
     <div className="hoy">
       <ol className="hoy-sobres" aria-hidden="true">
@@ -357,13 +379,20 @@ function SobresDeHoy({ quedan }) {
           <li key={i} className="hoy-sobre" data-abierto={i < abiertos || undefined} />
         ))}
       </ol>
+      {extras > 0 && (
+        <span className="hoy-extra cifra" aria-hidden="true">
+          +{extras}
+        </span>
+      )}
       <p className="hoy-texto">
-        {quedan > 0 ? (
+        {delDia > 0 ? (
           <>
-            Te quedan <strong className="cifra">{quedan}</strong> de {SOBRES_POR_DIA} sobres hoy.
+            Te quedan <strong className="cifra">{delDia}</strong> de {SOBRES_POR_DIA} sobres hoy{extras > 0 && <> y {ganados}</>}.
           </>
         ) : (
-          <>Has abierto los {SOBRES_POR_DIA} sobres de hoy.</>
+          <>
+            Has abierto los {SOBRES_POR_DIA} sobres de hoy.{extras > 0 && <> Te {extras === 1 ? 'queda' : 'quedan'} {ganados}.</>}
+          </>
         )}
       </p>
     </div>
@@ -382,6 +411,13 @@ function SinSobres() {
       <p className="sin-sobres-titulo">Mañana, cinco sobres más.</p>
       <p className="sin-sobres-texto">
         Vuelven a medianoche. Faltan <span className="sin-sobres-espera cifra">{espera}</span>
+      </p>
+      <p className="sin-sobres-juegos">
+        O gana sobres extra en los{' '}
+        <Enlace to="/juegos" className="enlace-oro">
+          juegos
+        </Enlace>
+        : cada ronda ganada, uno más.
       </p>
       <Enlace to="/coleccion" className="enlace-tinta sin-sobres-enlace">
         Ver tu colección
