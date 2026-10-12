@@ -1,0 +1,624 @@
+/* ==========================================================================
+   ¿Quién es más popular?: una balanza de oro con dos cartas colgadas de
+   los platillos. La referencia enseña sus favoritos; la retadora los
+   esconde hasta que el jugador decide. Al revelar, la cifra sube como un
+   contador y el brazo se inclina hacia quien pesa más. La racha de aciertos
+   es una fila de pesas de oro que se vuelca al fallar.
+
+   Solo se anima transform y opacity. La inclinación entra por --inclinacion
+   (grados, negativa hacia la referencia) y los platillos bajan o suben con
+   sin() sobre la longitud del brazo, en unidades del contenedor.
+   ========================================================================== */
+
+.popularidad-mesa {
+  display: grid;
+  gap: 1.5rem;
+  max-width: 44rem;
+}
+
+/* ---- Los duelos de la ronda: cinco marcas bajo la descripción ---- */
+.popularidad-pasos {
+  display: flex;
+  gap: 0.375rem;
+  margin: 0.875rem 0 0;
+  padding: 0;
+  list-style: none;
+}
+
+.popularidad-paso {
+  width: 1.75rem;
+  height: 0.375rem;
+  border: 1px solid var(--color-gold-line-strong);
+  border-radius: var(--radius-full);
+  background-color: var(--color-gold-soft);
+  transition:
+    background-color var(--dur-3) var(--ease-sumi),
+    border-color var(--dur-3) var(--ease-sumi);
+}
+
+.popularidad-paso[data-estado='actual'] {
+  border-color: var(--acento);
+  background-color: var(--acento-suave);
+}
+
+.popularidad-paso[data-estado='hecho'] {
+  border-color: var(--color-gold-bright);
+  background-color: var(--color-gold-bright);
+}
+
+/* ==========================================================================
+   La balanza
+   ========================================================================== */
+
+.popularidad-balanza {
+  --inclinacion: 0deg;
+  --popularidad-brazo: 25cqw; /* del pivote a cada gancho: un cuarto del ancho */
+  --popularidad-hundido: 0px; /* el platillo elegido se hunde un poco mientras se pesa */
+  position: relative;
+  display: grid;
+  gap: 0;
+  padding: 0 0 1rem;
+  container-type: inline-size;
+  isolation: isolate;
+}
+
+.popularidad-armazon {
+  position: relative;
+  z-index: 2;
+  display: block;
+  width: 100%;
+  height: auto;
+  overflow: visible;
+}
+
+.popularidad-brazo {
+  transform: rotate(var(--inclinacion));
+  transform-box: view-box;
+  transform-origin: 340px 46px;
+  transition: transform var(--dur-4) var(--ease-hane);
+}
+
+.popularidad-viga {
+  fill: var(--color-gold);
+  stroke: var(--color-gold-bright);
+  stroke-width: 1.5;
+}
+
+.popularidad-fiel {
+  fill: var(--color-gold-pale);
+  stroke: var(--color-gold);
+  stroke-width: 1;
+}
+
+.popularidad-gancho {
+  fill: var(--color-canvas);
+  stroke: var(--color-gold-bright);
+  stroke-width: 2;
+}
+
+.popularidad-pivote {
+  fill: var(--color-surface-alt);
+  stroke: var(--color-gold-bright);
+  stroke-width: 2;
+}
+
+/* La columna y la base, detrás de todo. */
+.popularidad-columna {
+  position: absolute;
+  top: calc(46 / 680 * 100cqw);
+  bottom: 0.75rem;
+  left: 50%;
+  z-index: 0;
+  width: 0.625rem;
+  transform: translateX(-50%);
+  border-radius: var(--radius-sm) var(--radius-sm) 0 0;
+  background-image: linear-gradient(90deg, var(--color-surface), var(--color-gold) 48%, var(--color-surface-alt));
+}
+
+.popularidad-base {
+  position: absolute;
+  bottom: 0;
+  left: 50%;
+  z-index: 0;
+  width: min(40%, 16rem);
+  height: 0.75rem;
+  transform: translateX(-50%);
+  border: 1px solid var(--color-gold-line-strong);
+  border-radius: var(--radius-full);
+  background-image: linear-gradient(180deg, var(--color-surface-alt), var(--color-surface));
+  box-shadow: var(--shadow-panel);
+}
+
+/* ---- Los platillos: dos columnas que cuelgan de los ganchos ---- */
+.popularidad-platillos {
+  position: relative;
+  z-index: 1;
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.75rem;
+  margin-top: calc(-1 * (90 - 46) / 680 * 100cqw);
+}
+
+.popularidad-platillo {
+  display: grid;
+  justify-items: center;
+  gap: 0.625rem;
+  min-width: 0;
+  transition: transform var(--dur-4) var(--ease-hane);
+}
+
+/* Al inclinarse el brazo, el gancho de un lado baja lo que sube el otro. */
+.popularidad-platillo--referencia {
+  transform: translateY(calc(sin(var(--inclinacion)) * -1 * var(--popularidad-brazo)));
+}
+
+.popularidad-platillo--retadora {
+  transform: translateY(calc(sin(var(--inclinacion)) * var(--popularidad-brazo) + var(--popularidad-hundido)));
+}
+
+.popularidad-balanza[data-fase='contando'][data-eleccion] .popularidad-platillo--retadora {
+  --popularidad-hundido: 3px;
+}
+
+.popularidad-colgante {
+  position: relative;
+  display: grid;
+  justify-items: center;
+  width: min(100%, 13rem);
+  padding-top: 2.75rem;
+}
+
+/* Las cadenas, del gancho a los bordes del plato, por detrás de la carta. */
+.popularidad-cadenas {
+  position: absolute;
+  inset: 0 8% 0.5rem;
+  z-index: 0;
+  width: 84%;
+  height: calc(100% - 0.5rem);
+  overflow: visible;
+}
+
+.popularidad-cadenas path {
+  fill: none;
+  stroke: var(--color-gold);
+  stroke-width: 1;
+  opacity: 0.8;
+}
+
+.popularidad-rotulo {
+  position: absolute;
+  top: 0.75rem;
+  left: 50%;
+  z-index: 1;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.375rem;
+  margin: 0;
+  padding: 0.125rem 0.625rem;
+  transform: translateX(-50%);
+  border: 1px solid var(--color-gold-line-strong);
+  border-radius: var(--radius-full);
+  background-color: var(--color-cristal);
+  color: var(--color-gold-pale);
+  font-size: var(--text-2xs);
+  letter-spacing: var(--tracking-rotulo);
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+
+.popularidad-rotulo [lang='ja'] {
+  color: var(--acento);
+  font-family: var(--font-jp);
+  letter-spacing: 0;
+}
+
+.popularidad-platillo--retadora .popularidad-rotulo {
+  border-color: var(--acento-linea);
+}
+
+.popularidad-carta {
+  position: relative;
+  z-index: 1;
+  width: 100%;
+}
+
+/* La carta cambia de dueño en cada duelo: entra con una leve caída. */
+.popularidad-balanza[data-fase='eligiendo'] .popularidad-carta {
+  animation: popularidad-cuelga var(--dur-4) var(--ease-hane) both;
+}
+
+@keyframes popularidad-cuelga {
+  from {
+    opacity: 0;
+    transform: translateY(-0.5rem);
+  }
+}
+
+/* El plato: un óvalo lacado bajo la carta. */
+.popularidad-plato {
+  z-index: 0;
+  width: 108%;
+  height: 1rem;
+  margin-top: -0.5rem;
+  border: 1px solid var(--color-gold-bright);
+  border-radius: 50%;
+  background-image: linear-gradient(180deg, var(--color-gold-bright), var(--color-gold) 55%, var(--color-surface));
+  box-shadow: 0 10px 18px -10px rgb(0 0 0 / 0.9);
+}
+
+.popularidad-nombre {
+  display: grid;
+  gap: 0.125rem;
+  margin: 0;
+  min-width: 0;
+  max-width: 100%;
+  color: var(--color-fg-muted);
+  font-size: var(--text-xs);
+  text-align: center;
+}
+
+.popularidad-nombre strong {
+  color: var(--color-fg-strong);
+  font-family: var(--font-display);
+  font-size: var(--text-base);
+  font-weight: 700;
+}
+
+/* ---- La cifra de favoritos ---- */
+.popularidad-favs {
+  display: grid;
+  justify-items: center;
+  gap: 0.125rem;
+  margin: 0;
+  min-width: 6.5rem;
+  padding: 0.375rem 0.875rem;
+  border: 1px solid var(--color-gold-line-strong);
+  border-radius: var(--radius-md);
+  background-color: var(--color-cristal);
+  color: var(--color-gold-bright);
+  font-family: var(--font-display);
+  font-size: var(--text-xl);
+  font-weight: 700;
+  line-height: 1;
+  text-align: center;
+  transition:
+    border-color var(--dur-3) var(--ease-sumi),
+    color var(--dur-3) var(--ease-sumi);
+}
+
+.popularidad-favs[data-oculta] {
+  border-style: dashed;
+  color: var(--color-fg-muted);
+}
+
+.popularidad-favs-unidad {
+  color: var(--color-fg-muted);
+  font-family: var(--font-sans);
+  font-size: var(--text-2xs);
+  font-weight: 400;
+  letter-spacing: var(--tracking-rotulo);
+  text-transform: uppercase;
+}
+
+.popularidad-balanza[data-veredicto='acierto'] .popularidad-platillo--retadora .popularidad-favs {
+  border-color: var(--acento-linea);
+  color: var(--acento);
+}
+
+.popularidad-balanza[data-veredicto='fallo'] .popularidad-platillo--retadora .popularidad-favs {
+  color: var(--color-fg-strong);
+}
+
+/* El sello del veredicto cae sobre la carta retadora. */
+.popularidad-sello {
+  position: absolute;
+  top: 2.25rem;
+  right: 0;
+  z-index: 3;
+  width: 3.25rem;
+  height: 3.25rem;
+  animation: popularidad-estampa var(--dur-3) var(--ease-hane) both;
+}
+
+.popularidad-balanza[data-veredicto='fallo'] .popularidad-sello .hanko-fondo {
+  fill: var(--color-surface-alt);
+}
+
+@keyframes popularidad-estampa {
+  from {
+    opacity: 0;
+    transform: scale(1.7) rotate(-16deg);
+  }
+}
+
+/* ==========================================================================
+   El mando: la pregunta y los dos botones
+   ========================================================================== */
+
+.popularidad-mando {
+  display: grid;
+  gap: 0.875rem;
+}
+
+.popularidad-pregunta {
+  margin: 0;
+  color: var(--color-fg);
+  font-size: var(--text-base);
+  text-wrap: balance;
+}
+
+.popularidad-pregunta strong {
+  color: var(--color-fg-strong);
+  font-weight: 500;
+}
+
+.popularidad-opciones {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.625rem;
+}
+
+.popularidad-opcion {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 0.75rem;
+  min-height: 3.25rem;
+  padding: 0.5rem 0.75rem 0.5rem 0.625rem;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  background-color: var(--color-surface);
+  color: var(--color-fg-strong);
+  font: inherit;
+  font-size: var(--text-sm);
+  font-weight: 500;
+  text-align: left;
+  cursor: pointer;
+  transition:
+    border-color var(--dur-2) var(--ease-sumi),
+    background-color var(--dur-2) var(--ease-sumi),
+    transform var(--dur-2) var(--ease-sumi);
+}
+
+.popularidad-opcion:hover {
+  border-color: var(--color-gold-line-strong);
+  background-color: var(--color-surface-alt);
+}
+
+.popularidad-opcion:active {
+  transform: translateY(1px);
+}
+
+.popularidad-opcion[aria-disabled] {
+  cursor: default;
+}
+
+.popularidad-opcion[aria-disabled]:hover {
+  border-color: var(--color-border);
+  background-color: var(--color-surface);
+}
+
+.popularidad-opcion-kanji {
+  display: grid;
+  place-items: center;
+  width: 2.125rem;
+  height: 2.125rem;
+  border: 1px solid var(--acento-linea);
+  border-radius: var(--radius-sm);
+  background-color: var(--acento-suave);
+  color: var(--acento);
+  font-family: var(--font-jp);
+  font-size: var(--text-lg);
+  line-height: 1;
+}
+
+.popularidad-opcion[data-estado='elegida'] {
+  border-color: var(--color-gold-bright);
+  box-shadow: 0 0 0 1px var(--color-gold-bright);
+}
+
+.popularidad-opcion[data-estado='acierto'] {
+  border-color: var(--acento-linea);
+  background-color: var(--acento-suave);
+}
+
+.popularidad-opcion[data-estado='fallo'] {
+  color: var(--color-fg-muted);
+}
+
+.popularidad-opcion[data-estado='fallo'] .popularidad-opcion-texto {
+  text-decoration: line-through;
+  text-decoration-color: var(--color-accent-text);
+}
+
+.popularidad-tecla {
+  display: none;
+  min-width: 1.5rem;
+  padding: 0.125rem 0.375rem;
+  border: 1px solid var(--color-gold-line);
+  border-radius: var(--radius-sm);
+  color: var(--color-fg-muted);
+  font-family: var(--font-sans);
+  font-size: var(--text-2xs);
+  text-align: center;
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .popularidad-tecla {
+    display: inline-block;
+  }
+}
+
+/* ==========================================================================
+   La racha: pesas de oro en fila
+   ========================================================================== */
+
+.popularidad-racha {
+  display: grid;
+  gap: 0.625rem;
+  overflow: hidden; /* las pesas volcadas no se salen del estante */
+  padding: 0.875rem 1rem 1rem;
+  border: 1px solid var(--color-gold-line);
+  border-radius: var(--radius-lg);
+  background-color: var(--color-cristal);
+}
+
+.popularidad-racha-titulo {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin: 0;
+  color: var(--color-fg-muted);
+  font-family: var(--font-sans);
+  font-size: var(--text-2xs);
+  font-weight: 500;
+  letter-spacing: var(--tracking-rotulo);
+  text-transform: uppercase;
+}
+
+.popularidad-racha-titulo [lang='ja'] {
+  color: var(--color-gold-bright);
+  font-family: var(--font-jp);
+  font-size: var(--text-base);
+  letter-spacing: 0;
+}
+
+/* El estante: una línea de oro sobre la que se posan las pesas. */
+.popularidad-pesas {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  gap: 0.375rem;
+  min-height: 2.75rem;
+  margin: 0;
+  padding: 0 0 0.25rem;
+  border-bottom: 1px solid var(--color-gold-line-strong);
+  list-style: none;
+}
+
+.popularidad-pesa {
+  position: relative;
+  display: grid;
+  place-items: center;
+  width: 2.5rem;
+  height: 2.25rem;
+  margin-top: 0.5rem;
+  transform-origin: 100% 100%;
+  border-radius: var(--radius-sm) var(--radius-sm) 0.1875rem 0.1875rem;
+  background-image: linear-gradient(180deg, var(--color-gold-bright), var(--color-gold) 62%, var(--color-canvas));
+  box-shadow: inset 0 1px 0 rgb(247 230 162 / 0.5);
+  color: var(--color-canvas);
+  font-family: var(--font-display);
+  font-size: var(--text-sm);
+  font-weight: 700;
+  line-height: 1;
+  animation: popularidad-pesa-cae var(--dur-3) var(--ease-hane) both;
+}
+
+/* El pomo. */
+.popularidad-pesa::before {
+  content: '';
+  position: absolute;
+  top: -0.5rem;
+  left: 50%;
+  width: 0.875rem;
+  height: 0.5rem;
+  transform: translateX(-50%);
+  border-radius: var(--radius-full) var(--radius-full) 0 0;
+  background-image: linear-gradient(180deg, var(--color-gold-pale), var(--color-gold));
+}
+
+/* Cada cinco, una pesa marcada: el hito de la ronda. */
+.popularidad-pesa[data-hito] {
+  background-image: linear-gradient(180deg, var(--color-gold-pale), var(--color-gold-bright) 55%, var(--color-accent));
+  box-shadow:
+    inset 0 1px 0 rgb(247 230 162 / 0.7),
+    0 0 14px -2px rgb(228 195 111 / 0.6);
+}
+
+.popularidad-pesa--resto {
+  background-image: none;
+  background-color: var(--color-surface-alt);
+  box-shadow: inset 0 0 0 1px var(--color-gold-line-strong);
+  color: var(--color-gold-pale);
+  animation: none;
+}
+
+.popularidad-pesa--resto::before {
+  display: none;
+}
+
+@keyframes popularidad-pesa-cae {
+  from {
+    opacity: 0;
+    transform: translateY(-0.875rem);
+  }
+}
+
+/* Al fallar, las pesas se vuelcan en cascada, de la primera a la última. */
+.popularidad-pesas[data-caida] .popularidad-pesa {
+  animation: popularidad-vuelca var(--dur-3) var(--ease-fude) calc(var(--orden, 0) * 40ms) both;
+}
+
+@keyframes popularidad-vuelca {
+  to {
+    opacity: 0.55;
+    transform: translateX(0.375rem) rotate(96deg);
+  }
+}
+
+.popularidad-pesas-vacio {
+  margin: 0;
+  color: var(--color-fg-muted);
+  font-size: var(--text-xs);
+}
+
+/* ==========================================================================
+   Escritorio
+   ========================================================================== */
+@media (min-width: 48rem) {
+  .popularidad-mesa {
+    gap: 1.75rem;
+  }
+
+  .popularidad-platillos {
+    gap: 2rem;
+  }
+
+  .popularidad-colgante {
+    width: min(100%, 14rem);
+  }
+
+  .popularidad-favs {
+    font-size: var(--text-2xl);
+  }
+
+  .popularidad-opciones {
+    max-width: 30rem;
+  }
+}
+
+/* ==========================================================================
+   Movimiento reducido: todo al estado final, sin vaivén ni vuelco
+   ========================================================================== */
+@media (prefers-reduced-motion: reduce) {
+  .popularidad-brazo,
+  .popularidad-platillo,
+  .popularidad-paso,
+  .popularidad-opcion,
+  .popularidad-favs {
+    transition: none;
+  }
+
+  .popularidad-balanza[data-fase='eligiendo'] .popularidad-carta,
+  .popularidad-sello,
+  .popularidad-pesa {
+    animation-name: funde;
+  }
+
+  .popularidad-pesas[data-caida] .popularidad-pesa {
+    animation: none;
+    opacity: 0.55;
+    transform: rotate(96deg);
+  }
+}
