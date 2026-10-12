@@ -1,0 +1,408 @@
+/* ==========================================================================
+   Impostor (裏): una mesa de laca con un 裏 enorme al fondo, la mecha del
+   tiempo y cinco cartas; al resolver, la del intruso gira y muestra su
+   dorso con el sello. Solo se anima transform y opacity.
+   ========================================================================== */
+
+.impostor-mesa {
+  position: relative;
+  display: grid;
+  gap: 1.25rem;
+  padding: 1rem 0.75rem;
+  overflow: hidden;
+  border: 1px solid var(--acento-linea);
+  border-radius: var(--radius-lg);
+  background-color: var(--color-surface);
+  background-image: linear-gradient(170deg, var(--color-surface-alt), var(--color-surface) 60%);
+  box-shadow:
+    inset 0 1px 0 rgb(247 230 162 / 0.08),
+    var(--shadow-panel);
+}
+
+/* El kanji de fondo, tenue, por la esquina. */
+.impostor-fondo {
+  position: absolute;
+  top: -1.5rem;
+  right: -0.25rem;
+  color: var(--acento);
+  font-family: var(--font-jp);
+  font-size: clamp(8rem, 24vw, 14rem);
+  line-height: 1;
+  opacity: 0.06;
+  pointer-events: none;
+  user-select: none;
+}
+
+/* ---- Barra de arriba: serie base, reloj y mecha; pegada mientras se hace scroll ---- */
+.impostor-barra {
+  position: sticky;
+  top: 0.5rem;
+  z-index: 2;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 0.25rem 1rem;
+  align-items: end;
+  padding: 0.75rem 0.875rem 0.625rem;
+  border: 1px solid var(--color-gold-line);
+  border-radius: var(--radius-md);
+  background-color: var(--color-bg);
+  box-shadow: var(--shadow-panel);
+}
+
+.impostor-serie {
+  display: grid;
+  gap: 0.125rem;
+  min-width: 0;
+  margin: 0;
+}
+
+.impostor-serie strong {
+  overflow: hidden;
+  color: var(--color-fg-strong);
+  font-family: var(--font-display);
+  font-size: var(--text-xl);
+  font-weight: 500;
+  line-height: 1.2;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.impostor-reloj {
+  margin: 0;
+  color: var(--color-gold-bright);
+  font-family: var(--font-display);
+  font-size: var(--text-2xl);
+  line-height: 1;
+  transition: color var(--dur-2) var(--ease-sumi);
+}
+
+.impostor-reloj[data-critico] {
+  color: var(--color-accent-text);
+  animation: impostor-late var(--dur-5) var(--ease-fude) infinite;
+}
+
+@keyframes impostor-late {
+  50% {
+    transform: scale(1.08);
+  }
+}
+
+.impostor-tiempo {
+  grid-column: 1 / -1;
+  height: 0.375rem;
+  overflow: hidden;
+  border-radius: var(--radius-full);
+  background-color: var(--color-velo);
+}
+
+/* La mecha se consume de derecha a izquierda en 15 s; en reposo está entera. */
+.impostor-mecha {
+  display: block;
+  height: 100%;
+  border-radius: inherit;
+  background-image: linear-gradient(90deg, var(--color-gold), var(--color-gold-bright));
+  transform-origin: left center;
+  transform: scaleX(1);
+  transition: opacity var(--dur-2) var(--ease-sumi);
+}
+
+.impostor-mesa[data-fase='jugando'] .impostor-mecha {
+  animation: impostor-consume 15s linear forwards;
+}
+
+.impostor-mesa[data-fase='revelado'] .impostor-mecha,
+.impostor-mesa[data-fase='fin'] .impostor-mecha {
+  opacity: 0.35;
+}
+
+.impostor-mecha[data-critico] {
+  background-image: linear-gradient(90deg, var(--color-accent), var(--color-accent-text));
+}
+
+@keyframes impostor-consume {
+  from {
+    transform: scaleX(1);
+  }
+  to {
+    transform: scaleX(0);
+  }
+}
+
+/* ---- Las cinco cartas, centradas; la última fila se centra sola ---- */
+.impostor-cartas {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 0.875rem;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.impostor-puesto {
+  /* Dos por fila en móvil (la quinta queda centrada sola), cinco en escritorio. */
+  width: clamp(7rem, calc(50% - 0.4375rem), 10.5rem);
+  animation: aparece var(--dur-4) var(--ease-sumi) calc(var(--orden) * 70ms) both;
+  transition: opacity var(--dur-3) var(--ease-sumi);
+}
+
+@media (min-width: 48rem) {
+  .impostor-mesa {
+    padding: 1.25rem;
+  }
+
+  .impostor-puesto {
+    width: clamp(8.25rem, 17vw, 11rem);
+  }
+}
+
+/* Al revelar, las de la serie se apagan; la elegida por error se queda a la vista. */
+.impostor-puesto[data-estado='propio'] {
+  opacity: 0.4;
+}
+
+.impostor-carta {
+  display: grid;
+  gap: 0.5rem;
+  width: 100%;
+  padding: 0;
+  border: 0;
+  background: none;
+  color: var(--color-fg);
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+  perspective: 900px;
+}
+
+.impostor-carta:disabled {
+  cursor: default;
+}
+
+.impostor-carta:focus-visible {
+  outline: none;
+}
+
+.impostor-carta:focus-visible .impostor-giro,
+.impostor-carta:focus-visible .impostor-nombre {
+  outline: 2px solid var(--acento);
+  outline-offset: 3px;
+  border-radius: var(--radius-carta);
+}
+
+/* La cara y el dorso comparten el hueco; el giro muestra uno u otro. */
+.impostor-giro {
+  position: relative;
+  display: block;
+  aspect-ratio: 2 / 3;
+  transform-style: preserve-3d;
+  transition: transform var(--dur-4) var(--ease-hane);
+}
+
+.impostor-carta:enabled:hover .impostor-giro,
+.impostor-carta:enabled:focus-visible .impostor-giro {
+  transform: translate3d(0, -4px, 0);
+}
+
+.impostor-cara,
+.impostor-dorso {
+  position: absolute;
+  inset: 0;
+  display: block;
+  border-radius: var(--radius-carta);
+  backface-visibility: hidden;
+  -webkit-backface-visibility: hidden;
+}
+
+.impostor-cara .carta {
+  width: 100%;
+  height: 100%;
+}
+
+.impostor-dorso {
+  display: grid;
+  place-content: center;
+  gap: 0.5rem;
+  padding: 0.75rem;
+  border: 1px solid var(--acento-linea);
+  background-color: var(--color-canvas);
+  background-image:
+    repeating-linear-gradient(135deg, transparent 0 7px, rgb(197 161 90 / 0.08) 7px 8px),
+    radial-gradient(circle at 50% 40%, var(--acento-suave), transparent 65%);
+  text-align: center;
+  transform: rotateY(180deg);
+}
+
+.impostor-sello {
+  width: 3.5rem;
+  height: 3.5rem;
+  justify-self: center;
+}
+
+.impostor-dorso-texto {
+  color: var(--color-gold-pale);
+  font-family: var(--font-display);
+  font-size: var(--text-sm);
+  line-height: 1.3;
+}
+
+/* El intruso gira y enseña su dorso con la serie de la que viene. */
+.impostor-puesto[data-estado='intruso'] .impostor-giro {
+  transform: rotateY(180deg);
+  transition-duration: var(--dur-5);
+}
+
+.impostor-puesto[data-estado='intruso'] .impostor-nombre {
+  color: var(--acento);
+}
+
+.impostor-puesto[data-estado='fallo'] .impostor-giro {
+  animation: impostor-niega var(--dur-4) var(--ease-fude) both;
+}
+
+.impostor-puesto[data-estado='fallo'] .impostor-nombre {
+  text-decoration: line-through;
+  text-decoration-color: var(--color-accent-text);
+}
+
+@keyframes impostor-niega {
+  20%,
+  60% {
+    transform: translate3d(-5px, 0, 0);
+  }
+  40%,
+  80% {
+    transform: translate3d(5px, 0, 0);
+  }
+}
+
+.impostor-nombre {
+  display: flex;
+  gap: 0.5rem;
+  align-items: center;
+  min-height: 2.75rem;
+  padding: 0.375rem 0.5rem;
+  border: 1px solid var(--color-gold-line);
+  border-radius: var(--radius-sm);
+  background-color: var(--color-cristal);
+  font-size: var(--text-sm);
+  line-height: 1.25;
+}
+
+.impostor-tecla {
+  flex: none;
+  display: none;
+  min-width: 1.25rem;
+  padding: 0.125rem 0.25rem;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-sm);
+  color: var(--color-fg-muted);
+  font-family: var(--font-sans);
+  font-size: var(--text-2xs);
+  text-align: center;
+}
+
+@media (hover: hover) and (min-width: 48rem) {
+  .impostor-tecla {
+    display: inline-block;
+  }
+}
+
+/* ---- Revelado: el aviso y el botón a la siguiente ronda ---- */
+.impostor-revelado {
+  display: grid;
+  gap: 0.875rem;
+  justify-items: start;
+  animation: aparece var(--dur-3) var(--ease-sumi) both;
+}
+
+.impostor-revelado .juego-aviso {
+  margin: 0;
+}
+
+.impostor-puntos {
+  color: var(--color-gold-bright);
+}
+
+/* ---- Pasos del trial en la cabecera ---- */
+.impostor-progreso {
+  display: flex;
+  gap: 0.5rem;
+  margin: 0.875rem 0 0;
+  padding: 0;
+  list-style: none;
+}
+
+.impostor-paso {
+  display: grid;
+  place-items: center;
+  width: 2rem;
+  height: 2rem;
+  border: 1px solid var(--color-gold-line);
+  border-radius: var(--radius-full);
+  color: var(--color-fg-muted);
+  font-size: var(--text-sm);
+  transition:
+    transform var(--dur-3) var(--ease-hane),
+    opacity var(--dur-2) var(--ease-sumi);
+}
+
+.impostor-paso[data-estado='actual'] {
+  border-color: var(--acento-linea);
+  background-color: var(--acento-suave);
+  color: var(--acento);
+  transform: scale(1.1);
+}
+
+.impostor-paso[data-estado='acierto'] {
+  border-color: var(--color-gold-line-strong);
+  background-color: var(--color-gold-soft);
+  color: var(--color-gold-bright);
+}
+
+.impostor-paso[data-estado='fallo'] {
+  border-color: var(--acento-linea);
+  color: var(--color-accent-text);
+  text-decoration: line-through;
+}
+
+/* ---- Veredicto final: los tres intrusos ---- */
+.impostor-veredicto {
+  display: grid;
+  gap: 0.375rem;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  font-size: var(--text-sm);
+}
+
+.impostor-veredicto li > .cifra {
+  margin-right: 0.375rem;
+  color: var(--color-gold-bright);
+}
+
+.impostor-veredicto li[data-estado='fallo'] > .cifra {
+  color: var(--color-accent-text);
+}
+
+.impostor-veredicto-serie {
+  color: var(--color-fg-muted);
+}
+
+/* ---- Movimiento reducido: sin entradas ni latidos; la mecha sigue, que es información ---- */
+@media (prefers-reduced-motion: reduce) {
+  .impostor-puesto,
+  .impostor-revelado {
+    animation-name: funde;
+  }
+
+  .impostor-reloj[data-critico],
+  .impostor-puesto[data-estado='fallo'] .impostor-giro {
+    animation: none;
+  }
+
+  .impostor-giro,
+  .impostor-paso {
+    transition: none;
+  }
+}
