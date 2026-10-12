@@ -1,0 +1,350 @@
+/* ==========================================================================
+   Ruleta del destino: un tambor de festival (抽選器) lacado en negro con
+   filos de oro. Por la ventana pasan los nombres como en una linterna
+   giratoria; el visor central marca el que cae. Al parar, la carta del
+   elegido con su sello 印 y el nombre descubierto por un corte de tinta.
+
+   Solo se anima transform y opacity. El carrete lo mueve el js por ref
+   (translate3d + scaleY); aquí viven la estética y las entradas.
+   ========================================================================== */
+
+.ruleta {
+  --ruleta-celda: 64px; /* = ALTO_CELDA de reglas.js */
+  display: grid;
+  gap: 1.5rem;
+  max-width: 40rem;
+}
+
+/* ---- El tambor ---- */
+.ruleta-tambor {
+  position: relative;
+  display: grid;
+  grid-template-columns: 1fr;
+  max-width: 24rem;
+  padding: 1rem 2.75rem;
+  border: 1px solid var(--color-gold-line-strong);
+  border-radius: var(--radius-lg);
+  background-color: var(--color-canvas);
+  background-image:
+    linear-gradient(90deg, rgb(197 161 90 / 0.14), transparent 18%, transparent 82%, rgb(197 161 90 / 0.14)),
+    linear-gradient(180deg, var(--color-surface-alt), var(--color-canvas) 30%, var(--color-canvas) 70%, var(--color-surface-alt));
+  box-shadow:
+    inset 0 1px 0 rgb(247 230 162 / 0.12),
+    inset 0 -1px 0 rgb(0 0 0 / 0.8),
+    var(--shadow-panel);
+}
+
+/* El doble filete de la laca. */
+.ruleta-tambor::before {
+  content: '';
+  position: absolute;
+  inset: 0.375rem;
+  border: 1px solid rgb(197 161 90 / 0.18);
+  border-radius: calc(var(--radius-lg) - 0.25rem);
+  pointer-events: none;
+}
+
+/* 運 y 祭 a los lados, como los rótulos pintados de un puesto de matsuri. */
+.ruleta-tambor-kanji {
+  position: absolute;
+  top: 50%;
+  color: var(--color-gold);
+  font-size: var(--text-xl);
+  line-height: 1;
+  opacity: 0.55;
+  transform: translate3d(0, -50%, 0);
+  transition: opacity var(--dur-3) var(--ease-sumi);
+}
+
+.ruleta-tambor-kanji--izq {
+  left: 0.875rem;
+}
+
+.ruleta-tambor-kanji--der {
+  right: 0.875rem;
+}
+
+.ruleta[data-calor] .ruleta-tambor-kanji {
+  opacity: 1;
+}
+
+/* La ventana: tres celdas de alto, con velos arriba y abajo. */
+.ruleta-ventana {
+  position: relative;
+  height: calc(var(--ruleta-celda) * 3);
+  overflow: hidden;
+  border-radius: var(--radius-md);
+  background-color: var(--color-bg);
+  box-shadow: inset 0 0 0 1px rgb(197 161 90 / 0.14);
+}
+
+.ruleta-ventana::before,
+.ruleta-ventana::after {
+  content: '';
+  position: absolute;
+  inset: 0 0 auto;
+  z-index: 2;
+  height: var(--ruleta-celda);
+  background-image: linear-gradient(180deg, var(--color-velo), rgb(4 7 12 / 0));
+  pointer-events: none;
+}
+
+.ruleta-ventana::after {
+  inset: auto 0 0;
+  background-image: linear-gradient(0deg, var(--color-velo), rgb(4 7 12 / 0));
+}
+
+.ruleta-carrete {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  transform-origin: 50% 50%;
+  will-change: transform;
+}
+
+.ruleta-celda {
+  display: grid;
+  place-items: center;
+  height: var(--ruleta-celda);
+  padding-inline: 0.75rem;
+  overflow: hidden;
+  color: var(--color-fg-strong);
+  font-family: var(--font-display);
+  font-size: var(--text-xl);
+  font-weight: 700;
+  letter-spacing: var(--tracking-tight);
+  line-height: 1.1;
+  text-align: center;
+  text-wrap: balance;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+/* El visor: un marco de oro sobre la celda del medio, con sus dos rombos. */
+.ruleta-visor {
+  position: absolute;
+  inset: var(--ruleta-celda) 0;
+  z-index: 3;
+  border-block: 1px solid var(--color-gold-line-strong);
+  box-shadow:
+    inset 0 0 0 1px rgb(197 161 90 / 0.08),
+    0 0 18px -6px rgb(228 195 111 / 0.5);
+  pointer-events: none;
+  transition: border-color var(--dur-3) var(--ease-sumi);
+}
+
+.ruleta[data-calor] .ruleta-visor {
+  border-color: var(--color-gold-bright);
+}
+
+.ruleta-marca {
+  position: absolute;
+  top: 50%;
+  z-index: 3;
+  width: 0.5rem;
+  height: 0.5rem;
+  background-color: var(--color-gold-bright);
+  transform: translate3d(0, -50%, 0) rotate(45deg);
+  pointer-events: none;
+}
+
+.ruleta-marca--izq {
+  left: 0.375rem;
+}
+
+.ruleta-marca--der {
+  right: 0.375rem;
+}
+
+/* Girando: los rombos laten un poco y la ventana se aclara. */
+.ruleta[data-fase='girando'] .ruleta-marca {
+  animation: ruleta-late var(--dur-5) var(--ease-fude) infinite alternate;
+}
+
+@keyframes ruleta-late {
+  from {
+    transform: translate3d(0, -50%, 0) rotate(45deg) scale(0.85);
+  }
+
+  to {
+    transform: translate3d(0, -50%, 0) rotate(45deg) scale(1.2);
+  }
+}
+
+/* ---- El mando ---- */
+.ruleta-girar {
+  min-height: 3.25rem;
+  padding-inline: 1.75rem;
+  font-size: var(--text-lg);
+}
+
+/* ---- Resultado: carta sellada y nombre descubierto ---- */
+.ruleta-resultado {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  gap: 1.25rem 1.5rem;
+  align-items: center;
+  padding: 1.25rem;
+  border: 1px solid var(--color-gold-line);
+  border-radius: var(--radius-lg);
+  background-color: var(--color-surface);
+  background-image: linear-gradient(180deg, var(--color-surface-alt), var(--color-surface) 45%);
+  box-shadow:
+    inset 0 1px 0 rgb(247 230 162 / 0.08),
+    var(--shadow-panel);
+  animation: aparece var(--dur-4) var(--ease-sumi) both;
+}
+
+.ruleta-resultado:focus-visible {
+  outline: 2px solid var(--foco);
+  outline-offset: 4px;
+}
+
+.ruleta-carta-marco {
+  position: relative;
+  width: min(44vw, 9.5rem);
+  animation: ruleta-asoma var(--dur-5) var(--ease-hane) both;
+}
+
+@keyframes ruleta-asoma {
+  from {
+    opacity: 0;
+    transform: translate3d(0, 12px, 0) scale(0.94);
+  }
+}
+
+/* El sello cae sobre la carta: grande, gira, y se asienta. */
+.ruleta-sello {
+  position: absolute;
+  right: -0.75rem;
+  bottom: -0.625rem;
+  width: 3rem;
+  height: 3rem;
+  transform: rotate(-6deg);
+  animation: ruleta-sella var(--dur-4) var(--ease-hane) 480ms both;
+}
+
+@keyframes ruleta-sella {
+  from {
+    opacity: 0;
+    transform: rotate(-14deg) scale(1.9);
+  }
+
+  55% {
+    opacity: 1;
+    transform: rotate(-6deg) scale(0.9);
+  }
+
+  80% {
+    transform: rotate(-6deg) scale(1.06);
+  }
+
+  to {
+    transform: rotate(-6deg) scale(1);
+  }
+}
+
+.ruleta-firma {
+  display: grid;
+  gap: 0.375rem;
+  min-width: 0;
+}
+
+.ruleta-rotulo {
+  color: var(--acento);
+}
+
+/* El nombre, tapado por una franja carmesí con filos de oro que se retira
+   como una pincelada y lo descubre. */
+.ruleta-nombre {
+  position: relative;
+  display: inline-block;
+  max-width: 100%;
+  margin: 0;
+  padding-block: 0.125rem;
+  overflow: hidden;
+  font-size: var(--text-2xl);
+  line-height: var(--text-2xl--line-height);
+  text-wrap: balance;
+}
+
+.ruleta-nombre-texto {
+  display: inline-block;
+  animation: funde var(--dur-2) var(--ease-sumi) 150ms both;
+}
+
+.ruleta-corte {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  background-color: var(--color-accent);
+  background-image: linear-gradient(90deg, var(--color-gold-bright) 0 2px, transparent 2px calc(100% - 2px), var(--color-gold-bright) calc(100% - 2px));
+  transform-origin: 100% 50%;
+  animation: ruleta-corta 460ms var(--ease-fude) 150ms both;
+  pointer-events: none;
+}
+
+@keyframes ruleta-corta {
+  from {
+    transform: scaleX(1);
+  }
+
+  to {
+    transform: scaleX(0);
+  }
+}
+
+.ruleta-serie {
+  margin: 0;
+  color: var(--color-fg-muted);
+  font-size: var(--text-sm);
+  animation: funde var(--dur-3) var(--ease-sumi) 420ms both;
+}
+
+.ruleta-acciones {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.625rem;
+  margin-top: 0.75rem;
+  animation: aparece var(--dur-4) var(--ease-sumi) 480ms both;
+}
+
+/* ---- Móvil: el tambor a todo el ancho, la carta encima del nombre ---- */
+@media (max-width: 30rem) {
+  .ruleta-tambor {
+    max-width: none;
+    padding-inline: 2.25rem;
+  }
+
+  .ruleta-resultado {
+    grid-template-columns: minmax(0, 1fr);
+    justify-items: start;
+  }
+}
+
+/* ---- Movimiento reducido: sin giro (el tambor se funde al elegido), sin corte ni sello en vuelo ---- */
+@media (prefers-reduced-motion: reduce) {
+  .ruleta-ventana {
+    transition: opacity 200ms var(--ease-sumi);
+  }
+
+  .ruleta[data-fase='girando'] .ruleta-ventana {
+    opacity: 0;
+  }
+
+  .ruleta[data-fase='girando'] .ruleta-marca {
+    animation: none;
+  }
+
+  .ruleta-carta-marco,
+  .ruleta-sello,
+  .ruleta-corte,
+  .ruleta-acciones,
+  .ruleta-resultado {
+    animation-name: funde;
+  }
+
+  .ruleta-corte {
+    opacity: 0;
+  }
+}
