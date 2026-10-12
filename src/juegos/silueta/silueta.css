@@ -1,0 +1,496 @@
+/* ==========================================================================
+   Silueta: un biombo de cuatro paneles de washi, retroiluminado por una vela,
+   con la sombra del personaje detrás. Cada fallo desliza un panel tras su
+   montante y deja ver el arte real; al acertar se abre entero y cae el sello
+   当; al perder se cierra con la respuesta. Madera lacada y papel en rgb()
+   propios (no hay token para ellos); el resto, tokens de la web. Solo se
+   anima transform y opacity.
+   ========================================================================== */
+
+.silueta-cabecera {
+  margin: 0.5rem 0 0;
+  color: var(--color-fg-muted);
+  font-size: var(--text-sm);
+}
+
+.silueta-mesa {
+  display: grid;
+  gap: 1.5rem;
+  align-items: start;
+}
+
+/* ---- El biombo ---- */
+.silueta-biombo {
+  --silueta-laca-alta: rgb(44 30 18);
+  --silueta-laca: rgb(22 14 8);
+  --silueta-laca-baja: rgb(10 6 3);
+  --silueta-madera: rgb(78 54 30);
+  --silueta-madera-sombra: rgb(34 22 12);
+  --silueta-papel: rgb(243 226 198 / 0.4);
+  --silueta-vela: rgb(255 184 96 / 0.48);
+  --silueta-vela-alta: rgb(255 214 140 / 0.6);
+  --silueta-marco: 0.625rem;
+
+  position: relative;
+  box-sizing: border-box;
+  width: min(100%, calc(44vh * 1.6));
+  aspect-ratio: 8 / 5;
+  margin: 0.5rem 0 0;
+  padding: var(--silueta-marco);
+  border-radius: var(--radius-lg);
+  background-image: linear-gradient(180deg, var(--silueta-laca-alta), var(--silueta-laca) 60%, var(--silueta-laca-baja));
+  box-shadow:
+    inset 0 0 0 1px rgb(197 161 90 / 0.35),
+    0 30px 92px -40px rgb(0 0 0 / 0.9),
+    0 0 64px -16px rgb(159 29 44 / 0.28);
+}
+
+/* Luz de vela, detrás del papel: una capa fija y otra que respira (solo opacity). */
+.silueta-luz {
+  position: absolute;
+  inset: var(--silueta-marco);
+  border-radius: var(--radius-sm);
+  background-image: radial-gradient(ellipse 78% 66% at 50% 60%, var(--silueta-vela), rgb(214 108 60 / 0.16) 52%, rgb(159 29 44 / 0.07) 68%, transparent 80%);
+  transition:
+    transform var(--dur-4) var(--ease-sumi),
+    opacity var(--dur-4) var(--ease-sumi);
+}
+
+.silueta-luz--vaiven {
+  background-image: radial-gradient(ellipse 84% 70% at 46% 56%, var(--silueta-vela-alta), rgb(220 118 64 / 0.14) 50%, transparent 76%);
+  animation: silueta-vela 3s ease-in-out infinite alternate;
+}
+
+/* Al acertar, la luz florece. */
+.silueta-biombo[data-fin='victoria'] .silueta-luz {
+  transform: scale(1.12);
+  opacity: 1;
+}
+
+.silueta-biombo[data-fin='victoria'] .silueta-luz--vaiven {
+  animation: none;
+}
+
+@keyframes silueta-vela {
+  from {
+    opacity: 0.3;
+  }
+
+  to {
+    opacity: 1;
+  }
+}
+
+/* Cuatro columnas; cada una ve su cuarto de la escena. */
+.silueta-paneles {
+  position: absolute;
+  inset: var(--silueta-marco);
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  overflow: hidden;
+  border-radius: var(--radius-sm);
+}
+
+.silueta-columna {
+  position: relative;
+  overflow: hidden;
+}
+
+/* Montantes de madera entre columnas. */
+.silueta-columna + .silueta-columna::before {
+  content: '';
+  position: absolute;
+  inset-block: 0;
+  left: 0;
+  z-index: 3;
+  width: 0.375rem;
+  background-image: linear-gradient(90deg, var(--silueta-madera), var(--silueta-madera-sombra));
+  box-shadow: 2px 0 6px rgb(0 0 0 / 0.5);
+}
+
+/* La escena entera (cuatro columnas de ancho), desplazada en cada columna para enseñar su cuarto. */
+.silueta-ventana {
+  position: absolute;
+  inset-block: 0;
+  left: 0;
+  width: 400%;
+}
+
+.silueta-columna:nth-child(2) .silueta-ventana {
+  left: -100%;
+}
+
+.silueta-columna:nth-child(3) .silueta-ventana {
+  left: -200%;
+}
+
+.silueta-columna:nth-child(4) .silueta-ventana {
+  left: -300%;
+}
+
+.silueta-sombra,
+.silueta-arte {
+  position: absolute;
+  bottom: 0;
+  left: 50%;
+  width: auto;
+  max-width: 56%;
+  object-fit: contain;
+  object-position: bottom center;
+  transform: translateX(-50%);
+  transition: opacity var(--dur-4) var(--ease-sumi);
+}
+
+.silueta-sombra {
+  height: 92%;
+}
+
+.silueta-arte {
+  height: 94%;
+  opacity: 0;
+}
+
+.silueta-columna[data-abierto] .silueta-sombra {
+  opacity: 0;
+}
+
+.silueta-columna[data-abierto] .silueta-arte {
+  opacity: 1;
+}
+
+/* Papel washi: translúcido, con veta; la vela lo enciende por detrás. */
+.silueta-panel {
+  position: absolute;
+  inset: 0;
+  z-index: 2;
+  background-color: var(--silueta-papel);
+  background-image:
+    repeating-linear-gradient(100deg, rgb(255 255 255 / 0.05) 0 2px, transparent 2px 9px),
+    repeating-linear-gradient(0deg, rgb(120 80 40 / 0.06) 0 1px, transparent 1px 7px);
+  box-shadow: inset 0 0 0 1px rgb(197 161 90 / 0.22);
+  transition: transform var(--dur-3) var(--ease-fude);
+}
+
+/* Al abrirse, el panel se desliza tras su montante: los de la izquierda hacia la izquierda, los otros hacia la derecha. */
+.silueta-columna[data-abierto] .silueta-panel {
+  transform: translateX(-104%);
+}
+
+.silueta-columna:nth-child(n + 3)[data-abierto] .silueta-panel {
+  transform: translateX(104%);
+}
+
+/* Victoria: los cuatro se abren escalonados (izquierda-centro, izquierda, centro-derecha, derecha). */
+.silueta-biombo[data-fin='victoria'] .silueta-columna:nth-child(1) .silueta-panel {
+  transition-delay: 60ms;
+}
+
+.silueta-biombo[data-fin='victoria'] .silueta-columna:nth-child(2) .silueta-panel {
+  transition-delay: 120ms;
+}
+
+.silueta-biombo[data-fin='victoria'] .silueta-columna:nth-child(4) .silueta-panel {
+  transition-delay: 180ms;
+}
+
+/* La «fuda» colgante con el kanji del juego. */
+.silueta-fuda {
+  position: absolute;
+  top: -0.375rem;
+  right: 1.5rem;
+  z-index: 5;
+  display: grid;
+  gap: 0.375rem;
+  justify-items: center;
+  padding: 0.625rem 0.4375rem 0.5rem;
+  border: 1px solid var(--color-gold-line-strong);
+  border-top: 0;
+  border-radius: 0 0 var(--radius-sm) var(--radius-sm);
+  background-color: var(--silueta-laca);
+  box-shadow: 0 6px 14px -6px rgb(0 0 0 / 0.8);
+  color: var(--color-gold);
+  font-family: var(--font-jp);
+  font-size: var(--text-sm);
+  line-height: 1;
+}
+
+.silueta-fuda::after {
+  content: '';
+  width: 0.375rem;
+  height: 0.375rem;
+  border-radius: 50%;
+  background-color: var(--color-hanko);
+}
+
+/* Placas de fin: el nombre sobre el arte (victoria) o sobre el biombo cerrado (derrota). */
+.silueta-placa {
+  position: absolute;
+  z-index: 4;
+  display: grid;
+  gap: 0.125rem;
+  margin: 0;
+  color: var(--color-fg);
+  text-align: center;
+}
+
+.silueta-placa strong {
+  color: var(--color-fg-strong);
+  font-family: var(--font-display);
+  font-size: var(--text-xl);
+  font-weight: 700;
+  line-height: 1.15;
+  text-wrap: balance;
+}
+
+.silueta-placa .rotulo {
+  color: var(--color-gold);
+}
+
+.silueta-placa--victoria {
+  inset-inline: var(--silueta-marco);
+  bottom: var(--silueta-marco);
+  padding: 2.25rem 0.875rem 0.875rem;
+  border-radius: 0 0 var(--radius-sm) var(--radius-sm);
+  background-image: linear-gradient(180deg, transparent, rgb(4 7 12 / 0.92) 48%);
+  animation: silueta-sube var(--dur-4) var(--ease-sumi) 240ms both;
+}
+
+.silueta-placa--derrota {
+  inset: var(--silueta-marco);
+  place-content: center;
+  padding: 1rem;
+  border-radius: var(--radius-sm);
+  background-color: rgb(4 7 12 / 0.74);
+  animation: aparece var(--dur-4) var(--ease-sumi) var(--dur-3) both;
+}
+
+.silueta-placa--derrota strong {
+  padding: 0.5rem 1.25rem 0;
+}
+
+@keyframes silueta-sube {
+  from {
+    opacity: 0;
+    transform: translateY(1rem);
+  }
+}
+
+/* El sello 当 cae con rebote sobre la esquina del biombo. */
+.silueta-sello {
+  position: absolute;
+  top: -0.75rem;
+  right: -0.875rem;
+  z-index: 6;
+  width: 4rem;
+  height: 4rem;
+  transform: rotate(-8deg);
+  animation: silueta-sello var(--dur-4) var(--ease-hane) 560ms both;
+}
+
+@keyframes silueta-sello {
+  from {
+    opacity: 0;
+    transform: translateY(-3rem) scale(1.65) rotate(-20deg);
+  }
+
+  60% {
+    opacity: 1;
+    transform: translateY(3px) scale(0.92) rotate(-5deg);
+  }
+
+  to {
+    transform: rotate(-8deg);
+  }
+}
+
+/* ---- Mando: buscador, pista e intentos ---- */
+.silueta-mando {
+  display: grid;
+  gap: 1rem;
+  align-content: start;
+}
+
+.silueta-fila {
+  justify-content: space-between;
+}
+
+.silueta-pista {
+  gap: 0.5rem;
+}
+
+.silueta-pista:disabled {
+  opacity: 0.55;
+  cursor: default;
+}
+
+.silueta-pista-kanji {
+  color: var(--acento);
+  font-family: var(--font-jp);
+  font-size: var(--text-base);
+  line-height: 1;
+}
+
+.silueta-restantes {
+  display: flex;
+  align-items: baseline;
+  gap: 0.375rem;
+  margin: 0;
+  color: var(--color-fg-muted);
+  font-size: var(--text-sm);
+}
+
+.silueta-restantes .cifra {
+  color: var(--color-gold-bright);
+  font-family: var(--font-display);
+  font-size: var(--text-2xl);
+  font-weight: 700;
+  line-height: 1;
+}
+
+.silueta-intentos {
+  display: grid;
+  gap: 0.375rem;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.silueta-intento {
+  display: grid;
+  grid-template-columns: 1.25rem auto minmax(0, 1fr) auto auto;
+  gap: 0.625rem;
+  align-items: center;
+  min-height: 2.75rem;
+  padding: 0.3125rem 0.75rem;
+  border: 1px dashed var(--color-border);
+  border-radius: var(--radius-md);
+  background-color: var(--color-cristal);
+  transition: border-color var(--dur-2) var(--ease-sumi);
+}
+
+.silueta-intento[data-tipo='intento'] {
+  border-style: solid;
+  border-color: var(--color-gold-line);
+  animation: aparece var(--dur-3) var(--ease-sumi) both;
+}
+
+.silueta-intento[data-estado='acierto'] {
+  border-color: var(--acento-linea);
+  background-color: var(--acento-suave);
+}
+
+.silueta-intento[data-tipo='pista'] {
+  border-style: solid;
+  border-color: var(--color-gold-line-strong);
+  background-color: var(--color-gold-soft);
+  color: var(--color-gold-pale);
+  animation: aparece var(--dur-3) var(--ease-sumi) both;
+}
+
+.silueta-intento[data-tipo='vacia'] {
+  opacity: 0.6;
+}
+
+.silueta-intento-numero {
+  color: var(--color-fg-muted);
+  font-size: var(--text-xs);
+}
+
+.silueta-intento-miniatura {
+  width: 2.5rem;
+  aspect-ratio: 2 / 3;
+  object-fit: cover;
+  border-radius: 3px;
+  background-color: var(--color-surface-alt);
+}
+
+.silueta-intento-texto {
+  display: grid;
+  min-width: 0;
+  font-size: var(--text-sm);
+}
+
+.silueta-intento-nombre {
+  overflow: hidden;
+  color: var(--color-fg-strong);
+  font-weight: 500;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.silueta-intento-serie {
+  overflow: hidden;
+  color: var(--color-fg-muted);
+  font-size: var(--text-xs);
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.silueta-intento[data-estado='fallo'] .silueta-intento-nombre {
+  color: var(--color-fg-muted);
+}
+
+.silueta-misma {
+  color: var(--color-gold-bright);
+}
+
+.silueta-intento-marca {
+  font-weight: 700;
+}
+
+.silueta-intento[data-estado='acierto'] .silueta-intento-marca {
+  color: var(--acento);
+}
+
+.silueta-intento[data-estado='fallo'] .silueta-intento-marca {
+  color: var(--color-fg-muted);
+}
+
+/* La carta de la respuesta, en el panel de resultado. */
+.silueta-respuesta {
+  width: 7.5rem;
+  margin-top: 0.75rem;
+}
+
+/* En pantallas estrechas el sello no asoma por fuera, para no ensanchar la página. */
+@media (max-width: 47.99rem) {
+  .silueta-sello {
+    right: 0.125rem;
+  }
+}
+
+/* ---- Escritorio: biombo a la izquierda, mando a la derecha ---- */
+@media (min-width: 64rem) {
+  .silueta-mesa {
+    grid-template-columns: minmax(0, 40rem) minmax(18rem, 1fr);
+    gap: 2rem;
+  }
+
+  .silueta-biombo {
+    width: min(100%, calc(60vh * 1.6));
+  }
+}
+
+/* ---- Movimiento reducido: revelado por pasos, sin vaivén ---- */
+@media (prefers-reduced-motion: reduce) {
+  .silueta-luz,
+  .silueta-sombra,
+  .silueta-arte,
+  .silueta-panel,
+  .silueta-intento {
+    transition: none;
+  }
+
+  .silueta-luz--vaiven {
+    animation: none;
+    opacity: 0.65;
+  }
+
+  .silueta-placa--victoria,
+  .silueta-placa--derrota,
+  .silueta-sello,
+  .silueta-intento[data-tipo='intento'],
+  .silueta-intento[data-tipo='pista'] {
+    animation-name: funde;
+  }
+}
