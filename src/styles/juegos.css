@@ -861,3 +861,9 @@
     animation: none;
   }
 }
+
+/* Por encima del pie: la lista de sugerencias de los buscadores (absoluta,
+   dentro del escenario) asomaba por debajo cuando el campo queda al final. */
+.juego-escenario {
+  z-index: 1;
+}
