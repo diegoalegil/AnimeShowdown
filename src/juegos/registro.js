@@ -36,7 +36,7 @@ export const JUEGOS = [
     slug: 'anigrid',
     nombre: 'AniGrid',
     kanji: '格',
-    descripcion: 'Seis intentos para dar con el personaje; cada uno compara serie, inicial, letras, número, popularidad y género.',
+    descripcion: 'Seis intentos para dar con el personaje; cada uno compara inicial, serie, género, año y popularidad.',
     acento: 'cian',
     recompensa: true,
     cargar: () => import('./anigrid/index.jsx'),
