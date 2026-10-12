@@ -10,11 +10,16 @@
 //     abiertos: 0..SOBRES_POR_DIA,             // sobres abiertos ese día
 //     ultimo:   [idCarta, …]                   // contenido del último sobre
 //     pegadas:  [idCarta, …]                   // ya colocadas en el álbum
+//     extras:   0..MAX_EXTRAS                  // sobres ganados en los juegos, sin abrir
 //   }
 //
 // `pegadas` recuerda qué cartas se han visto ya en su hueco del álbum: las
 // demás se «pegan» con una pequeña animación en la próxima visita. Es un campo
 // añadido después; si falta, ninguna carta se ha pegado aún.
+//
+// `extras` son los sobres que dan los juegos (ver src/juegos): se abren en
+// la misma página que los del día, después de ellos, y no caducan a
+// medianoche. También es un campo añadido después; si falta, no hay ninguno.
 //
 // El almacén conserva también las cartas ocultas del catálogo (ver
 // lib/catalog.js): no se borran, pero las cuentas y listas que se muestran
@@ -30,6 +35,8 @@ import {
 const FECHA = /^\d{4}-\d{2}-\d{2}$/
 const VIGIA_MS = 10000
 const MAX_COPIAS = 99999
+/** Tope de sobres extra guardados (no hay tope para ganarlos: es un seguro contra datos rotos). */
+export const MAX_EXTRAS = 9999
 
 /** Día local del navegador en formato AAAA-MM-DD. */
 export function diaLocal(fecha = new Date()) {
@@ -44,7 +51,7 @@ export function msHastaMedianoche(fecha = new Date()) {
 }
 
 export function estadoVacio(dia) {
-  return { v: VERSION_ALMACEN, tengo: {}, desde: {}, dia, abiertos: 0, ultimo: [], pegadas: [] }
+  return { v: VERSION_ALMACEN, tengo: {}, desde: {}, dia, abiertos: 0, ultimo: [], pegadas: [], extras: 0 }
 }
 
 const esObjeto = (x) => x !== null && typeof x === 'object' && !Array.isArray(x)
@@ -80,7 +87,8 @@ export function sanear(bruto, { dia, existe } = {}) {
   const abiertos = mismoDia && Number.isInteger(bruto.abiertos) ? Math.min(Math.max(bruto.abiertos, 0), SOBRES_POR_DIA) : 0
   const ultimo = Array.isArray(bruto.ultimo) ? bruto.ultimo.filter((id) => typeof id === 'string' && Object.hasOwn(tengo, id)) : []
   const pegadas = soloPropias(bruto.pegadas, tengo)
-  return { v: VERSION_ALMACEN, tengo, desde, dia, abiertos, ultimo, pegadas }
+  const extras = Number.isInteger(bruto.extras) ? Math.min(Math.max(bruto.extras, 0), MAX_EXTRAS) : 0
+  return { v: VERSION_ALMACEN, tengo, desde, dia, abiertos, ultimo, pegadas, extras }
 }
 
 /** Ids de una lista que están en `tengo`, sin repetir (lo demás se descarta). */
@@ -89,10 +97,21 @@ function soloPropias(lista, tengo) {
   return [...new Set(lista.filter((id) => typeof id === 'string' && Object.hasOwn(tengo, id)))]
 }
 
-/** Sobres que quedan por abrir hoy. */
-export function sobresRestantes(estado, dia) {
+/** Sobres del día que quedan por abrir hoy (sin contar los ganados en los juegos). */
+export function sobresDelDia(estado, dia) {
   if (estado.dia !== dia) return SOBRES_POR_DIA
   return Math.max(0, SOBRES_POR_DIA - estado.abiertos)
+}
+
+/** Sobres que se pueden abrir ahora: los del día más los ganados en los juegos. */
+export function sobresRestantes(estado, dia) {
+  return sobresDelDia(estado, dia) + (estado.extras ?? 0)
+}
+
+/** Suma `n` sobres ganados en los juegos. Devuelve el mismo estado si `n` no es un entero positivo. */
+export function ganarSobres(estado, n = 1) {
+  if (!Number.isInteger(n) || n <= 0) return estado
+  return { ...estado, extras: Math.min((estado.extras ?? 0) + n, MAX_EXTRAS) }
 }
 
 const todas = () => true
@@ -124,13 +143,15 @@ export function generarSobre({ personajes, especiales, rng = Math.random }) {
 }
 
 /**
- * Añade un sobre ya generado a la colección. Devuelve el estado nuevo y los
- * ids que se han conseguido por primera vez. Lanza un error si hoy ya no
- * quedan sobres.
+ * Añade un sobre ya generado a la colección. Devuelve el estado nuevo, los
+ * ids que se han conseguido por primera vez y si el sobre era uno de los
+ * ganados en los juegos (`extra`): primero se gastan los del día y después
+ * los extra. Lanza un error si no queda ninguno.
  */
 export function abrirSobre(estado, ids, dia) {
   const base = estado.dia === dia ? estado : { ...estado, dia, abiertos: 0 }
-  if (sobresRestantes(base, dia) <= 0) throw new Error('Hoy ya no quedan sobres')
+  const extra = sobresDelDia(base, dia) <= 0
+  if (extra && !(base.extras > 0)) throw new Error('Hoy ya no quedan sobres')
   const tengo = { ...base.tengo }
   const desde = { ...base.desde }
   const nuevas = []
@@ -141,12 +162,15 @@ export function abrirSobre(estado, ids, dia) {
     }
     tengo[id] = Math.min((tengo[id] ?? 0) + 1, MAX_COPIAS)
   }
-  return { estado: { ...base, tengo, desde, abiertos: base.abiertos + 1, ultimo: [...ids] }, nuevas }
+  const gasto = extra ? { extras: base.extras - 1 } : { abiertos: base.abiertos + 1 }
+  return { estado: { ...base, tengo, desde, ...gasto, ultimo: [...ids] }, nuevas, extra }
 }
 
 // ---------------------------------------------------------------------------
 // Exportar e importar: un código copiable (JSON en base64) con las cartas.
-// Los contadores del día no viajan: importar no regala sobres.
+// Los contadores del día no viajan, ni tampoco los sobres ganados en los
+// juegos: importar no regala sobres (el mismo código, pegado dos veces,
+// los duplicaría).
 // ---------------------------------------------------------------------------
 
 function aBase64(texto) {
@@ -389,14 +413,25 @@ export function crearAlmacen({ storage, ids, existe, ahora = () => new Date(), v
       }
     },
 
-    /** Abre un sobre: devuelve { ids, nuevas } o lanza si no quedan. */
+    /** Abre un sobre: devuelve { ids, nuevas, extra } o lanza si no quedan. */
     abrirSobre(rng = Math.random) {
       getSnapshot()
       refrescar()
       const sobre = generarSobre({ personajes: ids.personajes, especiales: ids.especiales, rng })
-      const { estado: nuevo, nuevas } = abrirSobre(estado, sobre, hoy())
+      const { estado: nuevo, nuevas, extra } = abrirSobre(estado, sobre, hoy())
       guardar(nuevo)
-      return { ids: sobre, nuevas }
+      return { ids: sobre, nuevas, extra }
+    },
+
+    /**
+     * Suma `n` sobres ganados en los juegos, que se abren además de los del
+     * día. Devuelve cuántos extra quedan por abrir.
+     */
+    ganarSobres(n = 1) {
+      const actual = getSnapshot()
+      const nuevo = ganarSobres(actual, n)
+      if (nuevo !== actual) guardar(nuevo)
+      return nuevo.extras
     },
 
     exportar() {

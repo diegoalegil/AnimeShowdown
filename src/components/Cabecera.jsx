@@ -6,6 +6,7 @@ import { Logo } from './Logo.jsx'
 const SECCIONES = [
   { to: '/', es: 'Galería', ja: 'ギャラリー', activa: (ruta) => ruta === '/' || ruta.startsWith('/carta/') },
   { to: '/sobres', es: 'Sobres', ja: '開封', activa: (ruta) => ruta.startsWith('/sobres') },
+  { to: '/juegos', es: 'Juegos', ja: '遊戯', activa: (ruta) => ruta.startsWith('/juegos') },
   { to: '/coleccion', es: 'Colección', ja: 'コレクション', activa: (ruta) => ruta.startsWith('/coleccion') },
 ]
 

@@ -1,0 +1,395 @@
+/* ==========================================================================
+   ¿De qué serie? (謎): un altar lacado con la carta velada. El arte empieza
+   muy desenfocado y se aclara un paso por intento gastado (valores fijos,
+   sin animar el filtro); al terminar, el marco se enciende en oro y asoma
+   la cartela con el nombre y la serie. Solo se anima transform y opacity.
+   ========================================================================== */
+
+.revelar-serie-mesa {
+  display: grid;
+  gap: 1.5rem;
+  max-width: 54rem;
+}
+
+/* ---- El altar: marco lacado, kanji de tinta detrás y los cinco faroles ---- */
+.revelar-serie-altar {
+  display: grid;
+  justify-items: center;
+  gap: 0.875rem;
+  margin: 0;
+}
+
+.revelar-serie-laca {
+  position: relative;
+  display: grid;
+  justify-items: center;
+  gap: 0.75rem;
+  width: 100%;
+  max-width: 20rem;
+  padding: 1rem 1rem 0.875rem;
+  overflow: hidden;
+  border: 1px solid var(--color-gold-line);
+  border-radius: var(--radius-lg);
+  background-color: var(--color-surface);
+  background-image: linear-gradient(180deg, var(--color-surface-alt), var(--color-surface) 60%);
+  box-shadow:
+    inset 0 1px 0 rgb(247 230 162 / 0.08),
+    var(--shadow-panel);
+  animation: aparece var(--dur-4) var(--ease-sumi) both;
+}
+
+/* Filete interior, como el filo de una bandeja de laca. */
+.revelar-serie-laca::before {
+  content: '';
+  position: absolute;
+  inset: 0.3125rem;
+  z-index: 2;
+  border: 1px solid rgb(197 161 90 / 0.14);
+  border-radius: calc(var(--radius-lg) - 0.25rem);
+  pointer-events: none;
+}
+
+/* El halo dorado se pinta una vez y solo se enciende su opacidad. */
+.revelar-serie-laca::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  z-index: 3;
+  border-radius: inherit;
+  box-shadow:
+    inset 0 0 0 1px var(--color-gold-bright),
+    inset 0 0 32px -8px rgb(228 195 111 / 0.55);
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity var(--dur-5) var(--ease-sumi);
+}
+
+.revelar-serie-altar[data-fin='victoria'] .revelar-serie-laca::after {
+  opacity: 1;
+}
+
+.revelar-serie-altar[data-fin='derrota'] .revelar-serie-laca {
+  border-color: var(--color-border);
+}
+
+/* El 謎, enorme y tenue, asoma por la esquina del altar. */
+.revelar-serie-kanji {
+  position: absolute;
+  top: -1.25rem;
+  right: -0.75rem;
+  color: var(--acento);
+  font-family: var(--font-jp);
+  font-size: 9rem;
+  line-height: 1;
+  opacity: 0.07;
+  pointer-events: none;
+  user-select: none;
+}
+
+/* ---- El velo: la carta y su desenfoque por pasos ---- */
+.revelar-serie-velo {
+  position: relative;
+  z-index: 1;
+  /* En móvil la carta cabe en el primer pliegue junto con el buscador. */
+  width: min(100%, 14rem, 44vh * 2 / 3);
+}
+
+.revelar-serie-carta {
+  width: 100%;
+}
+
+/* La ilustración, ampliada un poco para que el desenfoque no deje bordes. */
+.revelar-serie-velo[data-desenfoque='32'] .carta-lamina img,
+.revelar-serie-velo[data-desenfoque='24'] .carta-lamina img,
+.revelar-serie-velo[data-desenfoque='16'] .carta-lamina img,
+.revelar-serie-velo[data-desenfoque='10'] .carta-lamina img,
+.revelar-serie-velo[data-desenfoque='6'] .carta-lamina img {
+  transform: scale(1.12);
+}
+
+.revelar-serie-velo[data-desenfoque='32'] .carta-lamina img {
+  filter: blur(32px) saturate(1.2);
+}
+
+.revelar-serie-velo[data-desenfoque='24'] .carta-lamina img {
+  filter: blur(24px) saturate(1.15);
+}
+
+.revelar-serie-velo[data-desenfoque='16'] .carta-lamina img {
+  filter: blur(16px) saturate(1.1);
+}
+
+.revelar-serie-velo[data-desenfoque='10'] .carta-lamina img {
+  filter: blur(10px);
+}
+
+.revelar-serie-velo[data-desenfoque='6'] .carta-lamina img {
+  filter: blur(6px);
+}
+
+/* Con el velo puesto, la carta no se inclina ni brilla: es un cuadro, no un naipe. */
+.revelar-serie-velo .carta-marco {
+  transition: none;
+}
+
+.revelar-serie-velo .carta-brillo {
+  display: none;
+}
+
+/* ---- Faroles: un punto por intento (libre, fallo, pista o acierto) ---- */
+.revelar-serie-faroles {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  gap: 0.5rem;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.revelar-serie-farol {
+  width: 0.625rem;
+  height: 0.625rem;
+  border: 1px solid var(--color-gold-line-strong);
+  border-radius: 50%;
+  background-color: transparent;
+  transition:
+    background-color var(--dur-2) var(--ease-sumi),
+    border-color var(--dur-2) var(--ease-sumi);
+}
+
+.revelar-serie-farol[data-estado='fallo'] {
+  border-color: var(--color-accent-hover);
+  background-color: var(--color-accent);
+}
+
+.revelar-serie-farol[data-estado='pista'] {
+  border-color: var(--color-gold);
+  background-color: var(--color-gold-soft);
+}
+
+.revelar-serie-farol[data-estado='acierto'] {
+  border-color: var(--color-gold-bright);
+  background-color: var(--color-gold-bright);
+}
+
+/* ---- Cartela del final: «Era… Nombre / Serie» ---- */
+.revelar-serie-cartela {
+  display: grid;
+  justify-items: center;
+  gap: 0.125rem;
+  text-align: center;
+  animation: aparece var(--dur-4) var(--ease-sumi) 120ms both;
+}
+
+.revelar-serie-cartela-rotulo {
+  margin-bottom: 0.25rem;
+}
+
+.revelar-serie-cartela-nombre {
+  color: var(--color-fg-strong);
+  font-family: var(--font-display);
+  font-size: var(--text-xl);
+  font-weight: 700;
+  line-height: 1.2;
+  text-wrap: balance;
+}
+
+.revelar-serie-cartela-serie {
+  color: var(--acento);
+  font-size: var(--text-sm);
+}
+
+/* ---- Panel de juego: cuenta, buscador, pistas e intentos ---- */
+.revelar-serie-panel {
+  display: grid;
+  align-content: start;
+  gap: 1rem;
+  min-width: 0;
+}
+
+.revelar-serie-cuenta {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 0.25rem 1rem;
+  margin: 0;
+}
+
+.revelar-serie-restantes {
+  color: var(--color-fg-muted);
+  font-size: var(--text-sm);
+}
+
+.revelar-serie-restantes .cifra {
+  color: var(--acento);
+  font-family: var(--font-display);
+  font-size: var(--text-lg);
+  font-weight: 700;
+}
+
+/* Las pistas: dos placas con su sello; usadas, el sello se llena de bermellón. */
+.revelar-serie-pistas {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 13rem), 1fr));
+  gap: 0.625rem;
+}
+
+.revelar-serie-pista {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  min-height: 3.25rem;
+  padding: 0.5rem 0.875rem 0.5rem 0.625rem;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  background-color: var(--color-surface);
+  color: var(--color-fg-strong);
+  font: inherit;
+  font-size: var(--text-sm);
+  text-align: left;
+  cursor: pointer;
+  transition:
+    border-color var(--dur-2) var(--ease-sumi),
+    background-color var(--dur-2) var(--ease-sumi),
+    transform var(--dur-3) var(--ease-sumi);
+}
+
+.revelar-serie-pista:hover:not(:disabled) {
+  border-color: var(--color-gold-line-strong);
+  background-color: var(--color-surface-alt);
+  transform: translate3d(0, -1px, 0);
+}
+
+.revelar-serie-pista[data-usada] {
+  border-color: var(--color-gold-line);
+  background-color: var(--color-gold-soft);
+}
+
+.revelar-serie-pista:disabled {
+  cursor: default;
+}
+
+.revelar-serie-pista:disabled:not([data-usada]) {
+  color: var(--color-fg-muted);
+  opacity: 0.6;
+}
+
+.revelar-serie-pista-sello {
+  flex: none;
+  width: 2rem;
+  height: 2rem;
+  transition: transform var(--dur-3) var(--ease-hane);
+}
+
+.revelar-serie-pista:hover:not(:disabled) .revelar-serie-pista-sello {
+  transform: rotate(-8deg) scale(1.08);
+}
+
+.revelar-serie-pista-texto {
+  display: grid;
+  gap: 0.125rem;
+  min-width: 0;
+}
+
+.revelar-serie-pista-texto small {
+  color: var(--color-fg-muted);
+  font-size: var(--text-2xs);
+  letter-spacing: var(--tracking-wide);
+  text-transform: uppercase;
+}
+
+.revelar-serie-pista[data-usada] .revelar-serie-pista-texto small {
+  color: var(--color-gold-pale);
+}
+
+/* Los intentos, uno bajo otro, sellados como fallo o acierto. */
+.revelar-serie-intentos {
+  display: grid;
+  gap: 0.375rem;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.revelar-serie-intento {
+  display: flex;
+  align-items: center;
+  gap: 0.625rem;
+  min-height: 2.25rem;
+  padding: 0.25rem 0.75rem 0.25rem 0.5rem;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  background-color: var(--color-cristal);
+  color: var(--color-fg-muted);
+  font-size: var(--text-sm);
+  animation: aparece var(--dur-3) var(--ease-sumi) both;
+}
+
+.revelar-serie-intento[data-acierto] {
+  border-color: var(--acento-linea);
+  background-color: var(--acento-suave);
+  color: var(--color-fg-strong);
+}
+
+.revelar-serie-intento-sello {
+  flex: none;
+  width: 1.5rem;
+  height: 1.5rem;
+  animation: sello-cae var(--dur-3) var(--ease-hane) both;
+}
+
+.revelar-serie-intento-serie {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.revelar-serie-intento:not([data-acierto]) .revelar-serie-intento-serie {
+  text-decoration: line-through;
+  text-decoration-color: var(--color-accent-text);
+}
+
+/* ---- Dos columnas a partir de la tableta: el altar a la izquierda ---- */
+@media (min-width: 48rem) {
+  .revelar-serie-mesa {
+    grid-template-columns: minmax(16rem, 20rem) minmax(0, 1fr);
+    gap: 2.5rem;
+    align-items: start;
+  }
+
+  .revelar-serie-velo {
+    width: min(100%, 16rem);
+  }
+
+  .revelar-serie-laca {
+    padding: 1.25rem 1.25rem 1rem;
+  }
+}
+
+/* ---- Movimiento reducido ---- */
+@media (prefers-reduced-motion: reduce) {
+  .revelar-serie-laca,
+  .revelar-serie-cartela,
+  .revelar-serie-intento {
+    animation-name: funde;
+  }
+
+  .revelar-serie-intento-sello {
+    animation: none;
+  }
+
+  .revelar-serie-pista,
+  .revelar-serie-pista-sello,
+  .revelar-serie-farol,
+  .revelar-serie-laca::after {
+    transition: none;
+  }
+
+  .revelar-serie-pista:hover:not(:disabled),
+  .revelar-serie-pista:hover:not(:disabled) .revelar-serie-pista-sello {
+    transform: none;
+  }
+}

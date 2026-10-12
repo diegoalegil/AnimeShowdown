@@ -1713,3 +1713,37 @@
     transform: none;
   }
 }
+
+/* ==========================================================================
+   Sobres ganados en los juegos (ver src/juegos): se abren tras los del día
+   ========================================================================== */
+
+/* Una pastilla «+N» junto a los cinco sobrecitos. */
+.hoy-extra {
+  display: inline-flex;
+  align-items: center;
+  min-height: 1.125rem;
+  margin-left: -0.25rem;
+  padding: 0 0.4375rem;
+  border: 1px solid var(--color-gold-line-strong);
+  border-radius: var(--radius-full);
+  background-color: var(--color-gold-soft);
+  color: var(--color-gold-pale);
+  font-size: var(--text-2xs);
+  font-weight: 500;
+  line-height: 1.35;
+}
+
+/* Sin sobres hasta mañana: el camino a los juegos. */
+.sin-sobres-juegos {
+  margin: 0.75rem 0 0;
+  color: var(--color-fg-muted);
+  font-size: var(--text-sm);
+  animation: aparece var(--dur-4) var(--ease-sumi) 200ms both;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .sin-sobres-juegos {
+    animation-name: funde;
+  }
+}

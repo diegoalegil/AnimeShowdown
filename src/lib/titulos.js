@@ -36,4 +36,20 @@ export const PAGINAS = {
     titulo: 'Colección',
     descripcion: 'Tu álbum de cartas de AnimeShowdown, guardado en este navegador y sin necesidad de cuenta.',
   },
+  juegos: {
+    titulo: 'Juegos',
+    descripcion:
+      'Diez minijuegos de anime sin límite ni cuenta: silueta, AniGrid, impostor, oráculo y más. Cada ronda ganada da un sobre extra.',
+  },
+}
+
+/** «Silueta · Juegos»: el título de la página de un juego (ver src/juegos/registro.js). */
+export const tituloJuego = (juego) => `${juego.nombre} · Juegos`
+
+/** Descripción de la página de un juego: su frase y qué se gana. */
+export function descripcionJuego(juego) {
+  const cola = juego.recompensa
+    ? 'Cada ronda ganada da un sobre extra de cartas. Minijuego de AnimeShowdown, sin límite ni cuenta.'
+    : 'Minijuego de AnimeShowdown, sin límite ni cuenta.'
+  return `${juego.descripcion} ${cola}`
 }

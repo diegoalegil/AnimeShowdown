@@ -104,9 +104,9 @@ const CIERRE = poligono(CIERRE_DIENTES)
  * los cierres prensados dorados, la tira de apertura, un marco dorado doble
  * como el de las cartas SSR con la ilustración del sobre y la marca. Solo
  * elementos en línea (va dentro de un botón). `numero` es el sobre del día
- * (1..5).
+ * (1..5); `extra`, que es uno de los ganados en los juegos.
  */
-export function Envoltorio({ numero }) {
+export function Envoltorio({ numero, extra }) {
   return (
     <span className="envoltorio" style={{ clipPath: CIERRE }}>
       <span className="envoltorio-motivo" />
@@ -121,7 +121,7 @@ export function Envoltorio({ numero }) {
       </span>
       <span className="envoltorio-corte" />
       <span className="envoltorio-marco" />
-      <Numero numero={numero} />
+      <Numero numero={numero} extra={extra} />
       <span className="envoltorio-arte" />
       <span className="envoltorio-obi">
         <span className="envoltorio-marca">
@@ -138,8 +138,15 @@ export function Envoltorio({ numero }) {
   )
 }
 
-/** «Nº 02 / 05»: qué sobre del día es. */
-function Numero({ numero }) {
+/** «Nº 02 / 05»: qué sobre del día es; «Extra · juegos» si se ganó jugando. */
+function Numero({ numero, extra }) {
+  if (extra) {
+    return (
+      <span className="envoltorio-numero cifra">
+        Extra<span className="envoltorio-de"> · juegos</span>
+      </span>
+    )
+  }
   return (
     <span className="envoltorio-numero cifra">
       Nº {String(numero).padStart(2, '0')}
@@ -162,7 +169,7 @@ function Sello() {
  * el puntero como las cartas y entra en escena una vez al montarse, con un
  * reflejo que recorre la lámina.
  */
-export function SobreCerrado({ numero, otro, onAbrir }) {
+export function SobreCerrado({ numero, extra = false, otro, onAbrir }) {
   const accion = otro ? 'Abrir otro sobre' : 'Abrir sobre'
   useEffect(precargarCara, [])
   return (
@@ -170,13 +177,13 @@ export function SobreCerrado({ numero, otro, onAbrir }) {
       type="button"
       className="sobre"
       onClick={onAbrir}
-      aria-label={`${accion} (${numero} de ${SOBRES_POR_DIA} de hoy)`}
+      aria-label={extra ? `${accion} extra, ganado en los juegos` : `${accion} (${numero} de ${SOBRES_POR_DIA} de hoy)`}
     >
       <span className="sobre-caja">
         <span className="sobre-halo" />
         <span className="sobre-sombra" />
         <span className="sobre-cuerpo" data-inclinar="">
-          <Envoltorio numero={numero} />
+          <Envoltorio numero={numero} extra={extra} />
           <Sello />
           <span className="sobre-barrido" />
           <span className="carta-brillo" />
@@ -201,7 +208,7 @@ export function SobreCerrado({ numero, otro, onAbrir }) {
  * por pieza es lo que Safari puede repintar a 60 fps mientras giran. Encima,
  * las dos mitades llevan el número del sobre, que no va en la imagen.
  */
-export function SobreRasgado({ numero }) {
+export function SobreRasgado({ numero, extra = false }) {
   return (
     <div className="sobre sobre--rasgado" aria-hidden="true">
       <span className="sobre-caja" data-pieza="caja">
@@ -209,7 +216,7 @@ export function SobreRasgado({ numero }) {
         <span className="sobre-luz" data-pieza="luz" />
         {['tira', 'izquierda', 'derecha'].map((pieza) => (
           <span key={pieza} className={`sobre-pieza sobre-pieza--${pieza}`} data-pieza={pieza} style={{ clipPath: PIEZAS[pieza] }}>
-            {pieza !== 'tira' && <Numero numero={numero} />}
+            {pieza !== 'tira' && <Numero numero={numero} extra={extra} />}
           </span>
         ))}
         <span className="sobre-sello-mitad sobre-sello-mitad--izquierda" data-pieza="sello-izquierda">

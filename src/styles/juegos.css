@@ -1,0 +1,869 @@
+/* ==========================================================================
+   Juegos: el hub con una tarjeta por juego y el marco común de cada juego
+   (cabecera con su kanji, racha y récord, «Cómo se juega», zona de juego,
+   panel de resultado, buscadores con sugerencias y las piezas de siempre:
+   opciones, pistas, avisos). Cada juego elige un acento (data-acento:
+   carmesi | oro | cian, ver src/juegos/registro.js) que tiñe su sello, sus
+   filos y sus aciertos; el resto es el lienzo oscuro de la web.
+
+   Rendimiento: solo se anima transform y opacity; nada de backdrop-filter.
+   El CSS propio de cada juego vive en su carpeta (src/juegos/<slug>/) y lo
+   importa su pantalla.
+   ========================================================================== */
+
+/* ---- Acento por juego ---- */
+.juegos,
+.juego-escenario,
+.tarjeta-juego {
+  --acento: var(--color-gold-bright);
+  --acento-tinta: var(--color-gold);
+  --acento-suave: var(--color-gold-soft);
+  --acento-linea: var(--color-gold-line-strong);
+}
+
+.juego-escenario[data-acento='carmesi'],
+.tarjeta-juego[data-acento='carmesi'] {
+  --acento: var(--color-accent-text);
+  --acento-tinta: var(--color-accent-hover);
+  --acento-suave: rgb(159 29 44 / 0.2);
+  --acento-linea: rgb(232 90 100 / 0.5);
+}
+
+.juego-escenario[data-acento='cian'],
+.tarjeta-juego[data-acento='cian'] {
+  --acento: var(--color-electric-soft);
+  --acento-tinta: var(--color-electric);
+  --acento-suave: rgb(36 198 220 / 0.12);
+  --acento-linea: rgb(36 198 220 / 0.45);
+}
+
+/* ==========================================================================
+   Hub (/juegos)
+   ========================================================================== */
+
+.juegos {
+  padding-bottom: 5rem;
+}
+
+/* Un gran 遊 de tinta detrás, como el 絵札 del pie. */
+.juegos::before {
+  content: '遊';
+  position: absolute;
+  top: -0.5rem;
+  right: var(--gutter);
+  z-index: -1;
+  color: var(--color-surface);
+  font-family: var(--font-jp);
+  font-size: clamp(9rem, 28vw, 18rem);
+  line-height: 1;
+  pointer-events: none;
+  user-select: none;
+}
+
+.juegos-cabecera {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 1.25rem 2rem;
+  padding-block: 1.75rem 2rem;
+}
+
+/* Sobres ganados en los juegos: una placa como la de los sobres de hoy. */
+.juegos-balance {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  margin: 0;
+  padding: 0.5rem 1rem 0.5rem 0.625rem;
+  border: 1px solid var(--color-gold-line);
+  border-radius: var(--radius-full);
+  background-color: var(--color-cristal);
+  box-shadow:
+    inset 0 1px 0 rgb(247 230 162 / 0.08),
+    var(--shadow-panel);
+  color: var(--color-fg);
+  font-size: var(--text-sm);
+  animation: aparece var(--dur-4) var(--ease-sumi) 260ms both;
+}
+
+.juegos-balance strong {
+  color: var(--color-gold-bright);
+  font-weight: 500;
+}
+
+.juegos-balance-sello {
+  width: 1.625rem;
+  height: 1.625rem;
+}
+
+.juegos-lista {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 0.875rem;
+  margin-block: 0;
+  padding-block: 0;
+  list-style: none;
+}
+
+/* ---- Tarjeta de un juego: una placa oscura con su sello y su kanji de fondo ---- */
+.tarjeta-juego {
+  position: relative;
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 1rem;
+  height: 100%;
+  min-height: 7.5rem;
+  padding: 1.125rem 1.125rem 1.125rem 1rem;
+  overflow: hidden;
+  border: 1px solid var(--color-gold-line);
+  border-radius: var(--radius-lg);
+  background-color: var(--color-surface);
+  background-image: linear-gradient(180deg, var(--color-surface-alt), var(--color-surface) 55%);
+  box-shadow:
+    inset 0 1px 0 rgb(247 230 162 / 0.08),
+    var(--shadow-panel);
+  color: var(--color-fg);
+  transition:
+    border-color var(--dur-2) var(--ease-sumi),
+    transform var(--dur-3) var(--ease-sumi);
+}
+
+.tarjeta-juego::before {
+  content: '';
+  position: absolute;
+  inset: 0.3125rem;
+  border: 1px solid rgb(197 161 90 / 0.12);
+  border-radius: calc(var(--radius-lg) - 0.25rem);
+  pointer-events: none;
+}
+
+.tarjeta-juego:hover {
+  border-color: var(--acento-linea);
+  transform: translate3d(0, -2px, 0);
+}
+
+/* El kanji, enorme y tenue, asoma por la esquina. */
+.tarjeta-juego-fondo {
+  position: absolute;
+  right: -0.375rem;
+  bottom: -1.75rem;
+  color: var(--acento);
+  font-size: 7.5rem;
+  line-height: 1;
+  opacity: 0.07;
+  pointer-events: none;
+  user-select: none;
+  transition: opacity var(--dur-3) var(--ease-sumi);
+}
+
+.tarjeta-juego:hover .tarjeta-juego-fondo {
+  opacity: 0.12;
+}
+
+.tarjeta-juego-kanji {
+  display: grid;
+  place-items: center;
+  width: 3.5rem;
+  height: 3.5rem;
+  border: 1px solid var(--acento-linea);
+  border-radius: var(--radius-md);
+  background-color: var(--acento-suave);
+  color: var(--acento);
+  font-size: 1.75rem;
+  line-height: 1;
+  transition: transform var(--dur-3) var(--ease-hane);
+}
+
+.tarjeta-juego:hover .tarjeta-juego-kanji {
+  transform: rotate(-6deg) scale(1.06);
+}
+
+.tarjeta-juego-cuerpo {
+  position: relative;
+  display: grid;
+  gap: 0.3125rem;
+  min-width: 0;
+}
+
+.tarjeta-juego-nombre {
+  color: var(--color-fg-strong);
+  font-family: var(--font-display);
+  font-size: var(--text-xl);
+  font-weight: 700;
+  letter-spacing: var(--tracking-tight);
+  line-height: 1.15;
+  text-wrap: balance;
+}
+
+.tarjeta-juego-descripcion {
+  color: var(--color-fg-muted);
+  font-size: var(--text-sm);
+}
+
+.tarjeta-juego-pie {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.375rem 0.875rem;
+  margin-top: 0.25rem;
+  font-size: var(--text-xs);
+}
+
+.tarjeta-juego-premio {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.375rem;
+  color: var(--color-gold-bright);
+}
+
+.tarjeta-juego-premio .hanko {
+  width: 1rem;
+  height: 1rem;
+}
+
+.tarjeta-juego-premio--sin,
+.tarjeta-juego-marcas {
+  color: var(--color-fg-muted);
+}
+
+.tarjeta-juego-flecha {
+  position: relative;
+  color: var(--acento);
+  font-size: var(--text-lg);
+  transition: transform var(--dur-3) var(--ease-sumi);
+}
+
+.tarjeta-juego:hover .tarjeta-juego-flecha {
+  transform: translate3d(3px, 0, 0);
+}
+
+@media (min-width: 48rem) {
+  .juegos-cabecera {
+    padding-block: 3.5rem 2.75rem;
+  }
+
+  .juegos-lista {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 1.25rem;
+  }
+}
+
+@media (min-width: 75rem) {
+  .juegos-lista {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+}
+
+/* ==========================================================================
+   Página de un juego: el marco común (ver src/juegos/comun/MarcoJuego.jsx)
+   ========================================================================== */
+
+.juego-escenario {
+  padding-bottom: 4rem;
+}
+
+/* ---- Cabecera: sello, nombre, descripción y las marcas de progreso ---- */
+.juego-cabecera {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  gap: 1rem 1.25rem;
+  align-items: start;
+  padding-block: 1.75rem 1.25rem;
+}
+
+.juego-kanji {
+  display: grid;
+  place-items: center;
+  width: 4rem;
+  height: 4rem;
+  border: 1px solid var(--acento-linea);
+  border-radius: var(--radius-md);
+  background-color: var(--acento-suave);
+  box-shadow: var(--shadow-panel);
+  color: var(--acento);
+  font-size: 2.25rem;
+  line-height: 1;
+  animation: aparece var(--dur-4) var(--ease-sumi) both;
+}
+
+.juego-cabecera-texto {
+  min-width: 0;
+}
+
+.juego-rotulo {
+  margin-bottom: 0.75rem;
+}
+
+.juego-titulo {
+  font-size: var(--text-3xl);
+}
+
+.juego-descripcion {
+  max-width: var(--container-prosa);
+  margin: 0.5rem 0 0;
+  color: var(--color-fg-muted);
+  animation: aparece var(--dur-4) var(--ease-sumi) 260ms both;
+}
+
+.juego-marcas {
+  grid-column: 1 / -1;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin: 0;
+}
+
+.juego-marca {
+  display: grid;
+  gap: 0.125rem;
+  min-width: 5.5rem;
+  padding: 0.5rem 0.875rem;
+  border: 1px solid var(--color-gold-line);
+  border-radius: var(--radius-md);
+  background-color: var(--color-cristal);
+}
+
+.juego-marca dt {
+  color: var(--color-fg-muted);
+  font-size: var(--text-2xs);
+  letter-spacing: var(--tracking-rotulo);
+  text-transform: uppercase;
+}
+
+.juego-marca dd {
+  margin: 0;
+  color: var(--color-gold-bright);
+  font-family: var(--font-display);
+  font-size: var(--text-xl);
+  font-weight: 700;
+  line-height: 1;
+}
+
+/* ---- «Cómo se juega»: un desplegable con las reglas ---- */
+.juego-barra {
+  padding-bottom: 1.25rem;
+}
+
+.reglas {
+  max-width: var(--container-prosa);
+}
+
+.reglas-boton {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  min-height: 2.5rem;
+  padding: 0.3125rem 0.875rem 0.3125rem 0.4375rem;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-full);
+  background-color: var(--color-surface);
+  color: var(--color-fg-strong);
+  font-size: var(--text-sm);
+  font-weight: 500;
+  list-style: none;
+  cursor: pointer;
+  user-select: none;
+  transition:
+    border-color var(--dur-2) var(--ease-sumi),
+    background-color var(--dur-2) var(--ease-sumi);
+}
+
+.reglas-boton::-webkit-details-marker {
+  display: none;
+}
+
+.reglas-boton:hover {
+  border-color: var(--color-gold-line-strong);
+  background-color: var(--color-surface-alt);
+}
+
+.reglas[open] .reglas-boton {
+  border-color: var(--acento-linea);
+}
+
+.reglas-icono {
+  display: grid;
+  place-items: center;
+  width: 1.5rem;
+  height: 1.5rem;
+  border-radius: 50%;
+  background-color: var(--acento-suave);
+  color: var(--acento);
+  font-family: var(--font-display);
+  font-weight: 700;
+}
+
+.reglas-cuerpo {
+  margin-top: 0.75rem;
+  padding: 1rem 1.125rem;
+  border: 1px solid var(--color-gold-line);
+  border-radius: var(--radius-md);
+  background-color: var(--color-cristal);
+  color: var(--color-fg);
+  font-size: var(--text-sm);
+  animation: aparece var(--dur-3) var(--ease-sumi) both;
+}
+
+.reglas-cuerpo :is(ol, ul) {
+  margin: 0;
+  padding-left: 1.25rem;
+}
+
+.reglas-cuerpo li + li {
+  margin-top: 0.375rem;
+}
+
+.reglas-cuerpo p {
+  margin: 0;
+}
+
+.reglas-cuerpo p + p,
+.reglas-cuerpo p + :is(ol, ul),
+.reglas-cuerpo :is(ol, ul) + p {
+  margin-top: 0.625rem;
+}
+
+.reglas-cuerpo strong {
+  color: var(--color-gold-pale);
+  font-weight: 500;
+}
+
+/* ---- Zona de juego y pie ---- */
+.juego-zona {
+  padding-block: 0.5rem 2rem;
+}
+
+.juego-pie {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.75rem;
+  padding-top: 1.5rem;
+}
+
+.juego-pie::before {
+  content: '';
+  flex-basis: 100%;
+  height: 1px;
+  margin-bottom: 0.25rem;
+  background-image: linear-gradient(90deg, var(--color-gold-line-strong), transparent 70%);
+}
+
+.juego-volver {
+  margin-left: auto;
+}
+
+/* Mientras llega el código del juego (ver pages/Juego.jsx). */
+.juego-cargando {
+  display: grid;
+  justify-items: start;
+  gap: 1rem;
+  min-height: 60vh;
+  padding-block: 3rem;
+}
+
+.juego-cargando-nombre {
+  margin: 0;
+  color: var(--color-fg-muted);
+  font-family: var(--font-display);
+  font-size: var(--text-2xl);
+  font-weight: 700;
+}
+
+@media (min-width: 48rem) {
+  .juego-cabecera {
+    grid-template-columns: auto minmax(0, 1fr) auto;
+    gap: 1.5rem;
+    padding-block: 3rem 1.5rem;
+  }
+
+  .juego-kanji {
+    width: 5rem;
+    height: 5rem;
+    font-size: 2.75rem;
+  }
+
+  .juego-titulo {
+    font-size: var(--text-4xl);
+  }
+
+  .juego-marcas {
+    grid-column: auto;
+  }
+
+  .juego-marca {
+    min-width: 6.5rem;
+    padding: 0.625rem 1rem;
+  }
+
+  .juego-marca dd {
+    font-size: var(--text-2xl);
+  }
+}
+
+/* ==========================================================================
+   Panel de fin de ronda (ver src/juegos/comun/ResultadoRonda.jsx)
+   ========================================================================== */
+
+.resultado {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  gap: 1rem 1.25rem;
+  align-items: start;
+  max-width: 40rem;
+  margin-top: 1.5rem;
+  padding: 1.25rem 1.25rem 1.375rem;
+  border: 1px solid var(--color-gold-line);
+  border-radius: var(--radius-lg);
+  background-color: var(--color-surface);
+  background-image: linear-gradient(180deg, var(--color-surface-alt), var(--color-surface) 45%);
+  box-shadow:
+    inset 0 1px 0 rgb(247 230 162 / 0.08),
+    var(--shadow-panel);
+  animation: aparece var(--dur-4) var(--ease-sumi) both;
+}
+
+/* Recibe el foco al aparecer solo para anunciarse: el anillo lo llevan sus botones. */
+.resultado:focus {
+  outline: none;
+}
+
+.resultado:focus-visible {
+  outline: 2px solid var(--foco);
+  outline-offset: 3px;
+}
+
+.resultado[data-resultado='victoria'] {
+  border-color: var(--acento-linea);
+}
+
+.resultado-sello {
+  width: 3rem;
+  height: 3rem;
+  animation: sello-cae var(--dur-4) var(--ease-hane) 120ms both;
+}
+
+/* La derrota se sella en tinta, no en bermellón. */
+.resultado[data-resultado='derrota'] .resultado-sello .hanko-fondo,
+.resultado[data-resultado='neutro'] .resultado-sello .hanko-fondo {
+  fill: var(--color-surface-alt);
+}
+
+.resultado-texto {
+  min-width: 0;
+}
+
+.resultado-titulo {
+  margin: 0;
+  font-size: var(--text-2xl);
+}
+
+.resultado-puntos {
+  display: flex;
+  align-items: baseline;
+  gap: 0.375rem;
+  margin: 0.375rem 0 0;
+  color: var(--color-gold-bright);
+}
+
+.resultado-puntos .cifra {
+  font-family: var(--font-display);
+  font-size: var(--text-3xl);
+  font-weight: 700;
+  line-height: 1;
+}
+
+.resultado-detalle {
+  margin: 0.625rem 0 0;
+  color: var(--color-fg-muted);
+}
+
+.resultado-sobre {
+  display: flex;
+  align-items: center;
+  gap: 0.625rem;
+  margin: 1rem 0 0;
+  padding: 0.625rem 0.875rem;
+  border: 1px solid var(--color-gold-line-strong);
+  border-radius: var(--radius-md);
+  background-color: var(--color-gold-soft);
+  color: var(--color-gold-pale);
+  font-size: var(--text-sm);
+  animation: aparece var(--dur-4) var(--ease-sumi) 240ms both;
+}
+
+.resultado-sobre-sello {
+  width: 1.5rem;
+  height: 1.5rem;
+}
+
+.resultado-acciones {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+  margin-top: 1.25rem;
+}
+
+@keyframes sello-cae {
+  from {
+    opacity: 0;
+    transform: scale(1.6) rotate(-14deg);
+  }
+}
+
+/* ==========================================================================
+   Buscadores con sugerencias (ver src/juegos/comun/Autocompletar.jsx)
+   ========================================================================== */
+
+.autocompletar {
+  position: relative;
+  max-width: 28rem;
+}
+
+.autocompletar-lista,
+.autocompletar-vacio {
+  position: absolute;
+  inset: calc(100% + 0.375rem) 0 auto;
+  z-index: 4;
+  margin: 0;
+  border: 1px solid var(--color-gold-line-strong);
+  border-radius: var(--radius-md);
+  background-color: var(--color-cristal);
+  box-shadow: var(--shadow-panel);
+  animation: aparece var(--dur-2) var(--ease-sumi) both;
+}
+
+.autocompletar-lista {
+  max-height: 22rem;
+  padding: 0.375rem;
+  overflow-y: auto;
+  list-style: none;
+}
+
+.autocompletar-opcion {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  column-gap: 0.75rem;
+  align-items: center;
+  padding: 0.375rem 0.625rem;
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+}
+
+.autocompletar-opcion[aria-selected='true'] {
+  background-color: var(--color-surface-alt);
+  box-shadow: inset 0 0 0 1px var(--color-gold-line-strong);
+}
+
+.autocompletar-miniatura {
+  grid-row: 1 / span 2;
+  width: 2.25rem;
+  aspect-ratio: 2 / 3;
+  object-fit: cover;
+  border-radius: 3px;
+  background-color: var(--color-surface-alt);
+}
+
+.autocompletar-principal {
+  color: var(--color-fg-strong);
+  font-size: var(--text-sm);
+  font-weight: 500;
+}
+
+.autocompletar-secundario {
+  color: var(--color-fg-muted);
+  font-size: var(--text-xs);
+}
+
+.autocompletar-vacio {
+  padding: 0.625rem 0.875rem;
+  border-color: var(--color-border);
+  color: var(--color-fg-muted);
+  font-size: var(--text-sm);
+}
+
+/* ==========================================================================
+   Piezas para los juegos: opciones, pistas, avisos, filas y tableros
+   ========================================================================== */
+
+/* Botones de respuesta («¿Cuál de estas?»). data-estado: acierto | fallo | elegida. */
+.juego-opciones {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(min(100%, 12rem), 1fr));
+  gap: 0.625rem;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.juego-opcion {
+  display: flex;
+  align-items: center;
+  gap: 0.625rem;
+  width: 100%;
+  min-height: 2.75rem;
+  padding: 0.625rem 0.875rem;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  background-color: var(--color-surface);
+  color: var(--color-fg-strong);
+  font: inherit;
+  font-size: var(--text-sm);
+  text-align: left;
+  transition:
+    border-color var(--dur-2) var(--ease-sumi),
+    background-color var(--dur-2) var(--ease-sumi),
+    color var(--dur-2) var(--ease-sumi);
+}
+
+.juego-opcion:hover {
+  border-color: var(--color-gold-line-strong);
+  background-color: var(--color-surface-alt);
+}
+
+.juego-opcion[data-estado='elegida'] {
+  border-color: var(--color-gold-bright);
+  box-shadow: 0 0 0 1px var(--color-gold-bright);
+}
+
+.juego-opcion[data-estado='acierto'] {
+  border-color: var(--acento-linea);
+  background-color: var(--acento-suave);
+}
+
+.juego-opcion[data-estado='fallo'] {
+  color: var(--color-fg-muted);
+  text-decoration: line-through;
+  text-decoration-color: var(--color-accent-text);
+}
+
+.juego-opcion:disabled {
+  cursor: default;
+}
+
+/* Pistas y datos ya descubiertos: pastillas doradas. */
+.juego-pistas {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.375rem;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.juego-pista {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.375rem;
+  min-height: 1.75rem;
+  padding: 0.125rem 0.625rem;
+  border: 1px solid var(--color-gold-line);
+  border-radius: var(--radius-full);
+  background-color: var(--color-gold-soft);
+  color: var(--color-gold-pale);
+  font-size: var(--text-xs);
+}
+
+/* Un aviso bajo la zona de juego. data-tono: acierto | fallo. */
+.juego-aviso {
+  margin: 0.75rem 0 0;
+  color: var(--color-fg-muted);
+  font-size: var(--text-sm);
+}
+
+.juego-aviso[data-tono='acierto'] {
+  color: var(--acento);
+}
+
+.juego-aviso[data-tono='fallo'] {
+  color: var(--color-accent-text);
+}
+
+/* Una fila de controles y un tablero de cartas. */
+.juego-fila {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.juego-tablero {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(min(100%, 9rem), 1fr));
+  gap: 0.75rem;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+/* ---- Pantalla provisional (ver src/juegos/comun/Proximamente.jsx) ---- */
+.proximamente {
+  display: grid;
+  justify-items: start;
+  gap: 0.75rem;
+  max-width: 30rem;
+  padding: 1.75rem 1.5rem;
+  border: 1px dashed var(--color-gold-line-strong);
+  border-radius: var(--radius-lg);
+  background-color: var(--color-cristal);
+}
+
+.proximamente-kanji {
+  color: var(--acento);
+  font-size: 3rem;
+  line-height: 1;
+}
+
+.proximamente-titulo {
+  margin: 0;
+  color: var(--color-fg-strong);
+  font-family: var(--font-display);
+  font-size: var(--text-2xl);
+  font-weight: 700;
+}
+
+.proximamente-texto {
+  margin: 0 0 0.5rem;
+  color: var(--color-fg-muted);
+}
+
+/* ==========================================================================
+   Movimiento reducido
+   ========================================================================== */
+@media (prefers-reduced-motion: reduce) {
+  .tarjeta-juego,
+  .tarjeta-juego-kanji,
+  .tarjeta-juego-flecha,
+  .tarjeta-juego-fondo {
+    transition: none;
+  }
+
+  .tarjeta-juego:hover,
+  .tarjeta-juego:hover .tarjeta-juego-kanji,
+  .tarjeta-juego:hover .tarjeta-juego-flecha {
+    transform: none;
+  }
+
+  .juegos-balance,
+  .juego-kanji,
+  .juego-descripcion,
+  .reglas-cuerpo,
+  .resultado,
+  .resultado-sobre,
+  .autocompletar-lista,
+  .autocompletar-vacio {
+    animation-name: funde;
+  }
+
+  .resultado-sello {
+    animation: none;
+  }
+}
+
+/* Por encima del pie: la lista de sugerencias de los buscadores (absoluta,
+   dentro del escenario) asomaba por debajo cuando el campo queda al final. */
+.juego-escenario {
+  z-index: 1;
+}

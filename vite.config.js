@@ -7,6 +7,15 @@ import { LOGO, pieza, TAMANO_SALA } from './src/lib/marca.js'
 // BASE_PATH lo fija el despliegue: "/" con dominio propio, "/<repo>/" en GitHub Pages.
 const base = process.env.BASE_PATH || '/'
 
+// La pantalla de cada juego (src/juegos/<slug>/index.jsx) sale con su
+// nombre, juego-<slug>-<hash>.js, en vez de index-<hash>.js: la página
+// prerenderizada del juego la precarga por ese nombre (scripts/prerender.mjs).
+const PANTALLA_JUEGO = /[\\/]src[\\/]juegos[\\/]([\w-]+)[\\/]index\.jsx$/
+function nombreDeTrozo(trozo) {
+  const slug = PANTALLA_JUEGO.exec(trozo.facadeModuleId ?? '')?.[1]
+  return slug ? `assets/juego-${slug}-[hash].js` : 'assets/[name]-[hash].js'
+}
+
 // Fuentes de toda la interfaz: se piden desde el HTML, antes que cualquier
 // otra, para que el texto no espere detrás de los glifos japoneses.
 const FUENTES_CRITICAS = /^assets\/(ibm-plex-sans-latin-400-normal|zen-old-mincho-latin-700-normal)-[\w-]+\.woff2$/
@@ -78,6 +87,7 @@ export default defineConfig({
     assetsInlineLimit: 0,
     rolldownOptions: {
       output: {
+        chunkFileNames: nombreDeTrozo,
         codeSplitting: {
           groups: [
             // El catálogo cambia con cada carta nueva; React casi nunca.
