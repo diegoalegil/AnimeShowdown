@@ -1,0 +1,404 @@
+/* ==========================================================================
+   Mi Top 5: un pequeño santuario personal. Cinco peanas de laca oscura con
+   su numeral dorado (一二三四五), la primera más alta y en el centro, dos
+   velas votivas a los lados y un 誓 (juramento) de tinta detrás. Debajo, el
+   buscador para añadir cartas y, al final, la imagen creada con su descarga.
+   Solo se anima transform y opacity; sin backdrop-filter.
+   ========================================================================== */
+
+.top5-mesa {
+  display: grid;
+  gap: 1.5rem;
+}
+
+/* ---- El altar ---- */
+.top5-altar {
+  position: relative;
+  padding: 2rem 1rem 1.25rem;
+  overflow: hidden;
+  border: 1px solid var(--color-gold-line);
+  border-radius: var(--radius-lg);
+  background-color: var(--color-surface);
+  background-image:
+    radial-gradient(ellipse 70% 55% at 50% 100%, rgb(159 29 44 / 0.22), transparent 70%),
+    linear-gradient(180deg, var(--color-canvas), var(--color-surface) 65%, var(--color-surface-alt));
+  box-shadow:
+    inset 0 1px 0 rgb(247 230 162 / 0.08),
+    var(--shadow-panel);
+}
+
+/* El doble filo lacado del marco. */
+.top5-altar::before {
+  content: '';
+  position: absolute;
+  inset: 0.375rem;
+  border: 1px solid rgb(197 161 90 / 0.14);
+  border-radius: calc(var(--radius-lg) - 0.25rem);
+  pointer-events: none;
+}
+
+/* 誓, el juramento, enorme y tenue al fondo. */
+.top5-marca {
+  position: absolute;
+  top: -0.75rem;
+  right: 0.5rem;
+  color: var(--color-gold-pale);
+  font-family: var(--font-jp);
+  font-size: clamp(9rem, 32vw, 15rem);
+  line-height: 1;
+  opacity: 0.05;
+  pointer-events: none;
+  user-select: none;
+}
+
+/* ---- Velas votivas: cuerpo de cera, pabilo y una llama que titila ---- */
+.top5-vela {
+  position: absolute;
+  bottom: 1.5rem;
+  width: 0.5rem;
+  height: 2.75rem;
+  border-radius: 0.125rem 0.125rem 0 0;
+  background-image: linear-gradient(180deg, var(--color-gold-pale), var(--color-gold) 40%, rgb(197 161 90 / 0.6));
+  opacity: 0.85;
+}
+
+.top5-vela--izquierda {
+  left: 1.25rem;
+}
+
+.top5-vela--derecha {
+  right: 1.25rem;
+}
+
+.top5-vela::before,
+.top5-vela::after {
+  content: '';
+  position: absolute;
+  left: 50%;
+  border-radius: 50% 50% 50% 50% / 60% 60% 40% 40%;
+  transform-origin: 50% 100%;
+}
+
+/* La llama. */
+.top5-vela::before {
+  bottom: 100%;
+  width: 0.5rem;
+  height: 0.875rem;
+  background-image: radial-gradient(ellipse at 50% 80%, var(--color-gold-pale), var(--color-gold-bright) 45%, rgb(190 43 56 / 0.9) 100%);
+  box-shadow: 0 0 14px 4px rgb(228 195 111 / 0.35);
+  transform: translateX(-50%);
+  animation: top5-titila 1.8s var(--ease-fude) infinite alternate;
+}
+
+/* El halo. */
+.top5-vela::after {
+  bottom: 95%;
+  width: 2.5rem;
+  height: 2.5rem;
+  background-image: radial-gradient(circle, rgb(228 195 111 / 0.25), transparent 70%);
+  transform: translateX(-50%);
+  animation: top5-halo 1.8s var(--ease-fude) infinite alternate;
+}
+
+.top5-vela--derecha::before,
+.top5-vela--derecha::after {
+  animation-delay: -0.9s;
+}
+
+@keyframes top5-titila {
+  0% {
+    transform: translateX(-50%) scale(1) rotate(-2deg);
+    opacity: 0.95;
+  }
+
+  50% {
+    transform: translateX(-46%) scale(1.08, 1.18) rotate(3deg);
+    opacity: 1;
+  }
+
+  100% {
+    transform: translateX(-52%) scale(0.94, 1.02) rotate(-3deg);
+    opacity: 0.85;
+  }
+}
+
+@keyframes top5-halo {
+  from {
+    transform: translateX(-50%) scale(0.9);
+    opacity: 0.7;
+  }
+
+  to {
+    transform: translateX(-50%) scale(1.15);
+    opacity: 1;
+  }
+}
+
+/* ---- Peanas ---- */
+.top5-peanas {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 1rem;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.top5-peana {
+  --alzado: 0rem; /* cuánto sube la peana sobre el suelo; la primera, más */
+  position: relative;
+  display: grid;
+  justify-items: center;
+  gap: 0.5rem;
+  padding: 1.75rem 0.75rem 0.875rem;
+  border: 1px solid var(--color-gold-line);
+  border-radius: var(--radius-md);
+  background-color: var(--color-bg);
+  background-image: linear-gradient(180deg, rgb(23 31 44 / 0.9), var(--color-canvas));
+  box-shadow:
+    inset 0 1px 0 rgb(247 230 162 / 0.08),
+    0 18px 28px -18px rgb(0 0 0 / 0.9);
+}
+
+/* La tabla de la peana: un filete dorado al pie. */
+.top5-peana::after {
+  content: '';
+  position: absolute;
+  right: 0.5rem;
+  bottom: 0;
+  left: 0.5rem;
+  height: 3px;
+  border-radius: var(--radius-full);
+  background-color: var(--color-gold);
+  opacity: 0.55;
+}
+
+.top5-peana[data-puesto='1'] {
+  border-color: var(--color-gold-line-strong);
+}
+
+.top5-peana[data-puesto='1']::after {
+  opacity: 0.95;
+}
+
+.top5-peana[data-vacia] {
+  border-style: dashed;
+  background-image: none;
+}
+
+/* El numeral, en la esquina, como un sello de oro. */
+.top5-numeral {
+  position: absolute;
+  top: 0.5rem;
+  left: 0.75rem;
+  color: var(--color-gold-bright);
+  font-family: var(--font-jp);
+  font-size: var(--text-2xl);
+  font-weight: 700;
+  line-height: 1;
+  text-shadow: 0 0 12px rgb(228 195 111 / 0.35);
+}
+
+.top5-peana[data-vacia] .top5-numeral {
+  color: var(--color-fg-muted);
+  opacity: 0.45;
+  text-shadow: none;
+}
+
+.top5-carta {
+  width: min(48vw, 9.5rem);
+}
+
+.top5-peana[data-puesto='1'] .top5-carta {
+  width: min(56vw, 11rem);
+}
+
+/* La carta recién añadida desciende hasta su peana. */
+.top5-carta[data-llega] {
+  animation: top5-llega var(--dur-4) var(--ease-sumi) both;
+}
+
+@keyframes top5-llega {
+  from {
+    transform: translate3d(0, -1.5rem, 0) scale(0.96);
+    opacity: 0;
+  }
+
+  to {
+    transform: none;
+    opacity: 1;
+  }
+}
+
+.top5-nombre {
+  display: grid;
+  margin: 0;
+  color: var(--color-fg-strong);
+  font-family: var(--font-display);
+  font-size: var(--text-base);
+  line-height: 1.2;
+  text-align: center;
+  text-wrap: balance;
+}
+
+.top5-serie {
+  color: var(--color-fg-muted);
+  font-family: var(--font-sans);
+  font-size: var(--text-xs);
+}
+
+.top5-hueco {
+  display: grid;
+  place-items: center;
+  width: min(48vw, 9.5rem);
+  aspect-ratio: 2 / 3;
+  margin: 0;
+  border: 1px dashed var(--color-gold-line);
+  border-radius: var(--radius-carta);
+  color: var(--color-fg-muted);
+  font-size: var(--text-sm);
+  font-style: italic;
+}
+
+/* ---- Mandos: subir, bajar, quitar ---- */
+.top5-mandos {
+  display: flex;
+  gap: 0.375rem;
+}
+
+.top5-mando {
+  display: grid;
+  place-items: center;
+  width: 2.75rem;
+  height: 2.75rem;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-sm);
+  background-color: var(--color-surface);
+  color: var(--color-fg);
+  font: inherit;
+  font-size: var(--text-sm);
+  transition:
+    border-color var(--dur-2) var(--ease-sumi),
+    color var(--dur-2) var(--ease-sumi),
+    transform var(--dur-2) var(--ease-hane);
+}
+
+.top5-mando:hover:not(:disabled) {
+  border-color: var(--color-gold-line-strong);
+  color: var(--color-gold-bright);
+  transform: translate3d(0, -1px, 0);
+}
+
+.top5-mando--quitar:hover:not(:disabled) {
+  border-color: rgb(232 90 100 / 0.5);
+  color: var(--color-accent-text);
+}
+
+.top5-mando:disabled {
+  color: var(--color-fg-muted);
+  opacity: 0.4;
+  cursor: default;
+}
+
+/* ---- Panel de añadir ---- */
+.top5-panel {
+  display: grid;
+  gap: 0.25rem;
+  max-width: 36rem;
+}
+
+/* ---- La imagen creada ---- */
+.top5-salida {
+  display: grid;
+  gap: 1rem;
+  animation: aparece var(--dur-4) var(--ease-sumi) both;
+}
+
+.top5-vista {
+  display: block;
+  width: 100%;
+  max-width: 48rem;
+  height: auto;
+  border: 1px solid var(--color-gold-line);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-alzada);
+}
+
+/* ---- Escritorio: las cinco peanas en fila, la primera en el centro y más alta ---- */
+@media (min-width: 48rem) {
+  .top5-altar {
+    padding: 2.5rem 3.5rem 1.5rem;
+  }
+
+  .top5-peanas {
+    grid-template-columns: repeat(5, minmax(0, 1fr));
+    align-items: end;
+    gap: 0.75rem;
+  }
+
+  .top5-peana {
+    padding-bottom: calc(0.875rem + var(--alzado));
+  }
+
+  /* Orden visual 四 二 一 三 五; el orden del documento sigue siendo 1..5. */
+  .top5-peana[data-puesto='1'] {
+    --alzado: 2rem;
+    order: 3;
+  }
+
+  .top5-peana[data-puesto='2'] {
+    --alzado: 1.25rem;
+    order: 2;
+  }
+
+  .top5-peana[data-puesto='3'] {
+    --alzado: 1.25rem;
+    order: 4;
+  }
+
+  .top5-peana[data-puesto='4'] {
+    --alzado: 0.5rem;
+    order: 1;
+  }
+
+  .top5-peana[data-puesto='5'] {
+    --alzado: 0.5rem;
+    order: 5;
+  }
+
+  .top5-carta,
+  .top5-hueco {
+    width: 100%;
+    max-width: 9rem;
+  }
+
+  .top5-peana[data-puesto='1'] .top5-carta {
+    width: 100%;
+    max-width: 10.5rem;
+  }
+
+  .top5-mando {
+    width: 2.75rem;
+    height: 2.75rem;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .top5-vela::before,
+  .top5-vela::after,
+  .top5-carta[data-llega],
+  .top5-salida {
+    animation-name: funde;
+    animation-iteration-count: 1;
+  }
+
+  .top5-mando {
+    transition: none;
+  }
+}
+
+/* «Crear imagen» espera, apagado, a que el altar esté completo. */
+.top5-crear[aria-disabled='true'] {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
