@@ -29,6 +29,7 @@ export function Pie() {
         <nav aria-label="Pie de página" className="pie-nav">
           <Enlace to="/">Galería</Enlace>
           <Enlace to="/sobres">Sobres</Enlace>
+          <Enlace to="/juegos">Juegos</Enlace>
           <Enlace to="/coleccion">Colección</Enlace>
         </nav>
 

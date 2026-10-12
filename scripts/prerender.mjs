@@ -1,8 +1,9 @@
 #!/usr/bin/env node
 // Tras `vite build`: copia dist/index.html a cada ruta de la aplicación con su
 // propio <title> y descripción, para que GitHub Pages sirva un 200 con
-// metadatos correctos en /carta/<id>/, /sobres/ y /coleccion/. Escribe además
-// dist/404.html para que cualquier otra ruta arranque la aplicación.
+// metadatos correctos en /carta/<id>/, /sobres/, /coleccion/, /juegos/ y
+// /juegos/<slug>/. Escribe además dist/404.html para que cualquier otra ruta
+// arranque la aplicación.
 //
 // La portada (dist/index.html) lleva además su HTML ya pintado (ver
 // src/esqueleto.jsx): la sala, el título y las acciones se ven sin esperar al
@@ -16,8 +17,9 @@ import { mkdirSync, readFileSync, readdirSync, writeFileSync } from 'node:fs'
 import { dirname, join } from 'node:path'
 import { fileURLToPath } from 'node:url'
 import { createServer } from 'vite'
+import { JUEGOS } from '../src/juegos/registro.js'
 import { ESCENARIOS, pieza } from '../src/lib/marca.js'
-import { PAGINAS, descripcionCarta, nombreCarta, tituloDePagina } from '../src/lib/titulos.js'
+import { PAGINAS, descripcionCarta, descripcionJuego, nombreCarta, tituloDePagina, tituloJuego } from '../src/lib/titulos.js'
 
 const raiz = join(dirname(fileURLToPath(import.meta.url)), '..')
 const base = process.env.BASE_PATH || '/'
@@ -52,12 +54,14 @@ function precargaCodigo(nombre) {
 /**
  * HTML de la plantilla con el título y la descripción de una página. Las
  * ilustraciones que precarga la portada (data-portada) solo sirven allí; una
- * sección puede precargar en su lugar su propio escenario y su código.
+ * sección puede precargar en su lugar su propio escenario y su código (uno
+ * o varios archivos).
  */
 function pagina(html, { titulo, descripcion, escenario, codigo }) {
   const t = escapar(titulo)
   const d = escapar(descripcion)
-  const precargas = [escenario && precargaEscenario(escenario), codigo && precargaCodigo(codigo)].filter(Boolean)
+  const codigos = [codigo].flat().filter(Boolean)
+  const precargas = [escenario && precargaEscenario(escenario), ...codigos.map(precargaCodigo)].filter(Boolean)
   // Reemplazos con función: el texto nunca se interpreta como patrón ($1, $&…).
   return html
     .replace(/\s*<link [^>]*data-portada[^>]*>/g, '')
@@ -104,12 +108,21 @@ for (const carta of cartas) {
 for (const [clave, codigo] of [
   ['sobres', 'Sobres'],
   ['coleccion', 'Coleccion'],
+  ['juegos', 'Juegos'],
 ]) {
   escribir(clave, {
     titulo: tituloDePagina(PAGINAS[clave].titulo),
     descripcion: PAGINAS[clave].descripcion,
     escenario: ESCENARIOS[clave],
     codigo,
+  })
+}
+// Cada juego: el marco de la página y su propia pantalla (ver chunkFileNames en vite.config.js).
+for (const juego of JUEGOS) {
+  escribir(`juegos/${juego.slug}`, {
+    titulo: tituloDePagina(tituloJuego(juego)),
+    descripcion: descripcionJuego(juego),
+    codigo: ['Juego', `juego-${juego.slug}`],
   })
 }
 writeFileSync(
@@ -132,4 +145,4 @@ writeFileSync(
     .replace('<div id="root"></div>', () => `<div id="root">${cuerpo}</div>`),
 )
 
-console.log(`prerender: portada, ${cartas.length} fichas, 2 secciones y 404.html`)
+console.log(`prerender: portada, ${cartas.length} fichas, 3 secciones, ${JUEGOS.length} juegos y 404.html`)

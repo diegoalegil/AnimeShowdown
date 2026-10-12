@@ -9,7 +9,7 @@ import { idsAncla, useNavegacionDelegada, useRestaurarScroll } from './lib/naveg
 import { PaginaActiva } from './lib/paginaActiva.js'
 import Galeria from './pages/Galeria.jsx'
 import NoEncontrada from './pages/NoEncontrada.jsx'
-import { coleccion, ficha, sobres } from './paginas.js'
+import { coleccion, ficha, juego, juegos, sobres } from './paginas.js'
 
 export function App() {
   useNavegacionDelegada()
@@ -65,6 +65,23 @@ export function App() {
                 // Mientras llega el código (solo si se entra directamente), el escenario ya oscuro.
                 <Suspense fallback={<div className="escenario escenario--cargando" />}>
                   <sobres.Componente />
+                </Suspense>
+              }
+            />
+            <Route
+              path="juegos"
+              element={
+                <Suspense fallback={<div className="escenario escenario--cargando" />}>
+                  <juegos.Componente />
+                </Suspense>
+              }
+            />
+            <Route
+              path="juegos/:slug"
+              element={
+                // Un slug desconocido lo resuelve la propia página (NoEncontrada).
+                <Suspense fallback={<div className="escenario escenario--cargando" />}>
+                  <juego.Componente />
                 </Suspense>
               }
             />
