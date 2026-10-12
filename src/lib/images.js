@@ -2,6 +2,8 @@
 // tamaños en public/img: <ruta>-300.webp, -450, -600 y <ruta>.webp (~1024 px
 // de ancho), generados por scripts/generate-tamanos.mjs.
 
+import { acercarGrupo } from './motion.js'
+
 const ANCHO_ORIGINAL = 1024
 
 /**
@@ -103,6 +105,7 @@ function obtenerAnticipador() {
       for (const { target, isIntersecting } of entradas) {
         target.toggleAttribute('data-cerca', isIntersecting)
         if (isIntersecting) adelantarImagenes(target)
+        acercarGrupo(target, isIntersecting)
       }
     },
     { rootMargin: MARGEN_ANTICIPO },

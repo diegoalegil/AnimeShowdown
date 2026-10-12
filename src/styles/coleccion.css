@@ -666,7 +666,7 @@
 }
 
 /* El tramo de la hoja se llena al entrar en pantalla (con el scroll en calma). */
-:root[data-calma] .hoja-cabecera[data-revelar=''] .linea-relleno {
+.hoja-cabecera[data-calma][data-revelar=''] .linea-relleno {
   transform: scaleX(0);
 }
 
@@ -1182,7 +1182,7 @@
     animation: none;
   }
 
-  :root[data-calma] .hoja-cabecera[data-revelar=''] .linea-relleno {
+  .hoja-cabecera[data-calma][data-revelar=''] .linea-relleno {
     transform: scaleX(var(--p, 0));
   }
 

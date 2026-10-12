@@ -93,14 +93,22 @@ let observador = null
 
 // Ritmo del scroll. Con scroll rápido las cartas aparecen sin coreografía:
 // no daría tiempo a verla y ocultar y volver a mostrar decenas de cartas
-// cuesta frames en un móvil modesto. Mientras el scroll va con calma, <html>
-// lleva data-calma y solo entonces las cartas esperan ocultas su entrada
-// (ver [data-revelar] en index.css). Hay histéresis para no alternar a cada
-// frame: se pasa a rápido por encima de 1,2 px/ms y se vuelve a la calma por
-// debajo de 0,4 px/ms.
+// cuesta frames en un móvil modesto. Mientras el scroll va con calma, los
+// grupos cercanos a la pantalla ([data-cerca], ver anticipar en lib/images)
+// llevan data-calma y solo entonces sus cartas esperan ocultas su entrada
+// (ver [data-revelar] en index.css). Se anota en los grupos y no en <html>:
+// cambiarlo en la raíz obligaba a recalcular el estilo de todas las cartas
+// pendientes de la página (más de mil en el álbum) a cada cambio de ritmo.
+// Hay histéresis para no alternar a cada frame: se pasa a rápido por encima
+// de 1,2 px/ms y se vuelve a la calma por debajo de 0,4 px/ms.
 export const VELOCIDAD_RAPIDA = 1.2
 export const VELOCIDAD_CALMA = 0.4
 let rapido = false
+const CERCA = '[data-cerca]'
+
+function marcarCalma() {
+  for (const grupo of document.querySelectorAll(CERCA)) grupo.toggleAttribute('data-calma', !rapido)
+}
 
 /** true mientras el scroll va rápido (ver ritmoScroll). */
 export const scrollRapido = () => rapido
@@ -114,7 +122,6 @@ function seguirRitmo() {
   let previa = null
   let frame = 0
   let reposo = 0
-  const raiz = document.documentElement
   const medir = (t) => {
     frame = 0
     const y = window.scrollY
@@ -122,7 +129,7 @@ function seguirRitmo() {
       const nuevo = ritmoScroll(rapido, Math.abs(y - previa.y) / Math.max(t - previa.t, 1))
       if (nuevo !== rapido) {
         rapido = nuevo
-        raiz.toggleAttribute('data-calma', !rapido)
+        marcarCalma()
       }
     }
     previa = { t, y }
@@ -132,7 +139,7 @@ function seguirRitmo() {
       previa = null
       if (rapido) {
         rapido = false
-        raiz.setAttribute('data-calma', '')
+        marcarCalma()
       }
     }, 160)
   }
@@ -154,6 +161,12 @@ function marcarVisto(elemento, retardo = 0, directo = rapido) {
   elemento.dataset.revelar = 'visto'
 }
 
+// Elementos a la espera dentro de cada grupo lejano ([data-diferido]). Solo
+// se observan los de los grupos cercanos: con mil cartas observadas a la vez,
+// calcular sus intersecciones se llevaba la mitad del hilo principal en cada
+// frame de scroll de un móvil.
+const pendientes = new WeakMap()
+
 function obtenerObservador() {
   if (observador || !hayVentana() || typeof window.IntersectionObserver !== 'function') return observador
   observador = new window.IntersectionObserver(
@@ -162,6 +175,7 @@ function obtenerObservador() {
       for (const entrada of entradas) {
         if (!entrada.isIntersecting) continue
         observador.unobserve(entrada.target)
+        pendientes.get(entrada.target.closest?.(DIFERIDOS))?.delete(entrada.target)
         marcarVisto(entrada.target, Math.min(orden * PASO_MS, MAX_RETARDO_MS))
         orden++
       }
@@ -174,7 +188,8 @@ function obtenerObservador() {
 
 /**
  * Ref de callback para React: `<li data-revelar ref={revelar}>`. Es la misma
- * función para todos los elementos, así que no crea closures por carta.
+ * función para todos los elementos, así que no crea closures por carta. Los
+ * elementos de un grupo lejano esperan a que el grupo se acerque (acercarGrupo).
  */
 export function revelar(elemento) {
   if (!elemento || elemento.dataset.revelar === 'visto') return undefined
@@ -183,14 +198,42 @@ export function revelar(elemento) {
     marcarVisto(elemento)
     return undefined
   }
+  const grupo = elemento.closest?.(DIFERIDOS)
+  if (grupo && !grupo.hasAttribute('data-cerca')) {
+    let conjunto = pendientes.get(grupo)
+    if (!conjunto) pendientes.set(grupo, (conjunto = new Set()))
+    conjunto.add(elemento)
+    return () => {
+      conjunto.delete(elemento)
+      io.unobserve(elemento)
+    }
+  }
   io.observe(elemento)
   return () => io.unobserve(elemento)
 }
 
+/**
+ * Un grupo (o cabecera) se acerca a la pantalla o se aleja (lo avisa
+ * anticipar, en lib/images): toma la calma del scroll y sus elementos
+ * pendientes empiezan o dejan de observarse.
+ */
+export function acercarGrupo(grupo, cerca) {
+  grupo.toggleAttribute('data-calma', cerca && !rapido)
+  const conjunto = pendientes.get(grupo)
+  if (!conjunto || !observador) return
+  for (const elemento of conjunto) {
+    if (cerca) observador.observe(elemento)
+    else observador.unobserve(elemento)
+  }
+}
+
 // ---------------------------------------------------------------------------
 // Inclinación: la carta bajo el puntero gira hacia él (máx. ~8°) y el brillo
-// holográfico (un reflejo que sigue al puntero y una banda de luz) la recorre. Un solo par de listeners por contenedor, cálculo en
-// requestAnimationFrame y sin lecturas de layout dentro del bucle.
+// holográfico (un reflejo que sigue al puntero y una banda de luz) la
+// recorre. Un solo juego de listeners por contenedor, cálculo en
+// requestAnimationFrame y, mientras el puntero se mueve, sin lecturas de
+// layout; la caja se vuelve a leer cuando algo mueve la carta por debajo
+// (scroll, redimensionado, reflujo del contenedor).
 // ---------------------------------------------------------------------------
 
 export const INCLINACION_MAX = 8
