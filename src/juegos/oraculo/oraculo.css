@@ -1,0 +1,631 @@
+/* ==========================================================================
+   Oráculo (src/juegos/oraculo): el santuario. A la izquierda el altar, con la
+   máscara kitsune levitando sobre un aura cian que respira al ritmo de la
+   confianza del oráculo (lento de lejos, rápido al borde de la apuesta); a
+   la derecha la mesa, donde la pregunta llega como una tira de papel y las
+   respuestas se cuelgan después como tablillas. Solo se anima transform y
+   opacity; todo loop se para fuera de pantalla (data-fuera) y con
+   prefers-reduced-motion.
+   ========================================================================== */
+
+.oraculo-lectura {
+  margin: 0.75rem 0 0;
+  color: var(--color-fg-muted);
+  font-size: var(--text-sm);
+}
+
+.oraculo-lectura .cifra {
+  color: var(--acento);
+}
+
+.oraculo-santuario {
+  display: grid;
+  gap: 1.5rem;
+}
+
+/* ---- Altar: marca de agua, aura, máscara y el sello del personaje ---- */
+.oraculo-altar {
+  position: relative;
+  display: grid;
+  place-items: center;
+  min-height: 17rem;
+  padding: 1.5rem 1rem;
+  overflow: hidden;
+  border: 1px solid var(--color-gold-line);
+  border-radius: var(--radius-lg);
+  background-color: var(--color-surface);
+  background-image: linear-gradient(180deg, var(--color-surface-alt), var(--color-surface) 60%);
+  box-shadow:
+    inset 0 1px 0 rgb(247 230 162 / 0.08),
+    var(--shadow-panel);
+}
+
+.oraculo-altar::before {
+  content: '';
+  position: absolute;
+  inset: 0.375rem;
+  border: 1px solid rgb(197 161 90 / 0.14);
+  border-radius: calc(var(--radius-lg) - 0.25rem);
+  pointer-events: none;
+}
+
+.oraculo-marca {
+  position: absolute;
+  top: -1rem;
+  right: 0.25rem;
+  color: var(--acento);
+  font-size: clamp(8rem, 30vw, 11rem);
+  line-height: 1;
+  opacity: 0.06;
+  pointer-events: none;
+  user-select: none;
+}
+
+/* Aura: dos capas pintadas (sin blur); la fuerte respira con --oraculo-aura-ciclo. */
+.oraculo-aura {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 19rem;
+  height: 19rem;
+  border-radius: 50%;
+  background-image: radial-gradient(closest-side, rgb(36 198 220 / 0.26), rgb(36 198 220 / 0.09) 55%, transparent 72%);
+  transform: translate(-50%, -54%);
+  opacity: 0.6;
+  pointer-events: none;
+}
+
+.oraculo-aura--fuerte {
+  background-image: radial-gradient(closest-side, rgb(36 198 220 / 0.5), rgb(36 198 220 / 0.14) 55%, transparent 72%);
+  opacity: 0;
+  animation: oraculo-respira var(--oraculo-aura-ciclo, 4s) ease-in-out infinite;
+}
+
+@keyframes oraculo-respira {
+  50% {
+    opacity: 1;
+  }
+}
+
+.oraculo-levita {
+  position: relative;
+  animation: oraculo-levita 4s ease-in-out infinite;
+}
+
+@keyframes oraculo-levita {
+  50% {
+    transform: translate3d(0, -5px, 0);
+  }
+}
+
+/* ---- Máscara (ver Mascara.jsx): postura por data-pose ---- */
+.oraculo-mascara {
+  width: clamp(9rem, 32vw, 11.5rem);
+  transition: transform var(--dur-3) var(--ease-sumi);
+}
+
+.oraculo-mascara[data-pose='duda'] {
+  transform: rotate(5deg);
+}
+
+.oraculo-mascara[data-pose='reverencia'] {
+  transform: rotate(8deg) translate3d(0, 4px, 0);
+}
+
+.oraculo-mascara[data-pose='pena'] {
+  transform: rotate(-9deg) translate3d(0, 6px, 0);
+}
+
+.oraculo-mascara-svg {
+  display: block;
+  width: 100%;
+  height: auto;
+  overflow: visible;
+}
+
+.oraculo-mascara-trazo,
+.oraculo-mascara-ojos {
+  fill: none;
+  stroke: var(--color-gold);
+  stroke-width: 2;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.oraculo-mascara-ojos {
+  stroke: var(--color-gold-bright);
+  stroke-width: 2.4;
+}
+
+.oraculo-mascara-marca {
+  fill: none;
+  stroke: var(--color-hanko);
+  stroke-width: 3.5;
+  stroke-linecap: round;
+  opacity: 0.9;
+}
+
+/* Los ojos se encienden solo al acertar. */
+.oraculo-mascara-brillo {
+  fill: var(--color-electric);
+  opacity: 0;
+  transition: opacity var(--dur-3) var(--ease-sumi);
+}
+
+.oraculo-mascara-brillo circle:nth-child(odd) {
+  opacity: 0.3;
+}
+
+.oraculo-mascara[data-brillo] .oraculo-mascara-brillo {
+  opacity: 1;
+}
+
+/* El sello del personaje: cae al sellar y se queda en la esquina. */
+.oraculo-sellado {
+  position: absolute;
+  bottom: 0.875rem;
+  left: 0.875rem;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin: 0;
+  padding: 0.3125rem 0.75rem 0.3125rem 0.375rem;
+  border: 1px solid var(--color-gold-line);
+  border-radius: var(--radius-full);
+  background-color: var(--color-cristal);
+  color: var(--color-gold-pale);
+  font-size: var(--text-xs);
+  animation: oraculo-sella var(--dur-4) var(--ease-hane) both;
+}
+
+.oraculo-sellado-hanko {
+  width: 1.5rem;
+  height: 1.5rem;
+}
+
+@keyframes oraculo-sella {
+  from {
+    opacity: 0;
+    transform: scale(1.5) rotate(-12deg);
+  }
+}
+
+/* ---- Mesa: sellar, la tira, las respuestas y el veredicto ---- */
+.oraculo-mesa {
+  display: grid;
+  align-content: start;
+  gap: 1.25rem;
+  min-width: 0;
+  /* En el móvil la mesa va antes que el altar: el buscador y la pregunta
+     quedan a mano y la lista de sugerencias no llega al pie. */
+  order: -1;
+}
+
+.oraculo-sellar {
+  display: grid;
+  gap: 1rem;
+}
+
+.oraculo-invitacion {
+  display: flex;
+  gap: 0.75rem;
+  align-items: flex-start;
+  max-width: var(--container-prosa);
+  margin: 0;
+  color: var(--color-fg);
+}
+
+.oraculo-invitacion-kanji {
+  flex: none;
+  color: var(--acento);
+  font-size: var(--text-3xl);
+  line-height: 0.9;
+}
+
+.oraculo-elegido {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  gap: 1rem 1.25rem;
+  align-items: center;
+  max-width: 34rem;
+  padding: 1rem;
+  border: 1px solid var(--acento-linea);
+  border-radius: var(--radius-lg);
+  background-color: var(--color-cristal);
+  animation: aparece var(--dur-3) var(--ease-sumi) both;
+}
+
+.oraculo-elegido-carta {
+  width: 6.5rem;
+}
+
+.oraculo-elegido-texto {
+  display: grid;
+  gap: 0.5rem;
+  min-width: 0;
+}
+
+.oraculo-elegido-pregunta {
+  margin: 0;
+  color: var(--color-fg-strong);
+  font-family: var(--font-display);
+  font-size: var(--text-xl);
+  font-weight: 700;
+}
+
+.oraculo-elegido-nota {
+  margin: 0;
+  color: var(--color-fg-muted);
+  font-size: var(--text-sm);
+}
+
+.oraculo-boton-kanji {
+  margin-left: 0.375rem;
+}
+
+/* La tira de papel: marfil sobre el lienzo oscuro, tinta del lienzo. */
+.oraculo-tira {
+  position: relative;
+  max-width: 30rem;
+  padding: 0.875rem 1.25rem 1.125rem;
+  border-radius: var(--radius-sm);
+  background-color: var(--color-fg-strong);
+  background-image: linear-gradient(180deg, var(--color-fg-strong), var(--color-gold-pale));
+  box-shadow: var(--shadow-panel);
+  color: var(--color-canvas);
+  transform-origin: 50% 0;
+  animation: oraculo-desenrolla var(--dur-3) var(--ease-sumi) both;
+}
+
+/* Los filos de papel cortado. */
+.oraculo-tira::before,
+.oraculo-tira::after {
+  content: '';
+  position: absolute;
+  inset-inline: 0.75rem;
+  height: 1px;
+  background-color: rgb(159 29 44 / 0.35);
+}
+
+.oraculo-tira::before {
+  top: 0.4375rem;
+}
+
+.oraculo-tira::after {
+  bottom: 0.4375rem;
+}
+
+@keyframes oraculo-desenrolla {
+  from {
+    opacity: 0;
+    transform: rotate(-0.6deg) scaleY(0.2);
+  }
+}
+
+.oraculo-tira-cabecera {
+  display: flex;
+  align-items: center;
+  gap: 0.625rem;
+  margin: 0 0 0.625rem;
+  padding-bottom: 0.5rem;
+  border-bottom: 1px solid rgb(159 29 44 / 0.35);
+}
+
+.oraculo-tira-cabecera .rotulo {
+  color: rgb(4 7 12 / 0.65);
+}
+
+.oraculo-tira-kanji {
+  color: var(--color-accent);
+  font-size: var(--text-lg);
+  font-weight: 700;
+  line-height: 1;
+}
+
+.oraculo-tira-texto {
+  margin: 0;
+  font-family: var(--font-display);
+  font-size: var(--text-xl);
+  font-weight: 700;
+  line-height: 1.3;
+  text-wrap: pretty;
+}
+
+/* Las tres respuestas, con su glifo. */
+.oraculo-respuestas {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.625rem;
+}
+
+.oraculo-respuesta {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  min-height: 2.75rem;
+  padding: 0.5rem 1.125rem 0.5rem 0.875rem;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-full);
+  background-color: var(--color-surface);
+  color: var(--color-fg-strong);
+  font: inherit;
+  font-size: var(--text-sm);
+  font-weight: 500;
+  cursor: pointer;
+  transition:
+    border-color var(--dur-2) var(--ease-sumi),
+    background-color var(--dur-2) var(--ease-sumi),
+    transform var(--dur-2) var(--ease-sumi);
+}
+
+.oraculo-respuesta:hover {
+  border-color: var(--acento-linea);
+  background-color: var(--acento-suave);
+  transform: translate3d(0, -1px, 0);
+}
+
+.oraculo-respuesta[data-respuesta='si']:hover {
+  border-color: var(--color-gold-line-strong);
+  background-color: var(--color-gold-soft);
+}
+
+.oraculo-respuesta[aria-disabled='true'] {
+  color: var(--color-fg-muted);
+  cursor: not-allowed;
+}
+
+.oraculo-respuesta[aria-disabled='true']:hover {
+  border-color: var(--color-border);
+  background-color: var(--color-surface);
+  transform: none;
+}
+
+.oraculo-respuesta-glifo {
+  color: var(--color-gold-bright);
+  font-size: var(--text-base);
+  line-height: 1;
+}
+
+.oraculo-respuesta[data-respuesta='no'] .oraculo-respuesta-glifo {
+  color: var(--color-accent-text);
+}
+
+.oraculo-respuesta-resto {
+  color: var(--color-fg-muted);
+  font-size: var(--text-2xs);
+  font-weight: 400;
+}
+
+/* ---- Veredicto: la apuesta y, al final, el personaje sellado ---- */
+.oraculo-veredicto {
+  display: grid;
+  justify-items: start;
+  gap: 0.875rem;
+  animation: aparece var(--dur-4) var(--ease-sumi) both;
+}
+
+.oraculo-veredicto-titulo {
+  margin: 0;
+  color: var(--color-fg-strong);
+  font-family: var(--font-display);
+  font-size: var(--text-xl);
+  font-weight: 700;
+}
+
+.oraculo-veredicto-texto {
+  max-width: var(--container-prosa);
+  margin: 0;
+  color: var(--color-fg-muted);
+  text-wrap: pretty;
+}
+
+.oraculo-veredicto[data-resultado='mentira'] .oraculo-veredicto-titulo {
+  color: var(--color-accent-text);
+}
+
+.oraculo-cartas {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1.25rem;
+}
+
+.oraculo-figura {
+  position: relative;
+  display: grid;
+  justify-items: center;
+  gap: 0.5rem;
+  margin: 0;
+}
+
+.oraculo-carta {
+  width: min(44vw, 11rem);
+}
+
+.oraculo-figura .rotulo {
+  color: var(--color-fg-muted);
+}
+
+/* El sello de acierto cae sobre la carta adivinada. */
+.oraculo-acierto {
+  position: absolute;
+  top: 0.5rem;
+  right: -0.75rem;
+  width: 3.5rem;
+  height: 3.5rem;
+  transform: rotate(-8deg);
+  animation: oraculo-estampa var(--dur-4) var(--ease-hane) 200ms both;
+}
+
+@keyframes oraculo-estampa {
+  from {
+    opacity: 0;
+    transform: translate3d(0, -2rem, 0) scale(1.7) rotate(-20deg);
+  }
+}
+
+/* ---- Memoria: las respuestas colgadas como tablillas ---- */
+.oraculo-memoria {
+  display: grid;
+  gap: 0.75rem;
+  margin-top: 1.75rem;
+}
+
+.oraculo-memoria-cabecera {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 1rem;
+  margin: 0;
+  padding-bottom: 0.5rem;
+  border-bottom: 1px solid var(--color-gold-line);
+}
+
+.oraculo-memoria-cuenta {
+  color: var(--color-fg-muted);
+  font-size: var(--text-xs);
+}
+
+.oraculo-emas {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(min(100%, 9.5rem), 1fr));
+  gap: 0.625rem;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.oraculo-ema {
+  position: relative;
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  gap: 0.125rem 0.625rem;
+  margin-top: 0.5rem;
+  padding: 0.625rem 0.75rem 0.625rem 0.625rem;
+  border: 1px solid var(--color-gold-line);
+  border-top: 2px solid var(--color-gold-line-strong);
+  border-radius: var(--radius-sm) var(--radius-sm) var(--radius-md) var(--radius-md);
+  background-color: var(--color-surface);
+  background-image: linear-gradient(102deg, var(--color-surface-alt), var(--color-surface));
+  transform-origin: 50% 0;
+  animation: oraculo-cuelga var(--dur-4) var(--ease-hane) both;
+}
+
+/* El cordel del que cuelga. */
+.oraculo-ema::before {
+  content: '';
+  position: absolute;
+  top: -0.5625rem;
+  left: 50%;
+  width: 1px;
+  height: 0.5rem;
+  background-color: var(--color-gold-line-strong);
+}
+
+.oraculo-ema[data-respuesta='nose'] {
+  border-top-color: var(--color-border);
+}
+
+@keyframes oraculo-cuelga {
+  0% {
+    opacity: 0;
+    transform: rotate(7deg);
+  }
+  55% {
+    transform: rotate(-3.5deg);
+  }
+  100% {
+    opacity: 1;
+    transform: rotate(0deg);
+  }
+}
+
+.oraculo-ema-glifo {
+  grid-row: 1 / span 2;
+  align-self: center;
+  color: var(--color-gold-bright);
+  font-size: var(--text-xl);
+  line-height: 1;
+}
+
+.oraculo-ema[data-respuesta='no'] .oraculo-ema-glifo {
+  color: var(--color-accent-text);
+}
+
+.oraculo-ema[data-respuesta='nose'] .oraculo-ema-glifo {
+  color: var(--color-fg-muted);
+  font-size: var(--text-sm);
+}
+
+.oraculo-ema-numero {
+  color: var(--color-fg-muted);
+  font-size: var(--text-2xs);
+}
+
+.oraculo-ema-texto {
+  color: var(--color-fg);
+  font-size: var(--text-xs);
+  line-height: 1.35;
+}
+
+/* ---- Escritorio: altar y mesa en dos columnas ---- */
+@media (min-width: 48rem) {
+  .oraculo-santuario {
+    grid-template-columns: minmax(0, 20rem) minmax(0, 1fr);
+    gap: 2rem;
+    align-items: start;
+  }
+
+  .oraculo-mesa {
+    order: 0;
+  }
+
+  .oraculo-altar {
+    min-height: 22rem;
+  }
+
+  .oraculo-carta {
+    width: 12rem;
+  }
+}
+
+@media (min-width: 64rem) {
+  .oraculo-santuario {
+    grid-template-columns: minmax(0, 24rem) minmax(0, 1fr);
+  }
+}
+
+/* ---- Pausas: fuera de pantalla y con movimiento reducido ---- */
+.oraculo-santuario[data-fuera] .oraculo-aura--fuerte,
+.oraculo-santuario[data-fuera] .oraculo-levita {
+  animation-play-state: paused;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .oraculo-aura--fuerte,
+  .oraculo-levita,
+  .oraculo-acierto {
+    animation: none;
+  }
+
+  .oraculo-aura--fuerte {
+    opacity: 0.5;
+  }
+
+  .oraculo-sellado,
+  .oraculo-elegido,
+  .oraculo-tira,
+  .oraculo-veredicto,
+  .oraculo-ema {
+    animation-name: funde;
+  }
+
+  .oraculo-mascara,
+  .oraculo-mascara-brillo,
+  .oraculo-respuesta {
+    transition: none;
+  }
+
+  .oraculo-respuesta:hover {
+    transform: none;
+  }
+}
